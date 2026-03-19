@@ -56,8 +56,15 @@ export function useSubscription(
       return
     }
 
+    // Skip subscription re-check when role is null (role is mid-refresh).
+    // The dependency on role is needed so we re-run when role first arrives,
+    // but subsequent null→value cycles (TOKEN_REFRESHED) should not re-trigger.
+    if (role === null) return
+
     // Reset to loading immediately when userId becomes available
-    setState({ hasAccess: false, isLoading: true, plan: null, status: null })
+    setState(prev =>
+      prev.isLoading ? prev : { hasAccess: false, isLoading: true, plan: null, status: null }
+    )
 
     let mounted = true
     const MAX_RETRIES = 5

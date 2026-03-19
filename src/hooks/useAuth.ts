@@ -94,19 +94,25 @@ export function useAuth() {
       }
 
       // ★ Mark as authenticated IMMEDIATELY — before the role fetch.
-      //   The dashboard shows a spinner (role === null) until role arrives.
-      //   This prevents the safety timer from seeing isAuthenticated=false
-      //   while the role is still loading.
-      setAuthState({
+      //   CRITICAL: preserve prev.role instead of resetting to null.
+      //   Supabase fires TOKEN_REFRESHED when a tab regains focus, which
+      //   re-invokes processSession. Resetting role → null would briefly
+      //   set stillResolving=true in the dashboard layout, causing the
+      //   visible "flash" / reload effect on every tab switch.
+      //   On initial load prev.role is null (shows spinner until role arrives).
+      //   On subsequent events prev.role is already set (no flash).
+      setAuthState((prev) => ({
         user: session.user,
         session,
         isLoading: false,
         isAuthenticated: true,
-        role: null,
-      });
+        role: prev.role,  // preserve existing role — updated below
+      }));
       setAuthFromSession(session);
 
-      // Fetch role (up to 5s per query, 10s total max)
+      // Fetch role (up to 5s per query, 10s total max).
+      // Runs on every auth event so role stays fresh, but the UI never
+      // sees role=null once it has been set for the first time.
       const role = await fetchUserRole(session.user.id);
       if (mounted) {
         setAuthState((prev) => ({ ...prev, role }));
