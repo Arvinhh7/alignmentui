@@ -8,6 +8,7 @@ import SubscriptionBanner from '@/components/SubscriptionBanner'
 import { ToastProvider } from '@/components/Toast'
 import { useLanguage } from '@/lib/LanguageContext'
 import { getSupabase } from '@/lib/supabase'
+import { useScrollRestoration } from '@/hooks/useScrollRestoration'
 
 const SIDEBAR_KEY = 'sidebar_expanded'
 
@@ -15,6 +16,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { isLoading, isAuthenticated, role, user } = useAuth()
   const { lang } = useLanguage()
   const [expanded, setExpanded] = useState(false)
+
+  // Preserve scroll position across module navigation
+  useScrollRestoration()
   const [onboardingChecked, setOnboardingChecked] = useState(false)
 
   // Check subscription access for non-admin/demo users.

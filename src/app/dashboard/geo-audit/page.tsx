@@ -1843,6 +1843,9 @@ export default function GEOAuditPage() {
   const [auditingUrl, setAuditingUrl] = useState('')
   const [showRecentDropdown, setShowRecentDropdown] = useState(false)
   const resultRef = useRef<HTMLDivElement>(null)
+  // Tracks whether the current auditResult came from a live run (true) or was
+  // restored from localStorage (false). Auto-scroll only fires for live runs.
+  const isLiveAuditRef = useRef(false)
 
   // ─── Restore from localStorage or URL param on mount ──
   useEffect(() => {
@@ -1861,7 +1864,10 @@ export default function GEOAuditPage() {
         const session = JSON.parse(saved)
         if (session.url) setUrl(session.url)
         if (session.auditingUrl) setAuditingUrl(session.auditingUrl)
-        if (session.auditResult) setAuditResult(session.auditResult)
+        if (session.auditResult) {
+          isLiveAuditRef.current = false  // restored — do NOT auto-scroll
+          setAuditResult(session.auditResult)
+        }
       }
     } catch {}
   }, [])
@@ -1886,9 +1892,9 @@ export default function GEOAuditPage() {
     }
   }, [auditResult, url, auditingUrl])
 
-  // Auto-scroll to results when audit completes
+  // Auto-scroll to results only when a LIVE audit completes (not on restore)
   useEffect(() => {
-    if (auditResult && resultRef.current) {
+    if (auditResult && resultRef.current && isLiveAuditRef.current) {
       setTimeout(() => {
         resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }, 300)
@@ -1915,6 +1921,7 @@ export default function GEOAuditPage() {
     if (response.error) {
       setError(response.error)
     } else if (response.data) {
+      isLiveAuditRef.current = true  // live run — allow auto-scroll
       setAuditResult(response.data)
       addRecentUrl(response.data.url)
       refreshRecentUrls()
