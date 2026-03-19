@@ -268,6 +268,7 @@ export default function Sidebar() {
                     <Link
                       key={item.href}
                       href={href}
+                      scroll={false}
                       onClick={() => { setShowSearch(false); setSearchQuery('') }}
                       className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-gray-800 transition-colors"
                     >
@@ -338,6 +339,7 @@ export default function Sidebar() {
                 <Link
                   key={item.href}
                   href={href}
+                  scroll={false}
                   className={`relative flex items-center gap-3 rounded-lg transition-all duration-200 group mb-0.5 ${
                     expanded ? 'px-3 py-2' : 'w-11 h-10 justify-center'
                   } ${
@@ -399,6 +401,7 @@ export default function Sidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  scroll={false}
                   className={`relative flex items-center gap-3 rounded-lg transition-all duration-200 group mb-0.5 ${
                     expanded ? 'px-3 py-2' : 'w-11 h-10 justify-center'
                   } ${

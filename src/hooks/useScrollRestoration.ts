@@ -38,9 +38,13 @@ export function useScrollRestoration() {
         const raw = sessionStorage.getItem(`${SCROLL_KEY_PREFIX}${pathname}`)
         const savedY = raw !== null ? parseInt(raw, 10) : 0
 
-        // rAF ensures the new page's DOM has been painted before scrolling
+        // Double-rAF: first rAF lets React commit the new DOM, second rAF fires
+        // after any other scroll handlers (including Next.js router scroll).
+        // scroll={false} on <Link> also prevents Next.js from overriding us.
         requestAnimationFrame(() => {
-          window.scrollTo({ top: savedY, behavior: 'instant' as ScrollBehavior })
+          requestAnimationFrame(() => {
+            window.scrollTo({ top: savedY, behavior: 'instant' as ScrollBehavior })
+          })
         })
       } catch {
         window.scrollTo(0, 0)
