@@ -310,8 +310,8 @@ function ROISimulatorInner() {
                   {/* Revenue Opportunity Breakdown */}
                   <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
                     <div className="flex items-center gap-2 mb-5">
-                      <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
-                        <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center">
+                        <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       </div>
                       <h3 className="font-semibold text-gray-900">{r.opportunityTitle as string}</h3>
                     </div>
@@ -328,15 +328,15 @@ function ROISimulatorInner() {
                         <span className="text-sm text-gray-500">{r.opportunityRevenuePerCustomer as string}</span>
                         <span className="text-sm font-semibold text-gray-800">{fmtUSD(result.aov)}</span>
                       </div>
-                      {/* 6-month total revenue — highlighted */}
-                      <div className="flex items-center justify-between py-3 border-b border-gray-100 bg-green-50 -mx-6 px-6">
-                        <span className="text-sm font-semibold text-green-800">{r.opportunityTotalRevenue as string}</span>
-                        <span className="text-base font-bold text-green-700">{fmtK(result.revenue_low)} – {fmtK(result.revenue_high)}</span>
+                      {/* 6-month total revenue — red highlight */}
+                      <div className="flex items-center justify-between py-4 border-b border-red-100 bg-red-50 -mx-6 px-6">
+                        <span className="text-sm font-semibold text-red-700">{r.opportunityTotalRevenue as string}</span>
+                        <span className="text-2xl font-black text-red-600">{fmtK(result.revenue_low)} – {fmtK(result.revenue_high)}</span>
                       </div>
-                      {/* Expected ROI — highlighted */}
-                      <div className="flex items-center justify-between py-3 bg-green-50 -mx-6 px-6 rounded-b-xl">
-                        <span className="text-sm font-semibold text-green-800">{r.opportunityExpectedRoi as string}</span>
-                        <span className="text-base font-bold text-green-700">{result.roi_low}× – {result.roi_high}×</span>
+                      {/* Expected ROI — red highlight */}
+                      <div className="flex items-center justify-between py-4 bg-red-50 -mx-6 px-6 rounded-b-xl">
+                        <span className="text-sm font-semibold text-red-700">{r.opportunityExpectedRoi as string}</span>
+                        <span className="text-2xl font-black text-red-600">{result.roi_low}× – {result.roi_high}×</span>
                       </div>
                     </div>
                   </div>
@@ -369,19 +369,26 @@ function ROISimulatorInner() {
                         </div>
                         <h3 className="font-semibold text-gray-900">{r.benchmarkTitle as string}</h3>
                       </div>
-                      <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 text-center border border-gray-200">
-                        <div className="text-xs text-gray-500 mb-1 font-medium uppercase tracking-wide">
-                          {lang === 'zh' ? `${industryDisplayName()} 行业平均 ROI` : `${industryDisplayName()} Industry Avg. ROI`}
-                        </div>
-                        <div className="text-2xl font-bold text-gray-700">
-                          {result.benchmark_roi_low}x – {result.benchmark_roi_high}x
-                        </div>
-                        <div className="mt-2 flex items-center justify-center gap-2">
-                          <div className="flex items-center gap-1 px-2.5 py-1 bg-green-100 rounded-full">
-                            <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
-                            <span className="text-xs font-semibold text-green-700">
-                              {lang === 'zh' ? `Alignment：${result.roi_low}x – ${result.roi_high}x` : `With Alignment: ${result.roi_low}x – ${result.roi_high}x`}
+                      <div className="rounded-xl border border-gray-200 overflow-hidden">
+                        {/* Alignment ROI — hero */}
+                        <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-5 text-center">
+                          <div className="flex items-center justify-center gap-1.5 mb-2">
+                            <svg className="w-3.5 h-3.5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+                            <span className="text-xs font-semibold text-green-400 uppercase tracking-wide">
+                              {lang === 'zh' ? '使用 Alignment' : 'With Alignment'}
                             </span>
+                          </div>
+                          <div className="text-3xl font-black text-white">
+                            {result.roi_low}x – {result.roi_high}x
+                          </div>
+                        </div>
+                        {/* Industry avg — secondary */}
+                        <div className="bg-gray-50 px-5 py-3 text-center border-t border-gray-200">
+                          <div className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">
+                            {lang === 'zh' ? `${industryDisplayName()} 行业平均` : `${industryDisplayName()} Industry Avg.`}
+                          </div>
+                          <div className="text-lg font-semibold text-gray-500">
+                            {result.benchmark_roi_low}x – {result.benchmark_roi_high}x
                           </div>
                         </div>
                       </div>
