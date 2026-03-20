@@ -8,6 +8,7 @@ import { useSubscription } from '@/hooks/useSubscription'
 import {
   api, AuditResult, DimensionScore, ZoneCheck, ZoneBreakdown, notifyCreditUsed,
   fixApi, FixPlan, FixResult, FixZone, GenerateFixRequest, RollbackResult,
+  connectionsApi, WebsiteConnection,
 } from '@/lib/api'
 import {
   Search, Globe, Shield, Layers, FileText, AlertOctagon, Brain,
@@ -677,6 +678,9 @@ function FixPanel({
   const [approved, setApproved] = useState(false)
   const [applying, setApplying] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [connections, setConnections] = useState<WebsiteConnection[]>([])
+  const [selectedConnectionId, setSelectedConnectionId] = useState<string | null>(null)
+  const [loadingConnections, setLoadingConnections] = useState(false)
 
   const isRed = check.zone === 'red'
   const isYellow = check.zone === 'yellow'
@@ -702,6 +706,24 @@ function FixPanel({
       }
       const result = await fixApi.generatePlan(req)
       setPlan(result)
+      // Load matching connections if this fix requires platform access
+      if (result.requires_connection) {
+        const platform =
+          result.apply_method === 'shopify_asset' ? 'shopify'
+          : result.apply_method === 'github_commit' ? 'github'
+          : null
+        if (platform) {
+          setLoadingConnections(true)
+          try {
+            const all = await connectionsApi.list(userId)
+            const matching = all.filter(c => c.platform === platform && c.status === 'connected')
+            setConnections(matching)
+            if (matching.length === 1) setSelectedConnectionId(matching[0].id)
+          } catch { /* fail silently — user can still copy code manually */ } finally {
+            setLoadingConnections(false)
+          }
+        }
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Fix generation failed')
     } finally {
@@ -744,6 +766,7 @@ function FixPanel({
         plan_id: plan.id,
         user_id: userId,
         approved: approved,
+        connection_id: selectedConnectionId ?? undefined,
       })
       setApplyResult(result)
     } catch (err: unknown) {
@@ -892,6 +915,46 @@ function FixPanel({
             </div>
           )}
 
+          {/* Connection Selector — shown when fix requires Shopify / GitHub access */}
+          {plan.requires_connection && !isRed && (
+            <div className="mx-3 mb-3">
+              <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                Apply via connection
+              </p>
+              {loadingConnections ? (
+                <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Loading connections…
+                </div>
+              ) : connections.length === 0 ? (
+                <div className="flex items-start gap-2 p-2 bg-amber-50 border border-amber-200 rounded-lg">
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-amber-700 leading-relaxed">
+                    No {plan.apply_method === 'shopify_asset' ? 'Shopify' : 'GitHub'} connection found.{' '}
+                    <a href="/dashboard/connections" className="underline font-medium">
+                      Connect your store
+                    </a>
+                    {' '}to enable one-click apply. You can still copy the code and apply manually.
+                  </p>
+                </div>
+              ) : (
+                <select
+                  value={selectedConnectionId ?? ''}
+                  onChange={e => setSelectedConnectionId(e.target.value || null)}
+                  className="w-full text-[11px] border border-gray-200 rounded-lg px-2.5 py-1.5 bg-white text-gray-700 focus:outline-none focus:border-blue-400"
+                >
+                  <option value="">— No connection (copy code manually) —</option>
+                  {connections.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.platform === 'shopify' ? '🛍️' : c.platform === 'github' ? '🐙' : '🔗'}{' '}
+                      {c.display_name || c.site_url}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
+
           {/* Action row */}
           {!isRed && (
             <div className="px-3 pb-3 flex items-center gap-2">
@@ -916,7 +979,12 @@ function FixPanel({
                 >
                   {applying
                     ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Applying…</>
-                    : <><Wand2 className="w-3.5 h-3.5" /> {isYellow ? 'Apply with Approval' : 'Apply Now'}</>
+                    : <><Wand2 className="w-3.5 h-3.5" />
+                      {selectedConnectionId
+                        ? (isYellow ? 'Apply with Approval' : 'Apply Now')
+                        : 'Apply (manual)'
+                      }
+                    </>
                   }
                 </button>
               )}
