@@ -290,10 +290,12 @@ export const translations = {
       geoMonitorNav: 'GEO Monitor',
       promptsNav: 'Prompts',
       brandNav: 'Brand Hub',
+      visibilityProxyNav: 'Visibility Proxy',
       // Nav group labels
       navGroupAnalytics: 'Analytics',
       navGroupAction: 'Action',
       navGroupContext: 'Context',
+      navGroupProxy: 'Infrastructure',
       // Search
       searchPlaceholder: 'Search topics, prompts, content...',
       // Getting Started
@@ -849,10 +851,12 @@ export const translations = {
       geoMonitorNav: 'GEO 监控',
       promptsNav: 'Prompt 管理',
       brandNav: '品牌中心',
+      visibilityProxyNav: '可见性代理',
       // Nav group labels
       navGroupAnalytics: '数据分析',
       navGroupAction: '执行操作',
       navGroupContext: '品牌资产',
+      navGroupProxy: '基础设施',
       // Search
       searchPlaceholder: '搜索话题、Prompt、内容...',
       // Getting Started

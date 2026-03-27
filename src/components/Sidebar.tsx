@@ -12,7 +12,7 @@ import {
   LogOut, Settings, Wrench, PanelLeftClose, PanelLeft,
   Sparkles, ExternalLink, HelpCircle, Home, ChevronRight, CreditCard,
   LineChart, LayoutDashboard, Bot, Search, MessageSquare,
-  BookOpen, TrendingUp, Database, X,
+  BookOpen, TrendingUp, Database, X, Globe,
 } from 'lucide-react'
 
 const SIDEBAR_KEY = 'sidebar_expanded'
@@ -168,6 +168,12 @@ export default function Sidebar() {
       items: [
         { href: '/dashboard/prompts',   icon: MessageSquare, labelKey: 'promptsNav', badge: promptCount > 0 ? String(promptCount) : undefined },
         { href: '/dashboard/brand-hub', icon: Database,      labelKey: 'brandNav' },
+      ],
+    },
+    {
+      labelKey: 'navGroupProxy',
+      items: [
+        { href: '/dashboard/visibility-proxy', icon: Globe, labelKey: 'visibilityProxyNav', matchPrefix: true, isNew: true },
       ],
     },
   ]

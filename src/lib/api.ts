@@ -2618,3 +2618,184 @@ export const setAuthFromSession = (session: { access_token: string } | null) => 
     api.setToken(null);
   }
 };
+
+// ─────────────────────────────────────────────────────────────
+// Visibility Proxy — Types & API Client
+// ─────────────────────────────────────────────────────────────
+
+export type DomainStatus = 'pending' | 'dns_verifying' | 'ssl_provisioning' | 'active' | 'paused' | 'error'
+
+export type ModuleType =
+  | 'brand_identity'
+  | 'products_services'
+  | 'faq_knowledge'
+  | 'data_authority'
+  | 'competitive_positioning'
+  | 'content_summaries'
+  | 'ai_discovery_files'
+  | 'technical_config'
+  | 'html_enhancement'
+
+export interface ProxyDomain {
+  id: string
+  user_id: string
+  domain: string
+  origin_url: string
+  status: DomainStatus
+  cf_custom_hostname_id?: string
+  ssl_status?: string
+  dns_verified_at?: string
+  activated_at?: string
+  strip_noindex: boolean
+  bypass_paywall: boolean
+  inject_canonical: boolean
+  prerender_csr: boolean
+  robots_allow_all_ai: boolean
+  custom_robots_rules: string
+  date_modified_auto: boolean
+  created_at: string
+  updated_at?: string
+}
+
+export interface ProxyDomainStatus {
+  domain: string
+  status: DomainStatus
+  ssl_status?: string
+  dns_verified: boolean
+  dns_cname_target: string
+  instructions: string
+}
+
+export interface ProxyBrandAsset {
+  id: string
+  domain_id: string
+  module_type: ModuleType
+  content: Record<string, unknown> | unknown[]
+  version: number
+  is_active: boolean
+  last_compiled_at?: string
+  created_at: string
+  updated_at?: string
+}
+
+export interface ProxyAllAssets {
+  domain_id: string
+  assets: Record<string, Record<string, unknown> | unknown[]>
+}
+
+export interface ProxySyncResult {
+  success: boolean
+  domain: string
+  synced_keys: string[]
+  message: string
+}
+
+export interface ProxyBotStat {
+  bot_name: string
+  bot_org?: string
+  visit_count: number
+}
+
+export interface ProxyPathStat {
+  path: string
+  visit_count: number
+}
+
+export interface ProxyAnalytics {
+  domain: string
+  total_ai_visits: number
+  by_bot: ProxyBotStat[]
+  by_path: ProxyPathStat[]
+  recent_visits: Record<string, unknown>[]
+}
+
+export const proxyApi = {
+  listDomains: async (userId: string): Promise<ProxyDomain[]> => {
+    const r = await fetch(`${API_BASE_URL}/api/proxy/domains?user_id=${encodeURIComponent(userId)}`)
+    if (!r.ok) throw new Error(await r.text())
+    return r.json()
+  },
+
+  createDomain: async (userId: string, domain: string, originUrl: string): Promise<ProxyDomain> => {
+    const r = await fetch(`${API_BASE_URL}/api/proxy/domains?user_id=${encodeURIComponent(userId)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain, origin_url: originUrl }),
+    })
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({ detail: 'Request failed' }))
+      throw new Error(err.detail ?? 'Request failed')
+    }
+    return r.json()
+  },
+
+  getDomain: async (domainId: string, userId: string): Promise<ProxyDomain> => {
+    const r = await fetch(`${API_BASE_URL}/api/proxy/domains/${domainId}?user_id=${encodeURIComponent(userId)}`)
+    if (!r.ok) throw new Error(await r.text())
+    return r.json()
+  },
+
+  updateDomain: async (domainId: string, userId: string, updates: Partial<ProxyDomain>): Promise<ProxyDomain> => {
+    const r = await fetch(`${API_BASE_URL}/api/proxy/domains/${domainId}?user_id=${encodeURIComponent(userId)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    })
+    if (!r.ok) throw new Error(await r.text())
+    return r.json()
+  },
+
+  deleteDomain: async (domainId: string, userId: string): Promise<void> => {
+    const r = await fetch(`${API_BASE_URL}/api/proxy/domains/${domainId}?user_id=${encodeURIComponent(userId)}`, {
+      method: 'DELETE',
+    })
+    if (!r.ok && r.status !== 204) throw new Error(await r.text())
+  },
+
+  getDomainStatus: async (domainId: string, userId: string): Promise<ProxyDomainStatus> => {
+    const r = await fetch(`${API_BASE_URL}/api/proxy/domains/${domainId}/status?user_id=${encodeURIComponent(userId)}`)
+    if (!r.ok) throw new Error(await r.text())
+    return r.json()
+  },
+
+  getAssets: async (domainId: string, userId: string): Promise<ProxyAllAssets> => {
+    const r = await fetch(`${API_BASE_URL}/api/proxy/domains/${domainId}/assets?user_id=${encodeURIComponent(userId)}`)
+    if (!r.ok) throw new Error(await r.text())
+    return r.json()
+  },
+
+  updateAsset: async (
+    domainId: string,
+    moduleType: ModuleType,
+    content: Record<string, unknown> | unknown[],
+    userId: string,
+  ): Promise<ProxyBrandAsset> => {
+    const r = await fetch(
+      `${API_BASE_URL}/api/proxy/domains/${domainId}/assets/${moduleType}?user_id=${encodeURIComponent(userId)}`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+      },
+    )
+    if (!r.ok) throw new Error(await r.text())
+    return r.json()
+  },
+
+  sync: async (domainId: string, userId: string): Promise<ProxySyncResult> => {
+    const r = await fetch(
+      `${API_BASE_URL}/api/proxy/domains/${domainId}/sync?user_id=${encodeURIComponent(userId)}`,
+      { method: 'POST' },
+    )
+    if (!r.ok) throw new Error(await r.text())
+    return r.json()
+  },
+
+  getAnalytics: async (domainId: string, userId: string, limit = 100): Promise<ProxyAnalytics> => {
+    const r = await fetch(
+      `${API_BASE_URL}/api/proxy/domains/${domainId}/analytics?user_id=${encodeURIComponent(userId)}&limit=${limit}`,
+    )
+    if (!r.ok) throw new Error(await r.text())
+    return r.json()
+  },
+}
