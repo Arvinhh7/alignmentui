@@ -1,7 +1,7 @@
 import DomainDetailClient from './DomainDetailClient'
 
 export function generateStaticParams() {
-  return [{ id: '_' }]
+  return [{ id: 'placeholder' }]
 }
 
 export default function Page() {

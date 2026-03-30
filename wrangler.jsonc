@@ -1,7 +1,9 @@
 {
   "name": "alignmenttech",
   "compatibility_date": "2026-02-10",
+  "main": "worker.js",
   "assets": {
-    "directory": "./out"
+    "directory": "./out",
+    "binding": "ASSETS"
   }
 }
