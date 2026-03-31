@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { proxyApi, ModuleType } from '@/lib/api'
-import { Loader2, AlertCircle } from 'lucide-react'
+import { Loader2, AlertCircle, Sparkles, CheckCircle2 } from 'lucide-react'
 import { MODULES, ModulePanel } from './assets/module-forms'
 
 export default function BrandDataTab({ domainId }: { domainId: string }) {
@@ -13,6 +13,8 @@ export default function BrandDataTab({ domainId }: { domainId: string }) {
   const [savingModule, setSavingModule] = useState<ModuleType | null>(null)
   const [savedModules, setSavedModules] = useState<Set<ModuleType>>(new Set())
   const [error, setError] = useState<string | null>(null)
+  const [autoFilling, setAutoFilling] = useState(false)
+  const [autoFillResult, setAutoFillResult] = useState<{ filled: string[]; message: string } | null>(null)
 
   const loadAssets = useCallback(async () => {
     if (!user?.id) return
@@ -45,6 +47,23 @@ export default function BrandDataTab({ domainId }: { domainId: string }) {
     }
   }
 
+  const handleAutoFill = async () => {
+    if (!user?.id) return
+    setAutoFilling(true)
+    setAutoFillResult(null)
+    setError(null)
+    try {
+      const result = await proxyApi.autoFill(domainId, user.id)
+      setAutoFillResult({ filled: result.filled_modules, message: result.message })
+      // Reload assets to show newly filled data
+      await loadAssets()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Auto-fill failed')
+    } finally {
+      setAutoFilling(false)
+    }
+  }
+
   if (loading) return (
     <div className="flex items-center justify-center py-16">
       <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
@@ -62,11 +81,36 @@ export default function BrandDataTab({ domainId }: { domainId: string }) {
         </div>
       )}
 
-      {/* Progress bar */}
+      {/* Auto-fill success banner */}
+      {autoFillResult && (
+        <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3">
+          <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+          <div>
+            <div className="text-sm font-semibold text-emerald-800">{autoFillResult.message}</div>
+            <div className="text-xs text-emerald-600 mt-0.5">
+              Modules filled: {autoFillResult.filled.map(m => m.replace(/_/g, ' ')).join(', ')}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Progress bar + Auto-fill button */}
       <div className="bg-white border border-gray-200 rounded-2xl p-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-semibold text-gray-500">Modules configured</span>
-          <span className="text-xs font-bold text-gray-700">{configured} / {MODULES.length}</span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-bold text-gray-700">{configured} / {MODULES.length}</span>
+            <button
+              onClick={handleAutoFill}
+              disabled={autoFilling}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 text-white text-xs font-semibold rounded-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+            >
+              {autoFilling
+                ? <><Loader2 className="w-3 h-3 animate-spin" />AI 正在分析…</>
+                : <><Sparkles className="w-3 h-3" />Auto-fill with AI</>
+              }
+            </button>
+          </div>
         </div>
         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
           <div
@@ -74,6 +118,11 @@ export default function BrandDataTab({ domainId }: { domainId: string }) {
             style={{ width: `${(configured / MODULES.length) * 100}%` }}
           />
         </div>
+        {autoFilling && (
+          <p className="text-xs text-gray-400 mt-2">
+            Crawling your site and extracting brand data with AI… this takes 15-30 seconds.
+          </p>
+        )}
       </div>
 
       {/* Module panels */}

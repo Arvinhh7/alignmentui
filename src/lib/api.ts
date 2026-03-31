@@ -2701,6 +2701,14 @@ export interface ProxyPathStat {
   visit_count: number
 }
 
+export interface ProxyAutoFillResult {
+  domain: string
+  filled_modules: string[]
+  skipped_modules: string[]
+  pages_crawled: number
+  message: string
+}
+
 export interface ProxyDailyTrend {
   date: string
   total: number
@@ -2821,6 +2829,18 @@ export const proxyApi = {
       `${API_BASE_URL}/api/proxy/domains/${domainId}/analytics?user_id=${encodeURIComponent(userId)}&days=${days}`,
     )
     if (!r.ok) throw new Error(await r.text())
+    return r.json()
+  },
+
+  autoFill: async (domainId: string, userId: string): Promise<ProxyAutoFillResult> => {
+    const r = await fetch(
+      `${API_BASE_URL}/api/proxy/domains/${domainId}/auto-fill?user_id=${encodeURIComponent(userId)}`,
+      { method: 'POST' },
+    )
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({ detail: 'Auto-fill failed' }))
+      throw new Error(err.detail ?? 'Auto-fill failed')
+    }
     return r.json()
   },
 }
