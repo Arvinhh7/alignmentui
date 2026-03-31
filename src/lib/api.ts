@@ -2716,11 +2716,11 @@ export const proxyApi = {
     return r.json()
   },
 
-  createDomain: async (userId: string, domain: string, originUrl: string): Promise<ProxyDomain> => {
+  createDomain: async (userId: string, domain: string, originUrl: string, proxyMode: 'full' | 'sidecar' = 'full'): Promise<ProxyDomain> => {
     const r = await fetch(`${API_BASE_URL}/api/proxy/domains?user_id=${encodeURIComponent(userId)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ domain, origin_url: originUrl }),
+      body: JSON.stringify({ domain, origin_url: originUrl, proxy_mode: proxyMode }),
     })
     if (!r.ok) {
       const err = await r.json().catch(() => ({ detail: 'Request failed' }))

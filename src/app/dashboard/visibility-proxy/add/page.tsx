@@ -7,10 +7,11 @@ import { useAuth } from '@/hooks/useAuth'
 import { proxyApi } from '@/lib/api'
 import {
   Globe, ArrowLeft, ArrowRight, Copy, CheckCheck,
-  CheckCircle, Loader2, AlertCircle, ExternalLink,
+  CheckCircle, Loader2, AlertCircle, ExternalLink, ShoppingBag, Layers,
 } from 'lucide-react'
 
 type Step = 'form' | 'dns' | 'done'
+type ProxyMode = 'full' | 'sidecar'
 
 const CNAME_TARGET = 'alignment-proxy.qiulimu1030.workers.dev'
 
@@ -40,6 +41,7 @@ export default function AddDomainPage() {
   const [step, setStep] = useState<Step>('form')
   const [domain, setDomain] = useState('')
   const [originUrl, setOriginUrl] = useState('')
+  const [proxyMode, setProxyMode] = useState<ProxyMode>('full')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [createdId, setCreatedId] = useState<string | null>(null)
@@ -54,7 +56,7 @@ export default function AddDomainPage() {
     if (!origin.startsWith('http')) origin = `https://${origin}`
 
     try {
-      const created = await proxyApi.createDomain(user.id, domain.trim().toLowerCase(), origin)
+      const created = await proxyApi.createDomain(user.id, domain.trim().toLowerCase(), origin, proxyMode)
       setCreatedId(created.id)
       setStep('dns')
     } catch (e) {
@@ -127,12 +129,60 @@ export default function AddDomainPage() {
                 type="text"
                 value={originUrl}
                 onChange={e => setOriginUrl(e.target.value)}
-                placeholder="https://origin.acme.com"
+                placeholder={proxyMode === 'sidecar' ? 'https://your-shopify-store.com' : 'https://origin.acme.com'}
                 className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-red-400 focus:bg-white transition-colors"
               />
               <p className="text-xs text-gray-400 mt-1.5">
-                Where our proxy should forward traffic to — your original web server or CDN URL.
+                {proxyMode === 'sidecar'
+                  ? 'Your Shopify main store URL (e.g. https://yourstore.com). The proxy only serves AI files on a subdomain — main site untouched.'
+                  : 'Where our proxy should forward traffic to — your original web server or CDN URL.'}
               </p>
+            </div>
+
+            {/* Proxy Mode Selector */}
+            <div>
+              <label className="text-sm font-semibold text-gray-700 mb-2 block">Proxy Mode</label>
+              <div className="grid grid-cols-2 gap-3">
+                {/* Full mode */}
+                <button
+                  type="button"
+                  onClick={() => setProxyMode('full')}
+                  className={`flex flex-col gap-2 p-4 rounded-xl border-2 text-left transition-colors ${
+                    proxyMode === 'full'
+                      ? 'border-red-400 bg-red-50'
+                      : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Layers className={`w-4 h-4 ${proxyMode === 'full' ? 'text-red-500' : 'text-gray-400'}`} />
+                    <span className={`text-sm font-semibold ${proxyMode === 'full' ? 'text-red-700' : 'text-gray-700'}`}>Full Proxy</span>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    All traffic goes through proxy. Works for custom-hosted sites with DNS on Cloudflare.
+                  </p>
+                </button>
+
+                {/* Sidecar mode */}
+                <button
+                  type="button"
+                  onClick={() => setProxyMode('sidecar')}
+                  className={`flex flex-col gap-2 p-4 rounded-xl border-2 text-left transition-colors ${
+                    proxyMode === 'sidecar'
+                      ? 'border-red-400 bg-red-50'
+                      : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <ShoppingBag className={`w-4 h-4 ${proxyMode === 'sidecar' ? 'text-red-500' : 'text-gray-400'}`} />
+                    <span className={`text-sm font-semibold ${proxyMode === 'sidecar' ? 'text-red-700' : 'text-gray-700'}`}>
+                      Sidecar <span className="text-xs font-normal">(Shopify)</span>
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Deploy on a subdomain (e.g. ai.yourstore.com). Main Shopify site completely untouched.
+                  </p>
+                </button>
+              </div>
             </div>
 
             {error && (
@@ -156,10 +206,26 @@ export default function AddDomainPage() {
         {/* ── Step 2: DNS Instructions ─────────────────────────────── */}
         {step === 'dns' && (
           <div className="space-y-4">
+            {proxyMode === 'sidecar' && (
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex gap-3">
+                <ShoppingBag className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-blue-800">
+                  <div className="font-semibold mb-1">Shopify Sidecar Mode</div>
+                  <div className="text-blue-700 space-y-1">
+                    <div>✓ Your main Shopify site (<strong>{originUrl.replace(/^https?:\/\//, '')}</strong>) is <strong>not touched</strong></div>
+                    <div>✓ <strong>{domain}</strong> will only serve AI discovery files (llms.txt, robots.txt, agent.json)</div>
+                    <div>✓ All other paths on <strong>{domain}</strong> auto-redirect to your main store</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="bg-white border border-gray-200 rounded-2xl p-6">
               <h2 className="text-base font-semibold text-gray-900 mb-1">Add this CNAME record to your DNS</h2>
               <p className="text-sm text-gray-400 mb-5">
-                Log in to your DNS provider (Cloudflare, GoDaddy, Route 53, etc.) and add the following record:
+                {proxyMode === 'sidecar'
+                  ? `Log in to where you manage ${domain.split('.').slice(1).join('.')} DNS (GoDaddy, Namecheap, Cloudflare, etc.) and add:`
+                  : 'Log in to your DNS provider (Cloudflare, GoDaddy, Route 53, etc.) and add the following record:'}
               </p>
 
               <div className="bg-gray-950 rounded-xl overflow-hidden">

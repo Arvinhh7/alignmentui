@@ -8,11 +8,21 @@ import { proxyApi, ProxyDomain, ProxyDomainStatus, ProxyAnalytics } from '@/lib/
 import {
   Globe, ArrowLeft, CheckCircle, Clock, RefreshCw, XCircle,
   Pause, AlertCircle, Loader2, ExternalLink, Copy, CheckCheck,
-  BarChart3, Layers, Settings, Zap, Bot, ArrowRight,
+  BarChart3, Layers, Settings, Zap, Bot,
   TrendingUp, Activity,
 } from 'lucide-react'
 
+import BrandDataTab from './BrandDataTab'
+
 type Tab = 'overview' | 'assets' | 'analytics'
+
+function formatRelativeTime(iso: string): string {
+  const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
+  if (seconds < 60) return 'just now'
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
+  return `${Math.floor(seconds / 86400)}d ago`
+}
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType; bg: string }> = {
   active:           { label: 'Active',          color: 'text-green-700',  bg: 'bg-green-50 border-green-200',   icon: CheckCircle },
@@ -21,18 +31,6 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
   ssl_provisioning: { label: 'Provisioning SSL', color: 'text-purple-700', bg: 'bg-purple-50 border-purple-200', icon: RefreshCw },
   paused:           { label: 'Paused',           color: 'text-gray-600',   bg: 'bg-gray-50 border-gray-200',     icon: Pause },
   error:            { label: 'Error',            color: 'text-red-700',    bg: 'bg-red-50 border-red-200',       icon: XCircle },
-}
-
-const MODULE_LABELS: Record<string, string> = {
-  brand_identity:        'Brand Identity',
-  products_services:     'Products & Services',
-  faq_knowledge:         'FAQ Knowledge',
-  data_authority:        'Data & Authority',
-  competitive_positioning: 'Competitive Positioning',
-  content_summaries:     'Content Summaries',
-  ai_discovery_files:    'AI Discovery Files',
-  technical_config:      'Technical Config',
-  html_enhancement:      'HTML Enhancement',
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -59,6 +57,7 @@ function OverviewTab({
   onSync,
   syncing,
   syncResult,
+  lastSynced,
 }: {
   domain: ProxyDomain
   status: ProxyDomainStatus | null
@@ -67,6 +66,7 @@ function OverviewTab({
   onSync: () => void
   syncing: boolean
   syncResult: string | null
+  lastSynced: string | null
 }) {
   const cfg = STATUS_CONFIG[domain.status] ?? STATUS_CONFIG.pending
   const Icon = cfg.icon
@@ -196,6 +196,12 @@ function OverviewTab({
             <p className="text-xs text-gray-400 mt-0.5">
               Push your latest brand data to Cloudflare KV. Changes take effect within ~60 seconds.
             </p>
+            {lastSynced && (
+              <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                <CheckCircle className="w-3 h-3 text-green-500" />
+                Last synced: {formatRelativeTime(lastSynced)}
+              </p>
+            )}
           </div>
           <button
             onClick={onSync}
@@ -337,68 +343,27 @@ function AnalyticsTab({ analytics, loading }: { analytics: ProxyAnalytics | null
   )
 }
 
-// ── Assets Summary Tab ───────────────────────────────────────────────────────
-function AssetsSummaryTab({ domainId, userId }: { domainId: string; userId: string }) {
-  const [assets, setAssets] = useState<Record<string, unknown> | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    proxyApi.getAssets(domainId, userId).then(data => {
-      setAssets(data.assets as Record<string, unknown>)
-    }).catch(() => {}).finally(() => setLoading(false))
-  }, [domainId, userId])
-
-  if (loading) return (
-    <div className="flex items-center justify-center py-16">
-      <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
-    </div>
-  )
-
-  const modules = Object.keys(MODULE_LABELS) as (keyof typeof MODULE_LABELS)[]
-
-  return (
-    <div className="space-y-3">
-      <div className="flex justify-end">
-        <Link
-          href={`/dashboard/visibility-proxy/${domainId}/assets`}
-          className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-xl transition-colors"
-        >
-          <Layers className="w-4 h-4" />
-          Edit All Modules
-        </Link>
-      </div>
-      <div className="grid grid-cols-1 gap-3">
-        {modules.map(mod => {
-          const filled = assets && mod in assets
-          return (
-            <Link
-              key={mod}
-              href={`/dashboard/visibility-proxy/${domainId}/assets#${mod}`}
-              className="flex items-center justify-between bg-white border border-gray-200 hover:border-red-300 rounded-2xl p-4 transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${filled ? 'bg-green-500' : 'bg-gray-300'}`} />
-                <span className="text-sm font-medium text-gray-700">{MODULE_LABELS[mod]}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className={`text-xs font-medium ${filled ? 'text-green-600' : 'text-gray-400'}`}>
-                  {filled ? 'Configured' : 'Empty'}
-                </span>
-                <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-red-400 transition-colors" />
-              </div>
-            </Link>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function DomainDetailClient() {
   const params = useParams()
-  const domainId = params.id as string
   const { user } = useAuth()
+
+  // In static export mode the Cloudflare Worker serves placeholder/index.html
+  // for ALL UUID paths (pathname = …/placeholder). Resolve the real domain ID
+  // with three fallbacks in priority order:
+  //   1. ?id= query param  — set by navigation Links from the domain list
+  //   2. UUID from pathname — works when user loads the canonical UUID URL directly
+  //   3. params.id         — fallback (may be 'placeholder' in static export)
+  const rawId = params.id as string
+  const domainId = (() => {
+    if (typeof window === 'undefined') return rawId
+    const qp = new URLSearchParams(window.location.search).get('id')
+    if (qp) return qp
+    const match = window.location.pathname.match(
+      /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
+    )
+    return match ? match[0] : rawId
+  })()
 
   const [domain, setDomain] = useState<ProxyDomain | null>(null)
   const [status, setStatus] = useState<ProxyDomainStatus | null>(null)
@@ -410,6 +375,14 @@ export default function DomainDetailClient() {
   const [analyticsLoading, setAnalyticsLoading] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [syncResult, setSyncResult] = useState<string | null>(null)
+  const [lastSynced, setLastSynced] = useState<string | null>(null)
+
+  // Load last synced timestamp from localStorage on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const stored = localStorage.getItem(`proxy_last_synced_${domainId}`)
+    if (stored) setLastSynced(stored)
+  }, [domainId])
 
   const loadDomain = useCallback(async () => {
     if (!user?.id) return
@@ -464,6 +437,11 @@ export default function DomainDetailClient() {
     try {
       const result = await proxyApi.sync(domainId, user.id)
       setSyncResult(result.message)
+      const now = new Date().toISOString()
+      setLastSynced(now)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`proxy_last_synced_${domainId}`, now)
+      }
     } catch (e) {
       setSyncResult(e instanceof Error ? e.message : 'Sync failed')
     } finally {
@@ -546,10 +524,11 @@ export default function DomainDetailClient() {
             onSync={handleSync}
             syncing={syncing}
             syncResult={syncResult}
+            lastSynced={lastSynced}
           />
         )}
-        {activeTab === 'assets' && user?.id && (
-          <AssetsSummaryTab domainId={domainId} userId={user.id} />
+        {activeTab === 'assets' && (
+          <BrandDataTab domainId={domainId} />
         )}
         {activeTab === 'analytics' && (
           <AnalyticsTab analytics={analytics} loading={analyticsLoading} />

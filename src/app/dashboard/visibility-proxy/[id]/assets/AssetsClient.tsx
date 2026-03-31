@@ -8,7 +8,7 @@ import { proxyApi, ModuleType } from '@/lib/api'
 import {
   ArrowLeft, Layers, Save, Loader2, CheckCircle, AlertCircle,
   ChevronDown, ChevronRight, Zap, Globe, Building2, Package,
-  HelpCircle, BarChart3, Swords, FileText, Bot, Wrench, Code2,
+  HelpCircle, BarChart3, Swords, FileText, Wrench, Code2,
   Plus, Trash2,
 } from 'lucide-react'
 
@@ -20,7 +20,6 @@ const MODULES: { type: ModuleType; label: string; desc: string; icon: React.Elem
   { type: 'data_authority',         label: 'Data & Authority',        desc: 'Key metrics, certifications, case studies',  icon: BarChart3,  color: 'text-green-500 bg-green-50' },
   { type: 'competitive_positioning', label: 'Competitive Positioning', desc: 'Differentiators vs competitors',             icon: Swords,    color: 'text-red-500 bg-red-50' },
   { type: 'content_summaries',      label: 'Content Summaries',       desc: 'TL;DR for each key page',                    icon: FileText,  color: 'text-indigo-500 bg-indigo-50' },
-  { type: 'ai_discovery_files',     label: 'AI Discovery Files',      desc: 'Auto-compiled from modules 1–6',             icon: Bot,       color: 'text-cyan-500 bg-cyan-50' },
   { type: 'technical_config',       label: 'Technical Config',        desc: 'Proxy behavior flags',                       icon: Wrench,    color: 'text-gray-500 bg-gray-100' },
   { type: 'html_enhancement',       label: 'HTML Enhancement',        desc: 'Alt-text & content injection rules',         icon: Code2,     color: 'text-orange-500 bg-orange-50' },
 ]
@@ -317,9 +316,14 @@ function ModulePanel({
     }
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!jsonValid) return
-    onSave(localData)
+    try {
+      await onSave(localData)
+      setOpen(false) // collapse immediately on success
+    } catch {
+      // error shown in parent error banner; keep panel open so user can retry
+    }
   }
 
   const isFaqModule = type === 'faq_knowledge'
@@ -443,8 +447,24 @@ function ModulePanel({
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function AssetsClient() {
   const params = useParams()
-  const domainId = params.id as string
   const { user } = useAuth()
+
+  // In static export mode the Cloudflare Worker serves placeholder/index.html
+  // for ALL UUID paths (pathname = …/placeholder/assets). Resolve the real
+  // domain ID with three fallbacks in priority order:
+  //   1. ?id= query param  — set by all navigation Links, survives placeholder rewrite
+  //   2. UUID from pathname — works when user loads the canonical UUID URL directly
+  //   3. params.id         — fallback (may be 'placeholder' in static export)
+  const rawId = params.id as string
+  const domainId = (() => {
+    if (typeof window === 'undefined') return rawId
+    const qp = new URLSearchParams(window.location.search).get('id')
+    if (qp) return qp
+    const match = window.location.pathname.match(
+      /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
+    )
+    return match ? match[0] : rawId
+  })()
 
   const [assets, setAssets] = useState<Record<string, unknown>>({})
   const [loadingAssets, setLoadingAssets] = useState(true)
@@ -467,7 +487,7 @@ export default function AssetsClient() {
   useEffect(() => { loadAssets() }, [loadAssets])
 
   const saveModule = async (type: ModuleType, content: unknown) => {
-    if (!user?.id) return
+    if (!user?.id) throw new Error('Not authenticated')
     setSavingModule(type)
     setGlobalError(null)
     try {
@@ -477,6 +497,7 @@ export default function AssetsClient() {
       setTimeout(() => setSavedModules(prev => { const s = new Set(prev); s.delete(type); return s }), 3000)
     } catch (e) {
       setGlobalError(e instanceof Error ? e.message : 'Save failed')
+      throw e // re-throw so ModulePanel stays open on error
     } finally {
       setSavingModule(null)
     }
@@ -516,7 +537,7 @@ export default function AssetsClient() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">Brand Data Modules</h1>
-              <p className="text-sm text-gray-400">Edit the 9 modules that AI uses to understand your brand</p>
+              <p className="text-sm text-gray-400">Edit the 8 modules that AI uses to understand your brand</p>
             </div>
           </div>
           <button
