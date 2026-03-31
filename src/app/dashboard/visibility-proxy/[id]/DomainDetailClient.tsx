@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { proxyApi, ProxyDomain, ProxyDomainStatus, ProxyAnalytics } from '@/lib/api'
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import {
   Globe, ArrowLeft, CheckCircle, Clock, RefreshCw, XCircle,
   Pause, AlertCircle, Loader2, ExternalLink, Copy, CheckCheck,
@@ -237,108 +238,209 @@ function AnalyticsTab({ analytics, loading }: { analytics: ProxyAnalytics | null
     </div>
   )
 
+  const aiRatioPct = Math.round((analytics.ai_ratio ?? 0) * 100)
+  const sortedBots = [...analytics.by_bot].sort((a, b) => b.visit_count - a.visit_count)
+  const sortedPaths = [...analytics.by_path].sort((a, b) => b.visit_count - a.visit_count)
+
   return (
     <div className="space-y-4">
-      {/* Summary stats */}
-      <div className="grid grid-cols-3 gap-4">
+
+      {/* Row 1 — KPI Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="bg-white border border-gray-200 rounded-2xl p-4">
-          <div className="text-xs text-gray-400 mb-1">Total AI Visits</div>
-          <div className="text-2xl font-bold text-gray-900">{analytics.total_ai_visits.toLocaleString()}</div>
+          <div className="text-xs text-gray-400 mb-1">Total Requests</div>
+          <div className="text-2xl font-bold text-gray-900">{(analytics.total_requests ?? 0).toLocaleString()}</div>
+          <div className="text-xs text-gray-400 mt-0.5">all visitors</div>
         </div>
         <div className="bg-white border border-gray-200 rounded-2xl p-4">
-          <div className="text-xs text-gray-400 mb-1">Unique Bots</div>
-          <div className="text-2xl font-bold text-gray-900">{analytics.by_bot.length}</div>
+          <div className="text-xs text-gray-400 mb-1">AI Bot Hits</div>
+          <div className="text-2xl font-bold text-indigo-600">{analytics.total_ai_visits.toLocaleString()}</div>
+          <div className="text-xs text-gray-400 mt-0.5">{sortedBots.length} unique bots</div>
         </div>
         <div className="bg-white border border-gray-200 rounded-2xl p-4">
-          <div className="text-xs text-gray-400 mb-1">Crawled Pages</div>
-          <div className="text-2xl font-bold text-gray-900">{analytics.by_path.length}</div>
+          <div className="text-xs text-gray-400 mb-1">AI Ratio</div>
+          <div className="text-2xl font-bold text-emerald-600">{aiRatioPct}%</div>
+          <div className="text-xs text-gray-400 mt-0.5">of all traffic</div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-2xl p-4">
+          <div className="text-xs text-gray-400 mb-1">Discovery Files</div>
+          <div className="text-2xl font-bold text-amber-600">
+            {((analytics.discovery_hits?.llms_txt ?? 0) + (analytics.discovery_hits?.robots_txt ?? 0) + (analytics.discovery_hits?.agent_json ?? 0)).toLocaleString()}
+          </div>
+          <div className="text-xs text-gray-400 mt-0.5">llms / robots / agent</div>
         </div>
       </div>
 
-      {/* Bot breakdown */}
-      {analytics.by_bot.length > 0 && (
+      {/* Row 2 — Daily Trend Chart */}
+      {(analytics.daily_trend ?? []).length > 1 && (
+        <div className="bg-white border border-gray-200 rounded-2xl p-5">
+          <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-gray-400" />
+            Daily Traffic Trend
+          </h3>
+          <ResponsiveContainer width="100%" height={180}>
+            <LineChart data={analytics.daily_trend} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 10, fill: '#9ca3af' }}
+                tickFormatter={(v: string) => v.slice(5)}
+              />
+              <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} />
+              <Tooltip
+                contentStyle={{ fontSize: 12, borderRadius: 8 }}
+                labelFormatter={(l: string) => `Date: ${l}`}
+              />
+              <Line type="monotone" dataKey="total" stroke="#e5e7eb" strokeWidth={1.5} dot={false} name="Total" />
+              <Line type="monotone" dataKey="ai_visits" stroke="#6366f1" strokeWidth={2} dot={false} name="AI Bots" />
+              <Line type="monotone" dataKey="ai_referrals" stroke="#10b981" strokeWidth={2} dot={false} name="AI Referrals" />
+            </LineChart>
+          </ResponsiveContainer>
+          <div className="flex items-center gap-4 mt-2 justify-end">
+            <span className="flex items-center gap-1 text-xs text-gray-400"><span className="w-3 h-0.5 bg-gray-300 inline-block" />Total</span>
+            <span className="flex items-center gap-1 text-xs text-indigo-500"><span className="w-3 h-0.5 bg-indigo-500 inline-block" />AI Bots</span>
+            <span className="flex items-center gap-1 text-xs text-emerald-500"><span className="w-3 h-0.5 bg-emerald-500 inline-block" />AI Referrals</span>
+          </div>
+        </div>
+      )}
+
+      {/* Row 3 — Bot Breakdown + AI Referral Sources */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        {/* Bot breakdown */}
         <div className="bg-white border border-gray-200 rounded-2xl p-5">
           <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
             <Bot className="w-4 h-4 text-gray-400" />
-            AI Bot Breakdown
+            AI Bot Distribution
           </h3>
-          <div className="space-y-2">
-            {analytics.by_bot.sort((a, b) => b.visit_count - a.visit_count).map(bot => {
-              const pct = analytics.total_ai_visits > 0
-                ? Math.round((bot.visit_count / analytics.total_ai_visits) * 100)
-                : 0
-              return (
-                <div key={bot.bot_name} className="flex items-center gap-3">
-                  <div className="w-24 text-xs font-medium text-gray-700 truncate">{bot.bot_name}</div>
-                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-red-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
+          {sortedBots.length === 0 ? (
+            <p className="text-xs text-gray-400">No bot visits yet</p>
+          ) : (
+            <div className="space-y-2">
+              {sortedBots.map(bot => {
+                const pct = analytics.total_ai_visits > 0
+                  ? Math.round((bot.visit_count / analytics.total_ai_visits) * 100)
+                  : 0
+                return (
+                  <div key={bot.bot_name} className="flex items-center gap-3">
+                    <div className="w-24 text-xs font-medium text-gray-700 truncate">{bot.bot_name}</div>
+                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-indigo-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                    </div>
+                    <div className="text-xs text-gray-500 w-10 text-right">{bot.visit_count}</div>
+                    {bot.bot_org && <div className="text-xs text-gray-400 w-20 truncate">{bot.bot_org}</div>}
                   </div>
-                  <div className="text-xs text-gray-500 w-10 text-right">{bot.visit_count}</div>
-                  {bot.bot_org && <div className="text-xs text-gray-400 w-20 truncate">{bot.bot_org}</div>}
-                </div>
-              )
-            })}
-          </div>
+                )
+              })}
+            </div>
+          )}
         </div>
-      )}
 
-      {/* Top pages */}
-      {analytics.by_path.length > 0 && (
+        {/* AI Referral Sources */}
         <div className="bg-white border border-gray-200 rounded-2xl p-5">
           <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
             <Activity className="w-4 h-4 text-gray-400" />
-            Top Crawled Pages
+            AI Referral Sources
           </h3>
-          <div className="space-y-2">
-            {analytics.by_path.sort((a, b) => b.visit_count - a.visit_count).slice(0, 10).map(p => (
-              <div key={p.path} className="flex items-center justify-between py-1.5 border-b border-gray-100 last:border-0">
-                <span className="text-sm font-mono text-gray-600 truncate flex-1">{p.path}</span>
-                <span className="text-xs text-gray-500 ml-4">{p.visit_count} visits</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+          {(analytics.ai_referral_sources ?? []).length === 0 ? (
+            <p className="text-xs text-gray-400">No AI-referred visitors yet</p>
+          ) : (
+            <div className="space-y-2">
+              {[...(analytics.ai_referral_sources ?? [])].sort((a, b) => b.visit_count - a.visit_count).map(src => {
+                const total = (analytics.ai_referral_visits ?? 1) || 1
+                const pct = Math.round((src.visit_count / total) * 100)
+                return (
+                  <div key={src.source} className="flex items-center gap-3">
+                    <div className="w-24 text-xs font-medium text-gray-700 truncate">{src.source}</div>
+                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                    </div>
+                    <div className="text-xs text-gray-500 w-10 text-right">{src.visit_count}</div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
 
-      {/* Recent visits */}
-      {analytics.recent_visits.length > 0 && (
+          {/* Discovery hits breakdown */}
+          {analytics.discovery_hits && (
+            <div className="mt-4 pt-4 border-t border-gray-100 space-y-1.5">
+              <div className="text-xs text-gray-500 font-medium mb-2">Discovery File Hits</div>
+              {[
+                { label: 'llms.txt', value: analytics.discovery_hits.llms_txt },
+                { label: 'robots.txt', value: analytics.discovery_hits.robots_txt },
+                { label: 'agent.json', value: analytics.discovery_hits.agent_json },
+              ].map(item => (
+                <div key={item.label} className="flex justify-between text-xs">
+                  <span className="font-mono text-gray-500">{item.label}</span>
+                  <span className="text-gray-700 font-medium">{item.value}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Row 4 — Top Pages + Recent Visits */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        {/* Top crawled pages */}
         <div className="bg-white border border-gray-200 rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-gray-400" />
-            Recent Visits
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="text-gray-400 border-b border-gray-100">
-                  <th className="text-left pb-2 font-medium">Bot</th>
-                  <th className="text-left pb-2 font-medium">Path</th>
-                  <th className="text-left pb-2 font-medium">Time</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {analytics.recent_visits.slice(0, 20).map((v, i) => (
-                  <tr key={i} className="hover:bg-gray-50">
-                    <td className="py-2 pr-4 font-medium text-gray-700">{String(v.bot_name ?? '—')}</td>
-                    <td className="py-2 pr-4 font-mono text-gray-500">{String(v.path ?? '—')}</td>
-                    <td className="py-2 text-gray-400">
-                      {v.timestamp ? new Date(String(v.timestamp)).toLocaleString() : '—'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Top Crawled Pages</h3>
+          {sortedPaths.length === 0 ? (
+            <p className="text-xs text-gray-400">No page data yet</p>
+          ) : (
+            <div className="space-y-1.5">
+              {sortedPaths.slice(0, 10).map(p => (
+                <div key={p.path} className="flex items-center justify-between py-1 border-b border-gray-50 last:border-0">
+                  <span className="text-xs font-mono text-gray-600 truncate flex-1">{p.path}</span>
+                  <span className="text-xs text-gray-400 ml-3 shrink-0">{p.visit_count}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
 
-      {analytics.total_ai_visits === 0 && (
+        {/* Recent visits feed */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-5">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Recent Visits</h3>
+          {analytics.recent_visits.length === 0 ? (
+            <p className="text-xs text-gray-400">No visits yet</p>
+          ) : (
+            <div className="space-y-1.5 max-h-64 overflow-y-auto">
+              {analytics.recent_visits.slice(0, 20).map((v, i) => (
+                <div key={i} className="flex items-start gap-2 py-1 border-b border-gray-50 last:border-0">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-medium text-indigo-600">{String(v.bot_name ?? '—')}</span>
+                      {v.bot_org != null && <span className="text-xs text-gray-400">· {String(v.bot_org)}</span>}
+                    </div>
+                    <div className="text-xs font-mono text-gray-500 truncate">{String(v.path ?? '—')}</div>
+                  </div>
+                  <div className="text-xs text-gray-300 shrink-0 whitespace-nowrap">
+                    {v.timestamp ? new Date(String(v.timestamp)).toLocaleTimeString() : '—'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {analytics.total_ai_visits === 0 && (analytics.total_requests ?? 0) === 0 && (
         <div className="bg-white border border-dashed border-gray-200 rounded-2xl p-10 text-center">
           <Bot className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-400">No AI visits recorded yet.</p>
-          <p className="text-xs text-gray-300 mt-1">Once AI bots crawl your domain, activity appears here.</p>
+          <p className="text-sm text-gray-400">No traffic recorded yet.</p>
+          <p className="text-xs text-gray-300 mt-1">Once AI bots or visitors reach your domain, activity appears here.</p>
         </div>
       )}
+
+      {/* Data source badge */}
+      <div className="text-right">
+        <span className="text-xs text-gray-300">
+          Source: {analytics.data_source === 'analytics_engine' ? 'Cloudflare Analytics Engine' : 'Supabase (fallback)'}
+        </span>
+      </div>
     </div>
   )
 }

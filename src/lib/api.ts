@@ -2701,12 +2701,37 @@ export interface ProxyPathStat {
   visit_count: number
 }
 
+export interface ProxyDailyTrend {
+  date: string
+  total: number
+  ai_visits: number
+  ai_referrals: number
+}
+
+export interface ProxyDiscoveryHits {
+  llms_txt: number
+  robots_txt: number
+  agent_json: number
+}
+
+export interface ProxyReferralSource {
+  source: string
+  visit_count: number
+}
+
 export interface ProxyAnalytics {
   domain: string
+  total_requests: number
   total_ai_visits: number
+  ai_referral_visits: number
+  ai_ratio: number
   by_bot: ProxyBotStat[]
   by_path: ProxyPathStat[]
+  daily_trend: ProxyDailyTrend[]
+  discovery_hits: ProxyDiscoveryHits
+  ai_referral_sources: ProxyReferralSource[]
   recent_visits: Record<string, unknown>[]
+  data_source: string
 }
 
 export const proxyApi = {
@@ -2791,9 +2816,9 @@ export const proxyApi = {
     return r.json()
   },
 
-  getAnalytics: async (domainId: string, userId: string, limit = 100): Promise<ProxyAnalytics> => {
+  getAnalytics: async (domainId: string, userId: string, days = 30): Promise<ProxyAnalytics> => {
     const r = await fetch(
-      `${API_BASE_URL}/api/proxy/domains/${domainId}/analytics?user_id=${encodeURIComponent(userId)}&limit=${limit}`,
+      `${API_BASE_URL}/api/proxy/domains/${domainId}/analytics?user_id=${encodeURIComponent(userId)}&days=${days}`,
     )
     if (!r.ok) throw new Error(await r.text())
     return r.json()
