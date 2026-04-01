@@ -241,6 +241,8 @@ function AnalyticsTab({ analytics, loading }: { analytics: ProxyAnalytics | null
   const aiRatioPct = Math.round((analytics.ai_ratio ?? 0) * 100)
   const sortedBots = [...analytics.by_bot].sort((a, b) => b.visit_count - a.visit_count)
   const sortedPaths = [...analytics.by_path].sort((a, b) => b.visit_count - a.visit_count)
+  const confirmedAi = analytics.confirmed_ai_visits ?? 0
+  const suspectedAi = analytics.suspected_ai_visits ?? 0
 
   return (
     <div className="space-y-4">
@@ -253,14 +255,16 @@ function AnalyticsTab({ analytics, loading }: { analytics: ProxyAnalytics | null
           <div className="text-xs text-gray-400 mt-0.5">all visitors</div>
         </div>
         <div className="bg-white border border-gray-200 rounded-2xl p-4">
-          <div className="text-xs text-gray-400 mb-1">AI Bot Hits</div>
-          <div className="text-2xl font-bold text-indigo-600">{analytics.total_ai_visits.toLocaleString()}</div>
-          <div className="text-xs text-gray-400 mt-0.5">{sortedBots.length} unique bots</div>
+          <div className="text-xs text-gray-400 mb-1">Confirmed AI Hits</div>
+          <div className="text-2xl font-bold text-indigo-600">{confirmedAi > 0 ? confirmedAi.toLocaleString() : analytics.total_ai_visits.toLocaleString()}</div>
+          <div className="text-xs text-gray-400 mt-0.5">
+            {confirmedAi > 0 ? `+${suspectedAi} suspected` : `${sortedBots.length} unique bots`}
+          </div>
         </div>
         <div className="bg-white border border-gray-200 rounded-2xl p-4">
           <div className="text-xs text-gray-400 mb-1">AI Ratio</div>
           <div className="text-2xl font-bold text-emerald-600">{aiRatioPct}%</div>
-          <div className="text-xs text-gray-400 mt-0.5">of all traffic</div>
+          <div className="text-xs text-gray-400 mt-0.5">{confirmedAi > 0 ? 'confirmed AI only' : 'of all traffic'}</div>
         </div>
         <div className="bg-white border border-gray-200 rounded-2xl p-4">
           <div className="text-xs text-gray-400 mb-1">Discovery Files</div>
@@ -270,6 +274,23 @@ function AnalyticsTab({ analytics, loading }: { analytics: ProxyAnalytics | null
           <div className="text-xs text-gray-400 mt-0.5">llms / robots / agent</div>
         </div>
       </div>
+
+      {/* P1: 置信度分层说明条（有 suspected 数据时显示）*/}
+      {suspectedAi > 0 && (
+        <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-indigo-500 inline-block" />
+            <span className="text-xs font-medium text-gray-700">{confirmedAi.toLocaleString()} Confirmed</span>
+            <span className="text-xs text-gray-400">(UA-matched AI bots)</span>
+          </div>
+          <span className="text-gray-300">·</span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
+            <span className="text-xs font-medium text-gray-700">{suspectedAi.toLocaleString()} Suspected</span>
+            <span className="text-xs text-gray-400">(behavioral heuristic, lower confidence)</span>
+          </div>
+        </div>
+      )}
 
       {/* Row 2 — Daily Trend Chart */}
       {(analytics.daily_trend ?? []).length > 1 && (
@@ -321,14 +342,21 @@ function AnalyticsTab({ analytics, loading }: { analytics: ProxyAnalytics | null
                 const pct = analytics.total_ai_visits > 0
                   ? Math.round((bot.visit_count / analytics.total_ai_visits) * 100)
                   : 0
+                const isSuspected = bot.bot_name === 'UnknownBot'
                 return (
                   <div key={bot.bot_name} className="flex items-center gap-3">
                     <div className="w-24 text-xs font-medium text-gray-700 truncate">{bot.bot_name}</div>
                     <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-indigo-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                      <div
+                        className={`h-full rounded-full transition-all ${isSuspected ? 'bg-amber-400' : 'bg-indigo-400'}`}
+                        style={{ width: `${pct}%` }}
+                      />
                     </div>
                     <div className="text-xs text-gray-500 w-10 text-right">{bot.visit_count}</div>
-                    {bot.bot_org && <div className="text-xs text-gray-400 w-20 truncate">{bot.bot_org}</div>}
+                    {isSuspected
+                      ? <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-medium">suspected</span>
+                      : <div className="text-xs text-gray-400 w-20 truncate">{bot.bot_org}</div>
+                    }
                   </div>
                 )
               })}

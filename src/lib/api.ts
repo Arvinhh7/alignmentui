@@ -2733,6 +2733,10 @@ export interface ProxyAnalytics {
   total_ai_visits: number
   ai_referral_visits: number
   ai_ratio: number
+  /** P1: confirmed = Layer1 UA精确匹配（高可信度）*/
+  confirmed_ai_visits: number
+  /** P1: suspected = Layer2 行为启发式（低可信度，UnknownBot）*/
+  suspected_ai_visits: number
   by_bot: ProxyBotStat[]
   by_path: ProxyPathStat[]
   daily_trend: ProxyDailyTrend[]
