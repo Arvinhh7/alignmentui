@@ -2729,6 +2729,7 @@ export interface ProxyReferralSource {
 
 export interface ProxyAnalytics {
   domain: string
+  date_range_days: number           // actual days queried (backend auto-fills when days=0)
   total_requests: number
   total_ai_visits: number
   ai_referral_visits: number

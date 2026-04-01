@@ -10,7 +10,7 @@ import {
   Globe, ArrowLeft, CheckCircle, Clock, RefreshCw, XCircle,
   Pause, AlertCircle, Loader2, ExternalLink, Copy, CheckCheck,
   BarChart3, Layers, Settings, Zap, Bot,
-  TrendingUp, Activity,
+  TrendingUp, Activity, Download, FileText,
 } from 'lucide-react'
 
 import BrandDataTab from './BrandDataTab'
@@ -224,7 +224,110 @@ function OverviewTab({
 }
 
 // ── Analytics Tab ─────────────────────────────────────────────────────────────
-function AnalyticsTab({ analytics, loading }: { analytics: ProxyAnalytics | null; loading: boolean }) {
+
+type TimeRange = { label: string; days: number }
+const TIME_RANGES: TimeRange[] = [
+  { label: 'Today',    days: 1  },
+  { label: '7 days',   days: 7  },
+  { label: '30 days',  days: 30 },
+  { label: 'All time', days: 0  },
+]
+
+function exportCSV(analytics: ProxyAnalytics, rangeLabel: string) {
+  const lines: string[] = []
+  lines.push(`Alignment Visibility Analytics — ${analytics.domain}`)
+  lines.push(`Period: ${rangeLabel}`)
+  lines.push(`Generated: ${new Date().toISOString().slice(0, 10)}`)
+  lines.push('')
+  lines.push('## Summary')
+  lines.push('Metric,Value')
+  lines.push(`Total Requests,${analytics.total_requests}`)
+  lines.push(`Confirmed AI Visits,${analytics.confirmed_ai_visits ?? analytics.total_ai_visits}`)
+  lines.push(`Suspected AI Visits,${analytics.suspected_ai_visits ?? 0}`)
+  lines.push(`AI Referral Visits,${analytics.ai_referral_visits}`)
+  lines.push(`AI Ratio,${Math.round((analytics.ai_ratio ?? 0) * 100)}%`)
+  lines.push(`llms.txt Hits,${analytics.discovery_hits?.llms_txt ?? 0}`)
+  lines.push(`robots.txt Hits,${analytics.discovery_hits?.robots_txt ?? 0}`)
+  lines.push(`agent.json Hits,${analytics.discovery_hits?.agent_json ?? 0}`)
+  lines.push('')
+  lines.push('## AI Bot Distribution')
+  lines.push('Bot Name,Org,Visits,Confidence')
+  for (const b of analytics.by_bot) {
+    const conf = b.bot_name === 'UnknownBot' ? 'suspected' : 'confirmed'
+    lines.push(`${b.bot_name},${b.bot_org ?? ''},${b.visit_count},${conf}`)
+  }
+  lines.push('')
+  lines.push('## Top Crawled Pages')
+  lines.push('Path,Visits')
+  for (const p of analytics.by_path) {
+    lines.push(`${p.path},${p.visit_count}`)
+  }
+  lines.push('')
+  lines.push('## Daily Trend')
+  lines.push('Date,Total,AI Visits,AI Referrals')
+  for (const d of analytics.daily_trend ?? []) {
+    lines.push(`${d.date},${d.total},${d.ai_visits},${d.ai_referrals}`)
+  }
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `alignment-${analytics.domain}-${rangeLabel.replace(/[\s/]+/g, '-')}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function buildSummaryText(analytics: ProxyAnalytics, rangeLabel: string): string {
+  const confirmed = analytics.confirmed_ai_visits ?? analytics.total_ai_visits
+  const suspected = analytics.suspected_ai_visits ?? 0
+  const ratio = Math.round((analytics.ai_ratio ?? 0) * 100)
+  const topBots = [...analytics.by_bot]
+    .filter(b => b.bot_name !== 'UnknownBot')
+    .slice(0, 3)
+    .map(b => `${b.bot_name} (${b.visit_count})`)
+    .join(', ')
+  const dh = analytics.discovery_hits
+  const discTotal = (dh?.llms_txt ?? 0) + (dh?.robots_txt ?? 0) + (dh?.agent_json ?? 0)
+  return [
+    `Alignment Visibility Report — ${analytics.domain}`,
+    `Period: ${rangeLabel}`,
+    ``,
+    `Total Requests: ${analytics.total_requests.toLocaleString()}`,
+    `Confirmed AI Visits: ${confirmed.toLocaleString()}${topBots ? ` (${topBots})` : ''}`,
+    suspected > 0 ? `Suspected AI Visits: ${suspected.toLocaleString()} (UnknownBot)` : '',
+    `AI Ratio: ${ratio}%`,
+    `Discovery File Hits: ${discTotal} (llms.txt: ${dh?.llms_txt ?? 0}, robots.txt: ${dh?.robots_txt ?? 0}, agent.json: ${dh?.agent_json ?? 0})`,
+  ].filter(Boolean).join('\n')
+}
+
+function AnalyticsTab({
+  analytics, loading, days, onDaysChange, domain,
+}: {
+  analytics: ProxyAnalytics | null
+  loading: boolean
+  days: number
+  onDaysChange: (d: number) => void
+  domain: ProxyDomain | null
+}) {
+  const [copied, setCopied] = useState(false)
+
+  const rangeLabel = (() => {
+    if (days === 1) return 'Today'
+    if (days === 0 && analytics?.date_range_days) {
+      const since = new Date(Date.now() - analytics.date_range_days * 86400000)
+      return `Since ${since.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+    }
+    return `Last ${days} days`
+  })()
+
+  const handleCopySummary = () => {
+    if (!analytics) return
+    navigator.clipboard.writeText(buildSummaryText(analytics, rangeLabel)).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
   if (loading) return (
     <div className="flex items-center justify-center py-16">
       <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
@@ -246,6 +349,47 @@ function AnalyticsTab({ analytics, loading }: { analytics: ProxyAnalytics | null
 
   return (
     <div className="space-y-4">
+
+      {/* Time range selector + Export toolbar */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1">
+          {TIME_RANGES.map(r => (
+            <button
+              key={r.days}
+              onClick={() => onDaysChange(r.days)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                days === r.days
+                  ? 'bg-gray-900 text-white shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Show the resolved range label for all-time */}
+          {days === 0 && analytics.date_range_days && (
+            <span className="text-xs text-gray-400">{rangeLabel}</span>
+          )}
+          <button
+            onClick={handleCopySummary}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-all"
+            title="Copy summary for reports"
+          >
+            {copied ? <CheckCheck className="w-3.5 h-3.5 text-green-500" /> : <FileText className="w-3.5 h-3.5" />}
+            {copied ? 'Copied!' : 'Copy Summary'}
+          </button>
+          <button
+            onClick={() => exportCSV(analytics, rangeLabel)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-all"
+            title="Export as CSV"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Export CSV
+          </button>
+        </div>
+      </div>
 
       {/* Row 1 — KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -503,6 +647,7 @@ export default function DomainDetailClient() {
   const [activeTab, setActiveTab] = useState<Tab>('overview')
   const [refreshingStatus, setRefreshingStatus] = useState(false)
   const [analyticsLoading, setAnalyticsLoading] = useState(false)
+  const [analyticsDays, setAnalyticsDays] = useState(30)  // 0=all time, 1=today, 7, 30
   const [syncing, setSyncing] = useState(false)
   const [syncResult, setSyncResult] = useState<string | null>(null)
   const [lastSynced, setLastSynced] = useState<string | null>(null)
@@ -532,21 +677,27 @@ export default function DomainDetailClient() {
     }
   }, [domainId, user?.id])
 
-  const loadAnalytics = useCallback(async () => {
+  const loadAnalytics = useCallback(async (days: number = analyticsDays) => {
     if (!user?.id) return
     setAnalyticsLoading(true)
     try {
-      const a = await proxyApi.getAnalytics(domainId, user.id)
+      const a = await proxyApi.getAnalytics(domainId, user.id, days)
       setAnalytics(a)
     } catch { /* ignore */ }
     finally { setAnalyticsLoading(false) }
-  }, [domainId, user?.id])
+  }, [domainId, user?.id, analyticsDays])
 
   useEffect(() => { loadDomain() }, [loadDomain])
 
   useEffect(() => {
     if (activeTab === 'analytics') loadAnalytics()
   }, [activeTab, loadAnalytics])
+
+  // Re-fetch when time range changes (only if tab is already active)
+  useEffect(() => {
+    if (activeTab === 'analytics') loadAnalytics(analyticsDays)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [analyticsDays])
 
   const refreshStatus = async () => {
     if (!user?.id) return
@@ -661,7 +812,13 @@ export default function DomainDetailClient() {
           <BrandDataTab domainId={domainId} />
         )}
         {activeTab === 'analytics' && (
-          <AnalyticsTab analytics={analytics} loading={analyticsLoading} />
+          <AnalyticsTab
+            analytics={analytics}
+            loading={analyticsLoading}
+            days={analyticsDays}
+            onDaysChange={setAnalyticsDays}
+            domain={domain}
+          />
         )}
       </div>
     </div>
