@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 }
 
 const LAST_UPDATED = 'April 5, 2026'
-const SUPPORT_EMAIL = 'support@alignmenttech.ai'
+const SUPPORT_EMAIL = 'contact@alignmenttech.ai'
 const APP_NAME = 'Alignment GEO'
 const COMPANY = 'Alignment AI'
 
@@ -16,7 +16,7 @@ export default function TermsPage() {
     <main className="min-h-screen bg-[#fafafa] text-[#0a0a0a]">
       {/* Header */}
       <div className="border-b border-black/8 bg-white">
-        <div className="max-w-3xl mx-auto px-6 py-5 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
           <Link href="/" className="text-sm font-semibold text-[#ef4444] hover:opacity-80 transition-opacity">
             ← Alignment AI
           </Link>
@@ -25,7 +25,7 @@ export default function TermsPage() {
       </div>
 
       {/* Content */}
-      <article className="max-w-3xl mx-auto px-6 py-12">
+      <article className="max-w-5xl mx-auto px-6 py-12">
         <h1 className="text-3xl font-bold mb-2">Terms of Service</h1>
         <p className="text-[#64748b] mb-10">
           Please read these Terms of Service (&ldquo;Terms&rdquo;) carefully before using the{' '}
@@ -162,7 +162,7 @@ export default function TermsPage() {
           <p>These Terms are governed by the laws of California, USA, without regard to conflict of law principles. Any disputes shall be resolved in the courts of San Francisco County, California.</p>
         </Section>
 
-        <Section title="12. Contact">
+        <Section title="12. Contact Us">
           <div className="bg-white border border-black/8 rounded-xl p-5 text-sm space-y-1">
             <p><strong>Alignment AI</strong></p>
             <p>Support: <a href={`mailto:${SUPPORT_EMAIL}`} className="text-[#ef4444] hover:underline">{SUPPORT_EMAIL}</a></p>
@@ -173,7 +173,7 @@ export default function TermsPage() {
 
       {/* Footer */}
       <footer className="border-t border-black/8 bg-white py-6 mt-8">
-        <div className="max-w-3xl mx-auto px-6 flex items-center justify-between text-xs text-[#64748b]">
+        <div className="max-w-5xl mx-auto px-6 flex items-center justify-between text-xs text-[#64748b]">
           <span>© 2026 Alignment AI. All rights reserved.</span>
           <div className="flex gap-4">
             <Link href="/privacy" className="hover:text-[#0a0a0a] transition-colors">Privacy Policy</Link>

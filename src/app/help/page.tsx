@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 
-const SUPPORT_EMAIL = 'support@alignmenttech.ai'
+const SUPPORT_EMAIL = 'contact@alignmenttech.ai'
 
 interface FAQItem {
   q: string
@@ -154,7 +154,7 @@ export default function HelpPage() {
     <main className="min-h-screen bg-[#fafafa] text-[#0a0a0a]">
       {/* Header */}
       <div className="border-b border-black/8 bg-white">
-        <div className="max-w-3xl mx-auto px-6 py-5 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
           <Link href="/" className="text-sm font-semibold text-[#ef4444] hover:opacity-80 transition-opacity">
             ← Alignment AI
           </Link>
@@ -180,7 +180,7 @@ export default function HelpPage() {
       </div>
 
       {/* FAQ Sections */}
-      <div className="max-w-3xl mx-auto px-6 py-10 space-y-10">
+      <div className="max-w-5xl mx-auto px-6 py-10 space-y-10">
         {sections.map((section) => (
           <div key={section.title}>
             <h2 className="text-lg font-semibold mb-4">{section.title}</h2>
@@ -218,7 +218,7 @@ export default function HelpPage() {
         <div className="bg-white border border-black/8 rounded-2xl p-8 text-center">
           <h2 className="text-lg font-semibold mb-2">Still need help?</h2>
           <p className="text-[#64748b] text-sm mb-5">
-            Our support team typically responds within 24 business hours.
+            Our support team typically responds within 48 business hours.
           </p>
           <a
             href={`mailto:${SUPPORT_EMAIL}`}
@@ -231,7 +231,7 @@ export default function HelpPage() {
 
       {/* Footer */}
       <footer className="border-t border-black/8 bg-white py-6 mt-4">
-        <div className="max-w-3xl mx-auto px-6 flex items-center justify-between text-xs text-[#64748b]">
+        <div className="max-w-5xl mx-auto px-6 flex items-center justify-between text-xs text-[#64748b]">
           <span>© 2026 Alignment AI. All rights reserved.</span>
           <div className="flex gap-4">
             <Link href="/privacy" className="hover:text-[#0a0a0a] transition-colors">Privacy Policy</Link>

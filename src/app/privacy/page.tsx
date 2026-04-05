@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 }
 
 const LAST_UPDATED = 'April 5, 2026'
-const CONTACT_EMAIL = 'privacy@alignmenttech.ai'
+const CONTACT_EMAIL = 'contact@alignmenttech.ai'
 const APP_NAME = 'Alignment GEO'
 const COMPANY = 'Alignment AI'
 
@@ -16,7 +16,7 @@ export default function PrivacyPage() {
     <main className="min-h-screen bg-[#fafafa] text-[#0a0a0a]">
       {/* Header */}
       <div className="border-b border-black/8 bg-white">
-        <div className="max-w-3xl mx-auto px-6 py-5 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
           <Link href="/" className="text-sm font-semibold text-[#ef4444] hover:opacity-80 transition-opacity">
             ← Alignment AI
           </Link>
@@ -25,7 +25,7 @@ export default function PrivacyPage() {
       </div>
 
       {/* Content */}
-      <article className="max-w-3xl mx-auto px-6 py-12">
+      <article className="max-w-5xl mx-auto px-6 py-12">
         <h1 className="text-3xl font-bold mb-2">Privacy Policy</h1>
         <p className="text-[#64748b] mb-10">
           This Privacy Policy describes how <strong>{COMPANY}</strong> (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;) collects,
@@ -139,7 +139,7 @@ export default function PrivacyPage() {
 
       {/* Footer */}
       <footer className="border-t border-black/8 bg-white py-6 mt-8">
-        <div className="max-w-3xl mx-auto px-6 flex items-center justify-between text-xs text-[#64748b]">
+        <div className="max-w-5xl mx-auto px-6 flex items-center justify-between text-xs text-[#64748b]">
           <span>© 2026 Alignment AI. All rights reserved.</span>
           <div className="flex gap-4">
             <Link href="/terms" className="hover:text-[#0a0a0a] transition-colors">Terms of Service</Link>
