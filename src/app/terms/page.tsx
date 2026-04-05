@@ -159,7 +159,7 @@ export default function TermsPage() {
         </Section>
 
         <Section title="11. Governing Law">
-          <p>These Terms are governed by the laws of California, USA, without regard to conflict of law principles. Any disputes shall be resolved in the courts of San Francisco County, California.</p>
+          <p>These Terms are governed by the laws of the State of California, USA, without regard to conflict of law principles. Any disputes shall be resolved in the state or federal courts located in Santa Clara County, California, and you consent to the personal jurisdiction of such courts.</p>
         </Section>
 
         <Section title="12. Contact Us">
