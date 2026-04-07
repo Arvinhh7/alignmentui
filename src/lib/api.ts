@@ -2743,6 +2743,7 @@ export interface ProxyAnalytics {
   daily_trend: ProxyDailyTrend[]
   discovery_hits: ProxyDiscoveryHits
   ai_referral_sources: ProxyReferralSource[]
+  top_referral_landing_pages: { path: string; visit_count: number }[]
   recent_visits: Record<string, unknown>[]
   data_source: string
 }
