@@ -225,6 +225,54 @@ function OverviewTab({
 
 // ── Analytics Tab ─────────────────────────────────────────────────────────────
 
+// Official platform metadata: maps any known bot/org/referral name → canonical display name + favicon domain
+const PLATFORM_META: Record<string, { name: string; domain: string }> = {
+  // Bot names
+  'ClaudeBot':            { name: 'Claude',      domain: 'anthropic.com' },
+  'Claude-Web':           { name: 'Claude',      domain: 'anthropic.com' },
+  'anthropic-ai':         { name: 'Claude',      domain: 'anthropic.com' },
+  'GPTBot':               { name: 'ChatGPT',     domain: 'openai.com' },
+  'ChatGPT-User':         { name: 'ChatGPT',     domain: 'openai.com' },
+  'OAI-SearchBot':        { name: 'SearchGPT',   domain: 'openai.com' },
+  'OAI-Search':           { name: 'SearchGPT',   domain: 'openai.com' },
+  'PerplexityBot':        { name: 'Perplexity',  domain: 'perplexity.ai' },
+  'Google-Extended':      { name: 'Gemini',      domain: 'gemini.google.com' },
+  'GeminiBot':            { name: 'Gemini',      domain: 'gemini.google.com' },
+  'Googlebot':            { name: 'Google',      domain: 'google.com' },
+  'bingbot':              { name: 'Bing',        domain: 'bing.com' },
+  'Bingbot':              { name: 'Bing',        domain: 'bing.com' },
+  'meta-externalagent':   { name: 'Meta AI',     domain: 'meta.com' },
+  'cohere-ai':            { name: 'Cohere',      domain: 'cohere.com' },
+  'YouBot':               { name: 'You.com',     domain: 'you.com' },
+  // Referral source names (from Referer header)
+  'ChatGPT':              { name: 'ChatGPT',     domain: 'chatgpt.com' },
+  'Claude':               { name: 'Claude',      domain: 'claude.ai' },
+  'Perplexity':           { name: 'Perplexity',  domain: 'perplexity.ai' },
+  'Gemini':               { name: 'Gemini',      domain: 'gemini.google.com' },
+  'Copilot':              { name: 'Copilot',     domain: 'copilot.microsoft.com' },
+  'You.com':              { name: 'You.com',     domain: 'you.com' },
+  'Bing AI':              { name: 'Bing AI',     domain: 'bing.com' },
+}
+
+function getPlatformMeta(key: string): { name: string; domain: string } {
+  return PLATFORM_META[key] ?? { name: key, domain: '' }
+}
+
+function PlatformLogo({ id, size = 16 }: { id: string; size?: number }) {
+  const meta = getPlatformMeta(id)
+  if (!meta.domain) return null
+  return (
+    <img
+      src={`https://www.google.com/s2/favicons?domain=${meta.domain}&sz=32`}
+      alt={meta.name}
+      width={size}
+      height={size}
+      className="rounded-sm shrink-0"
+      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+    />
+  )
+}
+
 type TimeRange = { label: string; days: number }
 const TIME_RANGES: TimeRange[] = [
   { label: 'Today',    days: 1  },
@@ -370,23 +418,24 @@ function AnalyticsTab({
   )
 
   const totalAiTraffic = (analytics.total_ai_visits ?? 0) + (analytics.ai_referral_visits ?? 0)
-  const sortedBots = [...analytics.by_bot].sort((a, b) => b.visit_count - a.visit_count)
-  const sortedPaths = [...analytics.by_path].sort((a, b) => b.visit_count - a.visit_count)
-  const confirmedAi = analytics.confirmed_ai_visits ?? 0
-  const suspectedAi = analytics.suspected_ai_visits ?? 0
+  // Filter out UnknownBot — unidentified traffic with no official logo/name
+  const namedBots = [...analytics.by_bot]
+    .filter(b => b.bot_name !== 'UnknownBot')
+    .sort((a, b) => b.visit_count - a.visit_count)
   const referralSources = [...(analytics.ai_referral_sources ?? [])].sort((a, b) => b.visit_count - a.visit_count)
   const referralLandingPages = [...(analytics.top_referral_landing_pages ?? [])].sort((a, b) => b.visit_count - a.visit_count)
 
-  // AI Platform Intelligence: merge bot crawls + referral sources by platform
-  const platformMap: Record<string, { crawls: number; referrals: number; org?: string }> = {}
-  sortedBots.filter(b => b.bot_name !== 'UnknownBot').forEach(b => {
-    const key = b.bot_org ?? b.bot_name
-    if (!platformMap[key]) platformMap[key] = { crawls: 0, referrals: 0, org: b.bot_org ?? undefined }
+  // AI Platform Intelligence: merge bots + referrals by canonical platform name
+  const platformMap: Record<string, { crawls: number; referrals: number }> = {}
+  namedBots.forEach(b => {
+    const key = getPlatformMeta(b.bot_name).name
+    if (!platformMap[key]) platformMap[key] = { crawls: 0, referrals: 0 }
     platformMap[key].crawls += b.visit_count
   })
   referralSources.forEach(s => {
-    if (!platformMap[s.source]) platformMap[s.source] = { crawls: 0, referrals: 0 }
-    platformMap[s.source].referrals += s.visit_count
+    const key = getPlatformMeta(s.source).name
+    if (!platformMap[key]) platformMap[key] = { crawls: 0, referrals: 0 }
+    platformMap[key].referrals += s.visit_count
   })
   const platformIntel = Object.entries(platformMap)
     .map(([name, v]) => ({ name, ...v }))
@@ -447,9 +496,7 @@ function AnalyticsTab({
             <div className="text-2xl font-bold text-indigo-600">
               {(analytics.total_ai_visits ?? 0).toLocaleString()}
             </div>
-            <div className="text-xs text-gray-400 mt-0.5">
-              {confirmedAi > 0 ? `${confirmedAi.toLocaleString()} confirmed` : 'AI crawlers read your profile'}
-            </div>
+            <div className="text-xs text-gray-400 mt-0.5">AI crawlers read your profile</div>
           </div>
           <div className="bg-white border border-gray-200 rounded-2xl p-4">
             <div className="text-xs text-gray-400 mb-1">AI REFERRAL</div>
@@ -494,32 +541,26 @@ function AnalyticsTab({
             AI Platforms Reading Your Store
           </h3>
           <p className="text-xs text-gray-400 mb-3">AI platforms that scanned your site&apos;s AI profile — {rangeLabel.toLowerCase()}.</p>
-          {sortedBots.length === 0 ? (
+          {namedBots.length === 0 ? (
             <p className="text-xs text-gray-400">Data appears once AI bots start visiting your site. Most sites see their first crawl within 24–72 hours of completing setup.</p>
           ) : (
-            <div className="space-y-2">
-              {sortedBots.map(bot => {
+            <div className="space-y-2.5">
+              {namedBots.map(bot => {
+                const meta = getPlatformMeta(bot.bot_name)
                 const pct = analytics.total_ai_visits > 0 ? Math.round((bot.visit_count / analytics.total_ai_visits) * 100) : 0
-                const isSuspected = bot.bot_name === 'UnknownBot'
                 return (
                   <div key={bot.bot_name} className="flex items-center gap-3">
-                    <div className="w-28 text-xs font-medium text-gray-700 truncate">{bot.bot_name}</div>
+                    <div className="flex items-center gap-2 w-32 shrink-0">
+                      <PlatformLogo id={bot.bot_name} size={16} />
+                      <span className="text-xs font-medium text-gray-700 truncate">{meta.name}</span>
+                    </div>
                     <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full transition-all ${isSuspected ? 'bg-amber-400' : 'bg-indigo-400'}`} style={{ width: `${pct}%` }} />
+                      <div className="h-full bg-indigo-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
                     </div>
                     <div className="text-xs text-gray-500 w-8 text-right">{bot.visit_count}</div>
-                    {isSuspected
-                      ? <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-medium w-20 text-center">suspected</span>
-                      : <div className="text-xs text-gray-400 w-20 truncate">{bot.bot_org}</div>
-                    }
                   </div>
                 )
               })}
-              {suspectedAi > 0 && (
-                <p className="text-xs text-gray-300 mt-2">
-                  {confirmedAi} confirmed (UA-matched) · {suspectedAi} suspected (behavioral heuristic)
-                </p>
-              )}
             </div>
           )}
         </div>
@@ -539,13 +580,17 @@ function AnalyticsTab({
           {referralSources.length === 0 ? (
             <p className="text-xs text-gray-400">Referral data appears once AI platforms start sending visitors to your site. This typically follows after bots have indexed your brand profile.</p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {referralSources.map(src => {
+                const meta = getPlatformMeta(src.source)
                 const total = (analytics.ai_referral_visits ?? 1) || 1
                 const pct = Math.round((src.visit_count / total) * 100)
                 return (
                   <div key={src.source} className="flex items-center gap-3">
-                    <div className="w-28 text-xs font-medium text-gray-700 truncate">{src.source}</div>
+                    <div className="flex items-center gap-2 w-32 shrink-0">
+                      <PlatformLogo id={src.source} size={16} />
+                      <span className="text-xs font-medium text-gray-700 truncate">{meta.name}</span>
+                    </div>
                     <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
                       <div className="h-full bg-emerald-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
                     </div>
@@ -585,19 +630,25 @@ function AnalyticsTab({
           {platformIntel.length === 0 ? (
             <p className="text-xs text-gray-400">Platform intelligence appears once AI bots start visiting your site.</p>
           ) : (
-            <div className="space-y-2">
-              <div className="grid grid-cols-3 text-xs text-gray-400 font-medium pb-1 border-b border-gray-100">
+            <div className="space-y-1">
+              <div className="grid grid-cols-3 text-xs text-gray-400 font-medium pb-2 border-b border-gray-100">
                 <span>Platform</span>
                 <span className="text-center">Crawls</span>
                 <span className="text-center">Referrals</span>
               </div>
-              {platformIntel.map(p => (
-                <div key={p.name} className="grid grid-cols-3 text-xs py-1 border-b border-gray-50 last:border-0">
-                  <span className="font-medium text-gray-700 truncate">{p.name}</span>
-                  <span className="text-center text-indigo-600 font-medium">{p.crawls > 0 ? p.crawls.toLocaleString() : '—'}</span>
-                  <span className="text-center text-emerald-600 font-medium">{p.referrals > 0 ? p.referrals.toLocaleString() : '—'}</span>
-                </div>
-              ))}
+              {platformIntel.map(p => {
+                const meta = getPlatformMeta(p.name)
+                return (
+                  <div key={p.name} className="grid grid-cols-3 text-xs py-2 border-b border-gray-50 last:border-0 items-center">
+                    <div className="flex items-center gap-2">
+                      <PlatformLogo id={p.name} size={14} />
+                      <span className="font-medium text-gray-700 truncate">{meta.name}</span>
+                    </div>
+                    <span className="text-center text-indigo-600 font-medium">{p.crawls > 0 ? p.crawls.toLocaleString() : '—'}</span>
+                    <span className="text-center text-emerald-600 font-medium">{p.referrals > 0 ? p.referrals.toLocaleString() : '—'}</span>
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>
