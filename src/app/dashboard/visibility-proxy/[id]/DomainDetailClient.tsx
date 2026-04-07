@@ -228,17 +228,17 @@ function OverviewTab({
 // Official platform metadata — maps bot_name / referral source → canonical display name + favicon domain
 // Covers all 58 global AI platforms (USA·China·France·Germany·Korea·Russia·Browser)
 const PLATFORM_META: Record<string, { name: string; domain: string }> = {
-  // ── OpenAI / ChatGPT ──────────────────────────────────────────────────────
-  'GPTBot':              { name: 'ChatGPT',     domain: 'openai.com' },
-  'ChatGPT-User':        { name: 'ChatGPT',     domain: 'openai.com' },
+  // ── OpenAI / ChatGPT (all OpenAI bots merge under "ChatGPT") ────────────
+  'GPTBot':              { name: 'ChatGPT',     domain: 'chatgpt.com' },
+  'ChatGPT-User':        { name: 'ChatGPT',     domain: 'chatgpt.com' },
   'ChatGPT':             { name: 'ChatGPT',     domain: 'chatgpt.com' },
-  'OAI-Search':          { name: 'SearchGPT',   domain: 'openai.com' },
-  'OAI-SearchBot':       { name: 'SearchGPT',   domain: 'openai.com' },
+  'OAI-Search':          { name: 'ChatGPT',     domain: 'chatgpt.com' },
+  'OAI-SearchBot':       { name: 'ChatGPT',     domain: 'chatgpt.com' },
   // ── Anthropic / Claude ────────────────────────────────────────────────────
-  'ClaudeBot':           { name: 'Claude',      domain: 'anthropic.com' },
-  'Claude-Web':          { name: 'Claude',      domain: 'anthropic.com' },
-  'Anthropic':           { name: 'Claude',      domain: 'anthropic.com' },
-  'anthropic-ai':        { name: 'Claude',      domain: 'anthropic.com' },
+  'ClaudeBot':           { name: 'Claude',      domain: 'claude.ai' },
+  'Claude-Web':          { name: 'Claude',      domain: 'claude.ai' },
+  'Anthropic':           { name: 'Claude',      domain: 'claude.ai' },
+  'anthropic-ai':        { name: 'Claude',      domain: 'claude.ai' },
   'Claude':              { name: 'Claude',      domain: 'claude.ai' },
   // ── Google / Gemini ───────────────────────────────────────────────────────
   'Google-Extended':     { name: 'Gemini',      domain: 'gemini.google.com' },
@@ -377,7 +377,27 @@ const TIME_RANGES: TimeRange[] = [
   { label: 'All time', days: 0  },
 ]
 
+function buildPlatformIntel(analytics: ProxyAnalytics) {
+  const map: Record<string, { crawls: number; referrals: number }> = {}
+  const namedBots = analytics.by_bot.filter(b => b.bot_name !== 'UnknownBot')
+  namedBots.forEach(b => {
+    const key = getPlatformMeta(b.bot_name).name
+    if (!map[key]) map[key] = { crawls: 0, referrals: 0 }
+    map[key].crawls += b.visit_count
+  })
+  ;(analytics.ai_referral_sources ?? []).forEach(s => {
+    const key = getPlatformMeta(s.source).name
+    if (!map[key]) map[key] = { crawls: 0, referrals: 0 }
+    map[key].referrals += s.visit_count
+  })
+  return Object.entries(map)
+    .map(([name, v]) => ({ name, ...v }))
+    .sort((a, b) => (b.crawls + b.referrals) - (a.crawls + a.referrals))
+}
+
 function exportCSV(analytics: ProxyAnalytics, rangeLabel: string) {
+  const totalAiTraffic = (analytics.total_ai_visits ?? 0) + (analytics.ai_referral_visits ?? 0)
+  const intel = buildPlatformIntel(analytics)
   const lines: string[] = []
   lines.push(`Alignment Visibility Analytics — ${analytics.domain}`)
   lines.push(`Period: ${rangeLabel}`)
@@ -385,32 +405,26 @@ function exportCSV(analytics: ProxyAnalytics, rangeLabel: string) {
   lines.push('')
   lines.push('## Summary')
   lines.push('Metric,Value')
-  lines.push(`Total Requests,${analytics.total_requests}`)
-  lines.push(`Confirmed AI Visits,${analytics.confirmed_ai_visits ?? analytics.total_ai_visits}`)
-  lines.push(`Suspected AI Visits,${analytics.suspected_ai_visits ?? 0}`)
-  lines.push(`AI Referral Visits,${analytics.ai_referral_visits}`)
-  lines.push(`AI Ratio,${Math.round((analytics.ai_ratio ?? 0) * 100)}%`)
-  lines.push(`llms.txt Hits,${analytics.discovery_hits?.llms_txt ?? 0}`)
-  lines.push(`robots.txt Hits,${analytics.discovery_hits?.robots_txt ?? 0}`)
-  lines.push(`agent.json Hits,${analytics.discovery_hits?.agent_json ?? 0}`)
+  lines.push(`Total AI Traffic,${totalAiTraffic}`)
+  lines.push(`AI Visits,${analytics.total_ai_visits ?? 0}`)
+  lines.push(`AI Referral,${analytics.ai_referral_visits ?? 0}`)
   lines.push('')
-  lines.push('## AI Bot Distribution')
-  lines.push('Bot Name,Org,Visits,Confidence')
-  for (const b of analytics.by_bot) {
-    const conf = b.bot_name === 'UnknownBot' ? 'suspected' : 'confirmed'
-    lines.push(`${b.bot_name},${b.bot_org ?? ''},${b.visit_count},${conf}`)
+  lines.push('## AI Platform Breakdown')
+  lines.push('Platform,Crawls,Referrals,Total')
+  for (const p of intel) {
+    lines.push(`${p.name},${p.crawls},${p.referrals},${p.crawls + p.referrals}`)
   }
   lines.push('')
-  lines.push('## Top Crawled Pages')
-  lines.push('Path,Visits')
-  for (const p of analytics.by_path) {
-    lines.push(`${p.path},${p.visit_count}`)
+  lines.push('## Top Referral Landing Pages')
+  lines.push('Page,Visits')
+  for (const p of analytics.top_referral_landing_pages ?? []) {
+    lines.push(`${p.path === '/' ? '/ (Homepage)' : p.path},${p.visit_count}`)
   }
   lines.push('')
   lines.push('## Daily Trend')
-  lines.push('Date,Total,AI Visits,AI Referrals')
+  lines.push('Date,AI Visits,AI Referrals,Total AI Traffic')
   for (const d of analytics.daily_trend ?? []) {
-    lines.push(`${d.date},${d.total},${d.ai_visits},${d.ai_referrals}`)
+    lines.push(`${d.date},${d.ai_visits},${d.ai_referrals},${d.ai_visits + d.ai_referrals}`)
   }
   const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
@@ -422,26 +436,25 @@ function exportCSV(analytics: ProxyAnalytics, rangeLabel: string) {
 }
 
 function buildSummaryText(analytics: ProxyAnalytics, rangeLabel: string): string {
-  const confirmed = analytics.confirmed_ai_visits ?? analytics.total_ai_visits
-  const suspected = analytics.suspected_ai_visits ?? 0
-  const ratio = Math.round((analytics.ai_ratio ?? 0) * 100)
-  const topBots = [...analytics.by_bot]
-    .filter(b => b.bot_name !== 'UnknownBot')
-    .slice(0, 3)
-    .map(b => `${b.bot_name} (${b.visit_count})`)
-    .join(', ')
-  const dh = analytics.discovery_hits
-  const discTotal = (dh?.llms_txt ?? 0) + (dh?.robots_txt ?? 0) + (dh?.agent_json ?? 0)
+  const totalAiTraffic = (analytics.total_ai_visits ?? 0) + (analytics.ai_referral_visits ?? 0)
+  const intel = buildPlatformIntel(analytics)
+  const platformLines = intel.slice(0, 5).map(p => {
+    const parts: string[] = []
+    if (p.crawls > 0) parts.push(`${p.crawls} crawls`)
+    if (p.referrals > 0) parts.push(`${p.referrals} referrals`)
+    return `  ${p.name}: ${parts.join(', ')}`
+  })
   return [
     `Alignment Visibility Report — ${analytics.domain}`,
     `Period: ${rangeLabel}`,
     ``,
-    `Total Requests: ${analytics.total_requests.toLocaleString()}`,
-    `Confirmed AI Visits: ${confirmed.toLocaleString()}${topBots ? ` (${topBots})` : ''}`,
-    suspected > 0 ? `Suspected AI Visits: ${suspected.toLocaleString()} (UnknownBot)` : '',
-    `AI Ratio: ${ratio}%`,
-    `Discovery File Hits: ${discTotal} (llms.txt: ${dh?.llms_txt ?? 0}, robots.txt: ${dh?.robots_txt ?? 0}, agent.json: ${dh?.agent_json ?? 0})`,
-  ].filter(Boolean).join('\n')
+    `Total AI Traffic: ${totalAiTraffic.toLocaleString()}`,
+    `AI Visits: ${(analytics.total_ai_visits ?? 0).toLocaleString()}`,
+    `AI Referral: ${(analytics.ai_referral_visits ?? 0).toLocaleString()}`,
+    ``,
+    `Top Platforms:`,
+    ...platformLines,
+  ].join('\n')
 }
 
 function AnalyticsTab({
@@ -522,20 +535,7 @@ function AnalyticsTab({
   const referralLandingPages = [...(analytics.top_referral_landing_pages ?? [])].sort((a, b) => b.visit_count - a.visit_count)
 
   // AI Platform Intelligence: merge bots + referrals by canonical platform name
-  const platformMap: Record<string, { crawls: number; referrals: number }> = {}
-  namedBots.forEach(b => {
-    const key = getPlatformMeta(b.bot_name).name
-    if (!platformMap[key]) platformMap[key] = { crawls: 0, referrals: 0 }
-    platformMap[key].crawls += b.visit_count
-  })
-  referralSources.forEach(s => {
-    const key = getPlatformMeta(s.source).name
-    if (!platformMap[key]) platformMap[key] = { crawls: 0, referrals: 0 }
-    platformMap[key].referrals += s.visit_count
-  })
-  const platformIntel = Object.entries(platformMap)
-    .map(([name, v]) => ({ name, ...v }))
-    .sort((a, b) => (b.crawls + b.referrals) - (a.crawls + a.referrals))
+  const platformIntel = buildPlatformIntel(analytics)
 
   return (
     <div className="flex gap-6 items-start">
@@ -604,7 +604,14 @@ function AnalyticsTab({
         </div>
 
         {/* Traffic Trend */}
-        {(analytics.daily_trend ?? []).length > 1 && (
+        {(analytics.daily_trend ?? []).length > 1 && (() => {
+          const chartData = (analytics.daily_trend ?? []).map(d => ({
+            date: d.date,
+            total: d.ai_visits + d.ai_referrals,
+            ai_visits: d.ai_visits,
+            ai_referrals: d.ai_referrals,
+          }))
+          return (
           <div className="bg-white border border-gray-200 rounded-2xl p-5">
             <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-gray-400" />
@@ -612,7 +619,7 @@ function AnalyticsTab({
             </h3>
             <p className="text-xs text-gray-400 mb-3">Showing {rangeLabel.toLowerCase()}</p>
             <ResponsiveContainer width="100%" height={180}>
-              <LineChart data={analytics.daily_trend} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+              <LineChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9ca3af' }} tickFormatter={(v: string) => v.slice(5)} />
                 <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} />
@@ -628,7 +635,8 @@ function AnalyticsTab({
               <span className="flex items-center gap-1 text-xs text-emerald-500"><span className="w-3 h-0.5 bg-emerald-500 inline-block" />AI Referrals</span>
             </div>
           </div>
-        )}
+          )
+        })()}
 
         {/* AI Platforms Reading Your Store */}
         <div className="bg-white border border-gray-200 rounded-2xl p-5">
@@ -705,13 +713,19 @@ function AnalyticsTab({
           {referralLandingPages.length === 0 ? (
             <p className="text-xs text-gray-400">Landing page data appears once AI platforms start sending visitors to your site.</p>
           ) : (
-            <div className="space-y-1.5">
-              {referralLandingPages.map(p => (
-                <div key={p.path} className="flex items-center justify-between py-1 border-b border-gray-50 last:border-0">
-                  <span className="text-xs font-mono text-gray-600 truncate flex-1">{p.path}</span>
-                  <span className="text-xs text-gray-400 ml-3 shrink-0">{p.visit_count}</span>
-                </div>
-              ))}
+            <div>
+              <div className="flex items-center justify-between py-1.5 border-b border-gray-200 mb-1">
+                <span className="text-xs font-medium text-gray-500">Page</span>
+                <span className="text-xs font-medium text-gray-500">Visits</span>
+              </div>
+              <div className="space-y-1.5">
+                {referralLandingPages.map(p => (
+                  <div key={p.path} className="flex items-center justify-between py-1 border-b border-gray-50 last:border-0">
+                    <span className="text-xs font-mono text-gray-600 truncate flex-1">{p.path === '/' ? '/ (Homepage)' : p.path}</span>
+                    <span className="text-xs text-gray-500 ml-3 shrink-0 font-medium">{p.visit_count}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
