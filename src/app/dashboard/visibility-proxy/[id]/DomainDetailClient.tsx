@@ -225,33 +225,129 @@ function OverviewTab({
 
 // ── Analytics Tab ─────────────────────────────────────────────────────────────
 
-// Official platform metadata: maps any known bot/org/referral name → canonical display name + favicon domain
+// Official platform metadata — maps bot_name / referral source → canonical display name + favicon domain
+// Covers all 58 global AI platforms (USA·China·France·Germany·Korea·Russia·Browser)
 const PLATFORM_META: Record<string, { name: string; domain: string }> = {
-  // Bot names
-  'ClaudeBot':            { name: 'Claude',      domain: 'anthropic.com' },
-  'Claude-Web':           { name: 'Claude',      domain: 'anthropic.com' },
-  'anthropic-ai':         { name: 'Claude',      domain: 'anthropic.com' },
-  'GPTBot':               { name: 'ChatGPT',     domain: 'openai.com' },
-  'ChatGPT-User':         { name: 'ChatGPT',     domain: 'openai.com' },
-  'OAI-SearchBot':        { name: 'SearchGPT',   domain: 'openai.com' },
-  'OAI-Search':           { name: 'SearchGPT',   domain: 'openai.com' },
-  'PerplexityBot':        { name: 'Perplexity',  domain: 'perplexity.ai' },
-  'Google-Extended':      { name: 'Gemini',      domain: 'gemini.google.com' },
-  'GeminiBot':            { name: 'Gemini',      domain: 'gemini.google.com' },
-  'Googlebot':            { name: 'Google',      domain: 'google.com' },
-  'bingbot':              { name: 'Bing',        domain: 'bing.com' },
-  'Bingbot':              { name: 'Bing',        domain: 'bing.com' },
-  'meta-externalagent':   { name: 'Meta AI',     domain: 'meta.com' },
-  'cohere-ai':            { name: 'Cohere',      domain: 'cohere.com' },
-  'YouBot':               { name: 'You.com',     domain: 'you.com' },
-  // Referral source names (from Referer header)
-  'ChatGPT':              { name: 'ChatGPT',     domain: 'chatgpt.com' },
-  'Claude':               { name: 'Claude',      domain: 'claude.ai' },
-  'Perplexity':           { name: 'Perplexity',  domain: 'perplexity.ai' },
-  'Gemini':               { name: 'Gemini',      domain: 'gemini.google.com' },
-  'Copilot':              { name: 'Copilot',     domain: 'copilot.microsoft.com' },
-  'You.com':              { name: 'You.com',     domain: 'you.com' },
-  'Bing AI':              { name: 'Bing AI',     domain: 'bing.com' },
+  // ── OpenAI / ChatGPT ──────────────────────────────────────────────────────
+  'GPTBot':              { name: 'ChatGPT',     domain: 'openai.com' },
+  'ChatGPT-User':        { name: 'ChatGPT',     domain: 'openai.com' },
+  'ChatGPT':             { name: 'ChatGPT',     domain: 'chatgpt.com' },
+  'OAI-Search':          { name: 'SearchGPT',   domain: 'openai.com' },
+  'OAI-SearchBot':       { name: 'SearchGPT',   domain: 'openai.com' },
+  // ── Anthropic / Claude ────────────────────────────────────────────────────
+  'ClaudeBot':           { name: 'Claude',      domain: 'anthropic.com' },
+  'Claude-Web':          { name: 'Claude',      domain: 'anthropic.com' },
+  'Anthropic':           { name: 'Claude',      domain: 'anthropic.com' },
+  'anthropic-ai':        { name: 'Claude',      domain: 'anthropic.com' },
+  'Claude':              { name: 'Claude',      domain: 'claude.ai' },
+  // ── Google / Gemini ───────────────────────────────────────────────────────
+  'Google-Extended':     { name: 'Gemini',      domain: 'gemini.google.com' },
+  'GeminiBot':           { name: 'Gemini',      domain: 'gemini.google.com' },
+  'Gemini':              { name: 'Gemini',      domain: 'gemini.google.com' },
+  'Googlebot':           { name: 'Google',      domain: 'google.com' },
+  'GoogleOther':         { name: 'Google',      domain: 'google.com' },
+  // ── Perplexity ────────────────────────────────────────────────────────────
+  'PerplexityBot':       { name: 'Perplexity',  domain: 'perplexity.ai' },
+  'Perplexity':          { name: 'Perplexity',  domain: 'perplexity.ai' },
+  // ── Microsoft / Copilot ───────────────────────────────────────────────────
+  'Bingbot':             { name: 'Copilot',     domain: 'copilot.microsoft.com' },
+  'bingbot':             { name: 'Copilot',     domain: 'copilot.microsoft.com' },
+  'BingPreview':         { name: 'Copilot',     domain: 'copilot.microsoft.com' },
+  'Copilot':             { name: 'Copilot',     domain: 'copilot.microsoft.com' },
+  'Bing AI':             { name: 'Bing AI',     domain: 'bing.com' },
+  // ── Meta AI ───────────────────────────────────────────────────────────────
+  'Meta-Agent':          { name: 'Meta AI',     domain: 'meta.ai' },
+  'FacebookBot':         { name: 'Meta AI',     domain: 'meta.ai' },
+  'meta-externalagent':  { name: 'Meta AI',     domain: 'meta.ai' },
+  'Meta AI':             { name: 'Meta AI',     domain: 'meta.ai' },
+  // ── Apple ─────────────────────────────────────────────────────────────────
+  'Applebot-Ext':        { name: 'Apple',       domain: 'apple.com' },
+  'Applebot':            { name: 'Apple',       domain: 'apple.com' },
+  // ── xAI / Grok ────────────────────────────────────────────────────────────
+  'Grok':                { name: 'Grok',        domain: 'x.ai' },
+  'xAI':                 { name: 'Grok',        domain: 'x.ai' },
+  // ── Cohere ────────────────────────────────────────────────────────────────
+  'Cohere':              { name: 'Cohere',      domain: 'cohere.com' },
+  'cohere-ai':           { name: 'Cohere',      domain: 'cohere.com' },
+  // ── You.com ───────────────────────────────────────────────────────────────
+  'YouBot':              { name: 'You.com',     domain: 'you.com' },
+  'You.com':             { name: 'You.com',     domain: 'you.com' },
+  // ── Brave ─────────────────────────────────────────────────────────────────
+  'Brave-Search':        { name: 'Brave',       domain: 'search.brave.com' },
+  'Brave':               { name: 'Brave',       domain: 'search.brave.com' },
+  // ── Amazon ────────────────────────────────────────────────────────────────
+  'Amazonbot':           { name: 'Amazon',      domain: 'amazon.com' },
+  // ── DuckDuckGo ────────────────────────────────────────────────────────────
+  'DuckDuckBot':         { name: 'DuckDuckGo',  domain: 'duckduckgo.com' },
+  'DuckDuckGo':          { name: 'DuckDuckGo',  domain: 'duckduckgo.com' },
+  // ── Mistral AI ────────────────────────────────────────────────────────────
+  'MistralBot':          { name: 'Mistral AI',  domain: 'mistral.ai' },
+  'Mistral AI':          { name: 'Mistral AI',  domain: 'mistral.ai' },
+  'Le Chat':             { name: 'Mistral AI',  domain: 'mistral.ai' },
+  // ── Common Crawl ──────────────────────────────────────────────────────────
+  'CCBot':               { name: 'CommonCrawl', domain: 'commoncrawl.org' },
+  // ── Kagi ──────────────────────────────────────────────────────────────────
+  'KagiBot':             { name: 'Kagi',        domain: 'kagi.com' },
+  'Kagi':                { name: 'Kagi',        domain: 'kagi.com' },
+  // ── Phind ─────────────────────────────────────────────────────────────────
+  'Phind':               { name: 'Phind',       domain: 'phind.com' },
+  // ── Inflection AI (Pi) ────────────────────────────────────────────────────
+  'Pi':                  { name: 'Pi',          domain: 'pi.ai' },
+  'Inflection-AI':       { name: 'Pi',          domain: 'pi.ai' },
+  // ── Writer.ai ─────────────────────────────────────────────────────────────
+  'Writer':              { name: 'Writer',      domain: 'writer.com' },
+  'WriterBot':           { name: 'Writer',      domain: 'writer.com' },
+  // ── Arc Browser ───────────────────────────────────────────────────────────
+  'Arc Browser':         { name: 'Arc Browser', domain: 'arc.net' },
+
+  // ── ByteDance / Doubao ────────────────────────────────────────────────────
+  'Bytespider':          { name: 'Doubao',      domain: 'doubao.com' },
+  'Doubao':              { name: 'Doubao',      domain: 'doubao.com' },
+  // ── DeepSeek ──────────────────────────────────────────────────────────────
+  'DeepSeekBot':         { name: 'DeepSeek',    domain: 'deepseek.com' },
+  'DeepSeek':            { name: 'DeepSeek',    domain: 'deepseek.com' },
+  // ── Moonshot AI / Kimi ────────────────────────────────────────────────────
+  'MoonshotBot':         { name: 'Kimi',        domain: 'kimi.moonshot.cn' },
+  'Kimi':                { name: 'Kimi',        domain: 'kimi.moonshot.cn' },
+  // ── Alibaba / Tongyi (Qwen) ───────────────────────────────────────────────
+  'Qwen':                { name: 'Tongyi',      domain: 'tongyi.aliyun.com' },
+  'Tongyi':              { name: 'Tongyi',      domain: 'tongyi.aliyun.com' },
+  // ── Baidu AI ──────────────────────────────────────────────────────────────
+  'BaiduBot':            { name: 'Baidu AI',    domain: 'baidu.com' },
+  'Baiduspider':         { name: 'Baidu AI',    domain: 'baidu.com' },
+  'Baidu AI':            { name: 'Baidu AI',    domain: 'baidu.com' },
+  // ── Tencent / Hunyuan ─────────────────────────────────────────────────────
+  'Hunyuan':             { name: 'Hunyuan',     domain: 'hunyuan.tencent.com' },
+  // ── iFlytek / Xinghuo ─────────────────────────────────────────────────────
+  'SparkBot':            { name: 'Xinghuo',     domain: 'xinghuo.xfyun.cn' },
+  'Xinghuo':             { name: 'Xinghuo',     domain: 'xinghuo.xfyun.cn' },
+  // ── Zhipu AI (ChatGLM) ────────────────────────────────────────────────────
+  'ZhipuAI':             { name: 'Zhipu AI',    domain: 'zhipuai.cn' },
+  'Zhipu AI':            { name: 'Zhipu AI',    domain: 'zhipuai.cn' },
+  // ── 360 AI ────────────────────────────────────────────────────────────────
+  '360 AI':              { name: '360 AI',      domain: 'so.com' },
+  // ── Baichuan AI ───────────────────────────────────────────────────────────
+  'Baichuan':            { name: 'Baichuan',    domain: 'baichuan-ai.com' },
+  // ── MiniMax ───────────────────────────────────────────────────────────────
+  'MiniMax':             { name: 'MiniMax',     domain: 'minimax.chat' },
+
+  // ── Naver / Clova X (Korea) ───────────────────────────────────────────────
+  'Yeti':                { name: 'Clova X',     domain: 'clova.ai' },
+  'Clova X':             { name: 'Clova X',     domain: 'clova.ai' },
+  // ── Kakao i (Korea) ───────────────────────────────────────────────────────
+  'DaumBot':             { name: 'Kakao i',     domain: 'kakao.com' },
+  'Kakao i':             { name: 'Kakao i',     domain: 'kakao.com' },
+
+  // ── Yandex AI (Russia) ────────────────────────────────────────────────────
+  'YandexBot':           { name: 'Yandex AI',   domain: 'yandex.ru' },
+  'Yandex AI':           { name: 'Yandex AI',   domain: 'yandex.ru' },
+  // ── Sber / GigaChat (Russia) ──────────────────────────────────────────────
+  'SberBot':             { name: 'GigaChat',    domain: 'sber.ru' },
+  'GigaChat':            { name: 'GigaChat',    domain: 'sber.ru' },
+
+  // ── DeepL (Germany) ───────────────────────────────────────────────────────
+  'DeepLBot':            { name: 'DeepL',       domain: 'deepl.com' },
+  'DeepL':               { name: 'DeepL',       domain: 'deepl.com' },
 }
 
 function getPlatformMeta(key: string): { name: string; domain: string } {
