@@ -2744,6 +2744,7 @@ export interface ProxyAnalytics {
   discovery_hits: ProxyDiscoveryHits
   ai_referral_sources: ProxyReferralSource[]
   top_referral_landing_pages: { path: string; visit_count: number }[]
+  geo_distribution: { country: string; visit_count: number; bot_count: number; referral_count: number }[]
   recent_visits: Record<string, unknown>[]
   data_source: string
 }

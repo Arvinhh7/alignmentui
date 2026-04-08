@@ -467,6 +467,222 @@ function buildSummaryText(analytics: ProxyAnalytics, rangeLabel: string): string
   ].join('\n')
 }
 
+// ── World Geo Map Component ──────────────────────────────────────────────────
+
+const COUNTRY_COORDS: Record<string, [number, number]> = {
+  'US': [23.1, 28.9], 'CA': [23.3, 18.9], 'MX': [21.7, 37.2],
+  'GB': [49.4, 20.0], 'DE': [52.8, 21.7], 'FR': [50.6, 24.4],
+  'IT': [53.3, 26.7], 'ES': [48.9, 27.8], 'PT': [48.3, 27.8],
+  'NL': [51.4, 21.7], 'BE': [51.1, 22.2], 'CH': [52.2, 23.9],
+  'AT': [53.9, 23.9], 'PL': [55.6, 21.7], 'CZ': [54.2, 22.8],
+  'SE': [53.6, 16.7], 'NO': [52.2, 16.1], 'DK': [53.3, 20.6],
+  'FI': [56.9, 15.6], 'RO': [56.9, 24.4], 'GR': [56.1, 26.7],
+  'UA': [58.3, 22.8], 'TR': [60.6, 27.2], 'HU': [55.0, 23.3],
+  'RU': [79.2, 15.6], 'BY': [58.9, 20.6],
+  'CN': [79.2, 30.6], 'JP': [88.3, 27.2], 'KR': [85.6, 29.4],
+  'IN': [71.7, 38.9], 'PK': [69.4, 31.7], 'BD': [75.0, 37.2],
+  'VN': [80.0, 40.0], 'TH': [77.8, 41.7], 'MY': [80.0, 49.4],
+  'SG': [78.8, 49.4], 'ID': [83.3, 51.7], 'PH': [84.2, 43.3],
+  'HK': [81.7, 37.2], 'TW': [83.6, 36.7],
+  'AU': [86.9, 65.0], 'NZ': [97.2, 72.8],
+  'BR': [35.3, 55.6], 'AR': [32.2, 68.9], 'CL': [29.4, 67.2],
+  'CO': [29.2, 49.4], 'PE': [27.8, 57.8],
+  'ZA': [56.4, 66.7], 'NG': [51.9, 43.3], 'EG': [58.3, 35.0],
+  'KE': [60.3, 47.8], 'MA': [48.1, 33.3], 'ET': [60.8, 48.3],
+  'IL': [59.7, 31.1], 'SA': [63.3, 35.0], 'AE': [65.0, 36.1],
+  'IR': [66.1, 31.7], 'IQ': [62.5, 31.1],
+  'KZ': [72.5, 21.7], 'UZ': [70.0, 27.8],
+  'MN': [83.3, 23.3], 'NP': [74.4, 35.6],
+  'SK': [54.7, 22.8], 'HR': [54.4, 24.7], 'BG': [57.2, 25.0],
+  'RS': [55.8, 24.4], 'LT': [55.8, 20.6], 'LV': [56.1, 19.4],
+  'EE': [56.7, 18.3], 'IS': [45.0, 16.1], 'IE': [48.3, 21.7],
+  'MD': [57.8, 24.4], 'KW': [62.5, 33.3], 'QA': [63.9, 34.4],
+  'DZ': [51.1, 31.7], 'TZ': [59.4, 52.2], 'GH': [50.3, 45.0],
+}
+
+const COUNTRY_NAMES: Record<string, string> = {
+  'US': 'United States', 'GB': 'United Kingdom', 'DE': 'Germany',
+  'FR': 'France', 'CA': 'Canada', 'AU': 'Australia', 'JP': 'Japan',
+  'CN': 'China', 'IN': 'India', 'BR': 'Brazil', 'RU': 'Russia',
+  'KR': 'South Korea', 'SG': 'Singapore', 'NL': 'Netherlands',
+  'SE': 'Sweden', 'IT': 'Italy', 'ES': 'Spain', 'PL': 'Poland',
+  'NZ': 'New Zealand', 'ZA': 'South Africa', 'MX': 'Mexico',
+  'ID': 'Indonesia', 'TH': 'Thailand', 'PH': 'Philippines',
+  'VN': 'Vietnam', 'MY': 'Malaysia', 'HK': 'Hong Kong',
+  'TW': 'Taiwan', 'NG': 'Nigeria', 'UA': 'Ukraine', 'TR': 'Turkey',
+  'SA': 'Saudi Arabia', 'IL': 'Israel', 'AE': 'UAE', 'AR': 'Argentina',
+  'CL': 'Chile', 'CO': 'Colombia', 'PE': 'Peru', 'EG': 'Egypt',
+  'PK': 'Pakistan', 'BD': 'Bangladesh', 'DK': 'Denmark', 'NO': 'Norway',
+  'FI': 'Finland', 'CH': 'Switzerland', 'AT': 'Austria', 'BE': 'Belgium',
+  'PT': 'Portugal', 'CZ': 'Czech Republic', 'RO': 'Romania', 'GR': 'Greece',
+  'IR': 'Iran', 'IQ': 'Iraq', 'KE': 'Kenya', 'ET': 'Ethiopia',
+  'MA': 'Morocco', 'KZ': 'Kazakhstan', 'UZ': 'Uzbekistan',
+  'MN': 'Mongolia', 'NP': 'Nepal', 'BY': 'Belarus', 'HU': 'Hungary',
+  'SK': 'Slovakia', 'HR': 'Croatia', 'BG': 'Bulgaria', 'RS': 'Serbia',
+  'LT': 'Lithuania', 'LV': 'Latvia', 'EE': 'Estonia', 'IS': 'Iceland',
+  'IE': 'Ireland', 'MD': 'Moldova', 'KW': 'Kuwait', 'QA': 'Qatar',
+  'DZ': 'Algeria', 'TZ': 'Tanzania', 'GH': 'Ghana',
+}
+
+interface GeoDataItem {
+  country: string
+  visit_count: number
+  bot_count: number
+  referral_count: number
+}
+
+function GeoWorldMap({ geoData }: { geoData: GeoDataItem[] }) {
+  const [hovered, setHovered] = useState<GeoDataItem | null>(null)
+  const maxCount = Math.max(...geoData.map(d => d.visit_count), 1)
+  const knownData = geoData.filter(d => COUNTRY_COORDS[d.country])
+  const unknownData = geoData.filter(d => !COUNTRY_COORDS[d.country])
+  const totalVisits = geoData.reduce((s, d) => s + d.visit_count, 0)
+
+  return (
+    <div>
+      <div className="flex items-start justify-between mb-1">
+        <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+          <Globe className="w-4 h-4 text-gray-400" />
+          Global AI Traffic Distribution
+        </h3>
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1.5 text-xs text-gray-400">
+            <span className="w-2 h-2 rounded-full bg-indigo-400 inline-block" />
+            Bot Visits
+          </span>
+          <span className="flex items-center gap-1.5 text-xs text-gray-400">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
+            AI Referrals
+          </span>
+          <span className="flex items-center gap-1.5 text-xs text-gray-400">
+            <span className="w-2 h-2 rounded-full bg-violet-400 inline-block" />
+            Both
+          </span>
+        </div>
+      </div>
+      <p className="text-xs text-gray-400 mb-3">
+        {totalVisits.toLocaleString()} total visits across {geoData.length} countries
+      </p>
+
+      {/* Map container */}
+      <div
+        className="relative w-full overflow-hidden rounded-xl border border-gray-100"
+        style={{ aspectRatio: '2.1/1', background: 'linear-gradient(180deg, #f0f4ff 0%, #f8fafc 40%, #f0fff4 100%)' }}
+      >
+        {/* Reference grid lines (equator + tropics + prime meridian) */}
+        <svg
+          className="absolute inset-0 w-full h-full pointer-events-none"
+          preserveAspectRatio="none"
+          viewBox="0 0 100 100"
+        >
+          {/* Tropic of Cancer ~23.5°N = y 36.9% */}
+          <line x1="0" y1="36.9" x2="100" y2="36.9" stroke="#e2e8f0" strokeWidth="0.3" strokeDasharray="1,2" />
+          {/* Equator = y 50% */}
+          <line x1="0" y1="50" x2="100" y2="50" stroke="#cbd5e1" strokeWidth="0.4" />
+          {/* Tropic of Capricorn ~23.5°S = y 63.1% */}
+          <line x1="0" y1="63.1" x2="100" y2="63.1" stroke="#e2e8f0" strokeWidth="0.3" strokeDasharray="1,2" />
+          {/* Prime Meridian ~49.4% x */}
+          <line x1="49.4" y1="0" x2="49.4" y2="100" stroke="#e2e8f0" strokeWidth="0.3" strokeDasharray="1,2" />
+          {/* 90°E line ~75% x */}
+          <line x1="75" y1="0" x2="75" y2="100" stroke="#e2e8f0" strokeWidth="0.2" strokeDasharray="1,3" />
+          {/* 90°W line ~25% x */}
+          <line x1="25" y1="0" x2="25" y2="100" stroke="#e2e8f0" strokeWidth="0.2" strokeDasharray="1,3" />
+          {/* Equator label */}
+          <text x="50.5" y="49.2" fill="#94a3b8" fontSize="2" fontFamily="system-ui,sans-serif">Equator</text>
+        </svg>
+
+        {/* Country dots */}
+        {knownData.map(d => {
+          const coords = COUNTRY_COORDS[d.country]!
+          const pct = d.visit_count / maxCount
+          const size = Math.max(6, Math.sqrt(pct) * 28)
+          const hasBots = d.bot_count > 0
+          const hasRef = d.referral_count > 0
+          const color = (hasBots && hasRef) ? '#8b5cf6' : hasBots ? '#6366f1' : '#10b981'
+          const opacity = 0.35 + pct * 0.65
+          const isHovered = hovered?.country === d.country
+
+          return (
+            <div
+              key={d.country}
+              className="absolute rounded-full cursor-pointer transition-all"
+              style={{
+                left: `${coords[0]}%`,
+                top: `${coords[1]}%`,
+                width: isHovered ? size * 1.4 : size,
+                height: isHovered ? size * 1.4 : size,
+                background: color,
+                opacity: isHovered ? 1 : opacity,
+                transform: 'translate(-50%, -50%)',
+                boxShadow: isHovered ? `0 0 12px ${color}80` : `0 0 ${size / 3}px ${color}30`,
+                zIndex: isHovered ? 10 : 1,
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={() => setHovered(d)}
+              onMouseLeave={() => setHovered(null)}
+            />
+          )
+        })}
+
+        {/* Hover info bar */}
+        <div
+          className="absolute bottom-0 left-0 right-0 px-3 py-2 flex items-center justify-between transition-all"
+          style={{
+            background: hovered ? 'rgba(15,23,42,0.88)' : 'transparent',
+            backdropFilter: hovered ? 'blur(4px)' : 'none',
+          }}
+        >
+          {hovered ? (
+            <>
+              <span className="text-white text-xs font-semibold">
+                {COUNTRY_NAMES[hovered.country] ?? hovered.country} ({hovered.country})
+              </span>
+              <div className="flex items-center gap-4 text-xs">
+                {hovered.bot_count > 0 && (
+                  <span className="text-indigo-300">Bot Visits: <strong>{hovered.bot_count.toLocaleString()}</strong></span>
+                )}
+                {hovered.referral_count > 0 && (
+                  <span className="text-emerald-300">Referrals: <strong>{hovered.referral_count.toLocaleString()}</strong></span>
+                )}
+                <span className="text-white">Total: <strong>{hovered.visit_count.toLocaleString()}</strong></span>
+              </div>
+            </>
+          ) : (
+            <span className="text-xs text-gray-400 opacity-60">Hover a dot to see country details</span>
+          )}
+        </div>
+      </div>
+
+      {/* Unknown countries row */}
+      {unknownData.length > 0 && (
+        <p className="text-xs text-gray-400 mt-2">
+          Also from: {unknownData.map(d => `${d.country} (${d.visit_count})`).join(', ')}
+        </p>
+      )}
+
+      {/* Top countries mini-table */}
+      <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1.5">
+        {geoData.slice(0, 8).map((d, i) => (
+          <div key={d.country} className="flex items-center gap-1.5 text-xs">
+            <span className="text-gray-300 w-4 shrink-0 text-right">{i + 1}</span>
+            <span
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{
+                background: (d.bot_count > 0 && d.referral_count > 0) ? '#8b5cf6'
+                  : d.bot_count > 0 ? '#6366f1' : '#10b981'
+              }}
+            />
+            <span className="font-medium text-gray-700 truncate flex-1">
+              {COUNTRY_NAMES[d.country] ?? d.country}
+            </span>
+            <span className="text-gray-400 shrink-0">{d.visit_count.toLocaleString()}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function AnalyticsTab({
   analytics, loading, days, onDaysChange, domain,
 }: {
@@ -764,28 +980,73 @@ function AnalyticsTab({
           )}
         </div>
 
-        {/* Top Landing Pages from AI Referrals */}
+        {/* Global AI Traffic Distribution — World Geo Map */}
+        {(analytics.geo_distribution ?? []).length > 0 && (
+          <div className="bg-white border border-gray-200 rounded-2xl p-5">
+            <GeoWorldMap geoData={analytics.geo_distribution ?? []} />
+          </div>
+        )}
+
+        {/* Top Landing Pages from AI Traffic */}
         <div className="bg-white border border-gray-200 rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-gray-700 mb-1">Top Landing Pages from AI Referrals</h3>
-          <p className="text-xs text-gray-400 mb-3">Pages on your site receiving the most AI-referred visitors — {rangeLabel.toLowerCase()}.</p>
-          {referralLandingPages.length === 0 ? (
-            <p className="text-xs text-gray-400">Landing page data appears once AI platforms start sending visitors to your site.</p>
-          ) : (
+          <h3 className="text-sm font-semibold text-gray-700 mb-1">Top Landing Pages from AI Traffic</h3>
+          <p className="text-xs text-gray-400 mb-3">Pages on your site most visited by AI bots and AI-referred humans — {rangeLabel.toLowerCase()}.</p>
+          <div className="grid grid-cols-2 gap-4">
+            {/* Left: AI VISITS (bot crawls by path) */}
             <div>
-              <div className="flex items-center justify-between py-1.5 border-b border-gray-200 mb-1">
-                <span className="text-xs font-medium text-gray-500">Page</span>
-                <span className="text-xs font-medium text-gray-500">Visits</span>
+              <div className="flex items-center gap-1.5 mb-2">
+                <span className="w-2 h-2 rounded-full bg-indigo-400 shrink-0" />
+                <span className="text-xs font-semibold text-indigo-600 uppercase tracking-wide">AI Visits</span>
+                <span className="text-xs text-gray-400 ml-0.5">— pages bots crawled</span>
               </div>
-              <div className="space-y-1.5">
-                {referralLandingPages.map(p => (
-                  <div key={p.path} className="flex items-center justify-between py-1 border-b border-gray-50 last:border-0">
-                    <span className="text-xs font-mono text-gray-600 truncate flex-1">{p.path === '/' ? '/ (Homepage)' : p.path}</span>
-                    <span className="text-xs text-gray-500 ml-3 shrink-0 font-medium">{p.visit_count}</span>
+              {(() => {
+                const DISCOVERY_PATHS = new Set(['/llms.txt', '/llms-full.txt', '/robots.txt', '/.well-known/agent.json'])
+                const aiVisitPages = (analytics.by_path ?? [])
+                  .filter(p => !DISCOVERY_PATHS.has(p.path) && !p.path.startsWith('/.well-known/'))
+                  .slice(0, 8)
+                return aiVisitPages.length === 0 ? (
+                  <p className="text-xs text-gray-400">No page-level crawl data yet.</p>
+                ) : (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between py-1 border-b border-gray-200 mb-1">
+                      <span className="text-xs font-medium text-gray-400">Page</span>
+                      <span className="text-xs font-medium text-gray-400">Visits</span>
+                    </div>
+                    {aiVisitPages.map(p => (
+                      <div key={p.path} className="flex items-center justify-between py-1 border-b border-gray-50 last:border-0">
+                        <span className="text-xs font-mono text-gray-600 truncate flex-1">{p.path === '/' ? '/ (Homepage)' : p.path}</span>
+                        <span className="text-xs text-indigo-500 ml-2 shrink-0 font-medium">{p.visit_count.toLocaleString()}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                )
+              })()}
             </div>
-          )}
+            {/* Right: AI Referrals (human landing pages from AI platforms) */}
+            <div>
+              <div className="flex items-center gap-1.5 mb-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+                <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wide">AI Referrals</span>
+                <span className="text-xs text-gray-400 ml-0.5">— where humans landed</span>
+              </div>
+              {referralLandingPages.length === 0 ? (
+                <p className="text-xs text-gray-400">Referral landing data appears once AI platforms send visitors.</p>
+              ) : (
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between py-1 border-b border-gray-200 mb-1">
+                    <span className="text-xs font-medium text-gray-400">Page</span>
+                    <span className="text-xs font-medium text-gray-400">Visits</span>
+                  </div>
+                  {referralLandingPages.slice(0, 8).map(p => (
+                    <div key={p.path} className="flex items-center justify-between py-1 border-b border-gray-50 last:border-0">
+                      <span className="text-xs font-mono text-gray-600 truncate flex-1">{p.path === '/' ? '/ (Homepage)' : p.path}</span>
+                      <span className="text-xs text-emerald-500 ml-2 shrink-0 font-medium">{p.visit_count.toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* AI Platform Intelligence */}
