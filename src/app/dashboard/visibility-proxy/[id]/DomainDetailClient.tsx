@@ -10,7 +10,7 @@ import {
   Globe, ArrowLeft, CheckCircle, Clock, RefreshCw, XCircle,
   Pause, AlertCircle, Loader2, ExternalLink, Copy, CheckCheck,
   BarChart3, Layers, Settings, Zap, Bot,
-  TrendingUp, Activity, Download, FileText, Save, Wrench,
+  TrendingUp, Activity, Download, FileText, Save, Wrench, ChevronRight,
 } from 'lucide-react'
 
 import BrandDataTab from './BrandDataTab'
@@ -106,6 +106,7 @@ function TechnicalConfigSection({
   userId: string
   onDomainUpdate: (d: ProxyDomain) => void
 }) {
+  const [isOpen, setIsOpen] = useState(false)
   const [cfg, setCfg] = useState({
     strip_noindex: domain.strip_noindex,
     inject_canonical: domain.inject_canonical,
@@ -129,6 +130,7 @@ function TechnicalConfigSection({
       const updated = await proxyApi.updateDomain(domain.id, userId, cfg)
       onDomainUpdate(updated)
       setSaved(true)
+      setIsOpen(false)
       setTimeout(() => setSaved(false), 3000)
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : 'Save failed')
@@ -138,91 +140,101 @@ function TechnicalConfigSection({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-5">
-      <div className="flex items-center gap-2 mb-2">
-        <Wrench className="w-4 h-4 text-gray-500" />
-        <h3 className="text-sm font-semibold text-gray-700">Technical Config</h3>
-        <span className="text-xs text-gray-400 ml-1">Proxy behavior flags</span>
-      </div>
+    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setIsOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Wrench className="w-4 h-4 text-gray-500" />
+          <span className="text-sm font-semibold text-gray-700">Technical Config</span>
+          <span className="text-xs text-gray-400 ml-1">Proxy behavior flags</span>
+        </div>
+        <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} />
+      </button>
+      {isOpen && (
+        <div className="px-5 pb-5 border-t border-gray-100">
+          <div className="divide-y divide-gray-100 mt-3">
+            <ToggleRow
+              label="Strip noindex for AI"
+              desc="Remove noindex meta tags when AI bots visit"
+              value={cfg.strip_noindex}
+              onChange={v => toggle('strip_noindex', v)}
+            />
+            <ToggleRow
+              label="Inject Canonical Tag"
+              desc='Add <link rel="canonical"> pointing to your domain'
+              value={cfg.inject_canonical}
+              onChange={v => toggle('inject_canonical', v)}
+            />
+            <ToggleRow
+              label="Allow All AI Bots in robots.txt"
+              desc="Generate AI-friendly robots.txt allowing 34+ known bots"
+              value={cfg.robots_allow_all_ai}
+              onChange={v => toggle('robots_allow_all_ai', v)}
+            />
+            <ToggleRow
+              label="Auto-inject dateModified"
+              desc="Inject current timestamp as JSON-LD dateModified"
+              value={cfg.date_modified_auto}
+              onChange={v => toggle('date_modified_auto', v)}
+            />
+            <ToggleRow
+              label="Bypass Paywall for AI"
+              desc="Serve full content to AI bots (requires written authorization)"
+              value={cfg.bypass_paywall}
+              onChange={v => toggle('bypass_paywall', v)}
+              warning={cfg.bypass_paywall ? 'This may conflict with your content distribution agreements. Ensure you have written authorization before enabling.' : undefined}
+            />
+            <ToggleRow
+              label="Pre-render CSR Pages"
+              desc="Serve server-side rendered HTML to AI crawlers — coming soon"
+              value={cfg.prerender_csr}
+              onChange={v => toggle('prerender_csr', v)}
+              disabled
+              warning={cfg.prerender_csr ? 'Adds latency to every AI bot request. Test on staging first.' : undefined}
+            />
+          </div>
 
-      <div className="divide-y divide-gray-100">
-        <ToggleRow
-          label="Strip noindex for AI"
-          desc="Remove noindex meta tags when AI bots visit"
-          value={cfg.strip_noindex}
-          onChange={v => toggle('strip_noindex', v)}
-        />
-        <ToggleRow
-          label="Inject Canonical Tag"
-          desc='Add <link rel="canonical"> pointing to your domain'
-          value={cfg.inject_canonical}
-          onChange={v => toggle('inject_canonical', v)}
-        />
-        <ToggleRow
-          label="Allow All AI Bots in robots.txt"
-          desc="Generate AI-friendly robots.txt allowing 34+ known bots"
-          value={cfg.robots_allow_all_ai}
-          onChange={v => toggle('robots_allow_all_ai', v)}
-        />
-        <ToggleRow
-          label="Auto-inject dateModified"
-          desc="Inject current timestamp as JSON-LD dateModified"
-          value={cfg.date_modified_auto}
-          onChange={v => toggle('date_modified_auto', v)}
-        />
-        <ToggleRow
-          label="Bypass Paywall for AI"
-          desc="Serve full content to AI bots (requires written authorization)"
-          value={cfg.bypass_paywall}
-          onChange={v => toggle('bypass_paywall', v)}
-          warning={cfg.bypass_paywall ? 'This may conflict with your content distribution agreements. Ensure you have written authorization before enabling.' : undefined}
-        />
-        <ToggleRow
-          label="Pre-render CSR Pages"
-          desc="Serve server-side rendered HTML to AI crawlers — coming soon"
-          value={cfg.prerender_csr}
-          onChange={v => toggle('prerender_csr', v)}
-          disabled
-          warning={cfg.prerender_csr ? 'Adds latency to every AI bot request. Test on staging first.' : undefined}
-        />
-      </div>
+          <div className="mt-4">
+            <label className="text-xs font-semibold text-gray-600">Custom robots.txt Rules</label>
+            <p className="text-xs text-gray-400 mt-0.5 mb-1.5">
+              Appended to the generated robots.txt. Overrides &quot;Allow All AI Bots&quot; for matching User-agents.
+            </p>
+            <textarea
+              value={cfg.custom_robots_rules}
+              onChange={e => setCfg(prev => ({ ...prev, custom_robots_rules: e.target.value }))}
+              rows={3}
+              placeholder={'# Additional rules\nUser-agent: *\nDisallow: /private/'}
+              className="w-full px-3 py-2 text-xs font-mono bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 resize-y"
+            />
+          </div>
 
-      <div className="mt-4">
-        <label className="text-xs font-semibold text-gray-600">Custom robots.txt Rules</label>
-        <p className="text-xs text-gray-400 mt-0.5 mb-1.5">
-          Appended to the generated robots.txt. Overrides &quot;Allow All AI Bots&quot; for matching User-agents.
-        </p>
-        <textarea
-          value={cfg.custom_robots_rules}
-          onChange={e => setCfg(prev => ({ ...prev, custom_robots_rules: e.target.value }))}
-          rows={3}
-          placeholder={'# Additional rules\nUser-agent: *\nDisallow: /private/'}
-          className="w-full px-3 py-2 text-xs font-mono bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 resize-y"
-        />
-      </div>
+          {saveError && (
+            <div className="mt-3 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              {saveError}
+            </div>
+          )}
 
-      {saveError && (
-        <div className="mt-3 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-          {saveError}
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors"
+            >
+              {saving ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : saved ? (
+                <CheckCircle className="w-3.5 h-3.5" />
+              ) : (
+                <Save className="w-3.5 h-3.5" />
+              )}
+              {saving ? 'Saving…' : saved ? 'Saved!' : 'Save Config'}
+            </button>
+          </div>
         </div>
       )}
-
-      <div className="mt-4 flex justify-end">
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors"
-        >
-          {saving ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          ) : saved ? (
-            <CheckCircle className="w-3.5 h-3.5" />
-          ) : (
-            <Save className="w-3.5 h-3.5" />
-          )}
-          {saving ? 'Saving…' : saved ? 'Saved!' : 'Save Config'}
-        </button>
-      </div>
     </div>
   )
 }
@@ -712,36 +724,66 @@ function buildSummaryText(analytics: ProxyAnalytics, rangeLabel: string): string
 
 // ── World Geo Map Component ──────────────────────────────────────────────────
 
-const COUNTRY_COORDS: Record<string, [number, number]> = {
-  'US': [23.1, 28.9], 'CA': [23.3, 18.9], 'MX': [21.7, 37.2],
-  'GB': [49.4, 20.0], 'DE': [52.8, 21.7], 'FR': [50.6, 24.4],
-  'IT': [53.3, 26.7], 'ES': [48.9, 27.8], 'PT': [48.3, 27.8],
-  'NL': [51.4, 21.7], 'BE': [51.1, 22.2], 'CH': [52.2, 23.9],
-  'AT': [53.9, 23.9], 'PL': [55.6, 21.7], 'CZ': [54.2, 22.8],
-  'SE': [53.6, 16.7], 'NO': [52.2, 16.1], 'DK': [53.3, 20.6],
-  'FI': [56.9, 15.6], 'RO': [56.9, 24.4], 'GR': [56.1, 26.7],
-  'UA': [58.3, 22.8], 'TR': [60.6, 27.2], 'HU': [55.0, 23.3],
-  'RU': [79.2, 15.6], 'BY': [58.9, 20.6],
-  'CN': [79.2, 30.6], 'JP': [88.3, 27.2], 'KR': [85.6, 29.4],
-  'IN': [71.7, 38.9], 'PK': [69.4, 31.7], 'BD': [75.0, 37.2],
-  'VN': [80.0, 40.0], 'TH': [77.8, 41.7], 'MY': [80.0, 49.4],
-  'SG': [78.8, 49.4], 'ID': [83.3, 51.7], 'PH': [84.2, 43.3],
-  'HK': [81.7, 37.2], 'TW': [83.6, 36.7],
-  'AU': [86.9, 65.0], 'NZ': [97.2, 72.8],
-  'BR': [35.3, 55.6], 'AR': [32.2, 68.9], 'CL': [29.4, 67.2],
-  'CO': [29.2, 49.4], 'PE': [27.8, 57.8],
-  'ZA': [56.4, 66.7], 'NG': [51.9, 43.3], 'EG': [58.3, 35.0],
-  'KE': [60.3, 47.8], 'MA': [48.1, 33.3], 'ET': [60.8, 48.3],
-  'IL': [59.7, 31.1], 'SA': [63.3, 35.0], 'AE': [65.0, 36.1],
-  'IR': [66.1, 31.7], 'IQ': [62.5, 31.1],
-  'KZ': [72.5, 21.7], 'UZ': [70.0, 27.8],
-  'MN': [83.3, 23.3], 'NP': [74.4, 35.6],
-  'SK': [54.7, 22.8], 'HR': [54.4, 24.7], 'BG': [57.2, 25.0],
-  'RS': [55.8, 24.4], 'LT': [55.8, 20.6], 'LV': [56.1, 19.4],
-  'EE': [56.7, 18.3], 'IS': [45.0, 16.1], 'IE': [48.3, 21.7],
-  'MD': [57.8, 24.4], 'KW': [62.5, 33.3], 'QA': [63.9, 34.4],
-  'DZ': [51.1, 31.7], 'TZ': [59.4, 52.2], 'GH': [50.3, 45.0],
+function flagEmoji(iso: string): string {
+  if (iso.length !== 2) return '🌐'
+  const base = 0x1F1E6 - 65
+  return String.fromCodePoint(iso.charCodeAt(0) + base) + String.fromCodePoint(iso.charCodeAt(1) + base)
 }
+
+function ll2xy(lat: number, lon: number): [number, number] {
+  return [(lon + 180) * (960 / 360), (90 - lat) * (500 / 180)]
+}
+
+const COUNTRY_LATLNG: Record<string, [number, number]> = {
+  'US': [38, -97],   'CA': [60, -95],   'MX': [23, -102],
+  'GB': [55, -3],    'DE': [51, 10],    'FR': [46, 2],
+  'IT': [43, 12],    'ES': [40, -4],    'PT': [39, -8],
+  'NL': [52, 5],     'BE': [50, 4],     'CH': [47, 8],
+  'AT': [47, 14],    'PL': [52, 20],    'CZ': [50, 15],
+  'SE': [62, 18],    'NO': [65, 13],    'DK': [56, 10],
+  'FI': [64, 25],    'RO': [46, 25],    'GR': [39, 22],
+  'UA': [49, 32],    'TR': [39, 35],    'HU': [47, 19],
+  'RU': [60, 90],    'BY': [53, 28],
+  'CN': [35, 103],   'JP': [36, 138],   'KR': [36, 128],
+  'IN': [20, 77],    'PK': [30, 70],    'BD': [23, 90],
+  'VN': [16, 108],   'TH': [15, 101],   'MY': [3, 112],
+  'SG': [1, 104],    'ID': [-5, 120],   'PH': [12, 122],
+  'HK': [22, 114],   'TW': [23, 121],
+  'AU': [-27, 133],  'NZ': [-41, 174],
+  'BR': [-15, -53],  'AR': [-35, -65],  'CL': [-35, -71],
+  'CO': [4, -74],    'PE': [-10, -75],
+  'ZA': [-29, 25],   'NG': [8, 8],      'EG': [27, 30],
+  'KE': [-1, 38],    'MA': [32, -6],    'ET': [8, 38],
+  'IL': [31, 35],    'SA': [24, 45],    'AE': [24, 54],
+  'IR': [32, 53],    'IQ': [33, 44],
+  'KZ': [48, 68],    'UZ': [41, 64],
+  'MN': [46, 105],   'NP': [28, 84],
+  'SK': [49, 19],    'HR': [45, 16],    'BG': [43, 25],
+  'RS': [44, 21],    'LT': [56, 24],    'LV': [57, 25],
+  'EE': [58, 25],    'IS': [65, -18],   'IE': [53, -8],
+  'MD': [47, 29],    'KW': [29, 48],    'QA': [25, 51],
+  'DZ': [28, 2],     'TZ': [-6, 35],    'GH': [8, -1],
+}
+
+// Simplified continent outlines — equirectangular 960×500 projection
+const GEO_LAND_PATHS = [
+  // Greenland
+  'M 280,14 L 320,7 L 360,14 L 373,28 L 360,42 L 333,53 L 307,53 L 280,42 Z',
+  // North America
+  'M 53,75 L 107,61 L 160,47 L 213,47 L 267,61 L 320,83 L 333,106 L 320,128 L 307,128 L 293,136 L 267,175 L 253,208 L 267,225 L 267,242 L 253,250 L 240,225 L 213,211 L 187,186 L 160,150 L 147,111 L 120,89 L 80,75 Z',
+  // South America
+  'M 267,242 L 280,236 L 307,228 L 347,236 L 387,264 L 393,278 L 373,311 L 347,353 L 320,397 L 307,417 L 293,417 L 280,400 L 267,353 L 253,306 L 253,275 L 260,253 Z',
+  // Eurasia (Europe + Asia combined)
+  'M 440,97 L 453,83 L 467,83 L 480,97 L 507,97 L 520,83 L 540,72 L 573,61 L 627,47 L 693,33 L 760,22 L 840,22 L 893,33 L 933,47 L 933,83 L 907,97 L 867,100 L 853,122 L 853,150 L 840,167 L 813,181 L 787,194 L 773,208 L 747,208 L 720,222 L 707,222 L 693,236 L 680,236 L 653,250 L 640,264 L 607,272 L 587,253 L 573,236 L 560,236 L 547,208 L 547,175 L 560,167 L 567,150 L 547,133 L 520,122 L 507,133 L 493,133 L 467,122 L 453,122 L 440,111 Z',
+  // India Peninsula
+  'M 607,167 L 640,181 L 653,211 L 647,236 L 627,264 L 613,250 L 600,236 L 593,211 L 600,181 Z',
+  // SE Asia / Indochina
+  'M 720,222 L 747,222 L 753,236 L 747,264 L 720,264 L 707,253 L 707,239 Z',
+  // Africa
+  'M 453,122 L 480,111 L 520,111 L 547,122 L 553,147 L 567,167 L 573,181 L 600,208 L 607,236 L 593,275 L 573,311 L 553,347 L 527,375 L 500,383 L 473,375 L 453,353 L 440,325 L 433,289 L 440,253 L 453,222 L 440,200 L 440,167 L 453,150 Z',
+  // Australia
+  'M 720,300 L 760,283 L 800,275 L 827,286 L 840,308 L 840,336 L 827,358 L 800,375 L 760,375 L 727,361 L 720,333 Z',
+]
 
 const COUNTRY_NAMES: Record<string, string> = {
   'US': 'United States', 'GB': 'United Kingdom', 'DE': 'Germany',
@@ -776,11 +818,10 @@ interface GeoDataItem {
 
 type GeoFilter = 'traffic' | 'visits' | 'referral'
 
-// Dot color palette: red=bots, yellow=referral, orange=both
 const GEO_COLORS = {
-  bot:      '#ef4444',  // red-500
-  referral: '#eab308',  // yellow-500
-  both:     '#f97316',  // orange-500
+  bot:      '#ef4444',
+  referral: '#eab308',
+  both:     '#f97316',
 } as const
 
 function geoColor(d: GeoDataItem): string {
@@ -790,26 +831,21 @@ function geoColor(d: GeoDataItem): string {
 }
 
 function GeoWorldMap({ geoData }: { geoData: GeoDataItem[] }) {
-  const [hovered, setHovered] = useState<GeoDataItem | null>(null)
+  const [hovered, setHovered] = useState<(GeoDataItem & { px: number; py: number }) | null>(null)
   const [filter, setFilter]   = useState<GeoFilter>('traffic')
 
-  const isEmpty    = geoData.length === 0
-  const knownData  = geoData.filter(d => COUNTRY_COORDS[d.country])
-  const unknownData = geoData.filter(d => !COUNTRY_COORDS[d.country])
+  const isEmpty     = geoData.length === 0
+  const unknownData = geoData.filter(d => !COUNTRY_LATLNG[d.country])
 
-  // Select active metric per filter
   const metricOf = (d: GeoDataItem) =>
     filter === 'visits'   ? d.bot_count
     : filter === 'referral' ? d.referral_count
     : d.visit_count
 
-  // Filter out dots that have zero count for the selected view
-  const visibleData = knownData.filter(d => metricOf(d) > 0)
+  const visibleData = geoData.filter(d => COUNTRY_LATLNG[d.country] && metricOf(d) > 0)
   const maxCount    = Math.max(...visibleData.map(d => metricOf(d)), 1)
   const totalVisits = geoData.reduce((s, d) => s + d.visit_count, 0)
-
-  // Sort mini-table by active metric
-  const sortedGeo = [...geoData].sort((a, b) => metricOf(b) - metricOf(a))
+  const sortedGeo   = [...geoData].sort((a, b) => metricOf(b) - metricOf(a))
 
   const FILTER_BTNS: { key: GeoFilter; label: string }[] = [
     { key: 'traffic',  label: 'AI Traffic'  },
@@ -819,30 +855,26 @@ function GeoWorldMap({ geoData }: { geoData: GeoDataItem[] }) {
 
   return (
     <div>
-      {/* Header row: title + filter buttons + legend */}
+      {/* Header row */}
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
           <Globe className="w-4 h-4 text-gray-400" />
           Global AI Traffic Distribution
         </h3>
         <div className="flex items-center gap-2">
-          {/* Filter toggle */}
           <div className="flex items-center gap-0.5 bg-gray-100 rounded-lg p-0.5">
             {FILTER_BTNS.map(btn => (
               <button
                 key={btn.key}
                 onClick={() => setFilter(btn.key)}
                 className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
-                  filter === btn.key
-                    ? 'bg-white text-gray-800 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
+                  filter === btn.key ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 {btn.label}
               </button>
             ))}
           </div>
-          {/* Legend */}
           {filter === 'traffic' && (
             <div className="flex items-center gap-2.5">
               <span className="flex items-center gap-1 text-xs text-gray-400">
@@ -874,94 +906,90 @@ function GeoWorldMap({ geoData }: { geoData: GeoDataItem[] }) {
           : `${totalVisits.toLocaleString()} total visits from ${geoData.length} ${geoData.length === 1 ? 'country' : 'countries'}`}
       </p>
 
-      {/* Map container */}
-      <div
-        className="relative w-full overflow-hidden rounded-xl border border-gray-100"
-        style={{ aspectRatio: '2.1/1', background: 'linear-gradient(180deg, #f8f9ff 0%, #f8fafc 45%, #f9fdf9 100%)' }}
-      >
-        {/* Reference grid lines */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 100 100">
-          <line x1="0" y1="36.9" x2="100" y2="36.9" stroke="#e2e8f0" strokeWidth="0.3" strokeDasharray="1,2" />
-          <line x1="0" y1="50"   x2="100" y2="50"   stroke="#cbd5e1" strokeWidth="0.4" />
-          <line x1="0" y1="63.1" x2="100" y2="63.1" stroke="#e2e8f0" strokeWidth="0.3" strokeDasharray="1,2" />
-          <line x1="49.4" y1="0" x2="49.4" y2="100" stroke="#e2e8f0" strokeWidth="0.3" strokeDasharray="1,2" />
-          <line x1="75"   y1="0" x2="75"   y2="100" stroke="#e2e8f0" strokeWidth="0.2" strokeDasharray="1,3" />
-          <line x1="25"   y1="0" x2="25"   y2="100" stroke="#e2e8f0" strokeWidth="0.2" strokeDasharray="1,3" />
-          <text x="50.5" y="49.2" fill="#94a3b8" fontSize="2" fontFamily="system-ui,sans-serif">Equator</text>
-        </svg>
-
-        {/* Empty state overlay */}
-        {isEmpty && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-            <Globe className="w-8 h-8 text-gray-200" />
-            <p className="text-xs text-gray-400 text-center px-8">
-              Country data starts collecting with new bot visits.<br />
-              <span className="text-gray-300">Dots will appear within a few hours.</span>
-            </p>
-          </div>
-        )}
-
-        {/* Country dots */}
-        {visibleData.map(d => {
-          const coords    = COUNTRY_COORDS[d.country]!
-          const count     = metricOf(d)
-          const pct       = count / maxCount
-          const size      = Math.max(6, Math.sqrt(pct) * 28)
-          const color     = filter === 'visits' ? GEO_COLORS.bot
-            : filter === 'referral' ? GEO_COLORS.referral
-            : geoColor(d)
-          const opacity   = 0.35 + pct * 0.65
-          const isHovered = hovered?.country === d.country
-
-          return (
-            <div
-              key={d.country}
-              className="absolute rounded-full cursor-pointer"
-              style={{
-                left:      `${coords[0]}%`,
-                top:       `${coords[1]}%`,
-                width:     isHovered ? size * 1.4 : size,
-                height:    isHovered ? size * 1.4 : size,
-                background: color,
-                opacity:   isHovered ? 1 : opacity,
-                transform: 'translate(-50%, -50%)',
-                boxShadow: isHovered ? `0 0 14px ${color}90` : `0 0 ${size / 3}px ${color}30`,
-                zIndex:    isHovered ? 10 : 1,
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={() => setHovered(d)}
-              onMouseLeave={() => setHovered(null)}
-            />
-          )
-        })}
-
-        {/* Hover info bar */}
-        <div
-          className="absolute bottom-0 left-0 right-0 px-3 py-2 flex items-center justify-between transition-all"
-          style={{
-            background:    hovered ? 'rgba(15,23,42,0.88)' : 'transparent',
-            backdropFilter: hovered ? 'blur(4px)' : 'none',
-          }}
-        >
-          {hovered ? (
-            <>
-              <span className="text-white text-xs font-semibold">
-                {COUNTRY_NAMES[hovered.country] ?? hovered.country} ({hovered.country})
-              </span>
-              <div className="flex items-center gap-4 text-xs">
-                {hovered.bot_count > 0 && (
-                  <span style={{ color: '#fca5a5' }}>Bot Visits: <strong>{hovered.bot_count.toLocaleString()}</strong></span>
-                )}
-                {hovered.referral_count > 0 && (
-                  <span style={{ color: '#fde047' }}>Referrals: <strong>{hovered.referral_count.toLocaleString()}</strong></span>
-                )}
-                <span className="text-white">Total: <strong>{hovered.visit_count.toLocaleString()}</strong></span>
-              </div>
-            </>
-          ) : (
-            <span className="text-xs text-gray-400 opacity-50">Hover a dot to see country details</span>
+      {/* SVG World Map */}
+      <div className="rounded-xl overflow-hidden border border-gray-100" style={{ aspectRatio: '960/500' }}>
+        <svg viewBox="0 0 960 500" className="w-full h-full" style={{ display: 'block' }}>
+          {/* Ocean */}
+          <rect width="960" height="500" fill="#daeaf5" />
+          {/* Latitude grid */}
+          <line x1="0" y1="250" x2="960" y2="250" stroke="#b0cce0" strokeWidth="0.8" />
+          <line x1="0" y1="125" x2="960" y2="125" stroke="#c0d4e6" strokeWidth="0.4" strokeDasharray="6,10" />
+          <line x1="0" y1="375" x2="960" y2="375" stroke="#c0d4e6" strokeWidth="0.4" strokeDasharray="6,10" />
+          <line x1="480" y1="0" x2="480" y2="500" stroke="#c0d4e6" strokeWidth="0.4" strokeDasharray="6,10" />
+          <text x="486" y="245" fill="#88aabb" fontSize="9" fontFamily="system-ui,sans-serif">Equator</text>
+          {/* Land masses */}
+          {GEO_LAND_PATHS.map((d, i) => (
+            <path key={i} d={d} fill="#c8d8a0" stroke="#a8bc78" strokeWidth="0.8" />
+          ))}
+          {/* Empty state */}
+          {isEmpty && (
+            <text x="480" y="265" textAnchor="middle" fill="#94a3b8" fontSize="13" fontFamily="system-ui,sans-serif">
+              No geographic data yet — bot visits will appear here
+            </text>
           )}
-        </div>
+          {/* Country bubbles */}
+          {visibleData.map(d => {
+            const latlng = COUNTRY_LATLNG[d.country]!
+            const [px, py] = ll2xy(latlng[0], latlng[1])
+            const count  = metricOf(d)
+            const pct    = count / maxCount
+            const r      = Math.max(5, Math.sqrt(pct) * 22)
+            const color  = filter === 'visits' ? GEO_COLORS.bot
+              : filter === 'referral' ? GEO_COLORS.referral
+              : geoColor(d)
+            const opacity = 0.35 + pct * 0.65
+            const isHov   = hovered?.country === d.country
+            return (
+              <g key={d.country} style={{ cursor: 'pointer' }}
+                onMouseEnter={() => setHovered({ ...d, px, py })}
+                onMouseLeave={() => setHovered(null)}
+              >
+                <circle
+                  cx={px} cy={py}
+                  r={isHov ? r * 1.3 : r}
+                  fill={color}
+                  opacity={isHov ? 0.92 : opacity}
+                  style={{ transition: 'all 0.15s ease', filter: isHov ? `drop-shadow(0 0 5px ${color})` : 'none' }}
+                />
+                {r > 11 && (
+                  <text x={px} y={py + 4} textAnchor="middle"
+                    fontSize={Math.min(r * 0.7, 11)} fill="white" fontWeight="bold"
+                    fontFamily="system-ui,sans-serif" pointerEvents="none"
+                  >
+                    {count > 999 ? `${(count / 1000).toFixed(1)}k` : count}
+                  </text>
+                )}
+              </g>
+            )
+          })}
+          {/* Tooltip */}
+          {hovered && (
+            <g pointerEvents="none">
+              {(() => {
+                const tx = Math.min(hovered.px + 8, 755)
+                const ty = Math.max(hovered.py - 56, 4)
+                const name = COUNTRY_NAMES[hovered.country] ?? hovered.country
+                return (
+                  <>
+                    <rect x={tx} y={ty} width="205" height="54" rx="6" fill="rgba(15,23,42,0.90)" />
+                    <text x={tx + 10} y={ty + 19} fill="white" fontSize="11" fontWeight="bold" fontFamily="system-ui,sans-serif">
+                      {flagEmoji(hovered.country)} {name}
+                    </text>
+                    <text x={tx + 10} y={ty + 35} fill="#94a3b8" fontSize="10" fontFamily="system-ui,sans-serif">
+                      {`Bots: ${hovered.bot_count.toLocaleString()}`}
+                    </text>
+                    <text x={tx + 110} y={ty + 35} fill="#fde68a" fontSize="10" fontFamily="system-ui,sans-serif">
+                      {`Ref: ${hovered.referral_count.toLocaleString()}`}
+                    </text>
+                    <text x={tx + 10} y={ty + 49} fill="#d1d5db" fontSize="10" fontFamily="system-ui,sans-serif">
+                      {`Total: ${hovered.visit_count.toLocaleString()}`}
+                    </text>
+                  </>
+                )
+              })()}
+            </g>
+          )}
+        </svg>
       </div>
 
       {/* Unknown countries */}
@@ -971,19 +999,21 @@ function GeoWorldMap({ geoData }: { geoData: GeoDataItem[] }) {
         </p>
       )}
 
-      {/* Top countries mini-table (sorted by active filter) */}
-      {!isEmpty && <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1.5">
-        {sortedGeo.filter(d => metricOf(d) > 0).slice(0, 8).map((d, i) => (
-          <div key={d.country} className="flex items-center gap-1.5 text-xs">
-            <span className="text-gray-300 w-4 shrink-0 text-right">{i + 1}</span>
-            <span className="w-2 h-2 rounded-full shrink-0" style={{ background: geoColor(d) }} />
-            <span className="font-medium text-gray-700 truncate flex-1">
-              {COUNTRY_NAMES[d.country] ?? d.country}
-            </span>
-            <span className="text-gray-400 shrink-0">{metricOf(d).toLocaleString()}</span>
-          </div>
-        ))}
-      </div>}
+      {/* Country grid with flags */}
+      {!isEmpty && (
+        <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2">
+          {sortedGeo.filter(d => metricOf(d) > 0).slice(0, 12).map((d, i) => (
+            <div key={d.country} className="flex items-center gap-2 text-xs">
+              <span className="text-gray-300 w-4 shrink-0 text-right">{i + 1}</span>
+              <span className="text-base leading-none">{flagEmoji(d.country)}</span>
+              <span className="font-medium text-gray-700 truncate flex-1">
+                {COUNTRY_NAMES[d.country] ?? d.country}
+              </span>
+              <span className="text-gray-400 shrink-0 font-mono">{metricOf(d).toLocaleString()}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
