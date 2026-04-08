@@ -405,6 +405,60 @@ function buildPlatformIntel(analytics: ProxyAnalytics) {
     .sort((a, b) => (b.crawls + b.referrals) - (a.crawls + a.referrals))
 }
 
+// ── Page path helpers ─────────────────────────────────────────────────────────
+
+// Technical / internal paths that should never appear in "pages AI read"
+const TECHNICAL_PATH_RE = [
+  /^\/sitemap/i,          // sitemap.xml, sitemap_*.xml, etc.
+  /^\/robots\.txt$/i,
+  /^\/llms/i,             // llms.txt, llms-full.txt
+  /^\/meta\.json$/i,
+  /^\/api\//i,            // /api/jsonld and any other API routes
+  /^\/.well-known\//i,
+  /^\/cdn-cgi\//i,
+]
+
+function isHumanPagePath(path: string): boolean {
+  return !TECHNICAL_PATH_RE.some(re => re.test(path))
+}
+
+function slugToTitle(slug: string): string {
+  return slug.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
+interface PageInfo {
+  name: string
+  type: 'home' | 'product' | 'collection' | 'page' | 'blog' | 'other'
+  badge: string
+}
+
+function pathToPageInfo(path: string): PageInfo {
+  const clean = (path ?? '/').replace(/\?.*$/, '').replace(/\/$/, '') || '/'
+  if (clean === '/') return { name: 'Homepage', type: 'home', badge: 'Home' }
+  const parts  = clean.split('/').filter(Boolean)
+  const first  = parts[0]?.toLowerCase()
+  if (first === 'products' && parts.length >= 2)
+    return { name: slugToTitle(parts[1]), type: 'product',    badge: 'Product'    }
+  if (first === 'collections' && parts.length >= 2)
+    return { name: slugToTitle(parts[1]), type: 'collection', badge: 'Collection' }
+  if (first === 'pages' && parts.length >= 2)
+    return { name: slugToTitle(parts[1]), type: 'page',       badge: 'Page'       }
+  if ((first === 'blogs' || first === 'blog') && parts.length >= 2) {
+    const title = parts.length >= 3 ? parts[2] : parts[1]
+    return { name: slugToTitle(title),   type: 'blog',        badge: 'Blog'       }
+  }
+  return { name: parts.map(slugToTitle).join(' › '), type: 'other', badge: 'Page' }
+}
+
+const PAGE_BADGE_STYLE: Record<string, string> = {
+  home:       'bg-gray-100 text-gray-600',
+  product:    'bg-indigo-50 text-indigo-600',
+  collection: 'bg-purple-50 text-purple-600',
+  page:       'bg-teal-50 text-teal-600',
+  blog:       'bg-amber-50 text-amber-600',
+  other:      'bg-gray-50 text-gray-500',
+}
+
 function exportCSV(analytics: ProxyAnalytics, rangeLabel: string) {
   const totalAiTraffic = (analytics.total_ai_visits ?? 0) + (analytics.ai_referral_visits ?? 0)
   const intel = buildPlatformIntel(analytics)
@@ -1050,59 +1104,65 @@ function AnalyticsTab({
         {/* Top Landing Pages from AI Traffic */}
         <div className="bg-white border border-gray-200 rounded-2xl p-5">
           <h3 className="text-sm font-semibold text-gray-700 mb-1">Top Landing Pages from AI Traffic</h3>
-          <p className="text-xs text-gray-400 mb-3">Pages on your site most visited by AI bots and AI-referred humans — {rangeLabel.toLowerCase()}.</p>
-          <div className="grid grid-cols-2 gap-4">
-            {/* Left: AI VISITS (bot crawls by path) */}
+          <p className="text-xs text-gray-400 mb-4">Which pages AI bots read and where human visitors land after clicking AI recommendations — {rangeLabel.toLowerCase()}.</p>
+          <div className="grid grid-cols-2 gap-5">
+
+            {/* Left: AI VISITS — actual pages bots crawled, technical paths excluded */}
             <div>
-              <div className="flex items-center gap-1.5 mb-2">
+              <div className="flex items-center gap-1.5 mb-3">
                 <span className="w-2 h-2 rounded-full bg-indigo-400 shrink-0" />
-                <span className="text-xs font-semibold text-indigo-600 uppercase tracking-wide">AI Visits</span>
-                <span className="text-xs text-gray-400 ml-0.5">— pages bots crawled</span>
+                <span className="text-xs font-bold text-indigo-600 uppercase tracking-wide">AI Visits</span>
+                <span className="text-xs text-gray-400">— AI bots read</span>
               </div>
               {(() => {
-                const DISCOVERY_PATHS = new Set(['/llms.txt', '/llms-full.txt', '/robots.txt', '/.well-known/agent.json'])
-                const aiVisitPages = (analytics.by_path ?? [])
-                  .filter(p => !DISCOVERY_PATHS.has(p.path) && !p.path.startsWith('/.well-known/'))
+                const pages = (analytics.by_path ?? [])
+                  .filter(p => isHumanPagePath(p.path))
                   .slice(0, 8)
-                return aiVisitPages.length === 0 ? (
-                  <p className="text-xs text-gray-400">No page-level crawl data yet.</p>
-                ) : (
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between py-1 border-b border-gray-200 mb-1">
-                      <span className="text-xs font-medium text-gray-400">Page</span>
-                      <span className="text-xs font-medium text-gray-400">Visits</span>
-                    </div>
-                    {aiVisitPages.map(p => (
-                      <div key={p.path} className="flex items-center justify-between py-1 border-b border-gray-50 last:border-0">
-                        <span className="text-xs font-mono text-gray-600 truncate flex-1">{p.path === '/' ? '/ (Homepage)' : p.path}</span>
-                        <span className="text-xs text-indigo-500 ml-2 shrink-0 font-medium">{p.visit_count.toLocaleString()}</span>
-                      </div>
-                    ))}
+                if (pages.length === 0) return (
+                  <p className="text-xs text-gray-400 italic">No page crawl data yet.</p>
+                )
+                return (
+                  <div className="space-y-2">
+                    {pages.map(p => {
+                      const info = pathToPageInfo(p.path)
+                      return (
+                        <div key={p.path} className="flex items-center gap-2">
+                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${PAGE_BADGE_STYLE[info.type]}`}>
+                            {info.badge}
+                          </span>
+                          <span className="text-xs text-gray-700 truncate flex-1" title={info.name}>{info.name}</span>
+                          <span className="text-xs font-bold text-indigo-500 shrink-0 tabular-nums">{p.visit_count.toLocaleString()}</span>
+                        </div>
+                      )
+                    })}
                   </div>
                 )
               })()}
             </div>
-            {/* Right: AI Referrals (human landing pages from AI platforms) */}
+
+            {/* Right: AI REFERRALS — pages where humans from AI platforms landed */}
             <div>
-              <div className="flex items-center gap-1.5 mb-2">
+              <div className="flex items-center gap-1.5 mb-3">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-                <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wide">AI Referrals</span>
-                <span className="text-xs text-gray-400 ml-0.5">— where humans landed</span>
+                <span className="text-xs font-bold text-emerald-600 uppercase tracking-wide">AI Referrals</span>
+                <span className="text-xs text-gray-400">— humans landed</span>
               </div>
               {referralLandingPages.length === 0 ? (
-                <p className="text-xs text-gray-400">Referral landing data appears once AI platforms send visitors.</p>
+                <p className="text-xs text-gray-400 italic">Appears once AI platforms send visitors.</p>
               ) : (
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between py-1 border-b border-gray-200 mb-1">
-                    <span className="text-xs font-medium text-gray-400">Page</span>
-                    <span className="text-xs font-medium text-gray-400">Visits</span>
-                  </div>
-                  {referralLandingPages.slice(0, 8).map(p => (
-                    <div key={p.path} className="flex items-center justify-between py-1 border-b border-gray-50 last:border-0">
-                      <span className="text-xs font-mono text-gray-600 truncate flex-1">{p.path === '/' ? '/ (Homepage)' : p.path}</span>
-                      <span className="text-xs text-emerald-500 ml-2 shrink-0 font-medium">{p.visit_count.toLocaleString()}</span>
-                    </div>
-                  ))}
+                <div className="space-y-2">
+                  {referralLandingPages.slice(0, 8).map(p => {
+                    const info = pathToPageInfo(p.path)
+                    return (
+                      <div key={p.path} className="flex items-center gap-2">
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${PAGE_BADGE_STYLE[info.type]}`}>
+                          {info.badge}
+                        </span>
+                        <span className="text-xs text-gray-700 truncate flex-1" title={info.name}>{info.name}</span>
+                        <span className="text-xs font-bold text-emerald-500 shrink-0 tabular-nums">{p.visit_count.toLocaleString()}</span>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>
