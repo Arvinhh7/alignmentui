@@ -8,7 +8,7 @@ import { proxyApi, ModuleType } from '@/lib/api'
 import {
   ArrowLeft, Layers, Save, Loader2, CheckCircle, AlertCircle,
   ChevronDown, ChevronRight, Zap, Globe, Building2, Package,
-  HelpCircle, BarChart3, Swords, FileText, Wrench, Code2,
+  HelpCircle, BarChart3, Swords, FileText, Code2,
   Plus, Trash2,
 } from 'lucide-react'
 
@@ -20,7 +20,6 @@ const MODULES: { type: ModuleType; label: string; desc: string; icon: React.Elem
   { type: 'data_authority',         label: 'Data & Authority',        desc: 'Key metrics, certifications, case studies',  icon: BarChart3,  color: 'text-green-500 bg-green-50' },
   { type: 'competitive_positioning', label: 'Competitive Positioning', desc: 'Differentiators vs competitors',             icon: Swords,    color: 'text-red-500 bg-red-50' },
   { type: 'content_summaries',      label: 'Content Summaries',       desc: 'TL;DR for each key page',                    icon: FileText,  color: 'text-indigo-500 bg-indigo-50' },
-  { type: 'technical_config',       label: 'Technical Config',        desc: 'Proxy behavior flags',                       icon: Wrench,    color: 'text-gray-500 bg-gray-100' },
   { type: 'html_enhancement',       label: 'HTML Enhancement',        desc: 'Alt-text & content injection rules',         icon: Code2,     color: 'text-orange-500 bg-orange-50' },
 ]
 

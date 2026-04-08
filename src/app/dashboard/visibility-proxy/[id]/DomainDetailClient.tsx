@@ -10,7 +10,7 @@ import {
   Globe, ArrowLeft, CheckCircle, Clock, RefreshCw, XCircle,
   Pause, AlertCircle, Loader2, ExternalLink, Copy, CheckCheck,
   BarChart3, Layers, Settings, Zap, Bot,
-  TrendingUp, Activity, Download, FileText,
+  TrendingUp, Activity, Download, FileText, Save, Wrench,
 } from 'lucide-react'
 
 import BrandDataTab from './BrandDataTab'
@@ -49,6 +49,184 @@ function CopyButton({ text }: { text: string }) {
   )
 }
 
+// ── Technical Config (used inside Overview Tab) ───────────────────────────────
+
+function ToggleRow({
+  label,
+  desc,
+  value,
+  onChange,
+  warning,
+  disabled,
+}: {
+  label: string
+  desc: string
+  value: boolean
+  onChange: (v: boolean) => void
+  warning?: string
+  disabled?: boolean
+}) {
+  return (
+    <div className="py-3">
+      <div className="flex items-center justify-between">
+        <div className="pr-4">
+          <div className={`text-sm ${disabled ? 'text-gray-400' : 'text-gray-800'}`}>{label}</div>
+          <div className="text-xs text-gray-400 mt-0.5">{desc}</div>
+        </div>
+        <button
+          type="button"
+          onClick={() => !disabled && onChange(!value)}
+          disabled={disabled}
+          className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none ${
+            disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
+          } ${value ? 'bg-red-500' : 'bg-gray-200'}`}
+        >
+          <span
+            className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${
+              value ? 'translate-x-5' : 'translate-x-0'
+            }`}
+          />
+        </button>
+      </div>
+      {warning && (
+        <div className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          {warning}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function TechnicalConfigSection({
+  domain,
+  userId,
+  onDomainUpdate,
+}: {
+  domain: ProxyDomain
+  userId: string
+  onDomainUpdate: (d: ProxyDomain) => void
+}) {
+  const [cfg, setCfg] = useState({
+    strip_noindex: domain.strip_noindex,
+    inject_canonical: domain.inject_canonical,
+    robots_allow_all_ai: domain.robots_allow_all_ai,
+    date_modified_auto: domain.date_modified_auto,
+    bypass_paywall: domain.bypass_paywall,
+    prerender_csr: domain.prerender_csr,
+    custom_robots_rules: domain.custom_robots_rules,
+  })
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+
+  const toggle = (key: keyof typeof cfg, value: boolean) =>
+    setCfg(prev => ({ ...prev, [key]: value }))
+
+  const handleSave = async () => {
+    setSaving(true)
+    setSaveError(null)
+    try {
+      const updated = await proxyApi.updateDomain(domain.id, userId, cfg)
+      onDomainUpdate(updated)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : 'Save failed')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-2xl p-5">
+      <div className="flex items-center gap-2 mb-2">
+        <Wrench className="w-4 h-4 text-gray-500" />
+        <h3 className="text-sm font-semibold text-gray-700">Technical Config</h3>
+        <span className="text-xs text-gray-400 ml-1">Proxy behavior flags</span>
+      </div>
+
+      <div className="divide-y divide-gray-100">
+        <ToggleRow
+          label="Strip noindex for AI"
+          desc="Remove noindex meta tags when AI bots visit"
+          value={cfg.strip_noindex}
+          onChange={v => toggle('strip_noindex', v)}
+        />
+        <ToggleRow
+          label="Inject Canonical Tag"
+          desc='Add <link rel="canonical"> pointing to your domain'
+          value={cfg.inject_canonical}
+          onChange={v => toggle('inject_canonical', v)}
+        />
+        <ToggleRow
+          label="Allow All AI Bots in robots.txt"
+          desc="Generate AI-friendly robots.txt allowing 34+ known bots"
+          value={cfg.robots_allow_all_ai}
+          onChange={v => toggle('robots_allow_all_ai', v)}
+        />
+        <ToggleRow
+          label="Auto-inject dateModified"
+          desc="Inject current timestamp as JSON-LD dateModified"
+          value={cfg.date_modified_auto}
+          onChange={v => toggle('date_modified_auto', v)}
+        />
+        <ToggleRow
+          label="Bypass Paywall for AI"
+          desc="Serve full content to AI bots (requires written authorization)"
+          value={cfg.bypass_paywall}
+          onChange={v => toggle('bypass_paywall', v)}
+          warning={cfg.bypass_paywall ? 'This may conflict with your content distribution agreements. Ensure you have written authorization before enabling.' : undefined}
+        />
+        <ToggleRow
+          label="Pre-render CSR Pages"
+          desc="Serve server-side rendered HTML to AI crawlers — coming soon"
+          value={cfg.prerender_csr}
+          onChange={v => toggle('prerender_csr', v)}
+          disabled
+          warning={cfg.prerender_csr ? 'Adds latency to every AI bot request. Test on staging first.' : undefined}
+        />
+      </div>
+
+      <div className="mt-4">
+        <label className="text-xs font-semibold text-gray-600">Custom robots.txt Rules</label>
+        <p className="text-xs text-gray-400 mt-0.5 mb-1.5">
+          Appended to the generated robots.txt. Overrides &quot;Allow All AI Bots&quot; for matching User-agents.
+        </p>
+        <textarea
+          value={cfg.custom_robots_rules}
+          onChange={e => setCfg(prev => ({ ...prev, custom_robots_rules: e.target.value }))}
+          rows={3}
+          placeholder={'# Additional rules\nUser-agent: *\nDisallow: /private/'}
+          className="w-full px-3 py-2 text-xs font-mono bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 resize-y"
+        />
+      </div>
+
+      {saveError && (
+        <div className="mt-3 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          {saveError}
+        </div>
+      )}
+
+      <div className="mt-4 flex justify-end">
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors"
+        >
+          {saving ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : saved ? (
+            <CheckCircle className="w-3.5 h-3.5" />
+          ) : (
+            <Save className="w-3.5 h-3.5" />
+          )}
+          {saving ? 'Saving…' : saved ? 'Saved!' : 'Save Config'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ── Overview Tab ──────────────────────────────────────────────────────────────
 function OverviewTab({
   domain,
@@ -59,6 +237,8 @@ function OverviewTab({
   syncing,
   syncResult,
   lastSynced,
+  userId,
+  onDomainUpdate,
 }: {
   domain: ProxyDomain
   status: ProxyDomainStatus | null
@@ -68,6 +248,8 @@ function OverviewTab({
   syncing: boolean
   syncResult: string | null
   lastSynced: string | null
+  userId: string
+  onDomainUpdate: (d: ProxyDomain) => void
 }) {
   const cfg = STATUS_CONFIG[domain.status] ?? STATUS_CONFIG.pending
   const Icon = cfg.icon
@@ -188,6 +370,13 @@ function OverviewTab({
           </div>
         </div>
       )}
+
+      {/* Technical Config */}
+      <TechnicalConfigSection
+        domain={domain}
+        userId={userId}
+        onDomainUpdate={onDomainUpdate}
+      />
 
       {/* Sync to KV */}
       <div className="bg-white border border-gray-200 rounded-2xl p-5">
@@ -1405,6 +1594,8 @@ export default function DomainDetailClient() {
             syncing={syncing}
             syncResult={syncResult}
             lastSynced={lastSynced}
+            userId={user!.id}
+            onDomainUpdate={setDomain}
           />
         )}
         {activeTab === 'assets' && (
