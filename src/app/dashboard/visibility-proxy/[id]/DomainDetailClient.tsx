@@ -531,91 +531,145 @@ interface GeoDataItem {
   referral_count: number
 }
 
+type GeoFilter = 'traffic' | 'visits' | 'referral'
+
+// Dot color palette: red=bots, yellow=referral, orange=both
+const GEO_COLORS = {
+  bot:      '#ef4444',  // red-500
+  referral: '#eab308',  // yellow-500
+  both:     '#f97316',  // orange-500
+} as const
+
+function geoColor(d: GeoDataItem): string {
+  const hasBots = d.bot_count > 0
+  const hasRef  = d.referral_count > 0
+  return (hasBots && hasRef) ? GEO_COLORS.both : hasBots ? GEO_COLORS.bot : GEO_COLORS.referral
+}
+
 function GeoWorldMap({ geoData }: { geoData: GeoDataItem[] }) {
   const [hovered, setHovered] = useState<GeoDataItem | null>(null)
-  const maxCount = Math.max(...geoData.map(d => d.visit_count), 1)
-  const knownData = geoData.filter(d => COUNTRY_COORDS[d.country])
+  const [filter, setFilter]   = useState<GeoFilter>('traffic')
+
+  const knownData  = geoData.filter(d => COUNTRY_COORDS[d.country])
   const unknownData = geoData.filter(d => !COUNTRY_COORDS[d.country])
+
+  // Select active metric per filter
+  const metricOf = (d: GeoDataItem) =>
+    filter === 'visits'   ? d.bot_count
+    : filter === 'referral' ? d.referral_count
+    : d.visit_count
+
+  // Filter out dots that have zero count for the selected view
+  const visibleData = knownData.filter(d => metricOf(d) > 0)
+  const maxCount    = Math.max(...visibleData.map(d => metricOf(d)), 1)
   const totalVisits = geoData.reduce((s, d) => s + d.visit_count, 0)
+
+  // Sort mini-table by active metric
+  const sortedGeo = [...geoData].sort((a, b) => metricOf(b) - metricOf(a))
+
+  const FILTER_BTNS: { key: GeoFilter; label: string }[] = [
+    { key: 'traffic',  label: 'AI Traffic'  },
+    { key: 'visits',   label: 'AI Visits'   },
+    { key: 'referral', label: 'AI Referral' },
+  ]
 
   return (
     <div>
-      <div className="flex items-start justify-between mb-1">
+      {/* Header row: title + filter buttons + legend */}
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
           <Globe className="w-4 h-4 text-gray-400" />
           Global AI Traffic Distribution
         </h3>
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1.5 text-xs text-gray-400">
-            <span className="w-2 h-2 rounded-full bg-indigo-400 inline-block" />
-            Bot Visits
-          </span>
-          <span className="flex items-center gap-1.5 text-xs text-gray-400">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
-            AI Referrals
-          </span>
-          <span className="flex items-center gap-1.5 text-xs text-gray-400">
-            <span className="w-2 h-2 rounded-full bg-violet-400 inline-block" />
-            Both
-          </span>
+        <div className="flex items-center gap-2">
+          {/* Filter toggle */}
+          <div className="flex items-center gap-0.5 bg-gray-100 rounded-lg p-0.5">
+            {FILTER_BTNS.map(btn => (
+              <button
+                key={btn.key}
+                onClick={() => setFilter(btn.key)}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                  filter === btn.key
+                    ? 'bg-white text-gray-800 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {btn.label}
+              </button>
+            ))}
+          </div>
+          {/* Legend */}
+          {filter === 'traffic' && (
+            <div className="flex items-center gap-2.5">
+              <span className="flex items-center gap-1 text-xs text-gray-400">
+                <span className="w-2 h-2 rounded-full inline-block" style={{ background: GEO_COLORS.bot }} />Bot
+              </span>
+              <span className="flex items-center gap-1 text-xs text-gray-400">
+                <span className="w-2 h-2 rounded-full inline-block" style={{ background: GEO_COLORS.referral }} />Referral
+              </span>
+              <span className="flex items-center gap-1 text-xs text-gray-400">
+                <span className="w-2 h-2 rounded-full inline-block" style={{ background: GEO_COLORS.both }} />Both
+              </span>
+            </div>
+          )}
+          {filter === 'visits' && (
+            <span className="flex items-center gap-1 text-xs text-gray-400">
+              <span className="w-2 h-2 rounded-full inline-block" style={{ background: GEO_COLORS.bot }} />AI Bot crawls
+            </span>
+          )}
+          {filter === 'referral' && (
+            <span className="flex items-center gap-1 text-xs text-gray-400">
+              <span className="w-2 h-2 rounded-full inline-block" style={{ background: GEO_COLORS.referral }} />AI-referred visits
+            </span>
+          )}
         </div>
       </div>
-      <p className="text-xs text-gray-400 mb-3">
-        {totalVisits.toLocaleString()} total visits across {geoData.length} countries
+      <p className="text-xs text-gray-400 mb-2">
+        {totalVisits.toLocaleString()} total visits from {geoData.length} {geoData.length === 1 ? 'country' : 'countries'}
       </p>
 
       {/* Map container */}
       <div
         className="relative w-full overflow-hidden rounded-xl border border-gray-100"
-        style={{ aspectRatio: '2.1/1', background: 'linear-gradient(180deg, #f0f4ff 0%, #f8fafc 40%, #f0fff4 100%)' }}
+        style={{ aspectRatio: '2.1/1', background: 'linear-gradient(180deg, #f8f9ff 0%, #f8fafc 45%, #f9fdf9 100%)' }}
       >
-        {/* Reference grid lines (equator + tropics + prime meridian) */}
-        <svg
-          className="absolute inset-0 w-full h-full pointer-events-none"
-          preserveAspectRatio="none"
-          viewBox="0 0 100 100"
-        >
-          {/* Tropic of Cancer ~23.5°N = y 36.9% */}
+        {/* Reference grid lines */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 100 100">
           <line x1="0" y1="36.9" x2="100" y2="36.9" stroke="#e2e8f0" strokeWidth="0.3" strokeDasharray="1,2" />
-          {/* Equator = y 50% */}
-          <line x1="0" y1="50" x2="100" y2="50" stroke="#cbd5e1" strokeWidth="0.4" />
-          {/* Tropic of Capricorn ~23.5°S = y 63.1% */}
+          <line x1="0" y1="50"   x2="100" y2="50"   stroke="#cbd5e1" strokeWidth="0.4" />
           <line x1="0" y1="63.1" x2="100" y2="63.1" stroke="#e2e8f0" strokeWidth="0.3" strokeDasharray="1,2" />
-          {/* Prime Meridian ~49.4% x */}
           <line x1="49.4" y1="0" x2="49.4" y2="100" stroke="#e2e8f0" strokeWidth="0.3" strokeDasharray="1,2" />
-          {/* 90°E line ~75% x */}
-          <line x1="75" y1="0" x2="75" y2="100" stroke="#e2e8f0" strokeWidth="0.2" strokeDasharray="1,3" />
-          {/* 90°W line ~25% x */}
-          <line x1="25" y1="0" x2="25" y2="100" stroke="#e2e8f0" strokeWidth="0.2" strokeDasharray="1,3" />
-          {/* Equator label */}
+          <line x1="75"   y1="0" x2="75"   y2="100" stroke="#e2e8f0" strokeWidth="0.2" strokeDasharray="1,3" />
+          <line x1="25"   y1="0" x2="25"   y2="100" stroke="#e2e8f0" strokeWidth="0.2" strokeDasharray="1,3" />
           <text x="50.5" y="49.2" fill="#94a3b8" fontSize="2" fontFamily="system-ui,sans-serif">Equator</text>
         </svg>
 
         {/* Country dots */}
-        {knownData.map(d => {
-          const coords = COUNTRY_COORDS[d.country]!
-          const pct = d.visit_count / maxCount
-          const size = Math.max(6, Math.sqrt(pct) * 28)
-          const hasBots = d.bot_count > 0
-          const hasRef = d.referral_count > 0
-          const color = (hasBots && hasRef) ? '#8b5cf6' : hasBots ? '#6366f1' : '#10b981'
-          const opacity = 0.35 + pct * 0.65
+        {visibleData.map(d => {
+          const coords    = COUNTRY_COORDS[d.country]!
+          const count     = metricOf(d)
+          const pct       = count / maxCount
+          const size      = Math.max(6, Math.sqrt(pct) * 28)
+          const color     = filter === 'visits' ? GEO_COLORS.bot
+            : filter === 'referral' ? GEO_COLORS.referral
+            : geoColor(d)
+          const opacity   = 0.35 + pct * 0.65
           const isHovered = hovered?.country === d.country
 
           return (
             <div
               key={d.country}
-              className="absolute rounded-full cursor-pointer transition-all"
+              className="absolute rounded-full cursor-pointer"
               style={{
-                left: `${coords[0]}%`,
-                top: `${coords[1]}%`,
-                width: isHovered ? size * 1.4 : size,
-                height: isHovered ? size * 1.4 : size,
+                left:      `${coords[0]}%`,
+                top:       `${coords[1]}%`,
+                width:     isHovered ? size * 1.4 : size,
+                height:    isHovered ? size * 1.4 : size,
                 background: color,
-                opacity: isHovered ? 1 : opacity,
+                opacity:   isHovered ? 1 : opacity,
                 transform: 'translate(-50%, -50%)',
-                boxShadow: isHovered ? `0 0 12px ${color}80` : `0 0 ${size / 3}px ${color}30`,
-                zIndex: isHovered ? 10 : 1,
+                boxShadow: isHovered ? `0 0 14px ${color}90` : `0 0 ${size / 3}px ${color}30`,
+                zIndex:    isHovered ? 10 : 1,
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={() => setHovered(d)}
@@ -628,7 +682,7 @@ function GeoWorldMap({ geoData }: { geoData: GeoDataItem[] }) {
         <div
           className="absolute bottom-0 left-0 right-0 px-3 py-2 flex items-center justify-between transition-all"
           style={{
-            background: hovered ? 'rgba(15,23,42,0.88)' : 'transparent',
+            background:    hovered ? 'rgba(15,23,42,0.88)' : 'transparent',
             backdropFilter: hovered ? 'blur(4px)' : 'none',
           }}
         >
@@ -639,43 +693,37 @@ function GeoWorldMap({ geoData }: { geoData: GeoDataItem[] }) {
               </span>
               <div className="flex items-center gap-4 text-xs">
                 {hovered.bot_count > 0 && (
-                  <span className="text-indigo-300">Bot Visits: <strong>{hovered.bot_count.toLocaleString()}</strong></span>
+                  <span style={{ color: '#fca5a5' }}>Bot Visits: <strong>{hovered.bot_count.toLocaleString()}</strong></span>
                 )}
                 {hovered.referral_count > 0 && (
-                  <span className="text-emerald-300">Referrals: <strong>{hovered.referral_count.toLocaleString()}</strong></span>
+                  <span style={{ color: '#fde047' }}>Referrals: <strong>{hovered.referral_count.toLocaleString()}</strong></span>
                 )}
                 <span className="text-white">Total: <strong>{hovered.visit_count.toLocaleString()}</strong></span>
               </div>
             </>
           ) : (
-            <span className="text-xs text-gray-400 opacity-60">Hover a dot to see country details</span>
+            <span className="text-xs text-gray-400 opacity-50">Hover a dot to see country details</span>
           )}
         </div>
       </div>
 
-      {/* Unknown countries row */}
+      {/* Unknown countries */}
       {unknownData.length > 0 && (
-        <p className="text-xs text-gray-400 mt-2">
+        <p className="text-xs text-gray-400 mt-1.5">
           Also from: {unknownData.map(d => `${d.country} (${d.visit_count})`).join(', ')}
         </p>
       )}
 
-      {/* Top countries mini-table */}
+      {/* Top countries mini-table (sorted by active filter) */}
       <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1.5">
-        {geoData.slice(0, 8).map((d, i) => (
+        {sortedGeo.filter(d => metricOf(d) > 0).slice(0, 8).map((d, i) => (
           <div key={d.country} className="flex items-center gap-1.5 text-xs">
             <span className="text-gray-300 w-4 shrink-0 text-right">{i + 1}</span>
-            <span
-              className="w-2 h-2 rounded-full shrink-0"
-              style={{
-                background: (d.bot_count > 0 && d.referral_count > 0) ? '#8b5cf6'
-                  : d.bot_count > 0 ? '#6366f1' : '#10b981'
-              }}
-            />
+            <span className="w-2 h-2 rounded-full shrink-0" style={{ background: geoColor(d) }} />
             <span className="font-medium text-gray-700 truncate flex-1">
               {COUNTRY_NAMES[d.country] ?? d.country}
             </span>
-            <span className="text-gray-400 shrink-0">{d.visit_count.toLocaleString()}</span>
+            <span className="text-gray-400 shrink-0">{metricOf(d).toLocaleString()}</span>
           </div>
         ))}
       </div>
