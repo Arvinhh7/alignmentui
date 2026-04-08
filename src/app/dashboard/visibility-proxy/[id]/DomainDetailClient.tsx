@@ -625,34 +625,61 @@ function AnalyticsTab({
 
         {/* Traffic Trend */}
         {(analytics.daily_trend ?? []).length > 1 && (() => {
-          const chartData = (analytics.daily_trend ?? []).map(d => ({
-            date: d.date,
-            total: d.ai_visits + d.ai_referrals,
-            ai_visits: d.ai_visits,
-            ai_referrals: d.ai_referrals,
-          }))
-          // Show actual data date range (e.g. "Mar 31 – Apr 7") not "last 30 days"
-          // because the site may not have 30 days of data yet
+          // Build CUMULATIVE chart data so the last point = KPI total
+          // This eliminates confusion: "daily peak 123 ≠ KPI 330"
+          // Cumulative: last point AI Bots = 310, Referrals = 20, Total = 330 ← matches KPI exactly
+          let cumAiVisits = 0, cumReferrals = 0
+          const chartData = (analytics.daily_trend ?? []).map(d => {
+            cumAiVisits   += d.ai_visits
+            cumReferrals  += d.ai_referrals
+            return {
+              date:         d.date,
+              total:        cumAiVisits + cumReferrals,
+              ai_visits:    cumAiVisits,
+              ai_referrals: cumReferrals,
+              // keep daily values for tooltip
+              day_visits:   d.ai_visits,
+              day_referrals: d.ai_referrals,
+            }
+          })
           const fmtD = (iso: string) =>
             new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
           const firstDay = chartData[0]?.date
           const lastDay  = chartData[chartData.length - 1]?.date
           const chartSubtitle = firstDay && lastDay
-            ? `${fmtD(firstDay)} – ${fmtD(lastDay)} · daily AI traffic`
+            ? `${fmtD(firstDay)} – ${fmtD(lastDay)} · cumulative AI traffic`
             : rangeLabel.toLowerCase()
           return (
           <div className="bg-white border border-gray-200 rounded-2xl p-5">
-            <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-gray-400" />
-              Traffic Trend
-            </h3>
+            <div className="flex items-start justify-between mb-1">
+              <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-gray-400" />
+                Traffic Trend
+              </h3>
+              <div className="text-right shrink-0">
+                <div className="text-xs text-gray-400">Period total</div>
+                <div className="text-sm font-bold text-gray-800">{totalAiTraffic.toLocaleString()}</div>
+              </div>
+            </div>
             <p className="text-xs text-gray-400 mb-3">{chartSubtitle}</p>
             <ResponsiveContainer width="100%" height={180}>
               <LineChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9ca3af' }} tickFormatter={(v: string) => v.slice(5)} />
                 <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} />
-                <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} labelFormatter={(l: string) => `Date: ${l}`} />
+                <Tooltip
+                  contentStyle={{ fontSize: 12, borderRadius: 8 }}
+                  labelFormatter={(l: string) => `Date: ${l}`}
+                  formatter={(value: number, name: string, props: { payload?: { day_visits?: number; day_referrals?: number } }) => {
+                    const daily = name === 'AI Bots'
+                      ? props.payload?.day_visits
+                      : name === 'AI Referrals'
+                        ? props.payload?.day_referrals
+                        : undefined
+                    const dailyStr = daily !== undefined ? ` (+${daily} today)` : ''
+                    return [`${value.toLocaleString()}${dailyStr}`, name]
+                  }}
+                />
                 <Line type="monotone" dataKey="total" stroke="#e5e7eb" strokeWidth={1.5} dot={false} name="Total" />
                 <Line type="monotone" dataKey="ai_visits" stroke="#6366f1" strokeWidth={2} dot={false} name="AI Bots" />
                 <Line type="monotone" dataKey="ai_referrals" stroke="#10b981" strokeWidth={2} dot={false} name="AI Referrals" />
