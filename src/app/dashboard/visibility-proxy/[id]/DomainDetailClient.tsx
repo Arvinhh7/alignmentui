@@ -550,6 +550,7 @@ function GeoWorldMap({ geoData }: { geoData: GeoDataItem[] }) {
   const [hovered, setHovered] = useState<GeoDataItem | null>(null)
   const [filter, setFilter]   = useState<GeoFilter>('traffic')
 
+  const isEmpty    = geoData.length === 0
   const knownData  = geoData.filter(d => COUNTRY_COORDS[d.country])
   const unknownData = geoData.filter(d => !COUNTRY_COORDS[d.country])
 
@@ -625,7 +626,9 @@ function GeoWorldMap({ geoData }: { geoData: GeoDataItem[] }) {
         </div>
       </div>
       <p className="text-xs text-gray-400 mb-2">
-        {totalVisits.toLocaleString()} total visits from {geoData.length} {geoData.length === 1 ? 'country' : 'countries'}
+        {isEmpty
+          ? 'Geographic data will appear once new AI bot traffic is logged — usually within a few hours.'
+          : `${totalVisits.toLocaleString()} total visits from ${geoData.length} ${geoData.length === 1 ? 'country' : 'countries'}`}
       </p>
 
       {/* Map container */}
@@ -643,6 +646,17 @@ function GeoWorldMap({ geoData }: { geoData: GeoDataItem[] }) {
           <line x1="25"   y1="0" x2="25"   y2="100" stroke="#e2e8f0" strokeWidth="0.2" strokeDasharray="1,3" />
           <text x="50.5" y="49.2" fill="#94a3b8" fontSize="2" fontFamily="system-ui,sans-serif">Equator</text>
         </svg>
+
+        {/* Empty state overlay */}
+        {isEmpty && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+            <Globe className="w-8 h-8 text-gray-200" />
+            <p className="text-xs text-gray-400 text-center px-8">
+              Country data starts collecting with new bot visits.<br />
+              <span className="text-gray-300">Dots will appear within a few hours.</span>
+            </p>
+          </div>
+        )}
 
         {/* Country dots */}
         {visibleData.map(d => {
@@ -715,7 +729,7 @@ function GeoWorldMap({ geoData }: { geoData: GeoDataItem[] }) {
       )}
 
       {/* Top countries mini-table (sorted by active filter) */}
-      <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1.5">
+      {!isEmpty && <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1.5">
         {sortedGeo.filter(d => metricOf(d) > 0).slice(0, 8).map((d, i) => (
           <div key={d.country} className="flex items-center gap-1.5 text-xs">
             <span className="text-gray-300 w-4 shrink-0 text-right">{i + 1}</span>
@@ -726,7 +740,7 @@ function GeoWorldMap({ geoData }: { geoData: GeoDataItem[] }) {
             <span className="text-gray-400 shrink-0">{metricOf(d).toLocaleString()}</span>
           </div>
         ))}
-      </div>
+      </div>}
     </div>
   )
 }
@@ -1028,12 +1042,10 @@ function AnalyticsTab({
           )}
         </div>
 
-        {/* Global AI Traffic Distribution — World Geo Map */}
-        {(analytics.geo_distribution ?? []).length > 0 && (
-          <div className="bg-white border border-gray-200 rounded-2xl p-5">
-            <GeoWorldMap geoData={analytics.geo_distribution ?? []} />
-          </div>
-        )}
+        {/* Global AI Traffic Distribution — World Geo Map (always visible) */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-5">
+          <GeoWorldMap geoData={analytics.geo_distribution ?? []} />
+        </div>
 
         {/* Top Landing Pages from AI Traffic */}
         <div className="bg-white border border-gray-200 rounded-2xl p-5">
