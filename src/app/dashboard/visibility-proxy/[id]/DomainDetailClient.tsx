@@ -240,12 +240,14 @@ const PLATFORM_META: Record<string, { name: string; domain: string }> = {
   'Anthropic':           { name: 'Claude',      domain: 'claude.ai' },
   'anthropic-ai':        { name: 'Claude',      domain: 'claude.ai' },
   'Claude':              { name: 'Claude',      domain: 'claude.ai' },
-  // ── Google / Gemini ───────────────────────────────────────────────────────
+  // ── Google / Gemini (all Google AI bots → "Gemini") ──────────────────────
+  // Consistent with Shopify App: GoogleOther, Google-Extended, Gemini all
+  // belong to "Google Gemini" AI platform.
   'Google-Extended':     { name: 'Gemini',      domain: 'gemini.google.com' },
   'GeminiBot':           { name: 'Gemini',      domain: 'gemini.google.com' },
   'Gemini':              { name: 'Gemini',      domain: 'gemini.google.com' },
-  'Googlebot':           { name: 'Google',      domain: 'google.com' },
-  'GoogleOther':         { name: 'Google',      domain: 'google.com' },
+  'Googlebot':           { name: 'Gemini',      domain: 'gemini.google.com' },
+  'GoogleOther':         { name: 'Gemini',      domain: 'gemini.google.com' },
   // ── Perplexity ────────────────────────────────────────────────────────────
   'PerplexityBot':       { name: 'Perplexity',  domain: 'perplexity.ai' },
   'Perplexity':          { name: 'Perplexity',  domain: 'perplexity.ai' },
@@ -254,7 +256,7 @@ const PLATFORM_META: Record<string, { name: string; domain: string }> = {
   'bingbot':             { name: 'Copilot',     domain: 'copilot.microsoft.com' },
   'BingPreview':         { name: 'Copilot',     domain: 'copilot.microsoft.com' },
   'Copilot':             { name: 'Copilot',     domain: 'copilot.microsoft.com' },
-  'Bing AI':             { name: 'Bing AI',     domain: 'bing.com' },
+  'Bing AI':             { name: 'Copilot',     domain: 'copilot.microsoft.com' },
   // ── Meta AI ───────────────────────────────────────────────────────────────
   'Meta-Agent':          { name: 'Meta AI',     domain: 'meta.ai' },
   'FacebookBot':         { name: 'Meta AI',     domain: 'meta.ai' },
@@ -303,7 +305,6 @@ const PLATFORM_META: Record<string, { name: string; domain: string }> = {
   // ── Canonical-name shortcuts (for merged display lookup) ──────────────────
   // These allow getPlatformMeta(canonicalName) to resolve logo domains
   // when "AI Platforms Reading Your Store" groups by canonical name.
-  'Google':              { name: 'Google',       domain: 'google.com' },
   'Apple':               { name: 'Apple',        domain: 'apple.com' },
   'Amazon':              { name: 'Amazon',       domain: 'amazon.com' },
   'CommonCrawl':         { name: 'CommonCrawl',  domain: 'commoncrawl.org' },
