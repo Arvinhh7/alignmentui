@@ -300,6 +300,15 @@ const PLATFORM_META: Record<string, { name: string; domain: string }> = {
   // ── Arc Browser ───────────────────────────────────────────────────────────
   'Arc Browser':         { name: 'Arc Browser', domain: 'arc.net' },
 
+  // ── Canonical-name shortcuts (for merged display lookup) ──────────────────
+  // These allow getPlatformMeta(canonicalName) to resolve logo domains
+  // when "AI Platforms Reading Your Store" groups by canonical name.
+  'Google':              { name: 'Google',       domain: 'google.com' },
+  'Apple':               { name: 'Apple',        domain: 'apple.com' },
+  'Amazon':              { name: 'Amazon',       domain: 'amazon.com' },
+  'CommonCrawl':         { name: 'CommonCrawl',  domain: 'commoncrawl.org' },
+  'SearchGPT':           { name: 'ChatGPT',      domain: 'chatgpt.com' },
+
   // ── ByteDance / Doubao ────────────────────────────────────────────────────
   'Bytespider':          { name: 'Doubao',      domain: 'doubao.com' },
   'Doubao':              { name: 'Doubao',      domain: 'doubao.com' },
@@ -371,10 +380,10 @@ function PlatformLogo({ id, size = 16 }: { id: string; size?: number }) {
 
 type TimeRange = { label: string; days: number }
 const TIME_RANGES: TimeRange[] = [
-  { label: 'Today',    days: 1  },
-  { label: '7 days',   days: 7  },
-  { label: '30 days',  days: 30 },
-  { label: 'All time', days: 0  },
+  { label: 'Last 24h',    days: 1  },
+  { label: 'Last 7 days', days: 7  },
+  { label: 'Last 30 days',days: 30 },
+  { label: 'All time',    days: 0  },
 ]
 
 function buildPlatformIntel(analytics: ProxyAnalytics) {
@@ -469,7 +478,7 @@ function AnalyticsTab({
   const [copied, setCopied] = useState(false)
 
   const rangeLabel = (() => {
-    if (days === 1) return 'Today'
+    if (days === 1) return 'Last 24h'
     if (days === 0 && analytics?.date_range_days) {
       const since = new Date(Date.now() - analytics.date_range_days * 86400000)
       return `Since ${since.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
@@ -527,10 +536,20 @@ function AnalyticsTab({
   )
 
   const totalAiTraffic = (analytics.total_ai_visits ?? 0) + (analytics.ai_referral_visits ?? 0)
-  // Filter out UnknownBot — unidentified traffic with no official logo/name
-  const namedBots = [...analytics.by_bot]
+
+  // Merge bots by canonical platform name to avoid duplicate bars
+  // (e.g. GPTBot + OAI-Search both → "ChatGPT")
+  const botCanonicalMap: Record<string, number> = {}
+  analytics.by_bot
     .filter(b => b.bot_name !== 'UnknownBot')
+    .forEach(b => {
+      const canonical = getPlatformMeta(b.bot_name).name
+      botCanonicalMap[canonical] = (botCanonicalMap[canonical] ?? 0) + b.visit_count
+    })
+  const mergedBotList = Object.entries(botCanonicalMap)
+    .map(([name, visit_count]) => ({ name, visit_count }))
     .sort((a, b) => b.visit_count - a.visit_count)
+
   const referralSources = [...(analytics.ai_referral_sources ?? [])].sort((a, b) => b.visit_count - a.visit_count)
   const referralLandingPages = [...(analytics.top_referral_landing_pages ?? [])].sort((a, b) => b.visit_count - a.visit_count)
 
@@ -611,13 +630,22 @@ function AnalyticsTab({
             ai_visits: d.ai_visits,
             ai_referrals: d.ai_referrals,
           }))
+          // Show actual data date range (e.g. "Mar 31 – Apr 7") not "last 30 days"
+          // because the site may not have 30 days of data yet
+          const fmtD = (iso: string) =>
+            new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          const firstDay = chartData[0]?.date
+          const lastDay  = chartData[chartData.length - 1]?.date
+          const chartSubtitle = firstDay && lastDay
+            ? `${fmtD(firstDay)} – ${fmtD(lastDay)} · daily AI traffic`
+            : rangeLabel.toLowerCase()
           return (
           <div className="bg-white border border-gray-200 rounded-2xl p-5">
             <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-gray-400" />
               Traffic Trend
             </h3>
-            <p className="text-xs text-gray-400 mb-3">Showing {rangeLabel.toLowerCase()}</p>
+            <p className="text-xs text-gray-400 mb-3">{chartSubtitle}</p>
             <ResponsiveContainer width="100%" height={180}>
               <LineChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -645,18 +673,20 @@ function AnalyticsTab({
             AI Platforms Reading Your Store
           </h3>
           <p className="text-xs text-gray-400 mb-3">AI platforms that scanned your site&apos;s AI profile — {rangeLabel.toLowerCase()}.</p>
-          {namedBots.length === 0 ? (
+          {mergedBotList.length === 0 ? (
             <p className="text-xs text-gray-400">Data appears once AI bots start visiting your site. Most sites see their first crawl within 24–72 hours of completing setup.</p>
           ) : (
             <div className="space-y-2.5">
-              {namedBots.map(bot => {
-                const meta = getPlatformMeta(bot.bot_name)
-                const pct = analytics.total_ai_visits > 0 ? Math.round((bot.visit_count / analytics.total_ai_visits) * 100) : 0
+              {mergedBotList.map(bot => {
+                // canonical name IS the display name; look it up for the favicon domain
+                const meta = getPlatformMeta(bot.name)
+                const total = analytics.total_ai_visits > 0 ? analytics.total_ai_visits : 1
+                const pct = Math.round((bot.visit_count / total) * 100)
                 return (
-                  <div key={bot.bot_name} className="flex items-center gap-3">
+                  <div key={bot.name} className="flex items-center gap-3">
                     <div className="flex items-center gap-2 w-32 shrink-0">
-                      <PlatformLogo id={bot.bot_name} size={16} />
-                      <span className="text-xs font-medium text-gray-700 truncate">{meta.name}</span>
+                      <PlatformLogo id={bot.name} size={16} />
+                      <span className="text-xs font-medium text-gray-700 truncate">{bot.name}</span>
                     </div>
                     <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
                       <div className="h-full bg-indigo-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
