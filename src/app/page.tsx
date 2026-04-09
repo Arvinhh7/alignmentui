@@ -30,9 +30,10 @@ export default function LandingPage() {
   ]
 
   const stats = [
+    { value: t.hero.stats.trafficValue,   label: t.hero.stats.traffic,   change: t.hero.stats.trafficChange },
     { value: t.hero.stats.mentionsValue,  label: t.hero.stats.mentions,  change: t.hero.stats.mentionsChange },
-    { value: t.hero.stats.scoreValue,     label: t.hero.stats.score,     change: t.hero.stats.scoreChange },
     { value: t.hero.stats.citationsValue, label: t.hero.stats.citations, change: t.hero.stats.citationsChange },
+    { value: t.hero.stats.scoreValue,     label: t.hero.stats.score,     change: t.hero.stats.scoreChange },
   ]
 
   const features = [
@@ -176,7 +177,7 @@ export default function LandingPage() {
 
         {/* Stats row — 2-col on mobile, 3-col on sm+ */}
         <div
-          className={`grid grid-cols-2 sm:grid-cols-3 mt-12 md:mt-16 max-w-[720px] mx-auto rounded-2xl overflow-hidden gap-px bg-divider transition-all duration-500 delay-300 ${
+          className={`grid grid-cols-2 sm:grid-cols-4 mt-12 md:mt-16 max-w-[900px] mx-auto rounded-2xl overflow-hidden gap-px bg-divider transition-all duration-500 delay-300 ${
             mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
           }`}
         >
@@ -184,7 +185,7 @@ export default function LandingPage() {
             <div
               key={i}
               className={`px-4 sm:px-6 py-6 sm:py-7 bg-surface text-center ${
-                i === 0 ? 'rounded-tl-2xl sm:rounded-l-2xl' : i === stats.length - 1 ? 'rounded-br-2xl sm:rounded-r-2xl' : ''
+                i === 0 ? 'rounded-tl-2xl rounded-bl-none sm:rounded-bl-2xl' : i === 1 ? 'rounded-tr-2xl sm:rounded-tr-none' : i === 2 ? 'rounded-bl-2xl sm:rounded-bl-none' : i === stats.length - 1 ? 'rounded-br-2xl sm:rounded-r-2xl' : ''
               }`}
             >
               <div className="stat-value">{stat.value}</div>
