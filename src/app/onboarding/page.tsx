@@ -85,15 +85,15 @@ function ProgressBar({ step }: { step: number }) {
           <div key={idx} className="flex items-start flex-1">
             <div className="flex flex-col items-center w-full">
               <div className="flex items-center w-full">
-                {i > 0 && <div className={`h-px flex-1 mt-3.5 transition-all ${done || active ? 'bg-gray-900' : 'bg-gray-200'}`} />}
+                {i > 0 && <div className={`h-px flex-1 mt-3.5 transition-all ${done || active ? 'bg-ink' : 'bg-divider-light'}`} />}
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition-all ${
-                  done ? 'bg-gray-900 text-white' : active ? 'bg-gray-900 text-white ring-4 ring-gray-200' : 'bg-gray-100 text-gray-400'
+                  done ? 'bg-ink text-ink-inv' : active ? 'bg-ink text-ink-inv ring-4 ring-surface-muted' : 'bg-surface-muted text-ink-3'
                 }`}>
                   {done ? <Check className="w-3.5 h-3.5" /> : idx}
                 </div>
-                {i < labels.length - 1 && <div className={`h-px flex-1 mt-3.5 transition-all ${step > idx ? 'bg-gray-900' : 'bg-gray-200'}`} />}
+                {i < labels.length - 1 && <div className={`h-px flex-1 mt-3.5 transition-all ${step > idx ? 'bg-ink' : 'bg-divider-light'}`} />}
               </div>
-              <span className={`text-[10px] mt-1.5 font-medium text-center leading-tight ${active ? 'text-gray-900' : 'text-gray-400'}`}>{label}</span>
+              <span className={`text-[10px] mt-1.5 font-medium text-center leading-tight ${active ? 'text-ink' : 'text-ink-3'}`}>{label}</span>
             </div>
           </div>
         )
@@ -461,10 +461,10 @@ export default function OnboardingPage() {
   // ─── Auth guard ───────────────────────────────────
   if (authLoading || !authChecked) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-canvas flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-gray-500">Loading…</p>
+          <div className="w-8 h-8 border-2 border-ink border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-ink-3">Loading…</p>
         </div>
       </div>
     )
@@ -473,20 +473,20 @@ export default function OnboardingPage() {
   const testimonial = TESTIMONIALS[step - 1] || TESTIMONIALS[0]
 
   return (
-    <div className="min-h-screen flex bg-white">
+    <div className="min-h-screen flex bg-canvas">
 
       {/* ════ Left Panel ════ */}
       <div className="w-full lg:w-[460px] xl:w-[500px] flex-shrink-0 flex flex-col">
 
         {/* Top bar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-divider-light">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-gray-900 rounded-lg flex items-center justify-center">
-              <span className="text-white text-xs font-bold">A</span>
+            <div className="w-7 h-7 bg-ink rounded-lg flex items-center justify-center">
+              <span className="text-ink-inv text-xs font-bold">A</span>
             </div>
-            <span className="font-semibold text-gray-900 text-sm">Alignment Agent</span>
+            <span className="font-semibold text-ink text-sm">Alignment Agent</span>
           </div>
-          <button onClick={() => router.push('/login')} className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+          <button onClick={() => router.push('/login')} className="text-xs text-ink-3 hover:text-ink-2 transition-colors">
             Logout
           </button>
         </div>
@@ -499,126 +499,126 @@ export default function OnboardingPage() {
           {step === 1 && (
             <div className="space-y-5">
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Set up your brand</h1>
-                <p className="text-sm text-gray-500 mt-1">Tell us about your company and the brand you want to track in AI platforms.</p>
+                <h1 className="text-xl font-bold text-ink">Set up your brand</h1>
+                <p className="text-sm text-ink-3 mt-1">Tell us about your company and the brand you want to track in AI platforms.</p>
               </div>
 
               {/* Company section */}
               <div className="space-y-4">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Your Company</p>
+                <p className="text-xs font-semibold text-ink-3 uppercase tracking-wider">Your Company</p>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Company Name <span className="text-red-400">*</span></label>
+                  <label className="block text-xs font-semibold text-ink-2 mb-1.5">Company Name <span className="text-red-soft">*</span></label>
                   <div className="relative">
-                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
                     <input value={profileCompany} onChange={e => setProfileCompany(e.target.value)}
                       placeholder="Your company name"
-                      className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 transition-all" />
+                      className="w-full pl-10 pr-3 py-2.5 bg-surface-warm border border-divider-light rounded-lg text-sm text-ink placeholder-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink transition-all" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Job Title</label>
+                    <label className="block text-xs font-semibold text-ink-2 mb-1.5">Job Title</label>
                     <div className="relative">
-                      <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
                       <input value={profileJobTitle} onChange={e => setProfileJobTitle(e.target.value)}
                         placeholder="e.g., VP Marketing"
-                        className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 transition-all" />
+                        className="w-full pl-10 pr-3 py-2.5 bg-surface-warm border border-divider-light rounded-lg text-sm text-ink placeholder-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink transition-all" />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Company Size</label>
+                    <label className="block text-xs font-semibold text-ink-2 mb-1.5">Company Size</label>
                     <div className="relative">
-                      <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
                       <select value={profileCompanySize} onChange={e => setProfileCompanySize(e.target.value)}
-                        className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 appearance-none focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 transition-all">
+                        className="w-full pl-10 pr-3 py-2.5 bg-surface-warm border border-divider-light rounded-lg text-sm text-ink appearance-none focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink transition-all">
                         <option value="">Size</option>
                         {COMPANY_SIZES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                       </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3 pointer-events-none" />
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Industry</label>
+                  <label className="block text-xs font-semibold text-ink-2 mb-1.5">Industry</label>
                   <div className="relative">
                     <select value={profileIndustry} onChange={e => setProfileIndustry(e.target.value)}
-                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 appearance-none focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 transition-all">
+                      className="w-full px-3 py-2.5 bg-surface-warm border border-divider-light rounded-lg text-sm text-ink appearance-none focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink transition-all">
                       <option value="">Select industry</option>
                       {INDUSTRIES.map(ind => <option key={ind} value={ind}>{ind}</option>)}
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3 pointer-events-none" />
                   </div>
                 </div>
               </div>
 
               {/* Divider */}
-              <div className="border-t border-gray-100 pt-4">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Brand to Track</p>
+              <div className="border-t border-divider-light pt-4">
+                <p className="text-xs font-semibold text-ink-3 uppercase tracking-wider mb-4">Brand to Track</p>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Brand Name <span className="text-red-400">*</span></label>
+                    <label className="block text-xs font-semibold text-ink-2 mb-1.5">Brand Name <span className="text-red-soft">*</span></label>
                     <input value={brandName} onChange={e => setBrandName(e.target.value)}
                       placeholder="e.g., Acme Inc"
-                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 transition-all" />
+                      className="w-full px-3 py-2.5 bg-surface-warm border border-divider-light rounded-lg text-sm text-ink placeholder-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink transition-all" />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Website URL</label>
+                    <label className="block text-xs font-semibold text-ink-2 mb-1.5">Website URL</label>
                     <div className="relative">
-                      <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
                       <input value={brandUrl} onChange={e => { setBrandUrl(e.target.value); setUrlError('') }}
                         placeholder="e.g., acme.com"
-                        className={`w-full pl-10 pr-3 py-2.5 bg-gray-50 border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10 transition-all ${urlError ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-gray-300'}`} />
+                        className={`w-full pl-10 pr-3 py-2.5 bg-surface-warm border rounded-lg text-sm text-ink placeholder-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/10 transition-all ${urlError ? 'border-red-soft focus:border-red-soft' : 'border-divider-light focus:border-ink'}`} />
                     </div>
-                    {urlError && <p className="text-xs text-red-500 mt-1">{urlError}</p>}
+                    {urlError && <p className="text-xs text-red-soft mt-1">{urlError}</p>}
                   </div>
                 </div>
               </div>
 
               {/* Advanced settings (collapsible) */}
-              <div className="border border-gray-100 rounded-lg overflow-hidden">
+              <div className="border border-divider-light rounded-lg overflow-hidden">
                 <button onClick={() => setShowAdvanced(v => !v)}
-                  className="w-full flex items-center justify-between px-4 py-3 text-sm text-gray-500 hover:bg-gray-50 transition-colors">
-                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Tracking Region & Language</span>
+                  className="w-full flex items-center justify-between px-4 py-3 text-sm text-ink-2 hover:bg-surface-warm transition-colors">
+                  <span className="text-xs font-semibold text-ink-3 uppercase tracking-wider">Tracking Region & Language</span>
                   {showAdvanced ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                 </button>
                 {showAdvanced && (
-                  <div className="px-4 pb-4 space-y-3 border-t border-gray-100">
+                  <div className="px-4 pb-4 space-y-3 border-t border-divider-light">
                     <div className="pt-3">
-                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Default Location</label>
+                      <label className="block text-xs font-semibold text-ink-2 mb-1.5">Default Location</label>
                       <div className="relative">
                         <select value={location} onChange={e => setLocation(e.target.value)}
-                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 appearance-none focus:outline-none focus:ring-2 focus:ring-gray-900/10">
+                          className="w-full px-3 py-2 bg-surface-warm border border-divider-light rounded-lg text-sm text-ink appearance-none focus:outline-none focus:ring-2 focus:ring-ink/10">
                           {LOCATIONS.map(loc => <option key={loc.code} value={loc.code}>{loc.flag} {loc.label}</option>)}
                         </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3 pointer-events-none" />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Language</label>
+                      <label className="block text-xs font-semibold text-ink-2 mb-1.5">Language</label>
                       <div className="relative">
-                        <Languages className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Languages className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
                         <select value={language} onChange={e => setLanguage(e.target.value)}
-                          className="w-full pl-10 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 appearance-none focus:outline-none focus:ring-2 focus:ring-gray-900/10">
+                          className="w-full pl-10 pr-3 py-2 bg-surface-warm border border-divider-light rounded-lg text-sm text-ink appearance-none focus:outline-none focus:ring-2 focus:ring-ink/10">
                           {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
                         </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3 pointer-events-none" />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Timezone</label>
+                      <label className="block text-xs font-semibold text-ink-2 mb-1.5">Timezone</label>
                       <div className="relative">
-                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
                         <select value={timezone} onChange={e => setTimezone(e.target.value)}
-                          className="w-full pl-10 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 appearance-none focus:outline-none focus:ring-2 focus:ring-gray-900/10">
+                          className="w-full pl-10 pr-3 py-2 bg-surface-warm border border-divider-light rounded-lg text-sm text-ink appearance-none focus:outline-none focus:ring-2 focus:ring-ink/10">
                           {TIMEZONES.map(tz => <option key={tz} value={tz}>{tz}</option>)}
                         </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3 pointer-events-none" />
                       </div>
                     </div>
                   </div>
@@ -627,7 +627,7 @@ export default function OnboardingPage() {
 
               <button onClick={handleStep1Next}
                 disabled={!profileCompany.trim() || !brandName.trim() || isSavingProfile}
-                className="w-full py-3 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-lg text-sm transition-all flex items-center justify-center gap-2">
+                className="w-full py-3 bg-ink hover:bg-[#2d2d2c] disabled:opacity-40 disabled:cursor-not-allowed text-ink-inv font-semibold rounded-lg text-sm transition-all flex items-center justify-center gap-2">
                 {isSavingProfile
                   ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving…</>
                   : <>Continue <ArrowRight className="w-4 h-4" /></>}
@@ -639,39 +639,39 @@ export default function OnboardingPage() {
           {step === 2 && (
             <div className="space-y-6">
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Topics & Prompts</h1>
-                <p className="text-sm text-gray-500 mt-1">Review the AI-generated topics and prompts for <span className="font-medium text-gray-800">{brandName}</span>. Customize as needed.</p>
+                <h1 className="text-xl font-bold text-ink">Topics & Prompts</h1>
+                <p className="text-sm text-ink-3 mt-1">Review the AI-generated topics and prompts for <span className="font-medium text-ink-2">{brandName}</span>. Customize as needed.</p>
               </div>
 
               {/* ── Topics section ── */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Topics</p>
+                  <p className="text-xs font-semibold text-ink-2 uppercase tracking-wider">Topics</p>
                   {!isLoadingTopics && topics.length > 0 && (
                     <button onClick={handleRegenerateTopics}
-                      className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-700 transition-colors">
+                      className="flex items-center gap-1.5 text-xs text-ink-3 hover:text-ink-2 transition-colors">
                       <RefreshCw className="w-3 h-3" /> Regenerate
                     </button>
                   )}
                 </div>
 
                 {isLoadingTopics ? (
-                  <div className="flex items-center gap-3 py-6 px-4 bg-gray-50 rounded-lg">
-                    <Loader2 className="w-5 h-5 text-gray-400 animate-spin flex-shrink-0" />
-                    <p className="text-sm text-gray-500 transition-all">{TOPIC_MSGS[topicMsgIdx]}</p>
+                  <div className="flex items-center gap-3 py-6 px-4 bg-surface-warm rounded-lg">
+                    <Loader2 className="w-5 h-5 text-ink-3 animate-spin flex-shrink-0" />
+                    <p className="text-sm text-ink-3 transition-all">{TOPIC_MSGS[topicMsgIdx]}</p>
                   </div>
                 ) : (
                   <>
-                    <p className="text-xs text-gray-400">{selectedTopics.length}/{topics.length} selected</p>
+                    <p className="text-xs text-ink-3">{selectedTopics.length}/{topics.length} selected</p>
                     <div className="space-y-2">
                       {topics.map((t, i) => (
                         <button key={i}
                           onClick={() => setTopics(prev => prev.map((item, idx) => idx === i ? { ...item, selected: !item.selected } : item))}
-                          className="w-full flex items-center gap-3 px-4 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all text-left">
-                          <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${t.selected ? 'bg-gray-900' : 'border-2 border-gray-300'}`}>
-                            {t.selected && <Check className="w-3 h-3 text-white" />}
+                          className="w-full flex items-center gap-3 px-4 py-3 border border-divider-light rounded-lg hover:bg-surface-warm transition-all text-left">
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${t.selected ? 'bg-ink' : 'border-2 border-divider'}`}>
+                            {t.selected && <Check className="w-3 h-3 text-ink-inv" />}
                           </div>
-                          <span className="text-sm text-gray-900">{t.topic}</span>
+                          <span className="text-sm text-ink">{t.topic}</span>
                         </button>
                       ))}
                     </div>
@@ -682,13 +682,13 @@ export default function OnboardingPage() {
                           onChange={e => setCustomTopicInput(e.target.value)}
                           onKeyDown={e => { if (e.key === 'Enter') addCustomTopic() }}
                           placeholder="Enter custom topic" autoFocus
-                          className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
-                        <button onClick={addCustomTopic} className="px-3 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800">Add</button>
-                        <button onClick={() => setCustomTopicInput('')} className="px-2 py-2 text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+                          className="flex-1 px-3 py-2 border border-divider-light rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink" />
+                        <button onClick={addCustomTopic} className="px-3 py-2 bg-ink text-ink-inv text-sm rounded-lg hover:bg-[#2d2d2c]">Add</button>
+                        <button onClick={() => setCustomTopicInput('')} className="px-2 py-2 text-ink-3 hover:text-ink-2"><X className="w-4 h-4" /></button>
                       </div>
                     ) : (
                       <button onClick={() => setCustomTopicInput(' ')}
-                        className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors">
+                        className="flex items-center gap-1.5 text-sm text-ink-3 hover:text-ink-2 transition-colors">
                         <Plus className="w-4 h-4" /> Add custom topic
                       </button>
                     )}
@@ -698,28 +698,28 @@ export default function OnboardingPage() {
 
               {/* ── Prompts section ── */}
               {!isLoadingTopics && topics.length > 0 && (
-                <div className="space-y-3 border-t border-gray-100 pt-5">
+                <div className="space-y-3 border-t border-divider-light pt-5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider">AI Prompts</p>
+                      <p className="text-xs font-semibold text-ink-2 uppercase tracking-wider">AI Prompts</p>
                       {!isLoadingPrompts && totalPrompts > 0 && (
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="text-xs text-ink-3 mt-0.5">
                           Based on your primary topic · {selectedPrompts}/{totalPrompts} selected
                         </p>
                       )}
                     </div>
                     {!isLoadingPrompts && totalPrompts > 0 && (
                       <button onClick={handleRegeneratePrompts}
-                        className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-700 transition-colors">
+                        className="flex items-center gap-1.5 text-xs text-ink-3 hover:text-ink-2 transition-colors">
                         <RefreshCw className="w-3 h-3" /> Regenerate
                       </button>
                     )}
                   </div>
 
                   {isLoadingPrompts ? (
-                    <div className="flex items-center gap-3 py-6 px-4 bg-gray-50 rounded-lg">
-                      <Loader2 className="w-5 h-5 text-gray-400 animate-spin flex-shrink-0" />
-                      <p className="text-sm text-gray-500">{PROMPT_MSGS[promptMsgIdx]}</p>
+                    <div className="flex items-center gap-3 py-6 px-4 bg-surface-warm rounded-lg">
+                      <Loader2 className="w-5 h-5 text-ink-3 animate-spin flex-shrink-0" />
+                      <p className="text-sm text-ink-3">{PROMPT_MSGS[promptMsgIdx]}</p>
                     </div>
                   ) : totalPrompts > 0 ? (
                     <div className="space-y-2">
@@ -732,32 +732,32 @@ export default function OnboardingPage() {
                             action_choice: 'Action',
                           }
                           const intentColor: Record<string, string> = {
-                            info_cognition: 'bg-blue-50 text-blue-600',
-                            solution_explore: 'bg-green-50 text-green-600',
-                            comparison_decision: 'bg-purple-50 text-purple-600',
-                            action_choice: 'bg-orange-50 text-orange-600',
+                            info_cognition: 'bg-surface-warm text-ink-2',
+                            solution_explore: 'bg-sage-bg text-sage',
+                            comparison_decision: 'bg-surface-warm text-ink-2',
+                            action_choice: 'bg-caution-bg text-caution',
                           }
                           return (
                             <div key={`${topicName}-${pi}`}
-                              className="flex items-start gap-3 px-3 py-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                              className="flex items-start gap-3 px-3 py-2.5 border border-divider-light rounded-lg hover:bg-surface-warm transition-colors">
                               <button onClick={() => setTopicPrompts(prev => ({
                                 ...prev,
                                 [topicName]: prev[topicName].map((item, idx) => idx === pi ? { ...item, selected: !item.selected } : item),
                               }))}
-                                className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${p.selected ? 'bg-gray-900' : 'border-2 border-gray-300'}`}>
-                                {p.selected && <Check className="w-3 h-3 text-white" />}
+                                className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${p.selected ? 'bg-ink' : 'border-2 border-divider'}`}>
+                                {p.selected && <Check className="w-3 h-3 text-ink-inv" />}
                               </button>
-                              <span className={`text-sm flex-1 leading-snug ${p.selected ? 'text-gray-900' : 'text-gray-400'}`}>
+                              <span className={`text-sm flex-1 leading-snug ${p.selected ? 'text-ink' : 'text-ink-3'}`}>
                                 {p.prompt_text}
                               </span>
                               <div className="flex items-center gap-1.5 flex-shrink-0">
-                                <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${intentColor[p.intent] ?? 'bg-gray-100 text-gray-500'}`}>
+                                <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${intentColor[p.intent] ?? 'bg-surface-muted text-ink-3'}`}>
                                   {intentLabel[p.intent] ?? p.intent}
                                 </span>
                                 <button onClick={() => setTopicPrompts(prev => ({
                                   ...prev,
                                   [topicName]: prev[topicName].filter((_, idx) => idx !== pi),
-                                }))} className="text-gray-300 hover:text-red-400">
+                                }))} className="text-ink-3 hover:text-red-soft">
                                   <X className="w-3.5 h-3.5" />
                                 </button>
                               </div>
@@ -774,13 +774,13 @@ export default function OnboardingPage() {
                             <input value={customPromptInput} onChange={e => setCustomPromptInput(e.target.value)}
                               onKeyDown={e => { if (e.key === 'Enter') addCustomPrompt(primaryTopic) }}
                               placeholder="Enter custom prompt" autoFocus
-                              className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
-                            <button onClick={() => addCustomPrompt(primaryTopic)} className="px-2.5 py-1.5 bg-gray-900 text-white text-xs rounded-lg">Add</button>
-                            <button onClick={() => { setAddingPromptTopic(null); setCustomPromptInput('') }} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+                              className="flex-1 px-3 py-1.5 border border-divider-light rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink" />
+                            <button onClick={() => addCustomPrompt(primaryTopic)} className="px-2.5 py-1.5 bg-ink text-ink-inv text-xs rounded-lg hover:bg-[#2d2d2c]">Add</button>
+                            <button onClick={() => { setAddingPromptTopic(null); setCustomPromptInput('') }} className="text-ink-3 hover:text-ink-2"><X className="w-4 h-4" /></button>
                           </div>
                         ) : (
                           <button onClick={() => setAddingPromptTopic(primaryTopic)}
-                            className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 mt-1 transition-colors">
+                            className="flex items-center gap-1.5 text-xs text-ink-3 hover:text-ink-2 mt-1 transition-colors">
                             <Plus className="w-3.5 h-3.5" /> Add custom prompt
                           </button>
                         )
@@ -792,11 +792,11 @@ export default function OnboardingPage() {
 
               <div className="flex gap-3 pt-2">
                 <button onClick={() => setStep(1)}
-                  className="px-4 py-3 border border-gray-200 hover:bg-gray-50 text-gray-600 font-semibold rounded-lg text-sm transition-all flex items-center gap-2">
+                  className="px-4 py-3 border border-divider hover:border-ink text-ink bg-transparent font-semibold rounded-lg text-sm transition-all flex items-center gap-2">
                   <ArrowLeft className="w-4 h-4" /> Back
                 </button>
                 <button onClick={handleStep2Next} disabled={selectedTopics.length === 0 || isLoadingTopics}
-                  className="flex-1 py-3 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-lg text-sm transition-all flex items-center justify-center gap-2">
+                  className="flex-1 py-3 bg-ink hover:bg-[#2d2d2c] disabled:opacity-40 disabled:cursor-not-allowed text-ink-inv font-semibold rounded-lg text-sm transition-all flex items-center justify-center gap-2">
                   Continue <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -807,29 +807,29 @@ export default function OnboardingPage() {
           {step === 3 && (
             <div className="space-y-6">
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Competitors</h1>
-                <p className="text-sm text-gray-500 mt-1">Select brands you compete with — we&apos;ll track how AI mentions them alongside <span className="font-medium text-gray-800">{brandName}</span>.</p>
+                <h1 className="text-xl font-bold text-ink">Competitors</h1>
+                <p className="text-sm text-ink-3 mt-1">Select brands you compete with — we&apos;ll track how AI mentions them alongside <span className="font-medium text-ink-2">{brandName}</span>.</p>
               </div>
 
               {isLoadingCompetitors ? (
-                <div className="flex items-center gap-3 py-8 px-4 bg-gray-50 rounded-lg">
-                  <Loader2 className="w-5 h-5 text-gray-400 animate-spin flex-shrink-0" />
-                  <p className="text-sm text-gray-500">Finding competitors in your space…</p>
+                <div className="flex items-center gap-3 py-8 px-4 bg-surface-warm rounded-lg">
+                  <Loader2 className="w-5 h-5 text-ink-3 animate-spin flex-shrink-0" />
+                  <p className="text-sm text-ink-3">Finding competitors in your space…</p>
                 </div>
               ) : (
                 <>
-                  <p className="text-xs text-gray-400">{selectedCompetitors.length} selected</p>
+                  <p className="text-xs text-ink-3">{selectedCompetitors.length} selected</p>
                   <div className="space-y-2">
                     {competitors.map((c, i) => (
                       <button key={i}
                         onClick={() => setCompetitors(prev => prev.map((item, idx) => idx === i ? { ...item, selected: !item.selected } : item))}
-                        className="w-full flex items-center gap-3 px-4 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all text-left">
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${c.selected ? 'bg-gray-900' : 'border-2 border-gray-300'}`}>
-                          {c.selected && <Check className="w-3 h-3 text-white" />}
+                        className="w-full flex items-center gap-3 px-4 py-3 border border-divider-light rounded-lg hover:bg-surface-warm transition-all text-left">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${c.selected ? 'bg-ink' : 'border-2 border-divider'}`}>
+                          {c.selected && <Check className="w-3 h-3 text-ink-inv" />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900">{c.brand_name}</p>
-                          {c.reason && c.reason !== 'Manually added' && <p className="text-xs text-gray-400 truncate">{c.reason}</p>}
+                          <p className="text-sm font-medium text-ink">{c.brand_name}</p>
+                          {c.reason && c.reason !== 'Manually added' && <p className="text-xs text-ink-3 truncate">{c.reason}</p>}
                         </div>
                       </button>
                     ))}
@@ -839,9 +839,9 @@ export default function OnboardingPage() {
                     <input value={customCompInput} onChange={e => setCustomCompInput(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') addCustomCompetitor() }}
                       placeholder="Add a competitor brand name"
-                      className="flex-1 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                      className="flex-1 px-3 py-2.5 border border-divider-light rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink" />
                     <button onClick={addCustomCompetitor} disabled={!customCompInput.trim()}
-                      className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 disabled:opacity-40 rounded-lg text-sm text-gray-600 transition-colors">
+                      className="px-3 py-2.5 bg-surface-muted hover:bg-surface-muted/80 disabled:opacity-40 rounded-lg text-sm text-ink-2 transition-colors">
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
@@ -850,11 +850,11 @@ export default function OnboardingPage() {
 
               <div className="flex gap-3">
                 <button onClick={() => setStep(2)} disabled={isCompleting}
-                  className="px-4 py-3 border border-gray-200 hover:bg-gray-50 text-gray-600 font-semibold rounded-lg text-sm transition-all flex items-center gap-2 disabled:opacity-40">
+                  className="px-4 py-3 border border-divider hover:border-ink text-ink bg-transparent font-semibold rounded-lg text-sm transition-all flex items-center gap-2 disabled:opacity-40">
                   <ArrowLeft className="w-4 h-4" /> Back
                 </button>
                 <button onClick={handleComplete} disabled={isCompleting}
-                  className="flex-1 py-3 bg-gray-900 hover:bg-gray-800 disabled:opacity-70 text-white font-semibold rounded-lg text-sm transition-all flex items-center justify-center gap-2">
+                  className="flex-1 py-3 bg-ink hover:bg-[#2d2d2c] disabled:opacity-70 text-ink-inv font-semibold rounded-lg text-sm transition-all flex items-center justify-center gap-2">
                   {isCompleting
                     ? <><Loader2 className="w-4 h-4 animate-spin" /> Setting up your dashboard…</>
                     : <>Complete Setup <ArrowRight className="w-4 h-4" /></>}
@@ -865,7 +865,7 @@ export default function OnboardingPage() {
               {!isCompleting && (
                 <div className="text-center">
                   <button onClick={handleComplete}
-                    className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors">
+                    className="text-xs text-ink-3 hover:text-ink-2 underline underline-offset-2 transition-colors">
                     Skip competitors for now →
                   </button>
                 </div>
@@ -876,27 +876,27 @@ export default function OnboardingPage() {
       </div>
 
       {/* ════ Right Panel — Decorative ════ */}
-      <div className="hidden lg:flex flex-1 bg-gray-50 relative overflow-hidden items-center justify-center">
+      <div className="hidden lg:flex flex-1 bg-surface-warm relative overflow-hidden items-center justify-center">
         <div className="absolute inset-0">
-          <div className="absolute top-[10%] left-[15%] w-32 h-8 bg-gray-200/60 rounded-full blur-[1px] rotate-[-5deg]" />
-          <div className="absolute top-[20%] right-[20%] w-28 h-8 bg-gray-200/50 rounded-full blur-[1px] rotate-[3deg]" />
-          <div className="absolute top-[35%] left-[30%] w-36 h-8 bg-gray-200/40 rounded-full blur-[2px] rotate-[-2deg]" />
-          <div className="absolute top-[50%] right-[10%] w-24 h-8 bg-gray-200/50 rounded-full blur-[1px] rotate-[5deg]" />
-          <div className="absolute top-[65%] left-[10%] w-30 h-8 bg-gray-200/60 rounded-full blur-[1px] rotate-[-3deg]" />
-          <div className="absolute top-[75%] right-[25%] w-32 h-8 bg-gray-200/40 rounded-full blur-[2px] rotate-[4deg]" />
-          <div className="absolute top-[15%] left-[55%] w-20 h-8 bg-gray-200/50 rounded-full blur-[1px] rotate-[-1deg]" />
-          <div className="absolute top-[85%] left-[40%] w-28 h-8 bg-gray-200/50 rounded-full blur-[1px] rotate-[2deg]" />
+          <div className="absolute top-[10%] left-[15%] w-32 h-8 bg-surface-muted/60 rounded-full blur-[1px] rotate-[-5deg]" />
+          <div className="absolute top-[20%] right-[20%] w-28 h-8 bg-surface-muted/50 rounded-full blur-[1px] rotate-[3deg]" />
+          <div className="absolute top-[35%] left-[30%] w-36 h-8 bg-surface-muted/40 rounded-full blur-[2px] rotate-[-2deg]" />
+          <div className="absolute top-[50%] right-[10%] w-24 h-8 bg-surface-muted/50 rounded-full blur-[1px] rotate-[5deg]" />
+          <div className="absolute top-[65%] left-[10%] w-30 h-8 bg-surface-muted/60 rounded-full blur-[1px] rotate-[-3deg]" />
+          <div className="absolute top-[75%] right-[25%] w-32 h-8 bg-surface-muted/40 rounded-full blur-[2px] rotate-[4deg]" />
+          <div className="absolute top-[15%] left-[55%] w-20 h-8 bg-surface-muted/50 rounded-full blur-[1px] rotate-[-1deg]" />
+          <div className="absolute top-[85%] left-[40%] w-28 h-8 bg-surface-muted/50 rounded-full blur-[1px] rotate-[2deg]" />
         </div>
         <div className="relative z-10 max-w-md mx-8">
-          <div className="bg-white rounded-2xl shadow-lg shadow-gray-200/50 p-8 border border-gray-100">
-            <p className="text-gray-700 text-sm leading-relaxed mb-6">&ldquo;{testimonial.quote}&rdquo;</p>
+          <div className="bg-surface rounded-2xl shadow-lg shadow-surface-muted/50 p-8 border border-divider-light">
+            <p className="text-ink-2 text-sm leading-relaxed mb-6">&ldquo;{testimonial.quote}&rdquo;</p>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold text-sm">
+              <div className="w-10 h-10 rounded-full bg-surface-muted flex items-center justify-center text-ink-2 font-bold text-sm">
                 {testimonial.name.charAt(0)}
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900">{testimonial.name}</p>
-                <p className="text-xs text-gray-500">{testimonial.title}</p>
+                <p className="text-sm font-semibold text-ink">{testimonial.name}</p>
+                <p className="text-xs text-ink-3">{testimonial.title}</p>
               </div>
             </div>
           </div>

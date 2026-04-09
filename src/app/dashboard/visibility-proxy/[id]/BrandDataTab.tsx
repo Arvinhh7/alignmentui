@@ -66,7 +66,7 @@ export default function BrandDataTab({ domainId }: { domainId: string }) {
 
   if (loading) return (
     <div className="flex items-center justify-center py-16">
-      <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+      <Loader2 className="w-5 h-5 animate-spin text-ink-3" />
     </div>
   )
 
@@ -75,19 +75,19 @@ export default function BrandDataTab({ domainId }: { domainId: string }) {
   return (
     <div className="space-y-4">
       {error && (
-        <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-          <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-          <span className="text-sm text-red-700">{error}</span>
+        <div className="flex items-center gap-2 bg-red-soft-bg border border-red-soft/20 rounded-xl px-4 py-3">
+          <AlertCircle className="w-4 h-4 text-red-soft flex-shrink-0" />
+          <span className="text-sm text-red-soft">{error}</span>
         </div>
       )}
 
       {/* Auto-fill success banner */}
       {autoFillResult && (
-        <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3">
-          <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+        <div className="flex items-start gap-3 bg-sage-bg border border-sage/20 rounded-2xl px-4 py-3">
+          <CheckCircle2 className="w-4 h-4 text-sage mt-0.5 shrink-0" />
           <div>
-            <div className="text-sm font-semibold text-emerald-800">{autoFillResult.message}</div>
-            <div className="text-xs text-emerald-600 mt-0.5">
+            <div className="text-sm font-semibold text-sage">{autoFillResult.message}</div>
+            <div className="text-xs text-sage mt-0.5">
               Modules filled: {autoFillResult.filled.map(m => m.replace(/_/g, ' ')).join(', ')}
             </div>
           </div>
@@ -95,15 +95,15 @@ export default function BrandDataTab({ domainId }: { domainId: string }) {
       )}
 
       {/* Progress bar + Auto-fill button */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-4">
+      <div className="bg-surface border border-divider-light rounded-2xl p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold text-gray-500">Modules configured</span>
+          <span className="text-xs font-semibold text-ink-3">Modules configured</span>
           <div className="flex items-center gap-3">
-            <span className="text-xs font-bold text-gray-700">{configured} / {MODULES.length}</span>
+            <span className="text-xs font-bold text-ink-2">{configured} / {MODULES.length}</span>
             <button
               onClick={handleAutoFill}
               disabled={autoFilling}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 text-white text-xs font-semibold rounded-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-xs font-semibold rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
             >
               {autoFilling
                 ? <><Loader2 className="w-3 h-3 animate-spin" />AI 正在分析…</>
@@ -112,14 +112,14 @@ export default function BrandDataTab({ domainId }: { domainId: string }) {
             </button>
           </div>
         </div>
-        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div className="h-2 bg-surface-muted rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-red-500 to-orange-400 rounded-full transition-all"
+            className="h-full bg-ink rounded-full transition-all"
             style={{ width: `${(configured / MODULES.length) * 100}%` }}
           />
         </div>
         {autoFilling && (
-          <p className="text-xs text-gray-400 mt-2">
+          <p className="text-xs text-ink-3 mt-2">
             Crawling your site and extracting brand data with AI… this takes 15-30 seconds.
           </p>
         )}
@@ -138,10 +138,10 @@ export default function BrandDataTab({ domainId }: { domainId: string }) {
       ))}
 
       {/* Sync reminder */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3">
-        <div className="text-sm text-amber-800">
+      <div className="bg-caution-bg border border-caution/20 rounded-2xl p-4 flex gap-3">
+        <div className="text-sm text-caution">
           <div className="font-semibold mb-0.5">Remember to sync after saving</div>
-          <div className="text-xs text-amber-700">
+          <div className="text-xs text-caution">
             Go to the <strong>Overview</strong> tab → <strong>Sync Now</strong> to push changes to the edge network. Takes effect within ~60 seconds.
           </div>
         </div>

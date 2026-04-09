@@ -345,41 +345,41 @@ function PricingPageInner() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-canvas">
       {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <nav className="bg-surface border-b border-divider-light sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">A</span>
+              <div className="w-8 h-8 bg-ink rounded-lg flex items-center justify-center">
+                <span className="text-ink-inv font-bold text-sm">A</span>
               </div>
-              <span className="text-lg font-bold text-gray-900">Alignment AI</span>
+              <span className="text-lg font-bold text-ink">Alignment AI</span>
             </Link>
-            
+
             <div className="hidden md:flex items-center gap-6">
-              <Link href="/" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors">
+              <Link href="/" className="text-ink-2 hover:text-ink text-sm font-medium transition-colors">
                 {t.nav.system}
               </Link>
-              <Link href="/" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors">
+              <Link href="/" className="text-ink-2 hover:text-ink text-sm font-medium transition-colors">
                 {t.nav.solutions}
               </Link>
-              <Link href="/" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors">
+              <Link href="/" className="text-ink-2 hover:text-ink text-sm font-medium transition-colors">
                 {t.nav.technology}
               </Link>
-              <Link href="/pricing/" className="text-red-500 font-semibold text-sm">
+              <Link href="/pricing/" className="text-ink font-semibold text-sm">
                 {t.nav.pricing}
               </Link>
-              <Link href="/" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors">
+              <Link href="/" className="text-ink-2 hover:text-ink text-sm font-medium transition-colors">
                 {t.nav.docs}
               </Link>
-              <Link href="/" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors">
+              <Link href="/" className="text-ink-2 hover:text-ink text-sm font-medium transition-colors">
                 {t.nav.insights}
               </Link>
-              <Link href="/" className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors">
+              <Link href="/" className="text-ink-2 hover:text-ink text-sm font-medium transition-colors">
                 {t.nav.contact}
               </Link>
-              <Link href="/roi-simulator" className="px-3 py-1.5 text-red-600 hover:text-red-700 text-sm font-semibold transition-colors rounded-lg bg-red-50 hover:bg-red-100 flex items-center gap-1.5">
+              <Link href="/roi-simulator" className="px-3 py-1.5 text-ink-2 hover:text-ink text-sm font-semibold transition-colors rounded-lg bg-surface-warm hover:bg-surface-muted flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                 {(t as unknown as Record<string, string>).nav_roi || 'ROI Calculator'}
               </Link>
@@ -387,12 +387,12 @@ function PricingPageInner() {
 
             <div className="flex items-center gap-4">
               <LanguageSwitch />
-              <Link href="/login/" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
+              <Link href="/login/" className="text-ink-2 hover:text-ink font-medium transition-colors">
                 {t.nav.signIn}
               </Link>
               <Link
                 href="/login/"
-                className="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-2.5 rounded-xl transition-all"
+                className="bg-ink hover:bg-[#2d2d2c] text-ink-inv font-semibold px-6 py-2.5 rounded-xl transition-all"
               >
                 {t.nav.getStarted}
               </Link>
@@ -402,25 +402,25 @@ function PricingPageInner() {
       </nav>
 
       {/* Hero */}
-      <section className="py-16 bg-gradient-to-b from-white to-gray-50">
+      <section className="py-16 bg-canvas">
         <div className="max-w-7xl mx-auto px-6 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-ink mb-4">
             {lang === 'zh' ? '选择适合您的方案' : 'Choose Your Path to AI Visibility'}
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-10">
+          <p className="text-lg text-ink-2 max-w-2xl mx-auto mb-10">
             {lang === 'zh'
               ? '自助使用平台工具，或让我们的 GEO 专家团队全程代劳 — 两种方式，同一个目标。'
               : 'Use the platform yourself, or let our GEO experts do it for you — two paths, one goal.'}
           </p>
 
           {/* Tab Toggle: Platform vs Service */}
-          <div className="inline-flex items-center bg-white rounded-2xl p-1.5 border border-gray-200 shadow-sm mb-6">
+          <div className="inline-flex items-center bg-surface rounded-2xl p-1.5 border border-divider-light shadow-sm mb-6">
             <button
               onClick={() => setActiveTab('platform')}
               className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all ${
                 activeTab === 'platform'
-                  ? 'bg-gray-900 text-white shadow-md'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  ? 'bg-ink text-ink-inv shadow-md'
+                  : 'text-ink-2 hover:text-ink hover:bg-surface-warm'
               }`}
             >
               <span className="flex items-center gap-2">
@@ -432,8 +432,8 @@ function PricingPageInner() {
               onClick={() => setActiveTab('service')}
               className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all ${
                 activeTab === 'service'
-                  ? 'bg-gray-900 text-white shadow-md'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  ? 'bg-ink text-ink-inv shadow-md'
+                  : 'text-ink-2 hover:text-ink hover:bg-surface-warm'
               }`}
             >
               <span className="flex items-center gap-2">
@@ -446,13 +446,13 @@ function PricingPageInner() {
           {/* Subtitle for each tab */}
           <div className="mb-2">
             {activeTab === 'platform' ? (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-ink-3">
                 {lang === 'zh'
                   ? '自助工具 — 您的团队自己配置 Prompt、跑扫描、看报告、用 AI 生成内容'
                   : 'Self-serve tools — your team configures prompts, runs scans, views reports, and generates content'}
               </p>
             ) : (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-ink-3">
                 {lang === 'zh'
                   ? '全托管方案 — 我们的 GEO 专家团队为您制定策略、创作内容、分发执行'
                   : 'Done-for-you — our GEO experts handle strategy, content creation, and distribution'}
@@ -468,11 +468,11 @@ function PricingPageInner() {
           <div className="max-w-7xl mx-auto px-6">
             {/* Billing Toggle */}
             <div className="flex justify-center mb-10">
-              <div className="inline-flex items-center gap-4 bg-white rounded-full p-1 border border-gray-200">
+              <div className="inline-flex items-center gap-4 bg-surface rounded-full p-1 border border-divider-light">
                 <button
                   onClick={() => setIsYearly(false)}
                   className={`px-6 py-2 rounded-full font-medium transition-all ${
-                    !isYearly ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900'
+                    !isYearly ? 'bg-ink text-ink-inv' : 'text-ink-2 hover:text-ink'
                   }`}
                 >
                   {lang === 'zh' ? '月付' : 'Monthly'}
@@ -480,17 +480,17 @@ function PricingPageInner() {
                 <button
                   onClick={() => setIsYearly(true)}
                   className={`px-6 py-2 rounded-full font-medium transition-all ${
-                    isYearly ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900'
+                    isYearly ? 'bg-ink text-ink-inv' : 'text-ink-2 hover:text-ink'
                   }`}
                 >
                   {lang === 'zh' ? '年付' : 'Yearly'}
-                  <span className="ml-2 text-xs text-green-600 font-semibold">{lang === 'zh' ? '赠2个月' : '2 months free'}</span>
+                  <span className="ml-2 text-xs text-sage font-semibold">{lang === 'zh' ? '赠2个月' : '2 months free'}</span>
                 </button>
               </div>
             </div>
 
             {checkoutError && (
-              <div className="mb-6 max-w-xl mx-auto p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm text-center">
+              <div className="mb-6 max-w-xl mx-auto p-4 bg-red-soft-bg border border-divider rounded-xl text-red-soft text-sm text-center">
                 {checkoutError}
               </div>
             )}
@@ -502,34 +502,34 @@ function PricingPageInner() {
                 return (
                 <div
                   key={index}
-                  className={`bg-white rounded-2xl border-2 p-8 relative ${
-                    plan.popular ? 'border-red-500 shadow-xl' : 'border-gray-200'
+                  className={`rounded-2xl border-2 p-8 relative ${
+                    plan.popular ? 'bg-ink border-ink shadow-xl' : 'bg-surface border-divider-light'
                   }`}
                 >
                   {plan.popular && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-red-500 text-white text-sm font-semibold px-4 py-1 rounded-full">
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-sage-bg text-sage text-sm font-semibold px-4 py-1 rounded-full">
                       {lang === 'zh' ? '最受欢迎' : 'Most Popular'}
                     </div>
                   )}
 
                   <div className="text-center mb-8">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{plan.name}</h3>
-                    <p className="text-sm text-gray-500 mb-4">{plan.description}</p>
+                    <h3 className={`text-lg font-semibold mb-1 ${plan.popular ? 'text-ink-inv' : 'text-ink'}`}>{plan.name}</h3>
+                    <p className={`text-sm mb-4 ${plan.popular ? 'text-ink-inv/70' : 'text-ink-3'}`}>{plan.description}</p>
                     <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-4xl font-bold text-gray-900">
+                      <span className={`text-4xl font-bold ${plan.popular ? 'text-ink-inv' : 'text-ink'}`}>
                         ${isYearly ? plan.price.yearly : plan.price.monthly}
                       </span>
-                      <span className="text-gray-500">/{lang === 'zh' ? '月' : 'mo'}</span>
+                      <span className={plan.popular ? 'text-ink-inv/70' : 'text-ink-3'}>/{lang === 'zh' ? '月' : 'mo'}</span>
                     </div>
                     {isYearly && (
-                      <p className="text-sm text-green-600 mt-2">
+                      <p className="text-sm mt-2 text-sage">
                         {lang === 'zh'
                           ? `年付 ($${plan.price.yearly * 12}/年)`
                           : `Billed annually ($${plan.price.yearly * 12}/year)`}
                       </p>
                     )}
                     {!isYearly && (
-                      <p className="text-xs text-gray-400 mt-2">
+                      <p className={`text-xs mt-2 ${plan.popular ? 'text-ink-inv/50' : 'text-ink-3'}`}>
                         {lang === 'zh' ? '14 天免费试用，随时取消' : '14-day free trial, cancel anytime'}
                       </p>
                     )}
@@ -537,9 +537,9 @@ function PricingPageInner() {
 
                   <ul className="space-y-3 mb-8">
                     {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-3 text-gray-600 text-sm">
-                        <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <li key={i} className={`flex items-start gap-3 text-sm ${plan.popular ? 'text-ink-inv/80' : 'text-ink-2'}`}>
+                        <span className="w-5 h-5 bg-sage-bg rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <svg className="w-3 h-3 text-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         </span>
@@ -553,8 +553,8 @@ function PricingPageInner() {
                     disabled={isThisLoading || checkoutLoading !== null}
                     className={`w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed ${
                       plan.popular
-                        ? 'bg-red-500 hover:bg-red-600 text-white'
-                        : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                        ? 'bg-surface text-ink hover:bg-surface-muted'
+                        : 'bg-ink hover:bg-[#2d2d2c] text-ink-inv'
                     }`}
                   >
                     {isThisLoading ? (
@@ -574,15 +574,15 @@ function PricingPageInner() {
 
             {/* Platform → Service upsell */}
             <div className="mt-12 text-center">
-              <div className="inline-flex items-center gap-3 bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl px-8 py-5 shadow-lg">
-                <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+              <div className="inline-flex items-center gap-3 bg-ink rounded-2xl px-8 py-5 shadow-lg">
+                <div className="w-10 h-10 bg-surface-muted rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
                 </div>
                 <div className="text-left">
-                  <p className="text-white font-semibold text-sm">
+                  <p className="text-ink-inv font-semibold text-sm">
                     {lang === 'zh' ? '需要专业团队帮您做？' : 'Need experts to do it for you?'}
                   </p>
-                  <p className="text-gray-400 text-xs">
+                  <p className="text-ink-inv/60 text-xs">
                     {lang === 'zh'
                       ? '查看我们的 Managed Service 托管服务，包含完整平台 + 专业团队执行'
                       : 'Check out our Managed Service — includes full platform + expert team execution'}
@@ -590,7 +590,7 @@ function PricingPageInner() {
                 </div>
                 <button
                   onClick={() => setActiveTab('service')}
-                  className="flex-shrink-0 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-xl transition-all"
+                  className="flex-shrink-0 px-5 py-2.5 bg-surface hover:bg-surface-muted text-ink text-sm font-semibold rounded-xl transition-all"
                 >
                   {lang === 'zh' ? '查看托管服务' : 'View Services'}
                 </button>
@@ -606,9 +606,9 @@ function PricingPageInner() {
           <div className="max-w-7xl mx-auto px-6">
             {/* What's included banner */}
             <div className="flex justify-center mb-10">
-              <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-50 border border-emerald-200 rounded-full">
-                <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                <span className="text-sm font-medium text-emerald-800">
+              <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-sage-bg border border-divider-light rounded-full">
+                <svg className="w-4 h-4 text-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                <span className="text-sm font-medium text-sage">
                   {lang === 'zh'
                     ? '所有方案均包含：企业版平台 + 专有 GEO 垂直模型 + 千万级引用数据库'
                     : 'All plans include: Enterprise Platform + Proprietary GEO Vertical Model + 100M+ Citation Database'}
@@ -620,28 +620,28 @@ function PricingPageInner() {
               {servicePlans.map((plan, index) => (
                 <div
                   key={index}
-                  className={`bg-white rounded-2xl border-2 p-8 relative ${
-                    plan.popular ? 'border-red-500 shadow-xl' : 'border-gray-200'
+                  className={`rounded-2xl border-2 p-8 relative ${
+                    plan.popular ? 'bg-ink border-ink shadow-xl' : 'bg-surface border-divider-light'
                   }`}
                 >
                   {plan.popular && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-red-500 text-white text-sm font-semibold px-4 py-1 rounded-full">
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-sage-bg text-sage text-sm font-semibold px-4 py-1 rounded-full">
                       {lang === 'zh' ? '最受出海企业欢迎' : 'Most Popular'}
                     </div>
                   )}
 
                   <div className="text-center mb-8">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{plan.name}</h3>
-                    <p className="text-sm text-gray-500 mb-4">{plan.description}</p>
+                    <h3 className={`text-lg font-semibold mb-1 ${plan.popular ? 'text-ink-inv' : 'text-ink'}`}>{plan.name}</h3>
+                    <p className={`text-sm mb-4 ${plan.popular ? 'text-ink-inv/70' : 'text-ink-3'}`}>{plan.description}</p>
                     {plan.price ? (
                       <>
                         <div className="flex items-baseline justify-center gap-1">
-                          <span className="text-4xl font-bold text-gray-900">
+                          <span className={`text-4xl font-bold ${plan.popular ? 'text-ink-inv' : 'text-ink'}`}>
                             ${plan.price.monthly.toLocaleString()}
                           </span>
-                          <span className="text-gray-500">/{lang === 'zh' ? '月' : 'mo'}</span>
+                          <span className={plan.popular ? 'text-ink-inv/70' : 'text-ink-3'}>/{lang === 'zh' ? '月' : 'mo'}</span>
                         </div>
-                        <p className="text-xs text-gray-400 mt-2">
+                        <p className={`text-xs mt-2 ${plan.popular ? 'text-ink-inv/50' : 'text-ink-3'}`}>
                           {lang === 'zh'
                             ? `最短 ${plan.minMonths} 个月起签`
                             : `${plan.minMonths}-month minimum commitment`}
@@ -649,7 +649,7 @@ function PricingPageInner() {
                       </>
                     ) : (
                       <div className="flex items-baseline justify-center gap-1">
-                        <span className="text-3xl font-bold text-gray-900">
+                        <span className={`text-3xl font-bold ${plan.popular ? 'text-ink-inv' : 'text-ink'}`}>
                           {lang === 'zh' ? '定制报价' : 'Custom'}
                         </span>
                       </div>
@@ -658,9 +658,9 @@ function PricingPageInner() {
 
                   <ul className="space-y-3 mb-8">
                     {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-3 text-gray-600 text-sm">
-                        <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <li key={i} className={`flex items-start gap-3 text-sm ${plan.popular ? 'text-ink-inv/80' : 'text-ink-2'}`}>
+                        <span className="w-5 h-5 bg-sage-bg rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <svg className="w-3 h-3 text-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         </span>
@@ -673,8 +673,8 @@ function PricingPageInner() {
                     href="/contact/?subject=managed-service"
                     className={`w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center ${
                       plan.popular
-                        ? 'bg-red-500 hover:bg-red-600 text-white'
-                        : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                        ? 'bg-surface text-ink hover:bg-surface-muted'
+                        : 'bg-ink hover:bg-[#2d2d2c] text-ink-inv'
                     }`}
                   >
                     {plan.cta}
@@ -685,21 +685,21 @@ function PricingPageInner() {
 
             {/* ROI Calculator CTA */}
             <div className="mt-12">
-              <div className="max-w-4xl mx-auto bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-8 md:p-10 flex flex-col md:flex-row items-center gap-6 shadow-xl">
-                <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl flex items-center justify-center">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+              <div className="max-w-4xl mx-auto bg-ink rounded-2xl p-8 md:p-10 flex flex-col md:flex-row items-center gap-6 shadow-xl">
+                <div className="flex-shrink-0 w-16 h-16 bg-surface-muted rounded-2xl flex items-center justify-center">
+                  <svg className="w-8 h-8 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
                 </div>
                 <div className="flex-1 text-center md:text-left">
-                  <h3 className="text-xl font-bold text-white mb-1">
+                  <h3 className="text-xl font-bold text-ink-inv mb-1">
                     {lang === 'zh' ? '想看看 GEO 服务的投资回报？' : 'Want to see your GEO service ROI?'}
                   </h3>
-                  <p className="text-gray-400">
+                  <p className="text-ink-inv/60">
                     {lang === 'zh'
                       ? '使用我们的 ROI 计算器，输入客单价和行业，即可预估 6 个月投资回报'
                       : 'Use our ROI Calculator — enter your AOV and industry to see projected 6-month returns'}
                   </p>
                 </div>
-                <Link href="/roi-simulator" className="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl whitespace-nowrap">
+                <Link href="/roi-simulator" className="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 bg-surface hover:bg-surface-muted text-ink font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl whitespace-nowrap">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                   {lang === 'zh' ? '计算我的ROI' : 'Calculate My ROI'}
                 </Link>
@@ -708,15 +708,15 @@ function PricingPageInner() {
 
             {/* Reverse upsell: just need the tool? */}
             <div className="mt-12 text-center">
-              <div className="inline-flex items-center gap-3 bg-white border border-gray-200 rounded-2xl px-8 py-5 shadow-sm">
-                <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+              <div className="inline-flex items-center gap-3 bg-surface border border-divider-light rounded-2xl px-8 py-5 shadow-sm">
+                <div className="w-10 h-10 bg-surface-muted rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-ink-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                 </div>
                 <div className="text-left">
-                  <p className="text-gray-900 font-semibold text-sm">
+                  <p className="text-ink font-semibold text-sm">
                     {lang === 'zh' ? '有内部团队，想自己来？' : 'Have an in-house team and prefer self-serve?'}
                   </p>
-                  <p className="text-gray-500 text-xs">
+                  <p className="text-ink-2 text-xs">
                     {lang === 'zh'
                       ? '试试我们的 Platform 自助平台，$299/月起，14 天免费'
                       : 'Try our Platform — starts at $299/mo with a 14-day free trial'}
@@ -724,7 +724,7 @@ function PricingPageInner() {
                 </div>
                 <button
                   onClick={() => setActiveTab('platform')}
-                  className="flex-shrink-0 px-5 py-2.5 bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold rounded-xl transition-all"
+                  className="flex-shrink-0 px-5 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-semibold rounded-xl transition-all"
                 >
                   {lang === 'zh' ? '查看 Platform' : 'View Platform'}
                 </button>
@@ -733,21 +733,21 @@ function PricingPageInner() {
 
             {/* Comparison: Platform vs Service */}
             <div className="mt-16 max-w-4xl mx-auto">
-              <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">
+              <h2 className="text-2xl font-bold text-ink text-center mb-8">
                 {lang === 'zh' ? 'Platform vs. Managed Service 对比' : 'Platform vs. Managed Service'}
               </h2>
-              <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+              <div className="bg-surface rounded-2xl border border-divider-light overflow-hidden">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-4 px-6 text-sm font-medium text-gray-500"></th>
-                      <th className="text-center py-4 px-6 text-sm font-semibold text-gray-900">
+                    <tr className="border-b border-divider-light">
+                      <th className="text-left py-4 px-6 text-sm font-medium text-ink-3"></th>
+                      <th className="text-center py-4 px-6 text-sm font-semibold text-ink">
                         <div className="flex items-center justify-center gap-1.5">
-                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                          <svg className="w-4 h-4 text-ink-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                           Platform
                         </div>
                       </th>
-                      <th className="text-center py-4 px-6 text-sm font-semibold text-red-600">
+                      <th className="text-center py-4 px-6 text-sm font-semibold text-ink-2">
                         <div className="flex items-center justify-center gap-1.5">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                           Managed Service
@@ -777,10 +777,10 @@ function PricingPageInner() {
                       ['Price range', '$299 – $999/mo', '$1,999 – $5,999/mo'],
                       ['Best for', 'Teams with in-house marketing', 'Businesses needing full-service GEO'],
                     ]).map((row, i) => (
-                      <tr key={i} className={i % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                        <td className="py-3 px-6 text-sm font-medium text-gray-900">{row[0]}</td>
-                        <td className="py-3 px-6 text-sm text-gray-600 text-center">{row[1]}</td>
-                        <td className="py-3 px-6 text-sm text-gray-600 text-center">{row[2]}</td>
+                      <tr key={i} className={i % 2 === 0 ? 'bg-surface-warm' : 'bg-surface'}>
+                        <td className="py-3 px-6 text-sm font-medium text-ink">{row[0]}</td>
+                        <td className="py-3 px-6 text-sm text-ink-2 text-center">{row[1]}</td>
+                        <td className="py-3 px-6 text-sm text-ink-2 text-center">{row[2]}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -792,16 +792,16 @@ function PricingPageInner() {
       )}
 
       {/* FAQ */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-surface">
         <div className="max-w-3xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-ink text-center mb-12">
             {lang === 'zh' ? '常见问题' : 'Frequently Asked Questions'}
           </h2>
           <div className="space-y-4">
             {faqs[lang].map((faq, index) => (
-              <div key={index} className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                <h3 className="font-semibold text-gray-900 mb-2">{faq.question}</h3>
-                <p className="text-gray-600">{faq.answer}</p>
+              <div key={index} className="bg-surface-warm rounded-xl p-6 border border-divider-light">
+                <h3 className="font-semibold text-ink mb-2">{faq.question}</h3>
+                <p className="text-ink-2">{faq.answer}</p>
               </div>
             ))}
           </div>
@@ -809,12 +809,12 @@ function PricingPageInner() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-gray-900">
+      <section className="py-20 bg-ink">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold text-white mb-6">
+          <h2 className="text-3xl font-bold text-ink-inv mb-6">
             {lang === 'zh' ? '准备好提升品牌的 AI 可见度了吗？' : 'Ready to Boost Your AI Visibility?'}
           </h2>
-          <p className="text-xl text-gray-400 mb-10">
+          <p className="text-xl text-ink-inv/60 mb-10">
             {lang === 'zh'
               ? '无论您选择自助平台还是托管服务，我们都能帮您实现目标。'
               : 'Whether you choose Platform or Managed Service, we\'ll help you get there.'}
@@ -822,13 +822,13 @@ function PricingPageInner() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/login/"
-              className="bg-red-500 hover:bg-red-600 text-white font-semibold px-8 py-4 rounded-xl transition-all"
+              className="bg-surface hover:bg-surface-muted text-ink font-semibold px-8 py-4 rounded-xl transition-all"
             >
               {lang === 'zh' ? '免费试用 Platform' : 'Try Platform Free'}
             </Link>
             <Link
               href="/contact/?subject=managed-service"
-              className="bg-white/10 hover:bg-white/20 text-white font-semibold px-8 py-4 rounded-xl transition-all border border-white/20"
+              className="bg-white/10 hover:bg-white/20 text-ink-inv font-semibold px-8 py-4 rounded-xl transition-all border border-white/20"
             >
               {lang === 'zh' ? '咨询 Managed Service' : 'Contact for Managed Service'}
             </Link>
@@ -837,25 +837,25 @@ function PricingPageInner() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 py-12">
+      <footer className="bg-surface border-t border-divider-light py-12">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center gap-3 mb-6 md:mb-0">
-              <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-lg">A</span>
+              <div className="w-10 h-10 bg-ink rounded-xl flex items-center justify-center">
+                <span className="text-ink-inv font-bold text-lg">A</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">Alignment AI</span>
+              <span className="text-xl font-bold text-ink">Alignment AI</span>
             </div>
-            <div className="flex items-center gap-8 text-sm text-gray-600">
-              <Link href="/features/" className="hover:text-gray-900">{t.nav.features}</Link>
-              <Link href="/pricing/" className="hover:text-gray-900">{t.nav.pricing}</Link>
-              <Link href="/roi-simulator" className="hover:text-gray-900 text-red-600 font-medium">
+            <div className="flex items-center gap-8 text-sm text-ink-2">
+              <Link href="/features/" className="hover:text-ink">{t.nav.features}</Link>
+              <Link href="/pricing/" className="hover:text-ink">{t.nav.pricing}</Link>
+              <Link href="/roi-simulator" className="hover:text-ink text-sage font-medium">
                 {(t as unknown as Record<string, string>).nav_roi || 'ROI Calculator'}
               </Link>
-              <Link href="/login/" className="hover:text-gray-900">{t.nav.signIn}</Link>
+              <Link href="/login/" className="hover:text-ink">{t.nav.signIn}</Link>
             </div>
           </div>
-          <div className="mt-8 pt-8 border-t border-gray-200 text-center text-gray-500 text-sm">
+          <div className="mt-8 pt-8 border-t border-divider-light text-center text-ink-3 text-sm">
             {t.footer.copyright}
           </div>
         </div>

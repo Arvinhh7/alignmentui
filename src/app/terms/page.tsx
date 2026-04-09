@@ -13,21 +13,21 @@ const COMPANY = 'Alignment AI'
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-[#fafafa] text-[#0a0a0a]">
+    <main className="min-h-screen bg-canvas text-ink">
       {/* Header */}
-      <div className="border-b border-black/8 bg-white">
+      <div className="border-b border-divider-light bg-surface">
         <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
-          <Link href="/" className="text-sm font-semibold text-[#ef4444] hover:opacity-80 transition-opacity">
+          <Link href="/" className="text-sm font-semibold text-ink hover:text-ink-2 transition-colors">
             ← Alignment AI
           </Link>
-          <span className="text-xs text-[#64748b]">Last updated: {LAST_UPDATED}</span>
+          <span className="text-xs text-ink-3">Last updated: {LAST_UPDATED}</span>
         </div>
       </div>
 
       {/* Content */}
       <article className="max-w-5xl mx-auto px-6 py-12">
         <h1 className="text-3xl font-bold mb-2">Terms of Service</h1>
-        <p className="text-[#64748b] mb-10">
+        <p className="text-ink-3 mb-10">
           Please read these Terms of Service (&ldquo;Terms&rdquo;) carefully before using the{' '}
           <strong>{APP_NAME}</strong> Shopify application operated by <strong>{COMPANY}</strong>{' '}
           (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;). By installing or using {APP_NAME},
@@ -58,7 +58,7 @@ export default function TermsPage() {
           <Subsection title="3.1 Plans">
             <p>{APP_NAME} offers three subscription tiers:</p>
             <div className="overflow-x-auto mt-2">
-              <table className="w-full text-sm border border-black/8 rounded-lg overflow-hidden">
+              <table className="w-full text-sm border border-divider-light rounded-lg overflow-hidden">
                 <thead className="bg-black/5">
                   <tr>
                     <th className="text-left px-4 py-2 font-medium">Plan</th>
@@ -67,17 +67,17 @@ export default function TermsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-t border-black/5">
+                  <tr className="border-t border-divider-light">
                     <td className="px-4 py-2">Free</td>
                     <td className="px-4 py-2">$0/month</td>
                     <td className="px-4 py-2">5 FAQ pairs, 10 products, AI Score up to 45/100</td>
                   </tr>
-                  <tr className="border-t border-black/5 bg-white">
+                  <tr className="border-t border-divider-light bg-surface">
                     <td className="px-4 py-2">Growth</td>
                     <td className="px-4 py-2">$49/month</td>
                     <td className="px-4 py-2">50 FAQ pairs, 100 products, 5,000 reviews, full 100/100 Score, llms.txt &amp; agent.json endpoints</td>
                   </tr>
-                  <tr className="border-t border-black/5">
+                  <tr className="border-t border-divider-light">
                     <td className="px-4 py-2">Enterprise</td>
                     <td className="px-4 py-2">$99/month</td>
                     <td className="px-4 py-2">200 FAQ pairs, 500 products, 25,000 reviews, priority support</td>
@@ -163,21 +163,21 @@ export default function TermsPage() {
         </Section>
 
         <Section title="12. Contact Us">
-          <div className="bg-white border border-black/8 rounded-xl p-5 text-sm space-y-1">
+          <div className="bg-surface border border-divider-light rounded-xl p-5 text-sm space-y-1">
             <p><strong>Alignment AI</strong></p>
-            <p>Support: <a href={`mailto:${SUPPORT_EMAIL}`} className="text-[#ef4444] hover:underline">{SUPPORT_EMAIL}</a></p>
-            <p>Help Center: <a href="https://alignmenttech.ai/help" className="text-[#ef4444] hover:underline">alignmenttech.ai/help</a></p>
+            <p>Support: <a href={`mailto:${SUPPORT_EMAIL}`} className="text-ink font-medium hover:underline">{SUPPORT_EMAIL}</a></p>
+            <p>Help Center: <a href="https://alignmenttech.ai/help" className="text-ink font-medium hover:underline">alignmenttech.ai/help</a></p>
           </div>
         </Section>
       </article>
 
       {/* Footer */}
-      <footer className="border-t border-black/8 bg-white py-6 mt-8">
-        <div className="max-w-5xl mx-auto px-6 flex items-center justify-between text-xs text-[#64748b]">
+      <footer className="border-t border-divider-light bg-surface py-6 mt-8">
+        <div className="max-w-5xl mx-auto px-6 flex items-center justify-between text-xs text-ink-3">
           <span>© 2026 Alignment AI. All rights reserved.</span>
           <div className="flex gap-4">
-            <Link href="/privacy" className="hover:text-[#0a0a0a] transition-colors">Privacy Policy</Link>
-            <Link href="/help" className="hover:text-[#0a0a0a] transition-colors">Help Center</Link>
+            <Link href="/privacy" className="hover:text-ink transition-colors">Privacy Policy</Link>
+            <Link href="/help" className="hover:text-ink transition-colors">Help Center</Link>
           </div>
         </div>
       </footer>
@@ -188,8 +188,8 @@ export default function TermsPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mb-10">
-      <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-black/8">{title}</h2>
-      <div className="space-y-3 text-[0.93rem] leading-relaxed text-[#1e293b]">{children}</div>
+      <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-divider-light">{title}</h2>
+      <div className="space-y-3 text-[0.93rem] leading-relaxed text-ink">{children}</div>
     </section>
   )
 }
@@ -197,8 +197,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Subsection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-4">
-      <h3 className="text-base font-medium mb-2 text-[#0a0a0a]">{title}</h3>
-      <div className="space-y-2 text-[0.93rem] leading-relaxed text-[#1e293b]">{children}</div>
+      <h3 className="text-base font-medium mb-2 text-ink">{title}</h3>
+      <div className="space-y-2 text-[0.93rem] leading-relaxed text-ink">{children}</div>
     </div>
   )
 }

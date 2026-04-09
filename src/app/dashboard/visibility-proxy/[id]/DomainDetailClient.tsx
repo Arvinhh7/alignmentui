@@ -26,12 +26,12 @@ function formatRelativeTime(iso: string): string {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType; bg: string }> = {
-  active:           { label: 'Active',          color: 'text-green-700',  bg: 'bg-green-50 border-green-200',   icon: CheckCircle },
-  pending:          { label: 'Pending DNS',      color: 'text-amber-700',  bg: 'bg-amber-50 border-amber-200',   icon: Clock },
-  dns_verifying:    { label: 'Verifying DNS',    color: 'text-blue-700',   bg: 'bg-blue-50 border-blue-200',     icon: RefreshCw },
-  ssl_provisioning: { label: 'Provisioning SSL', color: 'text-purple-700', bg: 'bg-purple-50 border-purple-200', icon: RefreshCw },
-  paused:           { label: 'Paused',           color: 'text-gray-600',   bg: 'bg-gray-50 border-gray-200',     icon: Pause },
-  error:            { label: 'Error',            color: 'text-red-700',    bg: 'bg-red-50 border-red-200',       icon: XCircle },
+  active:           { label: 'Active',          color: 'text-sage',  bg: 'bg-sage-bg border-sage/20',   icon: CheckCircle },
+  pending:          { label: 'Pending DNS',      color: 'text-caution',  bg: 'bg-caution-bg border-caution/20',   icon: Clock },
+  dns_verifying:    { label: 'Verifying DNS',    color: 'text-ink-2',   bg: 'bg-surface-warm border-divider',     icon: RefreshCw },
+  ssl_provisioning: { label: 'Provisioning SSL', color: 'text-ink-2', bg: 'bg-surface-warm border-divider',     icon: RefreshCw },
+  paused:           { label: 'Paused',           color: 'text-ink-2',   bg: 'bg-surface-warm border-divider-light',     icon: Pause },
+  error:            { label: 'Error',            color: 'text-red-soft',    bg: 'bg-red-soft-bg border-red-soft/20',       icon: XCircle },
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -43,8 +43,8 @@ function CopyButton({ text }: { text: string }) {
     })
   }
   return (
-    <button onClick={copy} className="text-gray-400 hover:text-gray-600 transition-colors">
-      {copied ? <CheckCheck className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+    <button onClick={copy} className="text-ink-3 hover:text-ink-2 transition-colors">
+      {copied ? <CheckCheck className="w-3.5 h-3.5 text-sage" /> : <Copy className="w-3.5 h-3.5" />}
     </button>
   )
 }
@@ -70,8 +70,8 @@ function ToggleRow({
     <div className="py-3">
       <div className="flex items-center justify-between">
         <div className="pr-4">
-          <div className={`text-sm ${disabled ? 'text-gray-400' : 'text-gray-800'}`}>{label}</div>
-          <div className="text-xs text-gray-400 mt-0.5">{desc}</div>
+          <div className={`text-sm ${disabled ? 'text-ink-3' : 'text-ink'}`}>{label}</div>
+          <div className="text-xs text-ink-3 mt-0.5">{desc}</div>
         </div>
         <button
           type="button"
@@ -79,17 +79,17 @@ function ToggleRow({
           disabled={disabled}
           className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none ${
             disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
-          } ${value ? 'bg-red-500' : 'bg-gray-200'}`}
+          } ${value ? 'bg-ink' : 'bg-surface-muted'}`}
         >
           <span
-            className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${
+            className={`absolute top-0.5 left-0.5 w-5 h-5 bg-surface rounded-full shadow-sm transition-transform duration-200 ${
               value ? 'translate-x-5' : 'translate-x-0'
             }`}
           />
         </button>
       </div>
       {warning && (
-        <div className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+        <div className="mt-2 text-xs text-caution bg-caution-bg border border-caution/20 rounded-lg px-3 py-2">
           {warning}
         </div>
       )}
@@ -140,22 +140,22 @@ function TechnicalConfigSection({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+    <div className="bg-surface border border-divider-light rounded-2xl overflow-hidden">
       <button
         type="button"
         onClick={() => setIsOpen(o => !o)}
-        className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors"
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-surface-warm transition-colors"
       >
         <div className="flex items-center gap-2">
-          <Wrench className="w-4 h-4 text-gray-500" />
-          <span className="text-sm font-semibold text-gray-700">Technical Config</span>
-          <span className="text-xs text-gray-400 ml-1">Proxy behavior flags</span>
+          <Wrench className="w-4 h-4 text-ink-3" />
+          <span className="text-sm font-semibold text-ink-2">Technical Config</span>
+          <span className="text-xs text-ink-3 ml-1">Proxy behavior flags</span>
         </div>
-        <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} />
+        <ChevronRight className={`w-4 h-4 text-ink-3 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} />
       </button>
       {isOpen && (
-        <div className="px-5 pb-5 border-t border-gray-100">
-          <div className="divide-y divide-gray-100 mt-3">
+        <div className="px-5 pb-5 border-t border-divider-light">
+          <div className="divide-y divide-divider-light mt-3">
             <ToggleRow
               label="Strip noindex for AI"
               desc="Remove noindex meta tags when AI bots visit"
@@ -198,8 +198,8 @@ function TechnicalConfigSection({
           </div>
 
           <div className="mt-4">
-            <label className="text-xs font-semibold text-gray-600">Custom robots.txt Rules</label>
-            <p className="text-xs text-gray-400 mt-0.5 mb-1.5">
+            <label className="text-xs font-semibold text-ink-2">Custom robots.txt Rules</label>
+            <p className="text-xs text-ink-3 mt-0.5 mb-1.5">
               Appended to the generated robots.txt. Overrides &quot;Allow All AI Bots&quot; for matching User-agents.
             </p>
             <textarea
@@ -207,12 +207,12 @@ function TechnicalConfigSection({
               onChange={e => setCfg(prev => ({ ...prev, custom_robots_rules: e.target.value }))}
               rows={3}
               placeholder={'# Additional rules\nUser-agent: *\nDisallow: /private/'}
-              className="w-full px-3 py-2 text-xs font-mono bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-gray-400 resize-y"
+              className="w-full px-3 py-2 text-xs font-mono bg-surface-warm border border-divider-light rounded-xl focus:outline-none focus:border-ink resize-y"
             />
           </div>
 
           {saveError && (
-            <div className="mt-3 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            <div className="mt-3 text-xs text-red-soft bg-red-soft-bg border border-red-soft/20 rounded-lg px-3 py-2">
               {saveError}
             </div>
           )}
@@ -221,7 +221,7 @@ function TechnicalConfigSection({
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-ink hover:bg-[#2d2d2c] disabled:opacity-50 text-ink-inv text-xs font-semibold rounded-xl transition-colors"
             >
               {saving ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -276,12 +276,12 @@ function OverviewTab({
             <div>
               <div className={`text-sm font-semibold ${cfg.color}`}>{cfg.label}</div>
               {domain.status !== 'active' && (
-                <div className="text-xs text-gray-500 mt-0.5">
+                <div className="text-xs text-ink-3 mt-0.5">
                   Add the CNAME record below to activate your proxy
                 </div>
               )}
               {domain.status === 'active' && (
-                <div className="text-xs text-green-600 mt-0.5">
+                <div className="text-xs text-sage mt-0.5">
                   Proxy is live — AI bots are being served enhanced content
                 </div>
               )}
@@ -290,7 +290,7 @@ function OverviewTab({
           <button
             onClick={onRefreshStatus}
             disabled={refreshingStatus}
-            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 transition-colors"
+            className="flex items-center gap-1.5 text-xs text-ink-3 hover:text-ink-2 transition-colors"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshingStatus ? 'animate-spin' : ''}`} />
             Refresh
@@ -300,22 +300,22 @@ function OverviewTab({
 
       {/* DNS Setup */}
       {domain.status !== 'active' && status && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">DNS Configuration Required</h3>
-          <div className="bg-gray-950 rounded-xl overflow-hidden">
-            <div className="px-4 py-2 border-b border-gray-800 text-xs font-mono text-gray-500">CNAME Record</div>
+        <div className="bg-surface border border-divider-light rounded-2xl p-5">
+          <h3 className="text-sm font-semibold text-ink-2 mb-3">DNS Configuration Required</h3>
+          <div className="bg-ink rounded-xl overflow-hidden">
+            <div className="px-4 py-2 border-b border-white/10 text-xs font-mono text-white/40">CNAME Record</div>
             <div className="p-4 space-y-2 font-mono text-sm">
               <div className="flex items-center gap-3">
-                <span className="text-gray-500 w-14 flex-shrink-0">Type</span>
+                <span className="text-white/40 w-14 flex-shrink-0">Type</span>
                 <span className="text-green-400">CNAME</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-gray-500 w-14 flex-shrink-0">Name</span>
+                <span className="text-white/40 w-14 flex-shrink-0">Name</span>
                 <span className="text-blue-300">{domain.domain}</span>
                 <CopyButton text={domain.domain} />
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-gray-500 w-14 flex-shrink-0">Target</span>
+                <span className="text-white/40 w-14 flex-shrink-0">Target</span>
                 <span className="text-yellow-300 text-xs break-all">{status.dns_cname_target}</span>
                 <CopyButton text={status.dns_cname_target} />
               </div>
@@ -326,30 +326,30 @@ function OverviewTab({
 
       {/* Domain info grid */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white border border-gray-200 rounded-2xl p-4">
-          <div className="text-xs text-gray-400 mb-1">Domain</div>
-          <div className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+        <div className="bg-surface border border-divider-light rounded-2xl p-4">
+          <div className="text-xs text-ink-3 mb-1">Domain</div>
+          <div className="text-sm font-semibold text-ink flex items-center gap-2">
             {domain.domain}
             {domain.status === 'active' && (
               <a href={`https://${domain.domain}/llms.txt`} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="w-3.5 h-3.5 text-gray-400 hover:text-red-500 transition-colors" />
+                <ExternalLink className="w-3.5 h-3.5 text-ink-3 hover:text-red-soft transition-colors" />
               </a>
             )}
           </div>
         </div>
-        <div className="bg-white border border-gray-200 rounded-2xl p-4">
-          <div className="text-xs text-gray-400 mb-1">Origin</div>
-          <div className="text-sm font-semibold text-gray-900 truncate">{domain.origin_url}</div>
+        <div className="bg-surface border border-divider-light rounded-2xl p-4">
+          <div className="text-xs text-ink-3 mb-1">Origin</div>
+          <div className="text-sm font-semibold text-ink truncate">{domain.origin_url}</div>
         </div>
-        <div className="bg-white border border-gray-200 rounded-2xl p-4">
-          <div className="text-xs text-gray-400 mb-1">AI Bots</div>
-          <div className={`text-sm font-semibold ${domain.robots_allow_all_ai ? 'text-green-600' : 'text-amber-500'}`}>
+        <div className="bg-surface border border-divider-light rounded-2xl p-4">
+          <div className="text-xs text-ink-3 mb-1">AI Bots</div>
+          <div className={`text-sm font-semibold ${domain.robots_allow_all_ai ? 'text-sage' : 'text-caution'}`}>
             {domain.robots_allow_all_ai ? 'All Allowed' : 'Restricted'}
           </div>
         </div>
-        <div className="bg-white border border-gray-200 rounded-2xl p-4">
-          <div className="text-xs text-gray-400 mb-1">noindex Strip</div>
-          <div className={`text-sm font-semibold ${domain.strip_noindex ? 'text-green-600' : 'text-gray-500'}`}>
+        <div className="bg-surface border border-divider-light rounded-2xl p-4">
+          <div className="text-xs text-ink-3 mb-1">noindex Strip</div>
+          <div className={`text-sm font-semibold ${domain.strip_noindex ? 'text-sage' : 'text-ink-3'}`}>
             {domain.strip_noindex ? 'Enabled' : 'Disabled'}
           </div>
         </div>
@@ -357,8 +357,8 @@ function OverviewTab({
 
       {/* Quick links */}
       {domain.status === 'active' && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">AI Discovery Files</h3>
+        <div className="bg-surface border border-divider-light rounded-2xl p-5">
+          <h3 className="text-sm font-semibold text-ink-2 mb-3">AI Discovery Files</h3>
           <div className="space-y-2">
             {[
               { path: '/llms.txt', label: 'llms.txt', desc: 'AI language model discovery file' },
@@ -370,13 +370,13 @@ function OverviewTab({
                 href={`https://${domain.domain}${f.path}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors group"
+                className="flex items-center justify-between p-3 bg-surface-warm hover:bg-surface-muted rounded-xl transition-colors group"
               >
                 <div>
-                  <div className="text-sm font-mono font-medium text-gray-800">{f.label}</div>
-                  <div className="text-xs text-gray-400">{f.desc}</div>
+                  <div className="text-sm font-mono font-medium text-ink">{f.label}</div>
+                  <div className="text-xs text-ink-3">{f.desc}</div>
                 </div>
-                <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-red-500 transition-colors" />
+                <ExternalLink className="w-3.5 h-3.5 text-ink-3 group-hover:text-red-soft transition-colors" />
               </a>
             ))}
           </div>
@@ -391,16 +391,16 @@ function OverviewTab({
       />
 
       {/* Sync to KV */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-5">
+      <div className="bg-surface border border-divider-light rounded-2xl p-5">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-gray-700">Sync to Edge Network</h3>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <h3 className="text-sm font-semibold text-ink-2">Sync to Edge Network</h3>
+            <p className="text-xs text-ink-3 mt-0.5">
               Push your latest brand data to Cloudflare KV. Changes take effect within ~60 seconds.
             </p>
             {lastSynced && (
-              <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                <CheckCircle className="w-3 h-3 text-green-500" />
+              <p className="text-xs text-ink-3 mt-1 flex items-center gap-1">
+                <CheckCircle className="w-3 h-3 text-sage" />
                 Last synced: {formatRelativeTime(lastSynced)}
               </p>
             )}
@@ -408,14 +408,14 @@ function OverviewTab({
           <button
             onClick={onSync}
             disabled={syncing}
-            className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors flex-shrink-0"
+            className="flex items-center gap-2 px-4 py-2 bg-ink hover:bg-[#2d2d2c] disabled:opacity-50 text-ink-inv text-xs font-semibold rounded-xl transition-colors flex-shrink-0"
           >
             {syncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
             {syncing ? 'Syncing...' : 'Sync Now'}
           </button>
         </div>
         {syncResult && (
-          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-xl text-xs text-green-700">
+          <div className="mt-3 p-3 bg-sage-bg border border-sage/20 rounded-xl text-xs text-sage">
             {syncResult}
           </div>
         )}
@@ -652,12 +652,12 @@ function pathToPageInfo(path: string): PageInfo {
 }
 
 const PAGE_BADGE_STYLE: Record<string, string> = {
-  home:       'bg-gray-100 text-gray-600',
-  product:    'bg-indigo-50 text-indigo-600',
-  collection: 'bg-purple-50 text-purple-600',
-  page:       'bg-teal-50 text-teal-600',
-  blog:       'bg-amber-50 text-amber-600',
-  other:      'bg-gray-50 text-gray-500',
+  home:       'bg-surface-muted text-ink-3',
+  product:    'bg-surface-warm text-ink-2',
+  collection: 'bg-surface-warm text-ink-2',
+  page:       'bg-surface-warm text-ink-2',
+  blog:       'bg-caution-bg text-caution',
+  other:      'bg-surface-warm text-ink-3',
 }
 
 function exportCSV(analytics: ProxyAnalytics, rangeLabel: string) {
@@ -819,9 +819,9 @@ interface GeoDataItem {
 type GeoFilter = 'traffic' | 'visits' | 'referral'
 
 const GEO_COLORS = {
-  bot:      '#ef4444',
-  referral: '#eab308',
-  both:     '#f97316',
+  bot:      '#B5453A',
+  referral: '#B8860B',
+  both:     '#C84B31',
 } as const
 
 function geoColor(d: GeoDataItem): string {
@@ -857,18 +857,18 @@ function GeoWorldMap({ geoData }: { geoData: GeoDataItem[] }) {
     <div>
       {/* Header row */}
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-        <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-          <Globe className="w-4 h-4 text-gray-400" />
+        <h3 className="text-sm font-semibold text-ink-2 flex items-center gap-2">
+          <Globe className="w-4 h-4 text-ink-3" />
           Global AI Traffic Distribution
         </h3>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-0.5 bg-gray-100 rounded-lg p-0.5">
+          <div className="flex items-center gap-0.5 bg-surface-muted rounded-lg p-0.5">
             {FILTER_BTNS.map(btn => (
               <button
                 key={btn.key}
                 onClick={() => setFilter(btn.key)}
                 className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
-                  filter === btn.key ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                  filter === btn.key ? 'bg-surface text-ink shadow-sm' : 'text-ink-3 hover:text-ink-2'
                 }`}
               >
                 {btn.label}
@@ -877,37 +877,37 @@ function GeoWorldMap({ geoData }: { geoData: GeoDataItem[] }) {
           </div>
           {filter === 'traffic' && (
             <div className="flex items-center gap-2.5">
-              <span className="flex items-center gap-1 text-xs text-gray-400">
+              <span className="flex items-center gap-1 text-xs text-ink-3">
                 <span className="w-2 h-2 rounded-full inline-block" style={{ background: GEO_COLORS.bot }} />Bot
               </span>
-              <span className="flex items-center gap-1 text-xs text-gray-400">
+              <span className="flex items-center gap-1 text-xs text-ink-3">
                 <span className="w-2 h-2 rounded-full inline-block" style={{ background: GEO_COLORS.referral }} />Referral
               </span>
-              <span className="flex items-center gap-1 text-xs text-gray-400">
+              <span className="flex items-center gap-1 text-xs text-ink-3">
                 <span className="w-2 h-2 rounded-full inline-block" style={{ background: GEO_COLORS.both }} />Both
               </span>
             </div>
           )}
           {filter === 'visits' && (
-            <span className="flex items-center gap-1 text-xs text-gray-400">
+            <span className="flex items-center gap-1 text-xs text-ink-3">
               <span className="w-2 h-2 rounded-full inline-block" style={{ background: GEO_COLORS.bot }} />AI Bot crawls
             </span>
           )}
           {filter === 'referral' && (
-            <span className="flex items-center gap-1 text-xs text-gray-400">
+            <span className="flex items-center gap-1 text-xs text-ink-3">
               <span className="w-2 h-2 rounded-full inline-block" style={{ background: GEO_COLORS.referral }} />AI-referred visits
             </span>
           )}
         </div>
       </div>
-      <p className="text-xs text-gray-400 mb-2">
+      <p className="text-xs text-ink-3 mb-2">
         {isEmpty
           ? 'Geographic data will appear once new AI bot traffic is logged — usually within a few hours.'
           : `${totalVisits.toLocaleString()} total visits from ${geoData.length} ${geoData.length === 1 ? 'country' : 'countries'}`}
       </p>
 
       {/* SVG World Map */}
-      <div className="rounded-xl overflow-hidden border border-gray-100" style={{ aspectRatio: '960/500' }}>
+      <div className="rounded-xl overflow-hidden border border-divider-light" style={{ aspectRatio: '960/500' }}>
         <svg viewBox="0 0 960 500" className="w-full h-full" style={{ display: 'block' }}>
           {/* Ocean */}
           <rect width="960" height="500" fill="#daeaf5" />
@@ -971,17 +971,17 @@ function GeoWorldMap({ geoData }: { geoData: GeoDataItem[] }) {
                 const name = COUNTRY_NAMES[hovered.country] ?? hovered.country
                 return (
                   <>
-                    <rect x={tx} y={ty} width="205" height="54" rx="6" fill="rgba(15,23,42,0.90)" />
-                    <text x={tx + 10} y={ty + 19} fill="white" fontSize="11" fontWeight="bold" fontFamily="system-ui,sans-serif">
+                    <rect x={tx} y={ty} width="205" height="54" rx="6" fill="rgba(25,25,24,0.92)" />
+                    <text x={tx + 10} y={ty + 19} fill="#FAF7F2" fontSize="11" fontWeight="bold" fontFamily="system-ui,sans-serif">
                       {flagEmoji(hovered.country)} {name}
                     </text>
-                    <text x={tx + 10} y={ty + 35} fill="#94a3b8" fontSize="10" fontFamily="system-ui,sans-serif">
+                    <text x={tx + 10} y={ty + 35} fill="#C4BFB5" fontSize="10" fontFamily="system-ui,sans-serif">
                       {`Bots: ${hovered.bot_count.toLocaleString()}`}
                     </text>
-                    <text x={tx + 110} y={ty + 35} fill="#fde68a" fontSize="10" fontFamily="system-ui,sans-serif">
+                    <text x={tx + 110} y={ty + 35} fill="#E8C27A" fontSize="10" fontFamily="system-ui,sans-serif">
                       {`Ref: ${hovered.referral_count.toLocaleString()}`}
                     </text>
-                    <text x={tx + 10} y={ty + 49} fill="#d1d5db" fontSize="10" fontFamily="system-ui,sans-serif">
+                    <text x={tx + 10} y={ty + 49} fill="#EDE8E0" fontSize="10" fontFamily="system-ui,sans-serif">
                       {`Total: ${hovered.visit_count.toLocaleString()}`}
                     </text>
                   </>
@@ -994,7 +994,7 @@ function GeoWorldMap({ geoData }: { geoData: GeoDataItem[] }) {
 
       {/* Unknown countries */}
       {unknownData.length > 0 && (
-        <p className="text-xs text-gray-400 mt-1.5">
+        <p className="text-xs text-ink-3 mt-1.5">
           Also from: {unknownData.map(d => `${d.country} (${d.visit_count})`).join(', ')}
         </p>
       )}
@@ -1004,12 +1004,12 @@ function GeoWorldMap({ geoData }: { geoData: GeoDataItem[] }) {
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2">
           {sortedGeo.filter(d => metricOf(d) > 0).slice(0, 12).map((d, i) => (
             <div key={d.country} className="flex items-center gap-2 text-xs">
-              <span className="text-gray-300 w-4 shrink-0 text-right">{i + 1}</span>
+              <span className="text-ink-3 w-4 shrink-0 text-right">{i + 1}</span>
               <span className="text-base leading-none">{flagEmoji(d.country)}</span>
-              <span className="font-medium text-gray-700 truncate flex-1">
+              <span className="font-medium text-ink-2 truncate flex-1">
                 {COUNTRY_NAMES[d.country] ?? d.country}
               </span>
-              <span className="text-gray-400 shrink-0 font-mono">{metricOf(d).toLocaleString()}</span>
+              <span className="text-ink-3 shrink-0 font-mono">{metricOf(d).toLocaleString()}</span>
             </div>
           ))}
         </div>
@@ -1048,27 +1048,27 @@ function AnalyticsTab({
 
   if (loading) return (
     <div className="flex items-center justify-center py-16">
-      <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+      <Loader2 className="w-5 h-5 animate-spin text-ink-3" />
     </div>
   )
 
   // ── Sidebar (always visible) ───────────────────────────────
   const Sidebar = (
     <div className="space-y-4 w-full">
-      <div className="bg-white border border-gray-200 rounded-2xl p-5">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">What These Numbers Mean</h3>
-        <ul className="space-y-2.5 text-xs text-gray-500">
-          <li><span className="font-medium text-gray-700">AI Visits</span> — AI platforms like ChatGPT, Claude, and Perplexity regularly scan your site&apos;s AI profile to learn your brand, products, and FAQ.</li>
-          <li><span className="font-medium text-gray-700">AI Referral</span> — When an AI platform recommends your site and a real visitor clicks through, that counts as an AI referral.</li>
+      <div className="bg-surface border border-divider-light rounded-2xl p-5">
+        <h3 className="text-sm font-semibold text-ink-2 mb-3">What These Numbers Mean</h3>
+        <ul className="space-y-2.5 text-xs text-ink-3">
+          <li><span className="font-medium text-ink-2">AI Visits</span> — AI platforms like ChatGPT, Claude, and Perplexity regularly scan your site&apos;s AI profile to learn your brand, products, and FAQ.</li>
+          <li><span className="font-medium text-ink-2">AI Referral</span> — When an AI platform recommends your site and a real visitor clicks through, that counts as an AI referral.</li>
           <li>Numbers update in real time — more visits = more AI awareness of your brand.</li>
         </ul>
       </div>
-      <div className="bg-white border border-gray-200 rounded-2xl p-5">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Improve Your AI Discoverability</h3>
-        <ul className="space-y-2 text-xs text-gray-500">
-          <li className="flex gap-2"><span className="text-green-500 shrink-0">•</span>Add more FAQ pairs — direct answers increase AI citation frequency</li>
-          <li className="flex gap-2"><span className="text-green-500 shrink-0">•</span>Keep Brand Story and Products up to date — AI platforms re-crawl regularly</li>
-          <li className="flex gap-2"><span className="text-green-500 shrink-0">•</span>Add key metrics and awards — AI uses authoritative signals to recommend brands</li>
+      <div className="bg-surface border border-divider-light rounded-2xl p-5">
+        <h3 className="text-sm font-semibold text-ink-2 mb-3">Improve Your AI Discoverability</h3>
+        <ul className="space-y-2 text-xs text-ink-3">
+          <li className="flex gap-2"><span className="text-sage shrink-0">•</span>Add more FAQ pairs — direct answers increase AI citation frequency</li>
+          <li className="flex gap-2"><span className="text-sage shrink-0">•</span>Keep Brand Story and Products up to date — AI platforms re-crawl regularly</li>
+          <li className="flex gap-2"><span className="text-sage shrink-0">•</span>Add key metrics and awards — AI uses authoritative signals to recommend brands</li>
         </ul>
       </div>
     </div>
@@ -1077,10 +1077,10 @@ function AnalyticsTab({
   if (!analytics) return (
     <div className="flex gap-6">
       <div className="flex-1">
-        <div className="bg-white border border-dashed border-gray-200 rounded-2xl p-12 text-center">
-          <BarChart3 className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-500 font-medium">No analytics data yet</p>
-          <p className="text-xs text-gray-400 mt-1">Most sites see their first AI crawl within 24–72 hours of completing setup.</p>
+        <div className="bg-surface border border-dashed border-divider-light rounded-2xl p-12 text-center">
+          <BarChart3 className="w-8 h-8 text-ink-3 mx-auto mb-3" />
+          <p className="text-sm text-ink-3 font-medium">No analytics data yet</p>
+          <p className="text-xs text-ink-3 mt-1">Most sites see their first AI crawl within 24–72 hours of completing setup.</p>
         </div>
       </div>
       <div className="w-64 shrink-0 hidden lg:block">{Sidebar}</div>
@@ -1115,15 +1115,15 @@ function AnalyticsTab({
 
         {/* Time range selector + Export toolbar */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1">
+          <div className="flex items-center gap-1 bg-surface border border-divider-light rounded-xl p-1">
             {TIME_RANGES.map(r => (
               <button
                 key={r.days}
                 onClick={() => onDaysChange(r.days)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   days === r.days
-                    ? 'bg-gray-900 text-white shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    ? 'bg-ink text-ink-inv shadow-sm'
+                    : 'text-ink-3 hover:text-ink-2 hover:bg-surface-warm'
                 }`}
               >
                 {r.label}
@@ -1132,18 +1132,18 @@ function AnalyticsTab({
           </div>
           <div className="flex items-center gap-2">
             {days === 0 && analytics.date_range_days && (
-              <span className="text-xs text-gray-400">{rangeLabel}</span>
+              <span className="text-xs text-ink-3">{rangeLabel}</span>
             )}
             <button
               onClick={handleCopySummary}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-divider-light rounded-lg text-xs font-medium text-ink-2 hover:bg-surface-warm transition-all"
             >
-              {copied ? <CheckCheck className="w-3.5 h-3.5 text-green-500" /> : <FileText className="w-3.5 h-3.5" />}
+              {copied ? <CheckCheck className="w-3.5 h-3.5 text-sage" /> : <FileText className="w-3.5 h-3.5" />}
               {copied ? 'Copied!' : 'Copy Summary'}
             </button>
             <button
               onClick={() => exportCSV(analytics, rangeLabel)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-divider-light rounded-lg text-xs font-medium text-ink-2 hover:bg-surface-warm transition-all"
             >
               <Download className="w-3.5 h-3.5" />
               Export CSV
@@ -1153,24 +1153,24 @@ function AnalyticsTab({
 
         {/* Row 1 — 3 KPI Cards */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-white border border-gray-200 rounded-2xl p-4">
-            <div className="text-xs text-gray-400 mb-1">TOTAL AI TRAFFIC</div>
-            <div className="text-2xl font-bold text-gray-900">{totalAiTraffic.toLocaleString()}</div>
-            <div className="text-xs text-gray-400 mt-0.5">bot visits + referrals</div>
+          <div className="bg-surface border border-divider-light rounded-2xl p-4">
+            <div className="text-xs text-ink-3 mb-1">TOTAL AI TRAFFIC</div>
+            <div className="text-2xl font-bold text-ink">{totalAiTraffic.toLocaleString()}</div>
+            <div className="text-xs text-ink-3 mt-0.5">bot visits + referrals</div>
           </div>
-          <div className="bg-white border border-gray-200 rounded-2xl p-4">
-            <div className="text-xs text-gray-400 mb-1">AI VISITS</div>
-            <div className="text-2xl font-bold text-indigo-600">
+          <div className="bg-surface border border-divider-light rounded-2xl p-4">
+            <div className="text-xs text-ink-3 mb-1">AI VISITS</div>
+            <div className="text-2xl font-bold text-ink-2">
               {(analytics.total_ai_visits ?? 0).toLocaleString()}
             </div>
-            <div className="text-xs text-gray-400 mt-0.5">AI crawlers read your profile</div>
+            <div className="text-xs text-ink-3 mt-0.5">AI crawlers read your profile</div>
           </div>
-          <div className="bg-white border border-gray-200 rounded-2xl p-4">
-            <div className="text-xs text-gray-400 mb-1">AI REFERRAL</div>
-            <div className="text-2xl font-bold text-emerald-600">
+          <div className="bg-surface border border-divider-light rounded-2xl p-4">
+            <div className="text-xs text-ink-3 mb-1">AI REFERRAL</div>
+            <div className="text-2xl font-bold text-sage">
               {(analytics.ai_referral_visits ?? 0).toLocaleString()}
             </div>
-            <div className="text-xs text-gray-400 mt-0.5">clicks from AI platforms</div>
+            <div className="text-xs text-ink-3 mt-0.5">clicks from AI platforms</div>
           </div>
         </div>
 
@@ -1201,23 +1201,23 @@ function AnalyticsTab({
             ? `${fmtD(firstDay)} – ${fmtD(lastDay)} · cumulative AI traffic`
             : rangeLabel.toLowerCase()
           return (
-          <div className="bg-white border border-gray-200 rounded-2xl p-5">
+          <div className="bg-surface border border-divider-light rounded-2xl p-5">
             <div className="flex items-start justify-between mb-1">
-              <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-gray-400" />
+              <h3 className="text-sm font-semibold text-ink-2 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-ink-3" />
                 Traffic Trend
               </h3>
               <div className="text-right shrink-0">
-                <div className="text-xs text-gray-400">Period total</div>
-                <div className="text-sm font-bold text-gray-800">{totalAiTraffic.toLocaleString()}</div>
+                <div className="text-xs text-ink-3">Period total</div>
+                <div className="text-sm font-bold text-ink">{totalAiTraffic.toLocaleString()}</div>
               </div>
             </div>
-            <p className="text-xs text-gray-400 mb-3">{chartSubtitle}</p>
+            <p className="text-xs text-ink-3 mb-3">{chartSubtitle}</p>
             <ResponsiveContainer width="100%" height={180}>
               <LineChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9ca3af' }} tickFormatter={(v: string) => v.slice(5)} />
-                <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} />
+                <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9C978E' }} tickFormatter={(v: string) => v.slice(5)} />
+                <YAxis tick={{ fontSize: 10, fill: '#9C978E' }} />
                 <Tooltip
                   contentStyle={{ fontSize: 12, borderRadius: 8 }}
                   labelFormatter={(l: string) => `Date: ${l}`}
@@ -1231,29 +1231,29 @@ function AnalyticsTab({
                     return [`${value.toLocaleString()}${dailyStr}`, name]
                   }}
                 />
-                <Line type="monotone" dataKey="total" stroke="#e5e7eb" strokeWidth={1.5} dot={false} name="Total" />
-                <Line type="monotone" dataKey="ai_visits" stroke="#6366f1" strokeWidth={2} dot={false} name="AI Bots" />
-                <Line type="monotone" dataKey="ai_referrals" stroke="#10b981" strokeWidth={2} dot={false} name="AI Referrals" />
+                <Line type="monotone" dataKey="total" stroke="#E0DBD2" strokeWidth={1.5} dot={false} name="Total" />
+                <Line type="monotone" dataKey="ai_visits" stroke="#191918" strokeWidth={2} dot={false} name="AI Bots" />
+                <Line type="monotone" dataKey="ai_referrals" stroke="#4A7B5C" strokeWidth={2} dot={false} name="AI Referrals" />
               </LineChart>
             </ResponsiveContainer>
             <div className="flex items-center gap-4 mt-2 justify-end">
-              <span className="flex items-center gap-1 text-xs text-gray-400"><span className="w-3 h-0.5 bg-gray-300 inline-block" />Total</span>
-              <span className="flex items-center gap-1 text-xs text-indigo-500"><span className="w-3 h-0.5 bg-indigo-500 inline-block" />AI Bots</span>
-              <span className="flex items-center gap-1 text-xs text-emerald-500"><span className="w-3 h-0.5 bg-emerald-500 inline-block" />AI Referrals</span>
+              <span className="flex items-center gap-1 text-xs text-ink-3"><span className="w-3 h-0.5 bg-surface-muted inline-block" />Total</span>
+              <span className="flex items-center gap-1 text-xs text-ink-2"><span className="w-3 h-0.5 bg-ink inline-block" />AI Bots</span>
+              <span className="flex items-center gap-1 text-xs text-sage"><span className="w-3 h-0.5 bg-sage inline-block" />AI Referrals</span>
             </div>
           </div>
           )
         })()}
 
         {/* AI Platforms Reading Your Store */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
-            <Bot className="w-4 h-4 text-gray-400" />
+        <div className="bg-surface border border-divider-light rounded-2xl p-5">
+          <h3 className="text-sm font-semibold text-ink-2 mb-1 flex items-center gap-2">
+            <Bot className="w-4 h-4 text-ink-3" />
             AI Platforms Reading Your Store
           </h3>
-          <p className="text-xs text-gray-400 mb-3">AI platforms that scanned your site&apos;s AI profile — {rangeLabel.toLowerCase()}.</p>
+          <p className="text-xs text-ink-3 mb-3">AI platforms that scanned your site&apos;s AI profile — {rangeLabel.toLowerCase()}.</p>
           {mergedBotList.length === 0 ? (
-            <p className="text-xs text-gray-400">Data appears once AI bots start visiting your site. Most sites see their first crawl within 24–72 hours of completing setup.</p>
+            <p className="text-xs text-ink-3">Data appears once AI bots start visiting your site. Most sites see their first crawl within 24–72 hours of completing setup.</p>
           ) : (
             <div className="space-y-2.5">
               {mergedBotList.map(bot => {
@@ -1265,12 +1265,12 @@ function AnalyticsTab({
                   <div key={bot.name} className="flex items-center gap-3">
                     <div className="flex items-center gap-2 w-32 shrink-0">
                       <PlatformLogo id={bot.name} size={16} />
-                      <span className="text-xs font-medium text-gray-700 truncate">{bot.name}</span>
+                      <span className="text-xs font-medium text-ink-2 truncate">{bot.name}</span>
                     </div>
-                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-indigo-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                    <div className="flex-1 h-2 bg-surface-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-ink/70 rounded-full transition-all" style={{ width: `${pct}%` }} />
                     </div>
-                    <div className="text-xs text-gray-500 w-8 text-right">{bot.visit_count}</div>
+                    <div className="text-xs text-ink-3 w-8 text-right">{bot.visit_count}</div>
                   </div>
                 )
               })}
@@ -1279,19 +1279,19 @@ function AnalyticsTab({
         </div>
 
         {/* AI Platforms Sending You Traffic */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-5">
+        <div className="bg-surface border border-divider-light rounded-2xl p-5">
           <div className="flex items-start justify-between mb-1">
-            <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-gray-400" />
+            <h3 className="text-sm font-semibold text-ink-2 flex items-center gap-2">
+              <Activity className="w-4 h-4 text-ink-3" />
               AI Platforms Sending You Traffic
             </h3>
-            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+            <span className="text-xs bg-surface-muted text-ink-2 px-2 py-0.5 rounded-full font-medium">
               Total AI referrals — {rangeLabel.toLowerCase()}: {(analytics.ai_referral_visits ?? 0).toLocaleString()}
             </span>
           </div>
-          <p className="text-xs text-gray-400 mb-3">Visitors who arrived at your site after an AI platform recommended you.</p>
+          <p className="text-xs text-ink-3 mb-3">Visitors who arrived at your site after an AI platform recommended you.</p>
           {referralSources.length === 0 ? (
-            <p className="text-xs text-gray-400">Referral data appears once AI platforms start sending visitors to your site. This typically follows after bots have indexed your brand profile.</p>
+            <p className="text-xs text-ink-3">Referral data appears once AI platforms start sending visitors to your site. This typically follows after bots have indexed your brand profile.</p>
           ) : (
             <div className="space-y-2.5">
               {referralSources.map(src => {
@@ -1302,12 +1302,12 @@ function AnalyticsTab({
                   <div key={src.source} className="flex items-center gap-3">
                     <div className="flex items-center gap-2 w-32 shrink-0">
                       <PlatformLogo id={src.source} size={16} />
-                      <span className="text-xs font-medium text-gray-700 truncate">{meta.name}</span>
+                      <span className="text-xs font-medium text-ink-2 truncate">{meta.name}</span>
                     </div>
-                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-emerald-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                    <div className="flex-1 h-2 bg-surface-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-sage rounded-full transition-all" style={{ width: `${pct}%` }} />
                     </div>
-                    <div className="text-xs text-gray-500 w-8 text-right">{src.visit_count}</div>
+                    <div className="text-xs text-ink-3 w-8 text-right">{src.visit_count}</div>
                   </div>
                 )
               })}
@@ -1316,29 +1316,29 @@ function AnalyticsTab({
         </div>
 
         {/* Global AI Traffic Distribution — World Geo Map (always visible) */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-5">
+        <div className="bg-surface border border-divider-light rounded-2xl p-5">
           <GeoWorldMap geoData={analytics.geo_distribution ?? []} />
         </div>
 
         {/* Top Landing Pages from AI Traffic */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-gray-700 mb-1">Top Landing Pages from AI Traffic</h3>
-          <p className="text-xs text-gray-400 mb-4">Which pages AI bots read and where human visitors land after clicking AI recommendations — {rangeLabel.toLowerCase()}.</p>
+        <div className="bg-surface border border-divider-light rounded-2xl p-5">
+          <h3 className="text-sm font-semibold text-ink-2 mb-1">Top Landing Pages from AI Traffic</h3>
+          <p className="text-xs text-ink-3 mb-4">Which pages AI bots read and where human visitors land after clicking AI recommendations — {rangeLabel.toLowerCase()}.</p>
           <div className="grid grid-cols-2 gap-5">
 
             {/* Left: AI VISITS — actual pages bots crawled, technical paths excluded */}
             <div>
               <div className="flex items-center gap-1.5 mb-3">
-                <span className="w-2 h-2 rounded-full bg-indigo-400 shrink-0" />
-                <span className="text-xs font-bold text-indigo-600 uppercase tracking-wide">AI Visits</span>
-                <span className="text-xs text-gray-400">— AI bots read</span>
+                <span className="w-2 h-2 rounded-full bg-ink/70 shrink-0" />
+                <span className="text-xs font-bold text-ink-2 uppercase tracking-wide">AI Visits</span>
+                <span className="text-xs text-ink-3">— AI bots read</span>
               </div>
               {(() => {
                 const pages = (analytics.by_path ?? [])
                   .filter(p => isHumanPagePath(p.path))
                   .slice(0, 8)
                 if (pages.length === 0) return (
-                  <p className="text-xs text-gray-400 italic">No page crawl data yet.</p>
+                  <p className="text-xs text-ink-3 italic">No page crawl data yet.</p>
                 )
                 return (
                   <div className="space-y-2">
@@ -1349,8 +1349,8 @@ function AnalyticsTab({
                           <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${PAGE_BADGE_STYLE[info.type]}`}>
                             {info.badge}
                           </span>
-                          <span className="text-xs text-gray-700 truncate flex-1" title={info.name}>{info.name}</span>
-                          <span className="text-xs font-bold text-indigo-500 shrink-0 tabular-nums">{p.visit_count.toLocaleString()}</span>
+                          <span className="text-xs text-ink-2 truncate flex-1" title={info.name}>{info.name}</span>
+                          <span className="text-xs font-bold text-ink-2 shrink-0 tabular-nums">{p.visit_count.toLocaleString()}</span>
                         </div>
                       )
                     })}
@@ -1362,12 +1362,12 @@ function AnalyticsTab({
             {/* Right: AI REFERRALS — pages where humans from AI platforms landed */}
             <div>
               <div className="flex items-center gap-1.5 mb-3">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-                <span className="text-xs font-bold text-emerald-600 uppercase tracking-wide">AI Referrals</span>
-                <span className="text-xs text-gray-400">— humans landed</span>
+                <span className="w-2 h-2 rounded-full bg-sage shrink-0" />
+                <span className="text-xs font-bold text-sage uppercase tracking-wide">AI Referrals</span>
+                <span className="text-xs text-ink-3">— humans landed</span>
               </div>
               {referralLandingPages.length === 0 ? (
-                <p className="text-xs text-gray-400 italic">Appears once AI platforms send visitors.</p>
+                <p className="text-xs text-ink-3 italic">Appears once AI platforms send visitors.</p>
               ) : (
                 <div className="space-y-2">
                   {referralLandingPages.slice(0, 8).map(p => {
@@ -1377,8 +1377,8 @@ function AnalyticsTab({
                         <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${PAGE_BADGE_STYLE[info.type]}`}>
                           {info.badge}
                         </span>
-                        <span className="text-xs text-gray-700 truncate flex-1" title={info.name}>{info.name}</span>
-                        <span className="text-xs font-bold text-emerald-500 shrink-0 tabular-nums">{p.visit_count.toLocaleString()}</span>
+                        <span className="text-xs text-ink-2 truncate flex-1" title={info.name}>{info.name}</span>
+                        <span className="text-xs font-bold text-sage shrink-0 tabular-nums">{p.visit_count.toLocaleString()}</span>
                       </div>
                     )
                   })}
@@ -1389,17 +1389,17 @@ function AnalyticsTab({
         </div>
 
         {/* AI Platform Intelligence */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
-            <Zap className="w-4 h-4 text-gray-400" />
+        <div className="bg-surface border border-divider-light rounded-2xl p-5">
+          <h3 className="text-sm font-semibold text-ink-2 mb-1 flex items-center gap-2">
+            <Zap className="w-4 h-4 text-ink-3" />
             AI Platform Intelligence
           </h3>
-          <p className="text-xs text-gray-400 mb-3">How each AI platform interacts with your site — {rangeLabel.toLowerCase()}.</p>
+          <p className="text-xs text-ink-3 mb-3">How each AI platform interacts with your site — {rangeLabel.toLowerCase()}.</p>
           {platformIntel.length === 0 ? (
-            <p className="text-xs text-gray-400">Platform intelligence appears once AI bots start visiting your site.</p>
+            <p className="text-xs text-ink-3">Platform intelligence appears once AI bots start visiting your site.</p>
           ) : (
             <div className="space-y-1">
-              <div className="grid grid-cols-3 text-xs text-gray-400 font-medium pb-2 border-b border-gray-100">
+              <div className="grid grid-cols-3 text-xs text-ink-3 font-medium pb-2 border-b border-divider-light">
                 <span>Platform</span>
                 <span className="text-center">Crawls</span>
                 <span className="text-center">Referrals</span>
@@ -1407,13 +1407,13 @@ function AnalyticsTab({
               {platformIntel.map(p => {
                 const meta = getPlatformMeta(p.name)
                 return (
-                  <div key={p.name} className="grid grid-cols-3 text-xs py-2 border-b border-gray-50 last:border-0 items-center">
+                  <div key={p.name} className="grid grid-cols-3 text-xs py-2 border-b border-divider-light last:border-0 items-center">
                     <div className="flex items-center gap-2">
                       <PlatformLogo id={p.name} size={14} />
-                      <span className="font-medium text-gray-700 truncate">{meta.name}</span>
+                      <span className="font-medium text-ink-2 truncate">{meta.name}</span>
                     </div>
-                    <span className="text-center text-indigo-600 font-medium">{p.crawls > 0 ? p.crawls.toLocaleString() : '—'}</span>
-                    <span className="text-center text-emerald-600 font-medium">{p.referrals > 0 ? p.referrals.toLocaleString() : '—'}</span>
+                    <span className="text-center text-ink-2 font-medium">{p.crawls > 0 ? p.crawls.toLocaleString() : '—'}</span>
+                    <span className="text-center text-sage font-medium">{p.referrals > 0 ? p.referrals.toLocaleString() : '—'}</span>
                   </div>
                 )
               })}
@@ -1423,7 +1423,7 @@ function AnalyticsTab({
 
         {/* Data source badge */}
         <div className="text-right">
-          <span className="text-xs text-gray-300">
+          <span className="text-xs text-ink-3">
             Source: {analytics.data_source === 'analytics_engine' ? 'Cloudflare Analytics Engine' : 'Supabase (fallback)'}
           </span>
         </div>
@@ -1549,19 +1549,19 @@ export default function DomainDetailClient() {
   }
 
   if (loading) return (
-    <div className="min-h-screen bg-gray-50/50 flex items-center justify-center">
-      <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+    <div className="min-h-screen bg-canvas flex items-center justify-center">
+      <Loader2 className="w-6 h-6 animate-spin text-ink-3" />
     </div>
   )
 
   if (error || !domain) return (
-    <div className="min-h-screen bg-gray-50/50 p-8">
-      <div className="max-w-xl mx-auto bg-red-50 border border-red-200 rounded-2xl p-6 flex gap-3">
-        <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+    <div className="min-h-screen bg-canvas p-8">
+      <div className="max-w-xl mx-auto bg-red-soft-bg border border-red-soft/20 rounded-2xl p-6 flex gap-3">
+        <AlertCircle className="w-5 h-5 text-red-soft flex-shrink-0 mt-0.5" />
         <div>
-          <div className="text-sm font-semibold text-red-700">Failed to load domain</div>
-          <div className="text-sm text-red-600 mt-1">{error}</div>
-          <Link href="/dashboard/visibility-proxy" className="text-xs text-red-500 hover:underline mt-2 inline-block">← Back to domains</Link>
+          <div className="text-sm font-semibold text-red-soft">Failed to load domain</div>
+          <div className="text-sm text-red-soft mt-1">{error}</div>
+          <Link href="/dashboard/visibility-proxy" className="text-xs text-red-soft hover:underline mt-2 inline-block">← Back to domains</Link>
         </div>
       </div>
     </div>
@@ -1574,26 +1574,26 @@ export default function DomainDetailClient() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="min-h-screen bg-canvas">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-8 py-6">
+      <div className="bg-surface border-b border-divider-light px-8 py-6">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/visibility-proxy" className="text-gray-400 hover:text-gray-600 transition-colors">
+          <Link href="/dashboard/visibility-proxy" className="text-ink-3 hover:text-ink-2 transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
-            <Globe className="w-5 h-5 text-red-500" />
+          <div className="w-10 h-10 rounded-xl bg-red-soft-bg flex items-center justify-center">
+            <Globe className="w-5 h-5 text-red-soft" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">{domain.domain}</h1>
-            <p className="text-sm text-gray-400">{domain.origin_url}</p>
+            <h1 className="text-xl font-bold text-ink">{domain.domain}</h1>
+            <p className="text-sm text-ink-3">{domain.origin_url}</p>
           </div>
         </div>
       </div>
 
       <div className="p-6 max-w-4xl mx-auto">
         {/* Tabs */}
-        <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1 mb-6">
+        <div className="flex items-center gap-1 bg-surface border border-divider-light rounded-xl p-1 mb-6">
           {tabs.map(tab => {
             const Icon = tab.icon
             return (
@@ -1602,8 +1602,8 @@ export default function DomainDetailClient() {
                 onClick={() => setActiveTab(tab.key)}
                 className={`flex items-center gap-2 flex-1 justify-center px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   activeTab === tab.key
-                    ? 'bg-red-500 text-white shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    ? 'bg-ink text-ink-inv shadow-sm'
+                    : 'text-ink-3 hover:text-ink-2 hover:bg-surface-warm'
                 }`}
               >
                 <Icon className="w-4 h-4" />

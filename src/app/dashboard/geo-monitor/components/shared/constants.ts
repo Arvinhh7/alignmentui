@@ -8,101 +8,101 @@ export const RECENT_BRANDS_KEY = 'geo_monitor_recent_brands'
 
 // ─── Color maps ────────────────────────────────────────
 export const METRIC_COLORS = {
-  visibility: { color: 'text-blue-600', bgColor: 'bg-blue-50' },
-  sov: { color: 'text-orange-600', bgColor: 'bg-orange-50' },
-  mentions: { color: 'text-green-600', bgColor: 'bg-green-50' },
-  citations: { color: 'text-purple-600', bgColor: 'bg-purple-50' },
-  sentiment: { color: 'text-teal-600', bgColor: 'bg-teal-50' },
-  position: { color: 'text-red-600', bgColor: 'bg-red-50' },
+  visibility: { color: 'text-ink-2', bgColor: 'bg-surface-warm' },
+  sov: { color: 'text-caution', bgColor: 'bg-caution-bg' },
+  mentions: { color: 'text-sage', bgColor: 'bg-sage-bg' },
+  citations: { color: 'text-ink-2', bgColor: 'bg-surface-warm' },
+  sentiment: { color: 'text-sage', bgColor: 'bg-sage-bg' },
+  position: { color: 'text-red-soft', bgColor: 'bg-red-soft-bg' },
 }
 
-export const CHART_COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#f59e0b', '#8b5cf6', '#14b8a6', '#6366f1', '#ec4899']
+export const CHART_COLORS = ['#191918', '#4A6FA5', '#4A7C59', '#B8860B', '#7B5E96', '#5E8B7E', '#6B6860', '#B5453A']
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  info_cognition: 'bg-blue-100 text-blue-700',
-  solution_explore: 'bg-teal-100 text-teal-700',
-  comparison_decision: 'bg-orange-100 text-orange-700',
-  action_choice: 'bg-red-100 text-red-700',
-  recommendation: 'bg-red-100 text-red-700',
-  comparison: 'bg-orange-100 text-orange-700',
-  information: 'bg-blue-100 text-blue-700',
-  review: 'bg-orange-100 text-orange-700',
-  howto: 'bg-red-100 text-red-700',
+  info_cognition: 'bg-surface-warm text-ink-2',
+  solution_explore: 'bg-sage-bg text-sage',
+  comparison_decision: 'bg-caution-bg text-caution',
+  action_choice: 'bg-red-soft-bg text-red-soft',
+  recommendation: 'bg-red-soft-bg text-red-soft',
+  comparison: 'bg-caution-bg text-caution',
+  information: 'bg-surface-warm text-ink-2',
+  review: 'bg-caution-bg text-caution',
+  howto: 'bg-red-soft-bg text-red-soft',
 }
 
 export const MENTION_TYPE_LABELS: Record<string, { label: string; color: string }> = {
-  recommendation: { label: '🎯 Recommended', color: 'bg-green-100 text-green-800' },
-  comparison: { label: '⚖️ Compared', color: 'bg-blue-100 text-blue-800' },
-  passing: { label: '💬 Passing', color: 'bg-yellow-100 text-yellow-800' },
-  not_mentioned: { label: '❌ Not Mentioned', color: 'bg-red-100 text-red-800' },
+  recommendation: { label: 'Recommended', color: 'bg-sage-bg text-sage' },
+  comparison: { label: 'Compared', color: 'bg-surface-warm text-ink-2' },
+  passing: { label: 'Passing', color: 'bg-caution-bg text-caution' },
+  not_mentioned: { label: 'Not Mentioned', color: 'bg-red-soft-bg text-red-soft' },
 }
 
 export const DOMAIN_TYPE_LABELS: Record<string, { label: string; color: string; chartColor: string }> = {
-  you: { label: 'You', color: 'bg-green-100 text-green-700', chartColor: '#22c55e' },
-  corporate: { label: 'Corporate', color: 'bg-teal-100 text-teal-700', chartColor: '#14b8a6' },
-  editorial: { label: 'Editorial', color: 'bg-blue-100 text-blue-700', chartColor: '#3b82f6' },
-  ugc: { label: 'UGC', color: 'bg-yellow-100 text-yellow-700', chartColor: '#eab308' },
-  competitor: { label: 'Competitor', color: 'bg-red-100 text-red-700', chartColor: '#ef4444' },
-  reference: { label: 'Reference', color: 'bg-purple-100 text-purple-700', chartColor: '#a855f7' },
-  institutional: { label: 'Institutional', color: 'bg-indigo-100 text-indigo-700', chartColor: '#6366f1' },
-  other: { label: 'Other', color: 'bg-gray-100 text-gray-700', chartColor: '#9ca3af' },
+  you: { label: 'You', color: 'bg-sage-bg text-sage', chartColor: '#4A7C59' },
+  corporate: { label: 'Corporate', color: 'bg-sage-bg text-sage', chartColor: '#5E8B7E' },
+  editorial: { label: 'Editorial', color: 'bg-surface-warm text-ink-2', chartColor: '#4A6FA5' },
+  ugc: { label: 'UGC', color: 'bg-caution-bg text-caution', chartColor: '#B8860B' },
+  competitor: { label: 'Competitor', color: 'bg-red-soft-bg text-red-soft', chartColor: '#B5453A' },
+  reference: { label: 'Reference', color: 'bg-surface-warm text-ink-2', chartColor: '#7B5E96' },
+  institutional: { label: 'Institutional', color: 'bg-surface-warm text-ink-2', chartColor: '#6B6860' },
+  other: { label: 'Other', color: 'bg-surface-muted text-ink-3', chartColor: '#9C978E' },
 }
 
 export const SUB_TYPE_LABELS: Record<string, { label: string; icon: string; color: string; chartColor: string }> = {
-  primary_recommendation: { label: 'Primary Recommendation', icon: '🏆', color: 'bg-green-100 text-green-800', chartColor: '#22c55e' },
-  alternative_option: { label: 'Alternative Option', icon: '🔄', color: 'bg-blue-100 text-blue-800', chartColor: '#3b82f6' },
-  feature_highlight: { label: 'Feature Highlight', icon: '⭐', color: 'bg-amber-100 text-amber-800', chartColor: '#f59e0b' },
-  use_case: { label: 'Use Case', icon: '🎯', color: 'bg-purple-100 text-purple-800', chartColor: '#a855f7' },
-  industry_context: { label: 'Industry Context', icon: '🏢', color: 'bg-indigo-100 text-indigo-800', chartColor: '#6366f1' },
-  warning_caution: { label: 'Warning / Caution', icon: '⚠️', color: 'bg-red-100 text-red-800', chartColor: '#ef4444' },
-  historical: { label: 'Historical', icon: '📜', color: 'bg-gray-100 text-gray-800', chartColor: '#6b7280' },
-  passing_reference: { label: 'Passing Reference', icon: '💬', color: 'bg-yellow-100 text-yellow-800', chartColor: '#eab308' },
-  not_mentioned: { label: 'Not Mentioned', icon: '❌', color: 'bg-red-50 text-red-700', chartColor: '#dc2626' },
+  primary_recommendation: { label: 'Primary Recommendation', icon: '', color: 'bg-sage-bg text-sage', chartColor: '#4A7C59' },
+  alternative_option: { label: 'Alternative Option', icon: '', color: 'bg-surface-warm text-ink-2', chartColor: '#4A6FA5' },
+  feature_highlight: { label: 'Feature Highlight', icon: '', color: 'bg-caution-bg text-caution', chartColor: '#B8860B' },
+  use_case: { label: 'Use Case', icon: '', color: 'bg-surface-warm text-ink-2', chartColor: '#7B5E96' },
+  industry_context: { label: 'Industry Context', icon: '', color: 'bg-surface-warm text-ink-2', chartColor: '#6B6860' },
+  warning_caution: { label: 'Warning / Caution', icon: '', color: 'bg-red-soft-bg text-red-soft', chartColor: '#B5453A' },
+  historical: { label: 'Historical', icon: '', color: 'bg-surface-muted text-ink-3', chartColor: '#9C978E' },
+  passing_reference: { label: 'Passing Reference', icon: '', color: 'bg-caution-bg text-caution', chartColor: '#B8860B' },
+  not_mentioned: { label: 'Not Mentioned', icon: '', color: 'bg-red-soft-bg text-red-soft', chartColor: '#B5453A' },
 }
 
 export const POSITIONING_LABELS: Record<string, { label: string; color: string; icon: string }> = {
-  leader: { label: 'Industry Leader', color: 'bg-green-100 text-green-800 border-green-300', icon: '👑' },
-  challenger: { label: 'Strong Challenger', color: 'bg-blue-100 text-blue-800 border-blue-300', icon: '🚀' },
-  niche: { label: 'Niche Player', color: 'bg-purple-100 text-purple-800 border-purple-300', icon: '🎯' },
-  emerging: { label: 'Emerging', color: 'bg-amber-100 text-amber-800 border-amber-300', icon: '🌱' },
-  unknown: { label: 'Unclear', color: 'bg-gray-100 text-gray-600 border-gray-300', icon: '❓' },
+  leader: { label: 'Industry Leader', color: 'bg-sage-bg text-sage border-sage/30', icon: '' },
+  challenger: { label: 'Strong Challenger', color: 'bg-surface-warm text-ink-2 border-divider', icon: '' },
+  niche: { label: 'Niche Player', color: 'bg-surface-warm text-ink-2 border-divider', icon: '' },
+  emerging: { label: 'Emerging', color: 'bg-caution-bg text-caution border-caution/30', icon: '' },
+  unknown: { label: 'Unclear', color: 'bg-surface-muted text-ink-3 border-divider-light', icon: '' },
 }
 
 export const SOURCE_TYPE_LABELS: Record<string, { label: string; color: string }> = {
-  you: { label: 'Your Website', color: 'text-green-700' },
-  corporate: { label: 'Corporate', color: 'text-teal-700' },
-  editorial: { label: 'Media / Editorial', color: 'text-blue-700' },
-  ugc: { label: 'Community / UGC', color: 'text-yellow-700' },
-  reference: { label: 'Reference', color: 'text-purple-700' },
-  institutional: { label: 'Institutional', color: 'text-indigo-700' },
-  other: { label: 'Other', color: 'text-gray-600' },
+  you: { label: 'Your Website', color: 'text-sage' },
+  corporate: { label: 'Corporate', color: 'text-sage' },
+  editorial: { label: 'Media / Editorial', color: 'text-ink-2' },
+  ugc: { label: 'Community / UGC', color: 'text-caution' },
+  reference: { label: 'Reference', color: 'text-ink-2' },
+  institutional: { label: 'Institutional', color: 'text-ink-2' },
+  other: { label: 'Other', color: 'text-ink-3' },
 }
 
 export const GAP_SEVERITY_COLORS: Record<string, { bg: string; text: string; ring: string }> = {
-  critical: { bg: 'bg-red-100', text: 'text-red-800', ring: 'ring-red-400' },
-  high: { bg: 'bg-orange-100', text: 'text-orange-800', ring: 'ring-orange-400' },
-  medium: { bg: 'bg-yellow-100', text: 'text-yellow-800', ring: 'ring-yellow-400' },
-  low: { bg: 'bg-green-100', text: 'text-green-800', ring: 'ring-green-400' },
+  critical: { bg: 'bg-red-soft-bg', text: 'text-red-soft', ring: 'ring-red-soft/40' },
+  high: { bg: 'bg-caution-bg', text: 'text-caution', ring: 'ring-caution/40' },
+  medium: { bg: 'bg-caution-bg', text: 'text-caution', ring: 'ring-caution/30' },
+  low: { bg: 'bg-sage-bg', text: 'text-sage', ring: 'ring-sage/40' },
 }
 
 export const RELATIONSHIP_COLORS: Record<string, { label: string; color: string; icon: string }> = {
-  complementary: { label: 'Complementary', color: 'bg-green-100 text-green-700', icon: '🤝' },
-  competitive: { label: 'Competitive', color: 'bg-red-100 text-red-700', icon: '⚔️' },
-  neutral: { label: 'Neutral', color: 'bg-gray-100 text-gray-600', icon: '↔️' },
+  complementary: { label: 'Complementary', color: 'bg-sage-bg text-sage', icon: '' },
+  competitive: { label: 'Competitive', color: 'bg-red-soft-bg text-red-soft', icon: '' },
+  neutral: { label: 'Neutral', color: 'bg-surface-muted text-ink-3', icon: '' },
 }
 
 export const INTENT_COLORS: Record<string, { label: string; color: string; icon: string }> = {
-  info_cognition: { label: 'Info Cognition', color: 'bg-blue-100 text-blue-700', icon: '🧠' },
-  solution_explore: { label: 'Solution Explore', color: 'bg-green-100 text-green-700', icon: '🔍' },
-  comparison_decision: { label: 'Comparison Decision', color: 'bg-orange-100 text-orange-700', icon: '⚖️' },
-  action_choice: { label: 'Action Choice', color: 'bg-purple-100 text-purple-700', icon: '🎯' },
+  info_cognition: { label: 'Info Cognition', color: 'bg-surface-warm text-ink-2', icon: '' },
+  solution_explore: { label: 'Solution Explore', color: 'bg-sage-bg text-sage', icon: '' },
+  comparison_decision: { label: 'Comparison Decision', color: 'bg-caution-bg text-caution', icon: '' },
+  action_choice: { label: 'Action Choice', color: 'bg-surface-warm text-ink-2', icon: '' },
 }
 
 export const INTENT_FUNNEL: Record<string, { stage: number; icon: string; color: string; bgColor: string }> = {
-  info_cognition: { stage: 1, icon: '🧠', color: 'text-blue-600', bgColor: 'bg-blue-50' },
-  solution_explore: { stage: 2, icon: '🔍', color: 'text-teal-600', bgColor: 'bg-teal-50' },
-  comparison_decision: { stage: 3, icon: '⚖️', color: 'text-orange-600', bgColor: 'bg-orange-50' },
-  action_choice: { stage: 4, icon: '🚀', color: 'text-red-600', bgColor: 'bg-red-50' },
+  info_cognition: { stage: 1, icon: '', color: 'text-ink-2', bgColor: 'bg-surface-warm' },
+  solution_explore: { stage: 2, icon: '', color: 'text-sage', bgColor: 'bg-sage-bg' },
+  comparison_decision: { stage: 3, icon: '', color: 'text-caution', bgColor: 'bg-caution-bg' },
+  action_choice: { stage: 4, icon: '', color: 'text-red-soft', bgColor: 'bg-red-soft-bg' },
 }
 
 export const INTENT_CONTENT_MAP: Record<string, { type: string; label: string; url: string }[]> = {
@@ -125,32 +125,32 @@ export const INTENT_CONTENT_MAP: Record<string, { type: string; label: string; u
 }
 
 export const CATEGORY_LABEL_MAP: Record<string, string> = {
-  info_cognition: '🧠 Info Cognition',
-  solution_explore: '🔍 Solution Explore',
-  comparison_decision: '⚖️ Compare & Decide',
-  action_choice: '🚀 Action Choice',
-  recommendation: '🚀 Action Choice',
-  comparison: '⚖️ Compare & Decide',
-  information: '🧠 Info Cognition',
-  review: '⚖️ Compare & Decide',
-  howto: '🚀 Action Choice',
+  info_cognition: 'Info Cognition',
+  solution_explore: 'Solution Explore',
+  comparison_decision: 'Compare & Decide',
+  action_choice: 'Action Choice',
+  recommendation: 'Action Choice',
+  comparison: 'Compare & Decide',
+  information: 'Info Cognition',
+  review: 'Compare & Decide',
+  howto: 'Action Choice',
 }
 
 export const CONTENT_TYPE_LABELS: Record<string, { label: string; icon: string }> = {
-  definition: { label: 'Definition', icon: '📖' },
-  reference_source: { label: 'Reference/Source', icon: '📚' },
-  usecase_mapping: { label: 'Use-case', icon: '🎯' },
-  faq: { label: 'FAQ', icon: '❓' },
-  comparison: { label: 'Comparison', icon: '⚖️' },
-  evaluation_risk: { label: 'Eval & Risk', icon: '🔬' },
-  howto: { label: 'How-to', icon: '🔧' },
+  definition: { label: 'Definition', icon: '' },
+  reference_source: { label: 'Reference/Source', icon: '' },
+  usecase_mapping: { label: 'Use-case', icon: '' },
+  faq: { label: 'FAQ', icon: '' },
+  comparison: { label: 'Comparison', icon: '' },
+  evaluation_risk: { label: 'Eval & Risk', icon: '' },
+  howto: { label: 'How-to', icon: '' },
 }
 
 export const COMP_POSITION_COLORS: Record<string, { bg: string; text: string; label: string }> = {
-  leading: { bg: 'bg-green-500', text: 'text-white', label: '🏆 Leading' },
-  competitive: { bg: 'bg-blue-500', text: 'text-white', label: '⚡ Competitive' },
-  behind: { bg: 'bg-orange-500', text: 'text-white', label: '⚠️ Behind' },
-  'at risk': { bg: 'bg-red-500', text: 'text-white', label: '🚨 At Risk' },
+  leading: { bg: 'bg-sage-bg', text: 'text-sage', label: 'Leading' },
+  competitive: { bg: 'bg-surface-warm', text: 'text-ink-2', label: 'Competitive' },
+  behind: { bg: 'bg-caution-bg', text: 'text-caution', label: 'Behind' },
+  'at risk': { bg: 'bg-red-soft-bg', text: 'text-red-soft', label: 'At Risk' },
 }
 
 // ─── Auto-classify functions ───────────────────────────

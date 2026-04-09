@@ -30,13 +30,13 @@ export default function AnimatedBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {/* Gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white via-red-50/30 to-white" />
-      
+      <div className="absolute inset-0 bg-gradient-to-b from-canvas via-[#C84B31]/[0.03] to-canvas" />
+
       {/* Animated dots */}
       {dots.map((dot) => (
         <div
           key={dot.id}
-          className="absolute rounded-full bg-red-400 animate-pulse"
+          className="absolute rounded-full bg-ink/20 animate-pulse"
           style={{
             left: `${dot.x}%`,
             top: `${dot.y}%`,
@@ -53,8 +53,8 @@ export default function AnimatedBackground() {
       <svg className="absolute inset-0 w-full h-full opacity-10">
         <defs>
           <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="#22d3ee" stopOpacity="0" />
+            <stop offset="0%" stopColor="#C84B31" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="#C84B31" stopOpacity="0" />
           </linearGradient>
         </defs>
         <line x1="10%" y1="20%" x2="30%" y2="40%" stroke="url(#lineGradient)" strokeWidth="1" />

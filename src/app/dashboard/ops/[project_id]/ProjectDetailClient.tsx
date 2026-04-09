@@ -21,9 +21,9 @@ import {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TIER_CFG: Record<PromptTier, { label: string; color: string; bg: string }> = {
-  top20:    { label: 'Top 20',   color: 'text-orange-700', bg: 'bg-orange-100' },
-  core60:   { label: 'Core 60',  color: 'text-blue-700',   bg: 'bg-blue-100' },
-  longtail: { label: 'Long-tail', color: 'text-gray-600',  bg: 'bg-gray-100' },
+  top20:    { label: 'Top 20',   color: 'text-caution', bg: 'bg-caution-bg' },
+  core60:   { label: 'Core 60',  color: 'text-ink-2',   bg: 'bg-surface-warm' },
+  longtail: { label: 'Long-tail', color: 'text-ink-2',  bg: 'bg-surface-muted' },
 }
 
 const INTENT_CFG: Record<PromptIntentType, { label: string; short: string }> = {
@@ -34,31 +34,31 @@ const INTENT_CFG: Record<PromptIntentType, { label: string; short: string }> = {
 }
 
 const CONTENT_TYPE_CFG: Record<ContentType, { label: string; color: string }> = {
-  CT1: { label: 'CT1 Definition', color: 'bg-violet-100 text-violet-700' },
-  CT2: { label: 'CT2 Comparison', color: 'bg-blue-100 text-blue-700' },
-  CT3: { label: 'CT3 Ranking',    color: 'bg-indigo-100 text-indigo-700' },
-  CT4: { label: 'CT4 UseCase',    color: 'bg-teal-100 text-teal-700' },
-  CT5: { label: 'CT5 How-to',     color: 'bg-green-100 text-green-700' },
-  CT6: { label: 'CT6 FAQ',        color: 'bg-orange-100 text-orange-700' },
-  CT7: { label: 'CT7 Citation',   color: 'bg-red-100 text-red-700' },
+  CT1: { label: 'CT1 Definition', color: 'bg-surface-warm text-ink-2' },
+  CT2: { label: 'CT2 Comparison', color: 'bg-surface-warm text-ink-2' },
+  CT3: { label: 'CT3 Ranking',    color: 'bg-surface-warm text-ink-2' },
+  CT4: { label: 'CT4 UseCase',    color: 'bg-surface-warm text-ink-2' },
+  CT5: { label: 'CT5 How-to',     color: 'bg-sage-bg text-sage' },
+  CT6: { label: 'CT6 FAQ',        color: 'bg-caution-bg text-caution' },
+  CT7: { label: 'CT7 Citation',   color: 'bg-red-soft-bg text-red-soft' },
 }
 
 const CONTENT_STATUS_CFG: Record<ContentStatus, { label: string; icon: React.FC<{ className?: string }>; color: string }> = {
-  draft:         { label: 'Draft',        icon: Clock,         color: 'bg-gray-100 text-gray-600' },
-  qa_pending:    { label: 'QA Pending',   icon: AlertCircle,   color: 'bg-yellow-100 text-yellow-700' },
-  qa_pass:       { label: 'QA Pass',      icon: CheckCircle,   color: 'bg-green-100 text-green-700' },
-  qa_conditional:{ label: 'Conditional',  icon: AlertCircle,   color: 'bg-orange-100 text-orange-700' },
-  qa_fail:       { label: 'QA Fail',      icon: XCircle,       color: 'bg-red-100 text-red-700' },
-  published:     { label: 'Published',    icon: CheckCircle,   color: 'bg-emerald-100 text-emerald-700' },
-  taken_down:    { label: 'Taken Down',   icon: XCircle,       color: 'bg-gray-100 text-gray-500' },
+  draft:         { label: 'Draft',        icon: Clock,         color: 'bg-surface-muted text-ink-3' },
+  qa_pending:    { label: 'QA Pending',   icon: AlertCircle,   color: 'bg-caution-bg text-caution' },
+  qa_pass:       { label: 'QA Pass',      icon: CheckCircle,   color: 'bg-sage-bg text-sage' },
+  qa_conditional:{ label: 'Conditional',  icon: AlertCircle,   color: 'bg-caution-bg text-caution' },
+  qa_fail:       { label: 'QA Fail',      icon: XCircle,       color: 'bg-red-soft-bg text-red-soft' },
+  published:     { label: 'Published',    icon: CheckCircle,   color: 'bg-sage-bg text-sage' },
+  taken_down:    { label: 'Taken Down',   icon: XCircle,       color: 'bg-surface-muted text-ink-3' },
 }
 
 const CHANNEL_CFG: Record<ContentChannel, { label: string; emoji: string }> = {
-  reddit:         { label: 'Reddit',          emoji: '🤖' },
-  linkedin:       { label: 'LinkedIn',        emoji: '💼' },
-  client_website: { label: 'Client Website',  emoji: '🌐' },
-  self_built:     { label: 'Self-built Blog', emoji: '📝' },
-  github:         { label: 'GitHub',          emoji: '🐙' },
+  reddit:         { label: 'Reddit',          emoji: '' },
+  linkedin:       { label: 'LinkedIn',        emoji: '' },
+  client_website: { label: 'Client Website',  emoji: '' },
+  self_built:     { label: 'Self-built Blog', emoji: '' },
+  github:         { label: 'GitHub',          emoji: '' },
 }
 
 const STAGE_LABELS: Record<number, { title: string; weeks: string; target: number }> = {
@@ -80,17 +80,17 @@ function OverviewTab({ project, stageGates, onAddGate }: {
   onAddGate: () => void
 }) {
   const visRate = project.visibility_rate ?? 0
-  const visColor = visRate >= 30 ? 'text-green-600' : visRate >= 15 ? 'text-yellow-600' : 'text-red-500'
+  const visColor = visRate >= 30 ? 'text-sage' : visRate >= 15 ? 'text-caution' : 'text-red-soft'
 
   const GATE_WEEKS = [4, 8, 12, 16, 24]
   const gateMap: Record<number, StageGate> = {}
   stageGates.forEach(g => { gateMap[g.week] = g })
 
   const decisionCfg: Record<StageGateDecision, { label: string; color: string }> = {
-    continue:   { label: 'Continue',   color: 'bg-green-100 text-green-700' },
-    correct:    { label: 'Correct',    color: 'bg-yellow-100 text-yellow-700' },
-    stop_loss:  { label: 'Stop Loss',  color: 'bg-red-100 text-red-700' },
-    upsell:     { label: 'Upsell →',   color: 'bg-purple-100 text-purple-700' },
+    continue:   { label: 'Continue',   color: 'bg-sage-bg text-sage' },
+    correct:    { label: 'Correct',    color: 'bg-caution-bg text-caution' },
+    stop_loss:  { label: 'Stop Loss',  color: 'bg-red-soft-bg text-red-soft' },
+    upsell:     { label: 'Upsell →',   color: 'bg-surface-warm text-ink-2' },
   }
 
   return (
@@ -99,21 +99,21 @@ function OverviewTab({ project, stageGates, onAddGate }: {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'AI Visibility', value: `${visRate}%`, sub: 'Brand mentioned rate', color: visColor },
-          { label: 'Prompts',       value: project.prompt_count ?? 0, sub: `${project.top20_count ?? 0} in Top 20`, color: 'text-blue-600' },
-          { label: 'Content Pieces', value: project.content_count ?? 0, sub: 'Across all channels', color: 'text-purple-600' },
-          { label: 'Stage',         value: `${project.stage}/6`, sub: STAGE_LABELS[project.stage]?.title, color: 'text-orange-500' },
+          { label: 'Prompts',       value: project.prompt_count ?? 0, sub: `${project.top20_count ?? 0} in Top 20`, color: 'text-ink-2' },
+          { label: 'Content Pieces', value: project.content_count ?? 0, sub: 'Across all channels', color: 'text-ink-2' },
+          { label: 'Stage',         value: `${project.stage}/6`, sub: STAGE_LABELS[project.stage]?.title, color: 'text-caution' },
         ].map(item => (
-          <div key={item.label} className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-            <p className="text-xs text-gray-500 mb-1">{item.label}</p>
+          <div key={item.label} className="bg-surface rounded-xl border border-divider-light p-4 shadow-sm">
+            <p className="text-xs text-ink-3 mb-1">{item.label}</p>
             <p className={`text-2xl font-bold ${item.color}`}>{item.value}</p>
-            <p className="text-[11px] text-gray-400 mt-0.5">{item.sub}</p>
+            <p className="text-[11px] text-ink-3 mt-0.5">{item.sub}</p>
           </div>
         ))}
       </div>
 
       {/* Project info */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-        <h3 className="text-sm font-semibold text-gray-800 mb-4">Project Info</h3>
+      <div className="bg-surface rounded-xl border border-divider-light shadow-sm p-5">
+        <h3 className="text-sm font-semibold text-ink mb-4">Project Info</h3>
         <div className="grid grid-cols-2 gap-4 text-sm">
           {[
             { label: 'Client', value: project.client_name },
@@ -125,33 +125,33 @@ function OverviewTab({ project, stageGates, onAddGate }: {
             { label: 'Status', value: project.status },
           ].map(row => (
             <div key={row.label}>
-              <span className="text-xs text-gray-400 block">{row.label}</span>
-              <span className="text-gray-800 font-medium capitalize">{row.value}</span>
+              <span className="text-xs text-ink-3 block">{row.label}</span>
+              <span className="text-ink font-medium capitalize">{row.value}</span>
             </div>
           ))}
           {project.notes && (
             <div className="col-span-2">
-              <span className="text-xs text-gray-400 block">Notes</span>
-              <span className="text-gray-700 text-sm">{project.notes}</span>
+              <span className="text-xs text-ink-3 block">Notes</span>
+              <span className="text-ink-2 text-sm">{project.notes}</span>
             </div>
           )}
         </div>
       </div>
 
       {/* Stage Gate Timeline */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+      <div className="bg-surface rounded-xl border border-divider-light shadow-sm p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-gray-800">Stage Gate Timeline</h3>
+          <h3 className="text-sm font-semibold text-ink">Stage Gate Timeline</h3>
           <button
             onClick={onAddGate}
-            className="text-xs flex items-center gap-1 text-red-500 hover:text-red-600 font-medium"
+            className="text-xs flex items-center gap-1 text-ink-2 hover:text-ink font-medium"
           >
             <Plus className="w-3 h-3" /> Record Gate
           </button>
         </div>
         <div className="relative">
           {/* Line */}
-          <div className="absolute top-4 left-4 right-4 h-0.5 bg-gray-100" />
+          <div className="absolute top-4 left-4 right-4 h-0.5 bg-divider-light" />
           <div className="flex justify-between relative">
             {GATE_WEEKS.map(week => {
               const gate = gateMap[week]
@@ -161,13 +161,13 @@ function OverviewTab({ project, stageGates, onAddGate }: {
                 <div key={week} className="flex flex-col items-center gap-2 flex-1">
                   <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold z-10 ${
                     gate
-                      ? dec === 'stop_loss' ? 'border-red-400 bg-red-50 text-red-600'
-                      : dec === 'upsell' ? 'border-purple-400 bg-purple-50 text-purple-600'
-                      : dec === 'correct' ? 'border-yellow-400 bg-yellow-50 text-yellow-600'
-                      : 'border-green-400 bg-green-50 text-green-600'
+                      ? dec === 'stop_loss' ? 'border-red-soft bg-red-soft-bg text-red-soft'
+                      : dec === 'upsell' ? 'border-divider bg-surface-warm text-ink-2'
+                      : dec === 'correct' ? 'border-caution bg-caution-bg text-caution'
+                      : 'border-sage bg-sage-bg text-sage'
                       : isCurrent
-                      ? 'border-orange-400 bg-orange-50 text-orange-600'
-                      : 'border-gray-200 bg-white text-gray-400'
+                      ? 'border-caution bg-caution-bg text-caution'
+                      : 'border-divider-light bg-surface text-ink-3'
                   }`}>
                     W{week}
                   </div>
@@ -178,10 +178,10 @@ function OverviewTab({ project, stageGates, onAddGate }: {
                       </span>
                     )}
                     {gate?.visibility_rate != null && (
-                      <p className="text-[10px] text-gray-500 mt-0.5">{gate.visibility_rate}% vis</p>
+                      <p className="text-[10px] text-ink-3 mt-0.5">{gate.visibility_rate}% vis</p>
                     )}
                     {!gate && isCurrent && (
-                      <span className="text-[10px] text-orange-500 font-medium">Pending</span>
+                      <span className="text-[10px] text-caution font-medium">Pending</span>
                     )}
                   </div>
                 </div>
@@ -265,7 +265,7 @@ function PromptsTab({ projectId }: { projectId: string }) {
           <div key={tier} className={`${cfg.bg} rounded-xl p-4 border border-transparent`}>
             <div className={`text-2xl font-bold ${cfg.color}`}>{tierCount[tier] || 0}</div>
             <div className={`text-xs font-medium ${cfg.color} mt-0.5`}>{cfg.label}</div>
-            <div className="text-[10px] text-gray-400 mt-0.5">
+            <div className="text-[10px] text-ink-3 mt-0.5">
               {tier === 'top20' ? 'Weekly scan · A/B only' : tier === 'core60' ? 'Bi-weekly · All intents' : 'Monthly · Long tail'}
             </div>
           </div>
@@ -280,7 +280,7 @@ function PromptsTab({ projectId }: { projectId: string }) {
               key={t}
               onClick={() => setTierFilter(t)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize ${
-                tierFilter === t ? 'bg-red-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                tierFilter === t ? 'bg-ink text-ink-inv' : 'bg-surface border border-divider text-ink-2 hover:border-ink'
               }`}
             >
               {t === 'all' ? `All (${prompts.length})` : `${TIER_CFG[t as PromptTier].label} (${tierCount[t] || 0})`}
@@ -289,7 +289,7 @@ function PromptsTab({ projectId }: { projectId: string }) {
         </div>
         <button
           onClick={() => setShowAdd(!showAdd)}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-ink text-ink-inv rounded-lg text-xs font-medium hover:bg-[#2d2d2c]"
         >
           <Plus className="w-3.5 h-3.5" /> Add Prompts
         </button>
@@ -297,23 +297,23 @@ function PromptsTab({ projectId }: { projectId: string }) {
 
       {/* Batch add panel */}
       {showAdd && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <h4 className="text-sm font-semibold text-gray-800 mb-3">Batch Add Prompts</h4>
-          <p className="text-xs text-gray-500 mb-3">One prompt per line. All lines share the same tier + intent type.</p>
+        <div className="bg-surface rounded-xl border border-divider shadow-sm p-5">
+          <h4 className="text-sm font-semibold text-ink mb-3">Batch Add Prompts</h4>
+          <p className="text-xs text-ink-3 mb-3">One prompt per line. All lines share the same tier + intent type.</p>
           <textarea
             value={batchText}
             onChange={e => setBatchText(e.target.value)}
             rows={6}
             placeholder="What is the best GEO tool for SaaS companies?&#10;How do AI platforms rank brands?&#10;..."
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-red-300 resize-none mb-3"
+            className="w-full border border-divider rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink resize-none mb-3"
           />
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">Tier</label>
+              <label className="text-xs text-ink-3 mb-1 block">Tier</label>
               <select
                 value={batchTier}
                 onChange={e => setBatchTier(e.target.value as PromptTier)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none"
+                className="w-full border border-divider rounded-lg px-3 py-2 text-sm focus:outline-none"
               >
                 <option value="top20">Top 20 — Weekly</option>
                 <option value="core60">Core 60 — Bi-weekly</option>
@@ -321,11 +321,11 @@ function PromptsTab({ projectId }: { projectId: string }) {
               </select>
             </div>
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">Intent Type</label>
+              <label className="text-xs text-ink-3 mb-1 block">Intent Type</label>
               <select
                 value={batchIntent}
                 onChange={e => setBatchIntent(e.target.value as PromptIntentType)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none"
+                className="w-full border border-divider rounded-lg px-3 py-2 text-sm focus:outline-none"
               >
                 <option value="info_cognition">Info Cognition</option>
                 <option value="solution_explore">Solution Explore</option>
@@ -335,13 +335,13 @@ function PromptsTab({ projectId }: { projectId: string }) {
             </div>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => setShowAdd(false)} className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50">
+            <button onClick={() => setShowAdd(false)} className="px-3 py-1.5 border border-divider rounded-lg text-xs text-ink-2 hover:border-ink">
               Cancel
             </button>
             <button
               onClick={handleBatchAdd}
               disabled={saving || !batchText.trim()}
-              className="px-4 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600 disabled:opacity-50 flex items-center gap-1"
+              className="px-4 py-1.5 bg-ink text-ink-inv rounded-lg text-xs font-medium hover:bg-[#2d2d2c] disabled:opacity-50 flex items-center gap-1"
             >
               {saving && <Loader2 className="w-3 h-3 animate-spin" />}
               Add {batchText.split('\n').filter(l => l.trim()).length} Prompts
@@ -352,27 +352,27 @@ function PromptsTab({ projectId }: { projectId: string }) {
 
       {/* Prompt list */}
       {loading ? (
-        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 text-red-400 animate-spin" /></div>
+        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 text-ink animate-spin" /></div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl border border-gray-100">
-          <MessageSquare className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-          <p className="text-gray-400 text-sm">No prompts yet. Add your first batch.</p>
+        <div className="text-center py-12 bg-surface rounded-xl border border-divider-light">
+          <MessageSquare className="w-8 h-8 text-ink-3 mx-auto mb-2" />
+          <p className="text-ink-3 text-sm">No prompts yet. Add your first batch.</p>
         </div>
       ) : (
         <div className="space-y-2">
           {filtered.map(p => {
             const tierCfg = TIER_CFG[p.tier]
-            const visColor = p.brand_mentioned ? 'text-green-600' : 'text-gray-400'
+            const visColor = p.brand_mentioned ? 'text-sage' : 'text-ink-3'
             return (
-              <div key={p.id} className="bg-white rounded-lg border border-gray-100 shadow-sm px-4 py-3 flex items-start gap-3 group hover:border-red-100 transition-colors">
+              <div key={p.id} className="bg-surface rounded-lg border border-divider-light shadow-sm px-4 py-3 flex items-start gap-3 group hover:border-divider transition-colors">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-800 leading-relaxed">{p.text}</p>
+                  <p className="text-sm text-ink leading-relaxed">{p.text}</p>
                   <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                     {editId === p.id ? (
                       <select
                         value={editTier}
                         onChange={e => setEditTier(e.target.value as PromptTier)}
-                        className="text-xs border border-gray-200 rounded px-1.5 py-0.5 focus:outline-none"
+                        className="text-xs border border-divider rounded px-1.5 py-0.5 focus:outline-none"
                         autoFocus
                       >
                         <option value="top20">Top 20</option>
@@ -388,18 +388,18 @@ function PromptsTab({ projectId }: { projectId: string }) {
                       </span>
                     )}
                     {p.intent_type && (
-                      <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] bg-surface-muted text-ink-2 px-2 py-0.5 rounded-full">
                         {INTENT_CFG[p.intent_type]?.short}
                       </span>
                     )}
-                    <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] bg-surface-muted text-ink-2 px-2 py-0.5 rounded-full">
                       Ans:{p.answerability}
                     </span>
                     <span className={`text-[10px] font-medium ${visColor}`}>
-                      {p.brand_mentioned ? `✓ ${p.visibility_pct}% visible` : '✗ Not mentioned'}
+                      {p.brand_mentioned ? `${p.visibility_pct}% visible` : 'Not mentioned'}
                     </span>
                     {p.status === 'failed' && (
-                      <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full">⚠ Failed</span>
+                      <span className="text-[10px] bg-red-soft-bg text-red-soft px-2 py-0.5 rounded-full">Failed</span>
                     )}
                   </div>
                 </div>
@@ -408,25 +408,36 @@ function PromptsTab({ projectId }: { projectId: string }) {
                     <>
                       <button
                         onClick={() => handleChangeTier(p, editTier)}
-                        className="p-1 rounded hover:bg-green-100 text-green-600"
+                        aria-label="Save changes"
+                        title="Save"
+                        className="p-1 rounded hover:bg-sage-bg text-sage focus:outline-none focus:ring-2 focus:ring-sage/20 transition-colors"
                       >
                         <Save className="w-3.5 h-3.5" />
                       </button>
-                      <button onClick={() => setEditId(null)} className="p-1 rounded hover:bg-gray-100 text-gray-400">
+                      <button
+                        onClick={() => setEditId(null)}
+                        aria-label="Cancel edit"
+                        title="Cancel"
+                        className="p-1 rounded hover:bg-surface-muted text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/10 transition-colors"
+                      >
                         <X className="w-3.5 h-3.5" />
                       </button>
                     </>
                   ) : (
                     <button
                       onClick={() => { setEditId(p.id); setEditTier(p.tier) }}
-                      className="p-1 rounded hover:bg-blue-100 text-blue-400"
+                      aria-label="Edit project"
+                      title="Edit"
+                      className="p-1 rounded hover:bg-surface-muted text-ink-2 focus:outline-none focus:ring-2 focus:ring-ink/10 transition-colors"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                   )}
                   <button
                     onClick={() => handleDelete(p.id)}
-                    className="p-1 rounded hover:bg-red-100 text-red-400"
+                    aria-label="Delete project"
+                    title="Delete"
+                    className="p-1 rounded hover:bg-red-soft-bg text-red-soft focus:outline-none focus:ring-2 focus:ring-red-soft/20 transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -540,7 +551,7 @@ function ContentTab({ projectId, prompts }: { projectId: string; prompts: OpsPro
               key={s}
               onClick={() => setStatusFilter(s)}
               className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
-                statusFilter === s ? 'bg-red-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                statusFilter === s ? 'bg-ink text-ink-inv' : 'bg-surface border border-divider text-ink-2 hover:border-ink'
               }`}
             >
               {s === 'all' ? `All (${contents.length})` : s.replace('_', ' ')}
@@ -549,7 +560,7 @@ function ContentTab({ projectId, prompts }: { projectId: string; prompts: OpsPro
         </div>
         <button
           onClick={() => setShowAdd(!showAdd)}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-ink text-ink-inv rounded-lg text-xs font-medium hover:bg-[#2d2d2c]"
         >
           <Plus className="w-3.5 h-3.5" /> New Content
         </button>
@@ -557,25 +568,25 @@ function ContentTab({ projectId, prompts }: { projectId: string; prompts: OpsPro
 
       {/* Add content panel */}
       {showAdd && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <h4 className="text-sm font-semibold text-gray-800 mb-3">New Content Entry</h4>
+        <div className="bg-surface rounded-xl border border-divider shadow-sm p-5">
+          <h4 className="text-sm font-semibold text-ink mb-3">New Content Entry</h4>
           <div className="space-y-3">
             <div>
-              <label className="text-xs text-gray-500 block mb-1">Title *</label>
+              <label className="text-xs text-ink-3 block mb-1">Title *</label>
               <input
                 value={newForm.title || ''}
                 onChange={e => setNewForm(f => ({ ...f, title: e.target.value }))}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
+                className="w-full border border-divider rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
                 placeholder="e.g. What is GEO? Complete Definition Guide"
               />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="text-xs text-gray-500 block mb-1">Content Type</label>
+                <label className="text-xs text-ink-3 block mb-1">Content Type</label>
                 <select
                   value={newForm.content_type}
                   onChange={e => setNewForm(f => ({ ...f, content_type: e.target.value as ContentType }))}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none"
+                  className="w-full border border-divider rounded-lg px-3 py-2 text-sm focus:outline-none"
                 >
                   {(Object.entries(CONTENT_TYPE_CFG) as [ContentType, { label: string }][]).map(([k, v]) => (
                     <option key={k} value={k}>{v.label}</option>
@@ -583,11 +594,11 @@ function ContentTab({ projectId, prompts }: { projectId: string; prompts: OpsPro
                 </select>
               </div>
               <div>
-                <label className="text-xs text-gray-500 block mb-1">Channel</label>
+                <label className="text-xs text-ink-3 block mb-1">Channel</label>
                 <select
                   value={newForm.channel}
                   onChange={e => setNewForm(f => ({ ...f, channel: e.target.value as ContentChannel }))}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none"
+                  className="w-full border border-divider rounded-lg px-3 py-2 text-sm focus:outline-none"
                 >
                   {(Object.entries(CHANNEL_CFG) as [ContentChannel, { label: string; emoji: string }][]).map(([k, v]) => (
                     <option key={k} value={k}>{v.emoji} {v.label}</option>
@@ -595,11 +606,11 @@ function ContentTab({ projectId, prompts }: { projectId: string; prompts: OpsPro
                 </select>
               </div>
               <div>
-                <label className="text-xs text-gray-500 block mb-1">Bound Prompt</label>
+                <label className="text-xs text-ink-3 block mb-1">Bound Prompt</label>
                 <select
                   value={newForm.prompt_id || ''}
                   onChange={e => setNewForm(f => ({ ...f, prompt_id: e.target.value || undefined }))}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none"
+                  className="w-full border border-divider rounded-lg px-3 py-2 text-sm focus:outline-none"
                 >
                   <option value="">— None —</option>
                   {prompts.slice(0, 50).map(p => (
@@ -609,16 +620,16 @@ function ContentTab({ projectId, prompts }: { projectId: string; prompts: OpsPro
               </div>
             </div>
             <div>
-              <label className="text-xs text-gray-500 block mb-1">Content (optional, paste AI draft)</label>
+              <label className="text-xs text-ink-3 block mb-1">Content (optional, paste AI draft)</label>
               <textarea
                 value={newForm.content || ''}
                 onChange={e => setNewForm(f => ({ ...f, content: e.target.value }))}
                 rows={4}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
+                className="w-full border border-divider rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink resize-none"
                 placeholder="Paste AI-generated draft here..."
               />
             </div>
-            <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+            <label className="flex items-center gap-2 text-sm text-ink-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={newForm.ai_draft ?? true}
@@ -629,13 +640,13 @@ function ContentTab({ projectId, prompts }: { projectId: string; prompts: OpsPro
             </label>
           </div>
           <div className="flex gap-2 mt-4">
-            <button onClick={() => setShowAdd(false)} className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-600">
+            <button onClick={() => setShowAdd(false)} className="px-3 py-1.5 border border-divider rounded-lg text-xs text-ink-2">
               Cancel
             </button>
             <button
               onClick={handleAdd}
               disabled={saving || !newForm.title?.trim()}
-              className="px-4 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600 disabled:opacity-50 flex items-center gap-1"
+              className="px-4 py-1.5 bg-ink text-ink-inv rounded-lg text-xs font-medium hover:bg-[#2d2d2c] disabled:opacity-50 flex items-center gap-1"
             >
               {saving && <Loader2 className="w-3 h-3 animate-spin" />}
               Create
@@ -646,11 +657,11 @@ function ContentTab({ projectId, prompts }: { projectId: string; prompts: OpsPro
 
       {/* Content list */}
       {loading ? (
-        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 text-red-400 animate-spin" /></div>
+        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 text-ink animate-spin" /></div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl border border-gray-100">
-          <FileText className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-          <p className="text-gray-400 text-sm">No content yet.</p>
+        <div className="text-center py-12 bg-surface rounded-xl border border-divider-light">
+          <FileText className="w-8 h-8 text-ink-3 mx-auto mb-2" />
+          <p className="text-ink-3 text-sm">No content yet.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -664,7 +675,7 @@ function ContentTab({ projectId, prompts }: { projectId: string; prompts: OpsPro
               : null
 
             return (
-              <div key={c.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+              <div key={c.id} className="bg-surface rounded-xl border border-divider-light shadow-sm overflow-hidden">
                 <div className="px-5 py-4">
                   <div className="flex items-start gap-3">
                     <div className="flex-1 min-w-0">
@@ -672,26 +683,26 @@ function ContentTab({ projectId, prompts }: { projectId: string; prompts: OpsPro
                         <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${ctCfg.color}`}>
                           {ctCfg.label}
                         </span>
-                        <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] bg-surface-muted text-ink-2 px-2 py-0.5 rounded-full">
                           {chCfg.emoji} {chCfg.label}
                         </span>
                         {c.ai_draft && (
-                          <span className="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">AI Draft</span>
+                          <span className="text-[10px] bg-caution-bg text-caution px-2 py-0.5 rounded-full">AI Draft</span>
                         )}
                         <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full flex items-center gap-1 ${stCfg.color}`}>
                           <StatusIcon className="w-2.5 h-2.5" />
                           {stCfg.label}
                         </span>
                       </div>
-                      <p className="text-sm font-medium text-gray-900">{c.title}</p>
-                      {qaScore && <p className="text-xs text-gray-500 mt-0.5">QA Score — {qaScore}</p>}
-                      {c.qa_notes && <p className="text-xs text-gray-400 mt-0.5 italic">{c.qa_notes}</p>}
+                      <p className="text-sm font-medium text-ink">{c.title}</p>
+                      {qaScore && <p className="text-xs text-ink-3 mt-0.5">QA Score — {qaScore}</p>}
+                      {c.qa_notes && <p className="text-xs text-ink-3 mt-0.5 italic">{c.qa_notes}</p>}
                       {c.published_url && (
                         <a
                           href={c.published_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-blue-500 hover:underline flex items-center gap-1 mt-0.5"
+                          className="text-xs text-ink-2 hover:underline flex items-center gap-1 mt-0.5"
                         >
                           <ExternalLink className="w-3 h-3" /> Published URL
                         </a>
@@ -708,12 +719,12 @@ function ContentTab({ projectId, prompts }: { projectId: string; prompts: OpsPro
                             status: c.status,
                           })
                         }}
-                        className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-400 text-xs font-medium border border-transparent hover:border-blue-200"
+                        className="p-1.5 rounded-lg hover:bg-surface-muted text-ink-2 text-xs font-medium border border-transparent hover:border-divider-light"
                         title="QA Review"
                       >
                         <Award className="w-3.5 h-3.5" />
                       </button>
-                      <button onClick={() => handleDelete(c.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-400">
+                      <button onClick={() => handleDelete(c.id)} className="p-1.5 rounded-lg hover:bg-red-soft-bg text-red-soft">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -722,37 +733,37 @@ function ContentTab({ projectId, prompts }: { projectId: string; prompts: OpsPro
 
                 {/* QA inline form */}
                 {qaEditId === c.id && (
-                  <div className="bg-gray-50 border-t border-gray-100 px-5 py-4">
-                    <p className="text-xs font-semibold text-gray-700 mb-3">QA Review</p>
+                  <div className="bg-surface-warm border-t border-divider-light px-5 py-4">
+                    <p className="text-xs font-semibold text-ink-2 mb-3">QA Review</p>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                       <div>
-                        <label className="text-xs text-gray-500 block mb-1">Trust Score (0–10)</label>
+                        <label className="text-xs text-ink-3 block mb-1">Trust Score (0–10)</label>
                         <input
                           type="number"
                           min={0} max={10} step={0.5}
                           value={qaForm.trust_score}
                           onChange={e => setQaForm(f => ({ ...f, trust_score: e.target.value }))}
-                          className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+                          className="w-full border border-divider rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
                           placeholder="e.g. 7.5"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-500 block mb-1">Cite Score (0–10)</label>
+                        <label className="text-xs text-ink-3 block mb-1">Cite Score (0–10)</label>
                         <input
                           type="number"
                           min={0} max={10} step={0.5}
                           value={qaForm.cite_score}
                           onChange={e => setQaForm(f => ({ ...f, cite_score: e.target.value }))}
-                          className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+                          className="w-full border border-divider rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
                           placeholder="e.g. 8.0"
                         />
                       </div>
                       <div className="col-span-2">
-                        <label className="text-xs text-gray-500 block mb-1">Status</label>
+                        <label className="text-xs text-ink-3 block mb-1">Status</label>
                         <select
                           value={qaForm.status}
                           onChange={e => setQaForm(f => ({ ...f, status: e.target.value as ContentStatus }))}
-                          className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+                          className="w-full border border-divider rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
                         >
                           {(Object.keys(CONTENT_STATUS_CFG) as ContentStatus[]).map(s => (
                             <option key={s} value={s}>{CONTENT_STATUS_CFG[s].label}</option>
@@ -761,34 +772,34 @@ function ContentTab({ projectId, prompts }: { projectId: string; prompts: OpsPro
                       </div>
                     </div>
                     <div className="mb-3">
-                      <label className="text-xs text-gray-500 block mb-1">QA Notes / Feedback</label>
+                      <label className="text-xs text-ink-3 block mb-1">QA Notes / Feedback</label>
                       <textarea
                         value={qaForm.qa_notes}
                         onChange={e => setQaForm(f => ({ ...f, qa_notes: e.target.value }))}
                         rows={2}
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none"
+                        className="w-full border border-divider rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
                         placeholder="e.g. Missing definition paragraph, needs human rewrite of opening 150 words..."
                       />
                     </div>
                     {qaForm.status === 'published' && (
                       <div className="mb-3">
-                        <label className="text-xs text-gray-500 block mb-1">Published URL</label>
+                        <label className="text-xs text-ink-3 block mb-1">Published URL</label>
                         <input
                           defaultValue={c.published_url || ''}
                           onChange={e => setQaForm(f => ({ ...f, qa_notes: f.qa_notes }))}
                           id={`pub-url-${c.id}`}
-                          className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+                          className="w-full border border-divider rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
                           placeholder="https://..."
                         />
                       </div>
                     )}
                     <div className="flex gap-2">
-                      <button onClick={() => setQaEditId(null)} className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-white">
+                      <button onClick={() => setQaEditId(null)} className="px-3 py-1.5 border border-divider rounded-lg text-xs text-ink-2 hover:bg-surface">
                         Cancel
                       </button>
                       <button
                         onClick={() => handleSaveQA(c.id)}
-                        className="px-4 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600 flex items-center gap-1"
+                        className="px-4 py-1.5 bg-ink text-ink-inv rounded-lg text-xs font-medium hover:bg-[#2d2d2c] flex items-center gap-1"
                       >
                         <Save className="w-3 h-3" /> Save QA
                       </button>
@@ -892,34 +903,34 @@ function MonitorTab({ project }: { project: ManagedProject }) {
   const maxVis = Math.max(...trend.map(t => t.visibility_rate), 1)
 
   const TIER_COLORS: Record<string, string> = {
-    top20: 'text-orange-600', core60: 'text-blue-600', longtail: 'text-gray-500',
+    top20: 'text-caution', core60: 'text-ink-2', longtail: 'text-ink-3',
   }
 
   return (
     <div className="space-y-6">
       {/* Scan trigger panel */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+      <div className="bg-surface rounded-xl border border-divider-light shadow-sm p-5">
         <div className="flex items-center gap-2 mb-4">
-          <Radio className="w-4 h-4 text-red-500" />
-          <h3 className="text-sm font-semibold text-gray-800">Trigger AI Visibility Scan</h3>
-          <span className="text-xs text-gray-400 ml-1">— OpenClaw also calls this automatically</span>
+          <Radio className="w-4 h-4 text-ink-2" />
+          <h3 className="text-sm font-semibold text-ink">Trigger AI Visibility Scan</h3>
+          <span className="text-xs text-ink-3 ml-1">— OpenClaw also calls this automatically</span>
         </div>
         <div className="flex items-end gap-3 flex-wrap">
           <div className="flex-1 min-w-[200px]">
-            <label className="text-xs text-gray-500 block mb-1">Client Brand Name</label>
+            <label className="text-xs text-ink-3 block mb-1">Client Brand Name</label>
             <input
               value={brandInput}
               onChange={e => setBrandInput(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
+              className="w-full border border-divider rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
               placeholder="e.g. Acme Corp"
             />
           </div>
           <div>
-            <label className="text-xs text-gray-500 block mb-1">Tier Filter</label>
+            <label className="text-xs text-ink-3 block mb-1">Tier Filter</label>
             <select
               value={tierFilter}
               onChange={e => setTierFilter(e.target.value as typeof tierFilter)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none"
+              className="border border-divider rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
             >
               <option value="all">All Prompts</option>
               <option value="top20">Top 20 only</option>
@@ -930,7 +941,7 @@ function MonitorTab({ project }: { project: ManagedProject }) {
           <button
             onClick={handleTriggerScan}
             disabled={scanning || !brandInput.trim()}
-            className="flex items-center gap-2 px-5 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 px-5 py-2 bg-ink text-ink-inv rounded-lg text-sm font-medium hover:bg-[#2d2d2c] disabled:opacity-50 transition-colors"
           >
             {scanning
               ? <><Loader2 className="w-4 h-4 animate-spin" /> Scanning...</>
@@ -941,18 +952,18 @@ function MonitorTab({ project }: { project: ManagedProject }) {
 
         {/* Live progress bar */}
         {scanning && currentRun && (
-          <div className="mt-4 p-3 bg-red-50 rounded-xl border border-red-100">
-            <div className="flex items-center justify-between text-xs text-red-700 mb-2">
+          <div className="mt-4 p-3 bg-surface-warm rounded-xl border border-divider-light">
+            <div className="flex items-center justify-between text-xs text-ink-2 mb-2">
               <span className="font-medium">Scanning prompts...</span>
               <span>{currentRun.prompts_done} / {currentRun.prompts_total}</span>
             </div>
-            <div className="h-2 bg-red-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-surface-muted rounded-full overflow-hidden">
               <div
-                className="h-full bg-red-500 rounded-full transition-all duration-500"
+                className="h-full bg-ink rounded-full transition-all duration-500"
                 style={{ width: `${currentRun.pct}%` }}
               />
             </div>
-            <div className="flex items-center justify-between text-[11px] text-red-600 mt-1.5">
+            <div className="flex items-center justify-between text-[11px] text-ink-3 mt-1.5">
               <span>{currentRun.pct.toFixed(0)}% complete</span>
               <span>
                 {currentRun.mentioned_count} mentioned so far
@@ -967,10 +978,10 @@ function MonitorTab({ project }: { project: ManagedProject }) {
 
       {/* Visibility trend chart */}
       {trend.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <div className="bg-surface rounded-xl border border-divider-light shadow-sm p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-800">AI Visibility Trend</h3>
-            <span className="text-xs text-gray-400">{trend.length} scans</span>
+            <h3 className="text-sm font-semibold text-ink">AI Visibility Trend</h3>
+            <span className="text-xs text-ink-3">{trend.length} scans</span>
           </div>
           <div className="flex items-end gap-2 h-32">
             {trend.map((t, i) => {
@@ -978,29 +989,29 @@ function MonitorTab({ project }: { project: ManagedProject }) {
               const isLast = i === trend.length - 1
               return (
                 <div key={t.run_id} className="flex-1 flex flex-col items-center gap-1 group">
-                  <span className={`text-[10px] font-bold ${isLast ? 'text-red-600' : 'text-gray-400'}`}>
+                  <span className={`text-[10px] font-bold ${isLast ? 'text-ink' : 'text-ink-3'}`}>
                     {t.visibility_rate.toFixed(0)}%
                   </span>
                   <div className="w-full relative">
                     <div
-                      className={`w-full rounded-t-sm transition-all ${isLast ? 'bg-red-500' : 'bg-red-200 group-hover:bg-red-300'}`}
+                      className={`w-full rounded-t-sm transition-all ${isLast ? 'bg-ink' : 'bg-surface-muted group-hover:bg-ink/30'}`}
                       style={{ height: `${Math.max(4, pct * 0.7)}px` }}
                     />
                   </div>
-                  <span className="text-[9px] text-gray-400 rotate-[-45deg] origin-top-left translate-y-3 whitespace-nowrap">
+                  <span className="text-[9px] text-ink-3 rotate-[-45deg] origin-top-left translate-y-3 whitespace-nowrap">
                     {t.date.slice(5)}
                   </span>
                 </div>
               )
             })}
           </div>
-          <div className="mt-5 flex items-center gap-4 text-xs text-gray-500">
+          <div className="mt-5 flex items-center gap-4 text-xs text-ink-3">
             <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-sm bg-red-500 inline-block" />
+              <span className="w-2.5 h-2.5 rounded-sm bg-ink inline-block" />
               Latest
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-sm bg-red-200 inline-block" />
+              <span className="w-2.5 h-2.5 rounded-sm bg-surface-muted inline-block" />
               Previous scans
             </span>
           </div>
@@ -1009,32 +1020,32 @@ function MonitorTab({ project }: { project: ManagedProject }) {
 
       {/* Per-prompt visibility table */}
       {promptVis.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">
+        <div className="bg-surface rounded-xl border border-divider-light shadow-sm p-5">
+          <h3 className="text-sm font-semibold text-ink mb-3">
             Prompt Visibility Breakdown
-            <span className="ml-2 text-xs font-normal text-gray-400">sorted by visibility (low → high)</span>
+            <span className="ml-2 text-xs font-normal text-ink-3">sorted by visibility (low → high)</span>
           </h3>
           <div className="space-y-2">
             {promptVis.map(p => {
               const vis = p.visibility_rate
-              const barColor = vis >= 30 ? 'bg-green-400' : vis >= 15 ? 'bg-yellow-400' : 'bg-red-400'
-              const textColor = vis >= 30 ? 'text-green-600' : vis >= 15 ? 'text-yellow-600' : 'text-red-500'
+              const barColor = vis >= 30 ? 'bg-sage' : vis >= 15 ? 'bg-caution' : 'bg-red-soft'
+              const textColor = vis >= 30 ? 'text-sage' : vis >= 15 ? 'text-caution' : 'text-red-soft'
               return (
                 <div key={p.prompt_id} className="flex items-center gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-gray-700 truncate">{p.prompt_text}</p>
+                    <p className="text-xs text-ink-2 truncate">{p.prompt_text}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className={`text-[10px] font-medium ${TIER_COLORS[p.tier] || 'text-gray-500'}`}>
+                      <span className={`text-[10px] font-medium ${TIER_COLORS[p.tier] || 'text-ink-3'}`}>
                         {p.tier}
                       </span>
                       {p.intent_type && (
-                        <span className="text-[10px] text-gray-400">{p.intent_type.replace('_', ' ')}</span>
+                        <span className="text-[10px] text-ink-3">{p.intent_type.replace('_', ' ')}</span>
                       )}
-                      <span className="text-[10px] text-gray-400">{p.runs_count} runs</span>
+                      <span className="text-[10px] text-ink-3">{p.runs_count} runs</span>
                     </div>
                   </div>
                   <div className="w-24 flex-shrink-0">
-                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-0.5">
+                    <div className="h-1.5 bg-surface-muted rounded-full overflow-hidden mb-0.5">
                       <div className={`h-full rounded-full ${barColor}`} style={{ width: `${vis}%` }} />
                     </div>
                     <span className={`text-[10px] font-bold ${textColor}`}>{vis.toFixed(0)}%</span>
@@ -1044,9 +1055,9 @@ function MonitorTab({ project }: { project: ManagedProject }) {
             })}
           </div>
           {promptVis.filter(p => p.visibility_rate === 0).length > 0 && (
-            <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-100">
-              <p className="text-xs text-red-700 font-medium">
-                ⚠ {promptVis.filter(p => p.visibility_rate === 0).length} prompts with 0% visibility — consider replacing them
+            <div className="mt-4 p-3 bg-caution-bg rounded-lg border border-caution/20">
+              <p className="text-xs text-caution font-medium">
+                {promptVis.filter(p => p.visibility_rate === 0).length} prompts with 0% visibility — consider replacing them
               </p>
             </div>
           )}
@@ -1055,30 +1066,30 @@ function MonitorTab({ project }: { project: ManagedProject }) {
 
       {/* Scan history */}
       {loading ? (
-        <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 text-red-400 animate-spin" /></div>
+        <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 text-ink animate-spin" /></div>
       ) : scanRuns.length === 0 ? (
-        <div className="text-center py-10 bg-white rounded-xl border border-gray-100">
-          <Zap className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-          <p className="text-gray-400 text-sm">No scans yet. Run your first AI Visibility scan above.</p>
+        <div className="text-center py-10 bg-surface rounded-xl border border-divider-light">
+          <Zap className="w-8 h-8 text-ink-3 mx-auto mb-2" />
+          <p className="text-ink-3 text-sm">No scans yet. Run your first AI Visibility scan above.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-          <div className="px-5 py-4 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-800">Scan History</h3>
+        <div className="bg-surface rounded-xl border border-divider-light shadow-sm">
+          <div className="px-5 py-4 border-b border-divider-light">
+            <h3 className="text-sm font-semibold text-ink">Scan History</h3>
           </div>
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-divider-light">
             {scanRuns.map(run => {
               const isSelected = selectedRun === run.id
               const statusCfg = {
-                completed: { color: 'text-green-600 bg-green-50', label: 'Done' },
-                running:   { color: 'text-yellow-600 bg-yellow-50', label: 'Running' },
-                failed:    { color: 'text-red-600 bg-red-50', label: 'Failed' },
-              }[run.status] || { color: 'text-gray-500 bg-gray-100', label: run.status }
+                completed: { color: 'text-sage bg-sage-bg', label: 'Done' },
+                running:   { color: 'text-caution bg-caution-bg', label: 'Running' },
+                failed:    { color: 'text-red-soft bg-red-soft-bg', label: 'Failed' },
+              }[run.status] || { color: 'text-ink-3 bg-surface-muted', label: run.status }
 
               return (
                 <div key={run.id}>
                   <div
-                    className="px-5 py-3 flex items-center gap-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="px-5 py-3 flex items-center gap-4 hover:bg-surface-warm cursor-pointer transition-colors"
                     onClick={() => handleViewResults(run.id)}
                   >
                     <div className="flex-1 min-w-0">
@@ -1086,63 +1097,63 @@ function MonitorTab({ project }: { project: ManagedProject }) {
                         <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${statusCfg.color}`}>
                           {statusCfg.label}
                         </span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-ink-3">
                           {new Date(run.started_at).toLocaleString()}
                         </span>
-                        <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+                        <span className="text-[10px] text-ink-3 bg-surface-muted px-1.5 py-0.5 rounded">
                           {run.triggered_by}
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-gray-600 flex-shrink-0">
-                      <span className="font-bold text-red-600">{run.visibility_rate.toFixed(1)}%</span>
-                      <span className="text-gray-400">{run.mentioned_count}/{run.prompts_total} prompts</span>
-                      <span className="text-gray-400">{run.credits_cost}cr</span>
-                      <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform ${isSelected ? 'rotate-180' : ''}`} />
+                    <div className="flex items-center gap-4 text-xs text-ink-2 flex-shrink-0">
+                      <span className="font-bold text-ink">{run.visibility_rate.toFixed(1)}%</span>
+                      <span className="text-ink-3">{run.mentioned_count}/{run.prompts_total} prompts</span>
+                      <span className="text-ink-3">{run.credits_cost}cr</span>
+                      <ChevronDown className={`w-3.5 h-3.5 text-ink-3 transition-transform ${isSelected ? 'rotate-180' : ''}`} />
                     </div>
                   </div>
 
                   {/* Expanded results */}
                   {isSelected && (
-                    <div className="bg-gray-50 border-t border-gray-100 px-5 py-3">
+                    <div className="bg-surface-warm border-t border-divider-light px-5 py-3">
                       {loadingResults ? (
-                        <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 text-red-400 animate-spin" /></div>
+                        <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 text-ink animate-spin" /></div>
                       ) : runResults.length === 0 ? (
-                        <p className="text-xs text-gray-400 py-2">No results found.</p>
+                        <p className="text-xs text-ink-3 py-2">No results found.</p>
                       ) : (
                         <div className="space-y-2 max-h-80 overflow-y-auto">
                           {runResults.map(r => (
-                            <div key={r.id} className={`flex items-start gap-3 p-2.5 rounded-lg ${r.brand_mentioned ? 'bg-green-50 border border-green-100' : 'bg-white border border-gray-100'}`}>
+                            <div key={r.id} className={`flex items-start gap-3 p-2.5 rounded-lg ${r.brand_mentioned ? 'bg-sage-bg border border-sage/20' : 'bg-surface border border-divider-light'}`}>
                               <div className="flex-shrink-0 mt-0.5">
                                 {r.brand_mentioned
-                                  ? <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-                                  : <XCircle className="w-3.5 h-3.5 text-gray-300" />
+                                  ? <CheckCircle className="w-3.5 h-3.5 text-sage" />
+                                  : <XCircle className="w-3.5 h-3.5 text-ink-3" />
                                 }
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-xs text-gray-700 font-medium truncate">{r.prompt_text}</p>
+                                <p className="text-xs text-ink font-medium truncate">{r.prompt_text}</p>
                                 {r.brand_mentioned && r.response_excerpt && (
-                                  <p className="text-[11px] text-gray-500 mt-1 italic line-clamp-2">
+                                  <p className="text-[11px] text-ink-3 mt-1 italic line-clamp-2">
                                     &ldquo;{r.response_excerpt}&rdquo;
                                   </p>
                                 )}
                                 <div className="flex items-center gap-2 mt-1">
                                   {r.mention_type && r.mention_type !== 'not_mentioned' && (
-                                    <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
+                                    <span className="text-[10px] bg-sage-bg text-sage px-1.5 py-0.5 rounded">
                                       {r.mention_type.replace('_', ' ')}
                                     </span>
                                   )}
                                   {r.sentiment && (
                                     <span className={`text-[10px] px-1.5 py-0.5 rounded ${
-                                      r.sentiment === 'positive' ? 'bg-green-100 text-green-700'
-                                      : r.sentiment === 'negative' ? 'bg-red-100 text-red-700'
-                                      : 'bg-gray-100 text-gray-600'
+                                      r.sentiment === 'positive' ? 'bg-sage-bg text-sage'
+                                      : r.sentiment === 'negative' ? 'bg-red-soft-bg text-red-soft'
+                                      : 'bg-surface-muted text-ink-2'
                                     }`}>
                                       {r.sentiment}
                                     </span>
                                   )}
                                   {r.cited_urls?.length > 0 && (
-                                    <span className="text-[10px] text-blue-500">
+                                    <span className="text-[10px] text-ink-2">
                                       {r.cited_urls.length} URL cited
                                     </span>
                                   )}
@@ -1196,50 +1207,50 @@ function AddGateModal({ projectId, onClose, onAdded }: {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-900">Record Stage Gate</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+      <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between p-6 border-b border-divider-light">
+          <h2 className="text-lg font-semibold text-ink">Record Stage Gate</h2>
+          <button onClick={onClose} className="text-ink-3 hover:text-ink-2 text-xl">&times;</button>
         </div>
         <div className="p-6 space-y-4">
           <div>
-            <label className="text-xs text-gray-500 block mb-1">Gate Week</label>
+            <label className="text-xs text-ink-3 block mb-1">Gate Week</label>
             <select
               value={form.week}
               onChange={e => setForm(f => ({ ...f, week: Number(e.target.value) }))}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none"
+              className="w-full border border-divider rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
             >
               {[4, 8, 12, 16, 24].map(w => <option key={w} value={w}>Week {w}</option>)}
             </select>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-gray-500 block mb-1">Actual Visibility %</label>
+              <label className="text-xs text-ink-3 block mb-1">Actual Visibility %</label>
               <input
                 type="number" min={0} max={100}
                 value={form.visibility_rate}
                 onChange={e => setForm(f => ({ ...f, visibility_rate: e.target.value }))}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none"
+                className="w-full border border-divider rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
                 placeholder="e.g. 25"
               />
             </div>
             <div>
-              <label className="text-xs text-gray-500 block mb-1">Target %</label>
+              <label className="text-xs text-ink-3 block mb-1">Target %</label>
               <input
                 type="number" min={0} max={100}
                 value={form.target_rate}
                 onChange={e => setForm(f => ({ ...f, target_rate: e.target.value }))}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none"
+                className="w-full border border-divider rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
                 placeholder="e.g. 30"
               />
             </div>
           </div>
           <div>
-            <label className="text-xs text-gray-500 block mb-1">Decision</label>
+            <label className="text-xs text-ink-3 block mb-1">Decision</label>
             <select
               value={form.decision}
               onChange={e => setForm(f => ({ ...f, decision: e.target.value as StageGateDecision | '' }))}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none"
+              className="w-full border border-divider rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
             >
               <option value="">— Select —</option>
               <option value="continue">✅ Continue</option>
@@ -1249,22 +1260,22 @@ function AddGateModal({ projectId, onClose, onAdded }: {
             </select>
           </div>
           <div>
-            <label className="text-xs text-gray-500 block mb-1">Notes</label>
+            <label className="text-xs text-ink-3 block mb-1">Notes</label>
             <textarea
               value={form.notes}
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               rows={3}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none"
+              className="w-full border border-divider rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
               placeholder="Key observations, root causes, action plan..."
             />
           </div>
         </div>
         <div className="flex gap-3 px-6 pb-6">
-          <button onClick={onClose} className="flex-1 py-2 border border-gray-200 rounded-lg text-sm text-gray-600">Cancel</button>
+          <button onClick={onClose} className="flex-1 py-2 border border-divider rounded-lg text-sm text-ink-2">Cancel</button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex-1 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 py-2 bg-ink text-ink-inv rounded-lg text-sm font-medium hover:bg-[#2d2d2c] disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
             Record Gate
@@ -1310,27 +1321,27 @@ export default function ProjectDetailPage({ projectId: projectIdProp }: { projec
 
   if (role && role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Admin access required</p>
+      <div className="min-h-screen bg-canvas flex items-center justify-center">
+        <p className="text-ink-3">Admin access required</p>
       </div>
     )
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-red-400 animate-spin" />
+      <div className="min-h-screen bg-canvas flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-ink animate-spin" />
       </div>
     )
   }
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-canvas flex items-center justify-center">
         <div className="text-center">
-          <AlertCircle className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-          <p className="text-gray-500">Project not found</p>
-          <button onClick={() => router.push('/dashboard/ops')} className="mt-3 text-red-500 text-sm hover:underline">
+          <AlertCircle className="w-10 h-10 text-ink-3 mx-auto mb-2" />
+          <p className="text-ink-3">Project not found</p>
+          <button onClick={() => router.push('/dashboard/ops')} className="mt-3 text-ink-2 text-sm hover:underline">
             ← Back to Managed Service
           </button>
           
@@ -1347,32 +1358,32 @@ export default function ProjectDetailPage({ projectId: projectIdProp }: { projec
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-canvas">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
+      <div className="bg-surface border-b border-divider-light sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex items-center gap-3 py-4">
             <button
               onClick={() => router.push('/dashboard/ops')}
-              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-surface-muted text-ink-3 hover:text-ink-2 transition-colors"
               aria-label="Back to Managed Service"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2.5 flex-1 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
-                <Briefcase className="w-4 h-4 text-red-500" />
+              <div className="w-8 h-8 rounded-lg bg-surface-muted flex items-center justify-center flex-shrink-0">
+                <Briefcase className="w-4 h-4 text-ink-2" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-[15px] font-bold text-gray-900 truncate">{project.client_name}</h1>
+                <h1 className="text-[15px] font-bold text-ink truncate">{project.client_name}</h1>
                 {project.client_domain && (
-                  <p className="text-xs text-gray-400">{project.client_domain}</p>
+                  <p className="text-xs text-ink-3">{project.client_domain}</p>
                 )}
               </div>
             </div>
             <button
               onClick={load}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+              className="p-2 text-ink-3 hover:text-ink-2 hover:bg-surface-muted rounded-lg"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
@@ -1388,8 +1399,8 @@ export default function ProjectDetailPage({ projectId: projectIdProp }: { projec
                   onClick={() => setTab(t.id)}
                   className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                     tab === t.id
-                      ? 'border-red-500 text-red-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                      ? 'border-ink text-ink'
+                      : 'border-transparent text-ink-3 hover:text-ink-2'
                   }`}
                 >
                   <Icon className="w-4 h-4" />

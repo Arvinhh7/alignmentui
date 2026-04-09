@@ -298,36 +298,36 @@ function LoginPageInner() {
   // ─── Check Inbox View ──────────────────────────────────────────────────────
   if (checkInboxMode) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white px-6">
+      <div className="min-h-screen flex items-center justify-center bg-canvas px-6">
         <div className="w-full max-w-[400px] text-center">
           <Link href="/" className="inline-block mb-8 hover:opacity-80 transition-opacity">
             <Image src="/logo.svg" alt="Alignment AI" width={140} height={47} className="object-contain mx-auto" priority />
           </Link>
 
-          <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg">
-            <MailCheck className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-ink flex items-center justify-center shadow-lg">
+            <MailCheck className="w-8 h-8 text-ink-inv" />
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Check your inbox</h1>
-          <p className="text-gray-500 text-sm leading-relaxed mb-1">
+          <h1 className="text-2xl font-bold text-ink mb-2">Check your inbox</h1>
+          <p className="text-ink-3 text-sm leading-relaxed mb-1">
             We sent a confirmation link to:
           </p>
-          <p className="text-gray-900 font-semibold text-sm mb-6 break-all">{checkInboxEmail}</p>
+          <p className="text-ink font-semibold text-sm mb-6 break-all">{checkInboxEmail}</p>
 
-          <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 mb-6 text-left">
-            <p className="text-amber-800 text-xs leading-relaxed">
+          <div className="bg-caution-bg border border-caution-bg rounded-xl p-4 mb-6 text-left">
+            <p className="text-caution text-xs leading-relaxed">
               <strong>Next step:</strong> Click the link in your email to verify your account. After verification, you&apos;ll be redirected to sign in and choose your plan.
             </p>
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-xl flex items-start gap-2 text-red-600">
+            <div className="mb-4 p-3 bg-red-soft-bg border border-red-soft-bg rounded-xl flex items-start gap-2 text-red-soft">
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
               <p className="text-sm">{error}</p>
             </div>
           )}
           {successMessage && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-100 rounded-xl flex items-start gap-2 text-green-700">
+            <div className="mb-4 p-3 bg-sage-bg border border-sage-bg rounded-xl flex items-start gap-2 text-sage">
               <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
               <p className="text-sm">{successMessage}</p>
             </div>
@@ -336,7 +336,7 @@ function LoginPageInner() {
           <button
             onClick={handleResendVerification}
             disabled={resendLoading || resendCooldown > 0}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed mb-3">
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 border border-divider rounded-xl text-sm text-ink-2 hover:bg-surface-warm hover:border-divider transition-all disabled:opacity-50 disabled:cursor-not-allowed mb-3">
             {resendLoading
               ? <Loader2 className="w-4 h-4 animate-spin" />
               : <RefreshCw className="w-4 h-4" />}
@@ -345,7 +345,7 @@ function LoginPageInner() {
 
           <button
             onClick={() => { setCheckInboxMode(false); setEmail(checkInboxEmail); setIsSignUp(false); setShowEmailForm(true); setError(null); setSuccessMessage(null) }}
-            className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+            className="text-xs text-ink-3 hover:text-ink-2 transition-colors">
             Wrong email? Go back
           </button>
         </div>
@@ -355,27 +355,23 @@ function LoginPageInner() {
 
   // ─── Main Login / Sign Up View ─────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-canvas">
 
       {/* ════ Left Branding ════ */}
-      <div className="hidden lg:flex lg:w-[480px] xl:w-[520px] relative flex-col justify-between p-10 overflow-hidden">
-        <div className="absolute inset-0 bg-stripe-gradient" />
-        <div className="absolute inset-0 bg-grid opacity-40" />
-        <div className="absolute top-0 left-0 w-[500px] h-[400px] bg-red-500/[0.08] rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-[400px] h-[300px] bg-orange-500/[0.06] rounded-full blur-[80px] pointer-events-none" />
+      <div className="hidden lg:flex lg:w-[480px] xl:w-[520px] relative flex-col justify-between p-10 overflow-hidden bg-ink text-ink-inv">
 
         <div className="relative z-10">
           <Link href="/" className="inline-block hover:opacity-80 transition-opacity">
-            <Image src="/logo.svg" alt="Alignment AI" width={160} height={53} className="object-contain" priority />
+            <Image src="/logo-white.svg" alt="Alignment AI" width={160} height={53} className="object-contain" priority />
           </Link>
         </div>
 
         <div className="relative z-10 -mt-10">
-          <h2 className="text-3xl font-bold text-gray-900 leading-tight mb-4">
+          <h2 className="text-3xl font-bold text-ink-inv leading-tight mb-4">
             Build your brand&apos;s<br />
-            <span className="bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">AI visibility moat.</span>
+            AI visibility moat.
           </h2>
-          <p className="text-gray-500 leading-relaxed mb-6">
+          <p className="text-ink-inv/70 leading-relaxed mb-6">
             The complete GEO platform — from diagnosis to monitoring.
             Optimize how AI platforms see, cite, and recommend your brand.
           </p>
@@ -387,9 +383,9 @@ function LoginPageInner() {
               { value: '20+', label: 'AI Channels' },
               { value: '100M+', label: 'Source Index' },
             ].map((stat, i) => (
-              <div key={i} className="bg-white/70 backdrop-blur-sm border border-gray-200/60 rounded-xl p-4 text-center shadow-sm">
-                <div className="text-2xl font-bold font-mono text-gray-900">{stat.value}</div>
-                <div className="text-[11px] text-gray-500 mt-1">{stat.label}</div>
+              <div key={i} className="bg-surface-muted/10 border border-divider-light/20 rounded-xl p-4 text-center">
+                <div className="text-2xl font-bold font-mono text-ink-inv">{stat.value}</div>
+                <div className="text-[11px] text-ink-inv/60 mt-1">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -397,15 +393,15 @@ function LoginPageInner() {
           {/* Testimonials */}
           <div className="space-y-3">
             {TESTIMONIALS.map((t, i) => (
-              <div key={i} className="bg-white/60 backdrop-blur-sm border border-gray-200/60 rounded-xl p-4 shadow-sm">
-                <p className="text-sm text-gray-700 leading-relaxed mb-2">&ldquo;{t.quote}&rdquo;</p>
+              <div key={i} className="bg-surface-muted/10 border border-divider-light/20 rounded-xl p-4">
+                <p className="text-sm text-ink-inv/80 leading-relaxed mb-2">&ldquo;{t.quote}&rdquo;</p>
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-red-400 to-orange-400 flex items-center justify-center text-white text-[10px] font-bold">
+                  <div className="w-6 h-6 rounded-full bg-surface-muted flex items-center justify-center text-ink text-[10px] font-bold">
                     {t.author[0]}
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-gray-800">{t.author}</p>
-                    <p className="text-[10px] text-gray-400">{t.role}</p>
+                    <p className="text-xs font-semibold text-ink-inv">{t.author}</p>
+                    <p className="text-[10px] text-ink-inv/50">{t.role}</p>
                   </div>
                 </div>
               </div>
@@ -413,14 +409,14 @@ function LoginPageInner() {
           </div>
         </div>
 
-        <div className="relative z-10 flex items-center gap-3 text-gray-400 text-xs">
-          <ShieldCheck className="w-4 h-4 text-green-500/70" />
+        <div className="relative z-10 flex items-center gap-3 text-ink-inv/50 text-xs">
+          <ShieldCheck className="w-4 h-4 text-ink-inv/50" />
           <span>SOC 2 Compliant · 256-bit Encryption · GDPR Ready</span>
         </div>
       </div>
 
       {/* ════ Right Form ════ */}
-      <div className="flex-1 flex flex-col bg-white min-h-screen">
+      <div className="flex-1 flex flex-col bg-canvas min-h-screen">
         <div className="flex items-center justify-between px-6 py-4 sm:px-10">
           <Link href="/" className="lg:hidden hover:opacity-80 transition-opacity">
             <Image src="/logo.svg" alt="Alignment AI" width={120} height={40} className="object-contain" priority />
@@ -434,12 +430,12 @@ function LoginPageInner() {
 
             {/* Title */}
             <div className="mb-8">
-              <h1 className="text-2xl font-bold text-gray-900 mb-1.5">
+              <h1 className="text-2xl font-bold text-ink mb-1.5">
                 {isForgotPassword ? 'Reset your password'
                   : isSignUp ? 'Create your account'
                   : t.login.welcome}
               </h1>
-              <p className="text-gray-500 text-sm">
+              <p className="text-ink-3 text-sm">
                 {isForgotPassword ? "Enter your email and we'll send you a reset link"
                   : fromROI ? 'Sign up for free to unlock your ROI results'
                   : isSignUp ? 'Start your 14-day free trial — no credit card required'
@@ -449,48 +445,48 @@ function LoginPageInner() {
 
             {/* Email verified success banner */}
             {verifiedParam && !error && (
-              <div className="mb-5 p-3 bg-green-50 border border-green-100 rounded-xl flex items-start gap-2.5 text-green-700">
+              <div className="mb-5 p-3 bg-sage-bg border border-sage-bg rounded-xl flex items-start gap-2.5 text-sage">
                 <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium">Email verified!</p>
-                  <p className="text-xs text-green-600 mt-0.5">Sign in below to choose your plan and get started.</p>
+                  <p className="text-xs text-sage mt-0.5">Sign in below to choose your plan and get started.</p>
                 </div>
               </div>
             )}
 
             {fromROI && !isForgotPassword && (
-              <div className="mb-6 flex items-center gap-3 px-4 py-3 bg-red-50 border border-red-100 rounded-xl">
-                <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="mb-6 flex items-center gap-3 px-4 py-3 bg-surface-warm border border-divider-light rounded-xl">
+                <div className="flex-shrink-0 w-8 h-8 bg-ink rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-ink-inv" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <p className="text-sm text-red-700">Your ROI calculation is ready! Create a free account to see your results.</p>
+                <p className="text-sm text-ink-2">Your ROI calculation is ready! Create a free account to see your results.</p>
               </div>
             )}
 
             {error && (
-              <div className="mb-5 p-3 bg-red-50 border border-red-100 rounded-xl flex items-start gap-2.5 text-red-600">
+              <div className="mb-5 p-3 bg-red-soft-bg border border-red-soft-bg rounded-xl flex items-start gap-2.5 text-red-soft">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <p className="text-sm leading-snug">{error}</p>
               </div>
             )}
             {successMessage && !verifiedParam && (
-              <div className="mb-5 p-3 bg-green-50 border border-green-100 rounded-xl flex items-start gap-2.5 text-green-700">
+              <div className="mb-5 p-3 bg-sage-bg border border-sage-bg rounded-xl flex items-start gap-2.5 text-sage">
                 <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <p className="text-sm leading-snug">{successMessage}</p>
               </div>
             )}
             {alreadyRegisteredMsg && (
-              <div className="mb-5 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2.5 text-amber-800">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-500" />
+              <div className="mb-5 p-3 bg-caution-bg border border-caution-bg rounded-xl flex items-start gap-2.5 text-caution">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-caution" />
                 <div className="text-sm leading-snug">
                   <p className="font-medium mb-0.5">This email is already registered.</p>
                   <p>
                     Sign in below, or{' '}
                     <button
                       type="button"
-                      className="underline font-medium hover:text-amber-900 transition-colors"
+                      className="underline font-medium hover:text-ink transition-colors"
                       onClick={() => { setIsForgotPassword(true); setAlreadyRegisteredMsg(false); setError(null) }}
                     >
                       reset your password
@@ -506,16 +502,16 @@ function LoginPageInner() {
               <div className="space-y-4">
                 <form onSubmit={handleForgotPassword} className="space-y-4">
                   <div>
-                    <label htmlFor="resetEmail" className="block text-xs font-medium text-gray-600 mb-1.5">{t.login.email}</label>
+                    <label htmlFor="resetEmail" className="block text-xs font-medium text-ink-2 mb-1.5">{t.login.email}</label>
                     <div className="relative">
-                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
                       <input id="resetEmail" type="email" value={email} required
                         onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com"
-                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-400 focus:bg-white transition-all outline-none" />
+                        className="w-full pl-10 pr-4 border border-divider rounded-xl bg-surface px-4 py-3 text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink transition-colors" />
                     </div>
                   </div>
                   <button type="submit" disabled={isSubmitting}
-                    className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-2.5 px-4 rounded-xl transition-all text-sm flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md">
+                    className="w-full bg-ink hover:bg-[#2d2d2c] text-ink-inv font-medium py-2.5 px-4 rounded-xl transition-all text-sm flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md">
                     {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Send Reset Link'}
                   </button>
                 </form>
@@ -525,7 +521,7 @@ function LoginPageInner() {
                     type="button"
                     onClick={handleResendReset}
                     disabled={resetResendLoading || resetCooldown > 0}
-                    className="w-full py-2 text-xs text-gray-500 hover:text-gray-700 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5"
+                    className="w-full py-2 text-xs text-ink-3 hover:text-ink-2 disabled:text-ink-3 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5"
                   >
                     {resetResendLoading ? (
                       <><Loader2 className="w-3 h-3 animate-spin" /> Resending…</>
@@ -538,7 +534,7 @@ function LoginPageInner() {
                 ) : null}
                 <button type="button"
                   onClick={() => { setIsForgotPassword(false); setError(null); setSuccessMessage(null); setResetCooldown(0) }}
-                  className="w-full text-center text-xs text-gray-500 hover:text-gray-700 transition-colors">
+                  className="w-full text-center text-xs text-ink-3 hover:text-ink-2 transition-colors">
                   ← Back to Sign In
                 </button>
               </div>
@@ -547,9 +543,9 @@ function LoginPageInner() {
                 {/* ── OAuth ── */}
                 <div className="space-y-3 mb-6">
                   <button type="button" onClick={() => handleOAuth('google')} disabled={anyLoading}
-                    className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 text-gray-700 font-medium py-3 px-4 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.99] group disabled:opacity-50">
+                    className="w-full flex items-center justify-center gap-3 bg-surface hover:bg-surface-warm border border-divider hover:border-ink text-ink font-medium py-3 px-4 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.99] group disabled:opacity-50">
                     {oauthLoading === 'google'
-                      ? <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                      ? <Loader2 className="w-5 h-5 animate-spin text-ink-3" />
                       : <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
                           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                           <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -557,13 +553,13 @@ function LoginPageInner() {
                           <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                         </svg>}
                     <span className="text-sm">Continue with Google</span>
-                    <ArrowRight className="w-4 h-4 text-gray-400 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all ml-auto" />
+                    <ArrowRight className="w-4 h-4 text-ink-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all ml-auto" />
                   </button>
 
                   <button type="button" onClick={() => handleOAuth('azure')} disabled={anyLoading}
-                    className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 text-gray-700 font-medium py-3 px-4 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.99] group disabled:opacity-50">
+                    className="w-full flex items-center justify-center gap-3 bg-surface hover:bg-surface-warm border border-divider hover:border-ink text-ink font-medium py-3 px-4 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.99] group disabled:opacity-50">
                     {oauthLoading === 'azure'
-                      ? <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                      ? <Loader2 className="w-5 h-5 animate-spin text-ink-3" />
                       : <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
                           <rect x="1" y="1" width="10" height="10" fill="#F25022" />
                           <rect x="13" y="1" width="10" height="10" fill="#7FBA00" />
@@ -571,16 +567,16 @@ function LoginPageInner() {
                           <rect x="13" y="13" width="10" height="10" fill="#FFB900" />
                         </svg>}
                     <span className="text-sm">Continue with Microsoft</span>
-                    <ArrowRight className="w-4 h-4 text-gray-400 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all ml-auto" />
+                    <ArrowRight className="w-4 h-4 text-ink-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all ml-auto" />
                   </button>
                 </div>
 
                 {/* Divider */}
                 <div className="relative my-6">
-                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200" /></div>
+                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-divider-light" /></div>
                   <div className="relative flex justify-center">
                     <button type="button" onClick={() => setShowEmailForm(!showEmailForm)}
-                      className="px-4 py-1 bg-white text-gray-400 text-xs font-medium hover:text-gray-600 transition-colors flex items-center gap-1.5">
+                      className="px-4 py-1 bg-canvas text-ink-3 text-xs font-medium hover:text-ink-2 transition-colors flex items-center gap-1.5">
                       {t.login.orContinue} email
                       <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showEmailForm ? 'rotate-180' : ''}`} />
                     </button>
@@ -593,46 +589,46 @@ function LoginPageInner() {
                     {isSignUp && (
                       <>
                         <div>
-                          <label htmlFor="fullName" className="block text-xs font-medium text-gray-600 mb-1.5">Full Name</label>
+                          <label htmlFor="fullName" className="block text-xs font-medium text-ink-2 mb-1.5">Full Name</label>
                           <div className="relative">
-                            <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
                             <input id="fullName" type="text" value={fullName} required
                               onChange={(e) => setFullName(e.target.value)} placeholder="Your full name"
-                              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-400 focus:bg-white transition-all outline-none" />
+                              className="w-full pl-10 pr-4 border border-divider rounded-xl bg-surface py-3 text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink transition-colors" />
                           </div>
                         </div>
                         <div>
-                          <label htmlFor="company" className="block text-xs font-medium text-gray-600 mb-1.5">Company Name</label>
+                          <label htmlFor="company" className="block text-xs font-medium text-ink-2 mb-1.5">Company Name</label>
                           <div className="relative">
-                            <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
                             <input id="company" type="text" value={companyName} required
                               onChange={(e) => setCompanyName(e.target.value)} placeholder="Your company"
-                              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-400 focus:bg-white transition-all outline-none" />
+                              className="w-full pl-10 pr-4 border border-divider rounded-xl bg-surface py-3 text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink transition-colors" />
                           </div>
                         </div>
                       </>
                     )}
 
                     <div>
-                      <label htmlFor="email" className="block text-xs font-medium text-gray-600 mb-1.5">{t.login.email}</label>
+                      <label htmlFor="email" className="block text-xs font-medium text-ink-2 mb-1.5">{t.login.email}</label>
                       <div className="relative">
-                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
                         <input id="email" type="email" value={email} required
                           onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com"
-                          className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-400 focus:bg-white transition-all outline-none" />
+                          className="w-full pl-10 pr-4 border border-divider rounded-xl bg-surface py-3 text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink transition-colors" />
                       </div>
                     </div>
 
                     <div>
-                      <label htmlFor="password" className="block text-xs font-medium text-gray-600 mb-1.5">{t.login.password}</label>
+                      <label htmlFor="password" className="block text-xs font-medium text-ink-2 mb-1.5">{t.login.password}</label>
                       <div className="relative">
-                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
                         <input id="password" type={showPassword ? 'text' : 'password'}
                           value={password} required minLength={6}
                           onChange={(e) => setPassword(e.target.value)} placeholder="••••••••"
-                          className="w-full pl-10 pr-11 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-400 focus:bg-white transition-all outline-none" />
+                          className="w-full pl-10 pr-11 border border-divider rounded-xl bg-surface py-3 text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink transition-colors" />
                         <button type="button" onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-3 hover:text-ink-2 transition-colors">
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
@@ -644,12 +640,12 @@ function LoginPageInner() {
                         <label className="flex items-center cursor-pointer">
                           <input type="checkbox" checked={rememberMe}
                             onChange={(e) => setRememberMe(e.target.checked)}
-                            className="w-3.5 h-3.5 rounded border-gray-300 text-red-500 focus:ring-red-500/30" />
-                          <span className="ml-2 text-xs text-gray-500">{t.login.remember}</span>
+                            className="w-3.5 h-3.5 rounded border-divider text-ink focus:ring-ink/10" />
+                          <span className="ml-2 text-xs text-ink-3">{t.login.remember}</span>
                         </label>
                         <button type="button"
                           onClick={() => { setIsForgotPassword(true); setError(null); setSuccessMessage(null) }}
-                          className="text-xs text-red-500 hover:text-red-600 font-medium transition-colors">
+                          className="text-xs text-ink-2 hover:text-ink font-medium transition-colors">
                           {t.login.forgot}
                         </button>
                       </div>
@@ -662,30 +658,30 @@ function LoginPageInner() {
                           type="checkbox"
                           checked={agreedToTerms}
                           onChange={(e) => setAgreedToTerms(e.target.checked)}
-                          className="mt-0.5 w-3.5 h-3.5 rounded border-gray-300 text-red-500 focus:ring-red-500/30 flex-shrink-0"
+                          className="mt-0.5 w-3.5 h-3.5 rounded border-divider text-ink focus:ring-ink/10 flex-shrink-0"
                         />
-                        <span className="text-xs text-gray-500 leading-relaxed">
+                        <span className="text-xs text-ink-3 leading-relaxed">
                           I agree to the{' '}
-                          <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-red-500 hover:text-red-600 underline">Terms of Service</a>
+                          <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-ink-2 hover:text-ink underline">Terms of Service</a>
                           {' '}and{' '}
-                          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-red-500 hover:text-red-600 underline">Privacy Policy</a>.
+                          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-ink-2 hover:text-ink underline">Privacy Policy</a>.
                           14-day free trial, cancel anytime.
                         </span>
                       </label>
                     )}
 
                     <button type="submit" disabled={anyLoading || (isSignUp && !agreedToTerms)}
-                      className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-2.5 px-4 rounded-xl transition-all text-sm flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md active:scale-[0.99]">
+                      className="w-full bg-ink hover:bg-[#2d2d2c] text-ink-inv font-medium py-2.5 px-4 rounded-xl transition-all text-sm flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md active:scale-[0.99]">
                       {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : isSignUp ? 'Create Account — Free Trial' : t.login.signIn}
                     </button>
                   </form>
                 </div>
 
-                <p className="text-center text-xs text-gray-500 mt-6">
+                <p className="text-center text-xs text-ink-3 mt-6">
                   {isSignUp ? 'Already have an account?' : t.login.noAccount}{' '}
                   <button type="button"
                     onClick={() => { setIsSignUp(!isSignUp); setShowEmailForm(true); setError(null); setSuccessMessage(null); setAlreadyRegisteredMsg(false); setAgreedToTerms(false) }}
-                    className="text-red-500 hover:text-red-600 font-semibold transition-colors">
+                    className="text-ink hover:text-ink font-semibold transition-colors underline">
                     {isSignUp ? 'Sign In' : t.login.signUpFree}
                   </button>
                 </p>
@@ -695,11 +691,11 @@ function LoginPageInner() {
         </div>
 
         <div className="px-6 py-4 sm:px-10 text-center">
-          <p className="text-[11px] text-gray-400 leading-relaxed">
+          <p className="text-[11px] text-ink-3 leading-relaxed">
             By continuing, you agree to our{' '}
-            <a href="/terms" className="underline hover:text-gray-600 transition-colors">Terms of Service</a>
+            <a href="/terms" className="underline hover:text-ink-2 transition-colors">Terms of Service</a>
             {' '}and{' '}
-            <a href="/privacy" className="underline hover:text-gray-600 transition-colors">Privacy Policy</a>.
+            <a href="/privacy" className="underline hover:text-ink-2 transition-colors">Privacy Policy</a>.
           </p>
         </div>
       </div>

@@ -13,21 +13,21 @@ const COMPANY = 'Alignment AI'
 
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen bg-[#fafafa] text-[#0a0a0a]">
+    <main className="min-h-screen bg-canvas text-ink">
       {/* Header */}
-      <div className="border-b border-black/8 bg-white">
+      <div className="border-b border-divider-light bg-surface">
         <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
-          <Link href="/" className="text-sm font-semibold text-[#ef4444] hover:opacity-80 transition-opacity">
+          <Link href="/" className="text-sm font-semibold text-ink hover:text-ink-2 transition-colors">
             ← Alignment AI
           </Link>
-          <span className="text-xs text-[#64748b]">Last updated: {LAST_UPDATED}</span>
+          <span className="text-xs text-ink-3">Last updated: {LAST_UPDATED}</span>
         </div>
       </div>
 
       {/* Content */}
       <article className="max-w-5xl mx-auto px-6 py-12">
         <h1 className="text-3xl font-bold mb-2">Privacy Policy</h1>
-        <p className="text-[#64748b] mb-10">
+        <p className="text-ink-3 mb-10">
           This Privacy Policy describes how <strong>{COMPANY}</strong> (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;) collects,
           uses, and protects information when you use the <strong>{APP_NAME}</strong> Shopify application.
         </p>
@@ -43,13 +43,13 @@ export default function PrivacyPage() {
               <li><strong>Competitive positioning</strong> — your unique value proposition and competitive advantages.</li>
               <li><strong>Imported reviews</strong> — if you use the Review Import feature, we store reviewer names, emails (optional), ratings, review text, and review dates from your uploaded CSV file.</li>
             </ul>
-            <p className="mt-2 text-[#64748b] text-sm">All merchant-provided data is stored as Shopify metafields in your store (namespace: <code className="bg-black/5 px-1 rounded">alignment_geo</code>) and in our secure database.</p>
+            <p className="mt-2 text-ink-3 text-sm">All merchant-provided data is stored as Shopify metafields in your store (namespace: <code className="bg-ink/5 px-1 rounded">alignment_geo</code>) and in our secure database.</p>
           </Subsection>
 
           <Subsection title="1.2 Automatically Collected Data">
             <p>The app automatically collects the following operational data:</p>
             <ul>
-              <li><strong>AI bot visit logs</strong> — when an AI platform (such as GPTBot, ClaudeBot, or PerplexityBot) visits your store&apos;s <code className="bg-black/5 px-1 rounded">llms.txt</code> or <code className="bg-black/5 px-1 rounded">agent.json</code> endpoint, we log: the bot name, user-agent string (truncated to 512 characters), the endpoint accessed, and the timestamp. No visitor personal data is collected.</li>
+              <li><strong>AI bot visit logs</strong> — when an AI platform (such as GPTBot, ClaudeBot, or PerplexityBot) visits your store&apos;s <code className="bg-ink/5 px-1 rounded">llms.txt</code> or <code className="bg-ink/5 px-1 rounded">agent.json</code> endpoint, we log: the bot name, user-agent string (truncated to 512 characters), the endpoint accessed, and the timestamp. No visitor personal data is collected.</li>
               <li><strong>AI referral logs</strong> — when a human visitor arrives at your store from an AI platform (e.g., via a ChatGPT recommendation), our Theme Extension logs: the referring domain, the full referrer URL (truncated to 512 characters), and the landing page URL.</li>
             </ul>
           </Subsection>
@@ -57,7 +57,7 @@ export default function PrivacyPage() {
           <Subsection title="1.3 Shopify Account Data">
             <p>During installation and authentication, Shopify provides us with:</p>
             <ul>
-              <li>Your shop domain (e.g., <code className="bg-black/5 px-1 rounded">yourstore.myshopify.com</code>)</li>
+              <li>Your shop domain (e.g., <code className="bg-ink/5 px-1 rounded">yourstore.myshopify.com</code>)</li>
               <li>Your shop&apos;s public information (store name, URL, email address)</li>
               <li>An access token to make authorized API calls on your behalf</li>
             </ul>
@@ -66,7 +66,7 @@ export default function PrivacyPage() {
 
         <Section title="2. How We Use Your Information">
           <ul>
-            <li><strong>Power app features</strong> — We use merchant-provided data to generate your <code className="bg-black/5 px-1 rounded">llms.txt</code> brand profile, <code className="bg-black/5 px-1 rounded">agent.json</code> discovery file, and structured data (JSON-LD schema markup) that AI platforms read.</li>
+            <li><strong>Power app features</strong> — We use merchant-provided data to generate your <code className="bg-ink/5 px-1 rounded">llms.txt</code> brand profile, <code className="bg-ink/5 px-1 rounded">agent.json</code> discovery file, and structured data (JSON-LD schema markup) that AI platforms read.</li>
             <li><strong>AI Traffic Analytics</strong> — We use bot visit logs and referral logs to display analytics in your dashboard. Data appears once AI bots start visiting your store — new installs show zero data, which is expected and normal.</li>
             <li><strong>App functionality</strong> — Access tokens are used solely to read and write Shopify metafields, manage your store&apos;s theme files (for robots.txt optimization), and read product data on your behalf.</li>
             <li><strong>Service improvement</strong> — Aggregated, anonymized data may be used to improve the app. We never identify individual merchants in aggregate analysis.</li>
@@ -87,7 +87,7 @@ export default function PrivacyPage() {
           <ul>
             <li><strong>Active install</strong> — Data is retained for the duration of your app subscription to power the app&apos;s features.</li>
             <li><strong>On uninstall</strong> — When you uninstall {APP_NAME}, we immediately delete your session tokens, AI visit logs, AI referral logs, and shop configuration data.</li>
-            <li><strong>48-hour purge</strong> — Shopify sends us a <code className="bg-black/5 px-1 rounded">shop/redact</code> webhook 48 hours after uninstall. At that point we permanently delete all remaining data associated with your shop, including any imported reviews.</li>
+            <li><strong>48-hour purge</strong> — Shopify sends us a <code className="bg-ink/5 px-1 rounded">shop/redact</code> webhook 48 hours after uninstall. At that point we permanently delete all remaining data associated with your shop, including any imported reviews.</li>
             <li><strong>Customer data requests</strong> — If one of your customers submits a GDPR data request via Shopify, we respond by identifying any imported reviews associated with their email address.</li>
             <li><strong>Customer data erasure</strong> — If one of your customers requests erasure of their data, we anonymize their name and email in any imported reviews (review text and ratings are retained as aggregate data to preserve review statistics).</li>
           </ul>
@@ -102,11 +102,11 @@ export default function PrivacyPage() {
             <li><strong>Right to portability</strong> — All your brand data is available as JSON within the app.</li>
             <li><strong>Right to object</strong> — You can stop data collection at any time by uninstalling the app.</li>
           </ul>
-          <p className="mt-2">To exercise these rights, contact us at <a href={`mailto:${CONTACT_EMAIL}`} className="text-[#ef4444] hover:underline">{CONTACT_EMAIL}</a>.</p>
+          <p className="mt-2">To exercise these rights, contact us at <a href={`mailto:${CONTACT_EMAIL}`} className="text-ink font-medium hover:underline">{CONTACT_EMAIL}</a>.</p>
         </Section>
 
         <Section title="6. Cookies and Tracking">
-          <p>{APP_NAME} is a Shopify embedded app that runs inside your Shopify admin. We do not use third-party cookies or tracking pixels. The Theme Extension script we inject into your storefront tracks AI referral sessions using the <code className="bg-black/5 px-1 rounded">document.referrer</code> browser API — no cookies are set.</p>
+          <p>{APP_NAME} is a Shopify embedded app that runs inside your Shopify admin. We do not use third-party cookies or tracking pixels. The Theme Extension script we inject into your storefront tracks AI referral sessions using the <code className="bg-ink/5 px-1 rounded">document.referrer</code> browser API — no cookies are set.</p>
         </Section>
 
         <Section title="7. Security">
@@ -129,21 +129,21 @@ export default function PrivacyPage() {
 
         <Section title="10. Contact Us">
           <p>For privacy questions, data requests, or concerns, contact us:</p>
-          <div className="mt-3 bg-white border border-black/8 rounded-xl p-5 text-sm space-y-1">
+          <div className="mt-3 bg-surface border border-divider-light rounded-xl p-5 text-sm space-y-1">
             <p><strong>Alignment AI</strong></p>
-            <p>Email: <a href={`mailto:${CONTACT_EMAIL}`} className="text-[#ef4444] hover:underline">{CONTACT_EMAIL}</a></p>
-            <p>App Support: <a href="https://alignmenttech.ai/help" className="text-[#ef4444] hover:underline">alignmenttech.ai/help</a></p>
+            <p>Email: <a href={`mailto:${CONTACT_EMAIL}`} className="text-ink font-medium hover:underline">{CONTACT_EMAIL}</a></p>
+            <p>App Support: <a href="https://alignmenttech.ai/help" className="text-ink font-medium hover:underline">alignmenttech.ai/help</a></p>
           </div>
         </Section>
       </article>
 
       {/* Footer */}
-      <footer className="border-t border-black/8 bg-white py-6 mt-8">
-        <div className="max-w-5xl mx-auto px-6 flex items-center justify-between text-xs text-[#64748b]">
+      <footer className="border-t border-divider-light bg-surface py-6 mt-8">
+        <div className="max-w-5xl mx-auto px-6 flex items-center justify-between text-xs text-ink-3">
           <span>© 2026 Alignment AI. All rights reserved.</span>
           <div className="flex gap-4">
-            <Link href="/terms" className="hover:text-[#0a0a0a] transition-colors">Terms of Service</Link>
-            <Link href="/help" className="hover:text-[#0a0a0a] transition-colors">Help Center</Link>
+            <Link href="/terms" className="hover:text-ink transition-colors">Terms of Service</Link>
+            <Link href="/help" className="hover:text-ink transition-colors">Help Center</Link>
           </div>
         </div>
       </footer>
@@ -154,8 +154,8 @@ export default function PrivacyPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mb-10">
-      <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-black/8">{title}</h2>
-      <div className="space-y-3 text-[0.93rem] leading-relaxed text-[#1e293b]">{children}</div>
+      <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-divider-light">{title}</h2>
+      <div className="space-y-3 text-[0.93rem] leading-relaxed text-ink">{children}</div>
     </section>
   )
 }
@@ -163,8 +163,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Subsection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-4">
-      <h3 className="text-base font-medium mb-2 text-[#0a0a0a]">{title}</h3>
-      <div className="space-y-2 text-[0.93rem] leading-relaxed text-[#1e293b]">
+      <h3 className="text-base font-medium mb-2 text-ink">{title}</h3>
+      <div className="space-y-2 text-[0.93rem] leading-relaxed text-ink">
         {children}
       </div>
     </div>

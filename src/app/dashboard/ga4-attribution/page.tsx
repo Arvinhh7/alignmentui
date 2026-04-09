@@ -75,24 +75,24 @@ interface OptEvent {
 }
 
 const EVENT_TYPE_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
-  'GEO Audit':        { bg: 'bg-blue-50',    text: 'text-blue-700',    dot: 'bg-blue-400' },
-  'GEO Content':      { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-400' },
-  'GEO Optimization': { bg: 'bg-amber-50',   text: 'text-amber-700',   dot: 'bg-amber-400' },
-  'GEO Distribution': { bg: 'bg-violet-50',  text: 'text-violet-700',  dot: 'bg-violet-400' },
+  'GEO Audit':        { bg: 'bg-surface-warm', text: 'text-ink-2',       dot: 'bg-surface-muted' },
+  'GEO Content':      { bg: 'bg-sage-bg', text: 'text-sage', dot: 'bg-sage' },
+  'GEO Optimization': { bg: 'bg-caution-bg', text: 'text-caution',     dot: 'bg-caution'   },
+  'GEO Distribution': { bg: 'bg-red-soft-bg', text: 'text-red-soft',    dot: 'bg-red-soft'  },
 }
 
 // ── Platform Color Map ────────────────────────────────────────────────────────
 
 const PLATFORM_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
-  ChatGPT:    { bg: 'bg-emerald-50',  text: 'text-emerald-700', dot: 'bg-emerald-500' },
+  ChatGPT:    { bg: 'bg-sage-bg',      text: 'text-sage',        dot: 'bg-sage' },
   Perplexity: { bg: 'bg-violet-50',   text: 'text-violet-700',  dot: 'bg-violet-500' },
-  Gemini:     { bg: 'bg-blue-50',     text: 'text-blue-700',    dot: 'bg-blue-500' },
+  Gemini:     { bg: 'bg-surface-warm', text: 'text-ink-2',       dot: 'bg-surface-muted' },
   Copilot:    { bg: 'bg-sky-50',      text: 'text-sky-700',     dot: 'bg-sky-500' },
-  Grok:       { bg: 'bg-orange-50',   text: 'text-orange-700',  dot: 'bg-orange-500' },
-  Claude:     { bg: 'bg-amber-50',    text: 'text-amber-700',   dot: 'bg-amber-500' },
+  Grok:       { bg: 'bg-caution-bg',  text: 'text-caution',     dot: 'bg-caution'   },
+  Claude:     { bg: 'bg-surface-warm', text: 'text-ink-2',      dot: 'bg-ink-2'     },
 }
 const platformColor = (p: string) =>
-  PLATFORM_COLORS[p] ?? { bg: 'bg-gray-50', text: 'text-gray-700', dot: 'bg-gray-400' }
+  PLATFORM_COLORS[p] ?? { bg: 'bg-canvas', text: 'text-ink-2', dot: 'bg-ink-3' }
 
 // ── Stat Card ─────────────────────────────────────────────────────────────────
 
@@ -101,12 +101,12 @@ function StatCard({ label, value, sub, icon: Icon, iconBg, iconColor }: {
   icon: React.ElementType; iconBg: string; iconColor: string
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
+    <div className="bg-surface rounded-2xl border border-divider-light shadow-sm p-5">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{label}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1.5">{value}</p>
-          {sub && <p className="text-xs text-gray-400 mt-1">{sub}</p>}
+          <p className="text-xs text-ink-3 font-medium uppercase tracking-wider">{label}</p>
+          <p className="text-2xl font-bold text-ink mt-1.5">{value}</p>
+          {sub && <p className="text-xs text-ink-3 mt-1">{sub}</p>}
         </div>
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconBg}`}>
           <Icon className={`w-5 h-5 ${iconColor}`} />
@@ -251,17 +251,17 @@ function ConnectModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-      <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-lg shadow-xl">
-        <div className="p-6 border-b border-gray-100">
+      <div className="bg-surface border border-divider-light rounded-2xl w-full max-w-lg shadow-xl">
+        <div className="p-6 border-b border-divider-light">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
-              <Link2 className="w-5 h-5 text-indigo-600" />
+            <div className="w-10 h-10 bg-surface-warm rounded-xl flex items-center justify-center">
+              <Link2 className="w-5 h-5 text-ink-2" />
             </div>
             <div>
-              <h3 className="text-gray-900 font-semibold text-lg">
+              <h3 className="text-ink font-semibold text-lg">
                 {isEditing ? 'Update GA4 Connection' : 'Connect GA4 Property'}
               </h3>
-              <p className="text-gray-500 text-sm">Link your website's GA4 to see AI traffic attribution</p>
+              <p className="text-ink-3 text-sm">Link your website's GA4 to see AI traffic attribution</p>
             </div>
           </div>
         </div>
@@ -269,40 +269,40 @@ function ConnectModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Brand / Website selector */}
           <div>
-            <label className="text-xs text-gray-500 font-medium uppercase tracking-wider block mb-1.5">
+            <label className="text-xs text-ink-3 font-medium uppercase tracking-wider block mb-1.5">
               Website / Brand
             </label>
             {brands.length === 0 ? (
               <div className="space-y-2">
-                <p className="text-xs text-gray-400 mb-2">Enter your brand details to get started:</p>
+                <p className="text-xs text-ink-3 mb-2">Enter your brand details to get started:</p>
                 <input
                   type="text"
                   placeholder="Company / Brand name (e.g. Alignment AI)"
                   value={newBrandName}
                   onChange={e => setNewBrandName(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
+                  className="w-full bg-canvas border border-divider rounded-xl px-3 py-2.5 text-ink text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
                 />
                 <input
                   type="text"
                   placeholder="Website domain (e.g. alignmenttech.ai)"
                   value={newBrandDomain}
                   onChange={e => setNewBrandDomain(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
+                  className="w-full bg-canvas border border-divider rounded-xl px-3 py-2.5 text-ink text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
                 />
               </div>
             ) : brands.length === 1 ? (
-              <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 flex items-center justify-between">
+              <div className="bg-canvas border border-divider rounded-xl px-4 py-2.5 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{brands[0].name}</p>
-                  {brands[0].domain && <p className="text-xs text-gray-400">{brands[0].domain}</p>}
+                  <p className="text-sm font-medium text-ink">{brands[0].name}</p>
+                  {brands[0].domain && <p className="text-xs text-ink-3">{brands[0].domain}</p>}
                 </div>
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-sage flex-shrink-0" />
               </div>
             ) : (
               <select
                 value={selectedBrandId}
                 onChange={e => setSelectedBrandId(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
+                className="w-full bg-canvas border border-divider rounded-xl px-3 py-2.5 text-ink text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
               >
                 {brands.map(b => (
                   <option key={b.id} value={b.id}>{b.name}{b.domain ? ` (${b.domain})` : ''}</option>
@@ -310,30 +310,30 @@ function ConnectModal({
               </select>
             )}
             {selectedBrand?.domain && brands.length > 1 && (
-              <p className="text-xs text-gray-400 mt-1">GA4 data will be attributed to: {selectedBrand.domain}</p>
+              <p className="text-xs text-ink-3 mt-1">GA4 data will be attributed to: {selectedBrand.domain}</p>
             )}
           </div>
 
           {/* GA4 Property ID */}
           <div>
-            <label className="text-xs text-gray-500 font-medium uppercase tracking-wider block mb-1.5">GA4 Property ID</label>
+            <label className="text-xs text-ink-3 font-medium uppercase tracking-wider block mb-1.5">GA4 Property ID</label>
             <input
               type="text" placeholder="e.g. 123456789"
               value={propertyId} onChange={e => setPropertyId(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
+              className="w-full bg-canvas border border-divider rounded-xl px-3 py-2.5 text-ink text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
             />
-            <p className="text-xs text-gray-400 mt-1">GA4 Admin → Property Settings → Property ID</p>
+            <p className="text-xs text-ink-3 mt-1">GA4 Admin → Property Settings → Property ID</p>
           </div>
 
           {/* Service Account JSON */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs text-gray-500 font-medium uppercase tracking-wider">
-                Service Account JSON {isEditing && <span className="text-gray-400 normal-case font-normal">(leave blank to keep existing)</span>}
+              <label className="text-xs text-ink-3 font-medium uppercase tracking-wider">
+                Service Account JSON {isEditing && <span className="text-ink-3 normal-case font-normal">(leave blank to keep existing)</span>}
               </label>
               <label
                 htmlFor="ga4-json-upload"
-                className="cursor-pointer flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-100 transition-colors"
+                className="cursor-pointer flex items-center gap-1.5 px-2.5 py-1 bg-canvas border border-divider rounded-lg text-xs text-ink-2 hover:bg-surface-muted transition-colors"
               >
                 <Upload className="w-3 h-3" /> Upload .json
               </label>
@@ -349,28 +349,28 @@ function ConnectModal({
               placeholder='{"type": "service_account", "project_id": "...", ...}'
               value={jsonContent} onChange={e => setJsonContent(e.target.value)}
               rows={5}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-gray-900 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 resize-none"
+              className="w-full bg-canvas border border-divider rounded-xl px-3 py-2.5 text-ink text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink resize-none"
             />
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-ink-3 mt-1">
               Google Cloud Console → Service Accounts → Keys → Add Key (JSON). GA4 role: <strong>Viewer</strong>.
             </p>
           </div>
 
           {error && (
-            <div className="flex items-start gap-2 text-red-700 text-sm bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">
+            <div className="flex items-start gap-2 text-red-soft text-sm bg-red-soft-bg border border-red-soft/30 rounded-xl px-3 py-2.5">
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
 
           <div className="flex gap-3 pt-1">
-            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm hover:bg-gray-50 transition-colors">
+            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-divider text-ink-2 text-sm hover:bg-surface-warm transition-colors">
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || !propertyId.trim()}
-              className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-medium transition-colors disabled:opacity-50"
+              className="flex-1 py-2.5 rounded-xl bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium transition-colors disabled:opacity-50"
             >
               {loading ? 'Connecting…' : isEditing ? 'Update Connection' : 'Connect GA4'}
             </button>
@@ -527,7 +527,7 @@ export default function GA4AttributionPage() {
   const activeConnection = connections.find(c => c.status === 'active')
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="min-h-screen bg-canvas">
       <Header title="GA4 Attribution" subtitle="AI platform traffic · conversions · revenue" />
 
       <div className="p-6 space-y-6">
@@ -540,7 +540,7 @@ export default function GA4AttributionPage() {
               <select
                 value={selectedBrandId}
                 onChange={e => setSelectedBrandId(e.target.value)}
-                className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                className="bg-surface border border-divider-light rounded-xl px-3 py-2 text-sm text-ink-2 focus:outline-none focus:ring-2 focus:ring-ink/10"
               >
                 {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
               </select>
@@ -550,7 +550,7 @@ export default function GA4AttributionPage() {
               <button
                 key={d}
                 onClick={() => setDays(Number(d))}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${days === Number(d) ? 'bg-red-500 text-white shadow-sm' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${days === Number(d) ? 'bg-ink text-ink-inv shadow-sm' : 'bg-surface border border-divider-light text-ink-2 hover:bg-surface-warm'}`}
               >
                 {d}d
               </button>
@@ -558,7 +558,7 @@ export default function GA4AttributionPage() {
           </div>
           <button
             onClick={() => setShowConnectModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-medium transition-colors shadow-sm shadow-red-500/25"
+            className="flex items-center gap-2 px-4 py-2 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-xl text-sm font-medium transition-colors shadow-sm"
           >
             <Link2 className="w-4 h-4" />
             Connect GA4
@@ -567,28 +567,28 @@ export default function GA4AttributionPage() {
 
         {/* ── Error ────────────────────────────────────────────────────── */}
         {error && (
-          <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+          <div className="flex items-center gap-2 text-red-soft text-sm bg-red-soft-bg border border-red-soft/30 rounded-xl px-4 py-3">
             <AlertCircle className="w-4 h-4" /> {error}
           </div>
         )}
 
         {/* ── Connection Status ─────────────────────────────────────────── */}
         {connections.length > 0 ? (
-          <section className="bg-white rounded-2xl border border-gray-200 shadow-sm px-5 py-4 flex items-center justify-between gap-3 flex-wrap">
+          <section className="bg-surface rounded-2xl border border-divider-light shadow-sm px-5 py-4 flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-3">
               {activeConnection
-                ? <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-                : <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />}
+                ? <CheckCircle2 className="w-5 h-5 text-sage flex-shrink-0" />
+                : <AlertCircle className="w-5 h-5 text-caution flex-shrink-0" />}
               <div>
-                <p className="text-sm font-medium text-gray-900">
-                  GA4 Property: <span className="font-mono text-indigo-600">{connections[0].ga4_property_id}</span>
+                <p className="text-sm font-medium text-ink">
+                  GA4 Property: <span className="font-mono text-ink-2">{connections[0].ga4_property_id}</span>
                   {brands.find(b => b.id === connections[0].brand_id) && (
-                    <span className="ml-2 text-xs text-gray-400 font-sans font-normal">
+                    <span className="ml-2 text-xs text-ink-3 font-sans font-normal">
                       → {brands.find(b => b.id === connections[0].brand_id)?.name}
                     </span>
                   )}
                 </p>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-xs text-ink-3 mt-0.5">
                   {activeConnection
                     ? `Last synced: ${activeConnection.last_synced_at ? new Date(activeConnection.last_synced_at).toLocaleString() : 'Never'}`
                     : `Error: ${connections[0].error_message}`}
@@ -598,14 +598,14 @@ export default function GA4AttributionPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => { setEditingConnection(true); setShowConnectModal(true) }}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg text-xs text-gray-600 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-canvas hover:bg-surface-muted border border-divider rounded-lg text-xs text-ink-2 transition-colors"
               >
                 Edit
               </button>
               <button
                 onClick={() => handleSync(connections[0].id)}
                 disabled={syncing === connections[0].id}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg text-xs text-gray-600 transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-canvas hover:bg-surface-muted border border-divider rounded-lg text-xs text-ink-2 transition-colors disabled:opacity-50"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${syncing === connections[0].id ? 'animate-spin' : ''}`} />
                 {syncing === connections[0].id ? 'Syncing…' : 'Sync Now'}
@@ -613,17 +613,17 @@ export default function GA4AttributionPage() {
             </div>
           </section>
         ) : (
-          <section className="bg-white rounded-2xl border border-dashed border-gray-300 px-8 py-10 text-center shadow-sm">
-            <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Link2 className="w-7 h-7 text-indigo-400" />
+          <section className="bg-surface rounded-2xl border border-dashed border-divider px-8 py-10 text-center shadow-sm">
+            <div className="w-14 h-14 bg-surface-warm rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Link2 className="w-7 h-7 text-ink-3" />
             </div>
-            <p className="text-gray-900 font-semibold">Connect your GA4 property</p>
-            <p className="text-gray-400 text-sm mt-1.5 max-w-sm mx-auto">
+            <p className="text-ink font-semibold">Connect your GA4 property</p>
+            <p className="text-ink-3 text-sm mt-1.5 max-w-sm mx-auto">
               Link GA4 to track which AI platforms — ChatGPT, Perplexity, Gemini — drive real traffic and revenue to your site.
             </p>
             <button
               onClick={() => setShowConnectModal(true)}
-              className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-medium transition-colors shadow-sm shadow-red-500/25"
+              className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-xl text-sm font-medium transition-colors shadow-sm"
             >
               <Link2 className="w-4 h-4" />
               Connect GA4
@@ -633,68 +633,68 @@ export default function GA4AttributionPage() {
 
         {/* ── Stat Cards ───────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="AI Sessions"     value={loading ? '—' : totalSessions.toLocaleString()}    icon={Users}             iconBg="bg-blue-50"    iconColor="text-blue-600" />
-          <StatCard label="Conversions"     value={loading ? '—' : totalConversions.toLocaleString()} icon={MousePointerClick} iconBg="bg-emerald-50"  iconColor="text-emerald-600" />
-          <StatCard label="AI Revenue"      value={loading ? '—' : `$${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} icon={DollarSign} iconBg="bg-amber-50" iconColor="text-amber-600" />
-          <StatCard label="Conversion Rate" value={loading ? '—' : `${avgConvRate}%`}                 icon={TrendingUp}        iconBg="bg-violet-50"  iconColor="text-violet-600" />
+          <StatCard label="AI Sessions"     value={loading ? '—' : totalSessions.toLocaleString()}    icon={Users}             iconBg="bg-surface-warm" iconColor="text-ink-2" />
+          <StatCard label="Conversions"     value={loading ? '—' : totalConversions.toLocaleString()} icon={MousePointerClick} iconBg="bg-sage-bg"     iconColor="text-sage" />
+          <StatCard label="AI Revenue"      value={loading ? '—' : `$${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} icon={DollarSign} iconBg="bg-caution-bg" iconColor="text-caution" />
+          <StatCard label="Conversion Rate" value={loading ? '—' : `${avgConvRate}%`}                 icon={TrendingUp}        iconBg="bg-red-soft-bg" iconColor="text-red-soft" />
         </div>
 
         {/* ── Real ROI Card ─────────────────────────────────────────────── */}
         {realROI && (
-          <section className={`rounded-2xl border shadow-sm px-6 py-5 ${realROI.roi_pct >= 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
+          <section className={`rounded-2xl border shadow-sm px-6 py-5 ${realROI.roi_pct >= 0 ? 'bg-sage-bg border-sage/30' : 'bg-red-soft-bg border-red-soft/30'}`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Real ROI (GA4 Data)</p>
-                <p className={`text-4xl font-bold mt-1.5 ${realROI.roi_pct >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{realROI.roi_label}</p>
-                <p className="text-xs text-gray-500 mt-1.5">
-                  AI Revenue <span className="font-semibold text-gray-700">${realROI.ai_revenue.toLocaleString()}</span>
+                <p className="text-xs text-ink-3 font-medium uppercase tracking-wider">Real ROI (GA4 Data)</p>
+                <p className={`text-4xl font-bold mt-1.5 ${realROI.roi_pct >= 0 ? 'text-sage' : 'text-red-soft'}`}>{realROI.roi_label}</p>
+                <p className="text-xs text-ink-3 mt-1.5">
+                  AI Revenue <span className="font-semibold text-ink-2">${realROI.ai_revenue.toLocaleString()}</span>
                   &nbsp;·&nbsp;
-                  GEO Cost <span className="font-semibold text-gray-700">${realROI.geo_cost.toLocaleString()}</span>
+                  GEO Cost <span className="font-semibold text-ink-2">${realROI.geo_cost.toLocaleString()}</span>
                   &nbsp;·&nbsp; Last {realROI.days} days
                 </p>
               </div>
               {realROI.roi_pct >= 0
-                ? <ArrowUpRight className="w-10 h-10 text-emerald-500" />
-                : <ArrowDownRight className="w-10 h-10 text-red-500" />}
+                ? <ArrowUpRight className="w-10 h-10 text-sage" />
+                : <ArrowDownRight className="w-10 h-10 text-red-soft" />}
             </div>
           </section>
         )}
 
         {/* ── ROI Realization ───────────────────────────────────────────── */}
         {roiVsEstimate?.estimate ? (
-          <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-              <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center">
-                <Target className="w-4 h-4 text-red-500" />
+          <section className="bg-surface rounded-2xl border border-divider-light shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-divider-light flex items-center gap-2">
+              <div className="w-8 h-8 bg-surface-warm rounded-lg flex items-center justify-center">
+                <Target className="w-4 h-4 text-ink-2" />
               </div>
               <div>
-                <h2 className="font-semibold text-gray-900">ROI Realization</h2>
-                <p className="text-xs text-gray-400">Expected vs. Actual — last 90 days</p>
+                <h2 className="font-semibold text-ink">ROI Realization</h2>
+                <p className="text-xs text-ink-3">Expected vs. Actual — last 90 days</p>
               </div>
             </div>
             <div className="px-6 py-5 grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Expected */}
               <div className="space-y-1.5">
-                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Expected Revenue</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-xs text-ink-3 font-medium uppercase tracking-wider">Expected Revenue</p>
+                <p className="text-2xl font-bold text-ink">
                   ${roiVsEstimate.estimate.revenue_low.toLocaleString('en-US', { maximumFractionDigits: 0 })}
-                  <span className="text-gray-400 text-lg"> – ${roiVsEstimate.estimate.revenue_high.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+                  <span className="text-ink-3 text-lg"> – ${roiVsEstimate.estimate.revenue_high.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-ink-3">
                   {roiVsEstimate.estimate.roi_low}x – {roiVsEstimate.estimate.roi_high}x ROI &nbsp;·&nbsp; {roiVsEstimate.estimate.industry_name}
                 </p>
-                <p className="text-xs text-gray-400">Estimated on {new Date(roiVsEstimate.estimate.saved_at).toLocaleDateString()}</p>
+                <p className="text-xs text-ink-3">Estimated on {new Date(roiVsEstimate.estimate.saved_at).toLocaleDateString()}</p>
               </div>
 
               {/* Actual */}
               <div className="space-y-1.5">
-                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Actual AI Revenue</p>
+                <p className="text-xs text-ink-3 font-medium uppercase tracking-wider">Actual AI Revenue</p>
                 {roiVsEstimate.has_ga4_data ? (
                   <>
-                    <p className="text-2xl font-bold text-emerald-600">
+                    <p className="text-2xl font-bold text-sage">
                       ${roiVsEstimate.real_revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-ink-3">
                       {roiVsEstimate.real_roi_pct !== null
                         ? `${roiVsEstimate.real_roi_pct >= 0 ? '+' : ''}${roiVsEstimate.real_roi_pct}% ROI`
                         : 'Calculating…'}
@@ -702,37 +702,37 @@ export default function GA4AttributionPage() {
                   </>
                 ) : (
                   <div className="pt-2">
-                    <p className="text-sm text-gray-400">No GA4 data yet.</p>
-                    <p className="text-xs text-gray-400 mt-0.5">Click <strong>Sync Now</strong> to pull data.</p>
+                    <p className="text-sm text-ink-3">No GA4 data yet.</p>
+                    <p className="text-xs text-ink-3 mt-0.5">Click <strong>Sync Now</strong> to pull data.</p>
                   </div>
                 )}
               </div>
 
               {/* Progress */}
               <div className="space-y-2">
-                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Realization Progress</p>
+                <p className="text-xs text-ink-3 font-medium uppercase tracking-wider">Realization Progress</p>
                 {roiVsEstimate.has_ga4_data && roiVsEstimate.realization_pct !== null ? (
                   <>
                     <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-gray-900">{Math.min(roiVsEstimate.realization_pct, 999)}%</span>
+                      <span className="text-2xl font-bold text-ink">{Math.min(roiVsEstimate.realization_pct, 999)}%</span>
                       {roiVsEstimate.realization_pct >= 100
-                        ? <ArrowUpRight className="w-5 h-5 text-emerald-500" />
-                        : <ArrowDownRight className="w-5 h-5 text-gray-400" />}
+                        ? <ArrowUpRight className="w-5 h-5 text-sage" />
+                        : <ArrowDownRight className="w-5 h-5 text-ink-3" />}
                     </div>
-                    <div className="w-full bg-gray-100 rounded-full h-2">
+                    <div className="w-full bg-surface-warm rounded-full h-2">
                       <div
-                        className={`h-2 rounded-full transition-all ${roiVsEstimate.realization_pct >= 100 ? 'bg-emerald-500' : 'bg-red-500'}`}
+                        className={`h-2 rounded-full transition-all ${roiVsEstimate.realization_pct >= 100 ? 'bg-sage' : 'bg-ink'}`}
                         style={{ width: `${Math.min(roiVsEstimate.realization_pct, 100)}%` }}
                       />
                     </div>
-                    <p className="text-xs text-gray-400">of expected low-end revenue achieved</p>
+                    <p className="text-xs text-ink-3">of expected low-end revenue achieved</p>
                   </>
                 ) : (
                   <div className="pt-2">
-                    <div className="w-full bg-gray-100 rounded-full h-2 mb-1">
+                    <div className="w-full bg-surface-warm rounded-full h-2 mb-1">
                       <div className="h-2 w-0 rounded-full" />
                     </div>
-                    <p className="text-xs text-gray-400">Connect GA4 to start measuring</p>
+                    <p className="text-xs text-ink-3">Connect GA4 to start measuring</p>
                   </div>
                 )}
               </div>
@@ -740,17 +740,17 @@ export default function GA4AttributionPage() {
           </section>
         ) : (
           /* No estimate yet → prompt to set ROI target */
-          <section className="bg-gradient-to-br from-red-50 to-orange-50 border border-red-100 rounded-2xl shadow-sm px-6 py-8 text-center">
-            <div className="w-12 h-12 bg-white border border-red-100 shadow-sm rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Target className="w-6 h-6 text-red-500" />
+          <section className="bg-surface-warm border border-divider-light rounded-2xl shadow-sm px-6 py-8 text-center">
+            <div className="w-12 h-12 bg-surface border border-divider-light shadow-sm rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Target className="w-6 h-6 text-ink-2" />
             </div>
-            <h3 className="font-semibold text-gray-900">Set your ROI target</h3>
-            <p className="text-sm text-gray-500 mt-1.5 max-w-sm mx-auto">
+            <h3 className="font-semibold text-ink">Set your ROI target</h3>
+            <p className="text-sm text-ink-3 mt-1.5 max-w-sm mx-auto">
               Run the ROI Simulator to estimate your 6-month revenue potential, then track actual vs. expected performance here.
             </p>
             <a
               href="/roi-simulator"
-              className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-medium transition-colors shadow-sm shadow-red-500/25"
+              className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-xl text-sm font-medium transition-colors shadow-sm"
             >
               Calculate ROI Estimate <ExternalLink className="w-3.5 h-3.5" />
             </a>
@@ -759,20 +759,20 @@ export default function GA4AttributionPage() {
 
         {/* ── Platform Breakdown ────────────────────────────────────────── */}
         {loading && summary.length === 0 ? (
-          <section className="bg-white rounded-2xl border border-gray-200 shadow-sm px-6 py-12 flex items-center justify-center">
-            <Loader2 className="w-6 h-6 text-gray-300 animate-spin" />
+          <section className="bg-surface rounded-2xl border border-divider-light shadow-sm px-6 py-12 flex items-center justify-center">
+            <Loader2 className="w-6 h-6 text-ink-3 animate-spin" />
           </section>
         ) : summary.length > 0 ? (
-          <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <section className="bg-surface rounded-2xl border border-divider-light shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-divider-light flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-gray-400" />
-                <h2 className="font-semibold text-gray-900">AI Platform Breakdown</h2>
+                <BarChart3 className="w-4 h-4 text-ink-3" />
+                <h2 className="font-semibold text-ink">AI Platform Breakdown</h2>
               </div>
-              <span className="text-xs text-gray-400">Last {days} days</span>
+              <span className="text-xs text-ink-3">Last {days} days</span>
             </div>
             {/* Table header */}
-            <div className="px-6 py-2.5 bg-gray-50 border-b border-gray-100 grid grid-cols-6 gap-4 text-xs text-gray-400 font-medium uppercase tracking-wider">
+            <div className="px-6 py-2.5 bg-canvas border-b border-divider-light grid grid-cols-6 gap-4 text-xs text-ink-3 font-medium uppercase tracking-wider">
               <div>Platform</div>
               <div className="text-right">Sessions</div>
               <div className="text-right">Users</div>
@@ -780,11 +780,11 @@ export default function GA4AttributionPage() {
               <div className="text-right">Revenue</div>
               <div className="text-right">Conv. Rate</div>
             </div>
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-divider-light">
               {summary.map(p => {
                 const pc = platformColor(p.ai_platform)
                 return (
-                  <div key={p.ai_platform} className="px-6 py-3.5 grid grid-cols-6 gap-4 items-center hover:bg-gray-50/60 transition-colors">
+                  <div key={p.ai_platform} className="px-6 py-3.5 grid grid-cols-6 gap-4 items-center hover:bg-surface-warm transition-colors">
                     <div className="flex items-center gap-2">
                       <span className={`w-2 h-2 rounded-full ${pc.dot}`} />
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${pc.bg} ${pc.text}`}>
@@ -792,20 +792,20 @@ export default function GA4AttributionPage() {
                       </span>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">{p.sessions.toLocaleString()}</p>
+                      <p className="text-sm font-medium text-ink">{p.sessions.toLocaleString()}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">{p.users.toLocaleString()}</p>
+                      <p className="text-sm text-ink-2">{p.users.toLocaleString()}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">{p.conversions.toLocaleString()}</p>
+                      <p className="text-sm text-ink-2">{p.conversions.toLocaleString()}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-semibold text-emerald-600">${p.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                      <p className="text-sm font-semibold text-sage">${p.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                     </div>
                     <div className="text-right flex items-center justify-end gap-1">
-                      <p className="text-sm text-gray-600">{p.conversion_rate_pct}%</p>
-                      <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
+                      <p className="text-sm text-ink-2">{p.conversion_rate_pct}%</p>
+                      <ChevronRight className="w-3.5 h-3.5 text-ink-3" />
                     </div>
                   </div>
                 )
@@ -816,11 +816,11 @@ export default function GA4AttributionPage() {
 
         {/* ── Daily Trend ───────────────────────────────────────────────── */}
         {trend.length > 0 && (
-          <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-gray-400" />
-              <h2 className="font-semibold text-gray-900">Daily AI Traffic Trend</h2>
-              <span className="ml-auto text-xs text-gray-400">Last {days} days</span>
+          <section className="bg-surface rounded-2xl border border-divider-light shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-divider-light flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-ink-3" />
+              <h2 className="font-semibold text-ink">Daily AI Traffic Trend</h2>
+              <span className="ml-auto text-xs text-ink-3">Last {days} days</span>
             </div>
             <div className="px-6 py-5">
               <div className="flex items-end gap-1 h-24">
@@ -830,7 +830,7 @@ export default function GA4AttributionPage() {
                   return (
                     <div key={d.date} className="flex-1 group relative">
                       <div
-                        className="bg-red-400/30 hover:bg-red-500/60 rounded-t transition-colors cursor-pointer"
+                        className="bg-ink/20 hover:bg-ink/40 rounded-t transition-colors cursor-pointer"
                         style={{ height: `${pct}%` }}
                         title={`${d.date}: ${d.sessions} sessions · ${d.conversions} conversions · $${d.revenue.toFixed(2)}`}
                       />
@@ -838,7 +838,7 @@ export default function GA4AttributionPage() {
                   )
                 })}
               </div>
-              <div className="flex justify-between text-xs text-gray-400 mt-2">
+              <div className="flex justify-between text-xs text-ink-3 mt-2">
                 <span>{trend[0]?.date}</span>
                 <span>{trend[trend.length - 1]?.date}</span>
               </div>
@@ -848,19 +848,19 @@ export default function GA4AttributionPage() {
 
         {/* ── Prompt ROI Analysis ───────────────────────────────────────── */}
         {selectedBrandId && (
-          <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
+          <section className="bg-surface rounded-2xl border border-divider-light shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-divider-light flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-gray-400" />
-                <h2 className="font-semibold text-gray-900">Prompt ROI Analysis</h2>
-                <span className="text-xs text-gray-400">Which AI prompts drive the most revenue</span>
+                <Sparkles className="w-4 h-4 text-ink-3" />
+                <h2 className="font-semibold text-ink">Prompt ROI Analysis</h2>
+                <span className="text-xs text-ink-3">Which AI prompts drive the most revenue</span>
               </div>
               <div className="flex items-center gap-2">
                 {(['ChatGPT', 'Perplexity', 'Gemini'] as const).map(p => (
                   <button
                     key={p}
                     onClick={() => setPromptPlatform(p)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${promptPlatform === p ? 'bg-red-500 text-white shadow-sm' : 'bg-gray-50 border border-gray-200 text-gray-600 hover:bg-gray-100'}`}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${promptPlatform === p ? 'bg-ink text-ink-inv shadow-sm' : 'bg-canvas border border-divider text-ink-2 hover:bg-surface-muted'}`}
                   >
                     {p}
                   </button>
@@ -868,7 +868,7 @@ export default function GA4AttributionPage() {
                 <button
                   onClick={handleComputeAttribution}
                   disabled={computingAttribution || !selectedBrandId}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium transition-colors disabled:opacity-50 ml-1"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-lg text-xs font-medium transition-colors disabled:opacity-50 ml-1"
                 >
                   {computingAttribution
                     ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -879,26 +879,26 @@ export default function GA4AttributionPage() {
             </div>
             {promptROI.length > 0 ? (
               <>
-                <div className="px-6 py-2.5 bg-gray-50 border-b border-gray-100 grid grid-cols-6 gap-4 text-xs text-gray-400 font-medium uppercase tracking-wider">
+                <div className="px-6 py-2.5 bg-canvas border-b border-divider-light grid grid-cols-6 gap-4 text-xs text-ink-3 font-medium uppercase tracking-wider">
                   <div className="col-span-2">Prompt / Query ID</div>
                   <div className="text-right">Sessions</div>
                   <div className="text-right">Conversions</div>
                   <div className="text-right">Revenue</div>
                   <div className="text-right">ROI Value</div>
                 </div>
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-divider-light">
                   {promptROI.map(row => (
-                    <div key={row.id} className="px-6 py-3.5 grid grid-cols-6 gap-4 items-center hover:bg-gray-50/60 transition-colors">
+                    <div key={row.id} className="px-6 py-3.5 grid grid-cols-6 gap-4 items-center hover:bg-surface-warm transition-colors">
                       <div className="col-span-2 min-w-0">
-                        <p className="text-sm font-mono text-gray-700 truncate">{row.prompt_id}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">{row.date_range_start} – {row.date_range_end}</p>
+                        <p className="text-sm font-mono text-ink-2 truncate">{row.prompt_id}</p>
+                        <p className="text-xs text-ink-3 mt-0.5">{row.date_range_start} – {row.date_range_end}</p>
                       </div>
-                      <div className="text-right text-sm text-gray-600">{row.attributed_sessions.toLocaleString()}</div>
-                      <div className="text-right text-sm text-gray-600">{row.attributed_conversions.toLocaleString()}</div>
-                      <div className="text-right text-sm font-semibold text-emerald-600">
+                      <div className="text-right text-sm text-ink-2">{row.attributed_sessions.toLocaleString()}</div>
+                      <div className="text-right text-sm text-ink-2">{row.attributed_conversions.toLocaleString()}</div>
+                      <div className="text-right text-sm font-semibold text-sage">
                         ${row.attributed_revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </div>
-                      <div className="text-right text-sm text-gray-600">
+                      <div className="text-right text-sm text-ink-2">
                         {row.roi_value !== null ? `${row.roi_value.toFixed(1)}x` : '—'}
                       </div>
                     </div>
@@ -907,9 +907,9 @@ export default function GA4AttributionPage() {
               </>
             ) : (
               <div className="px-8 py-10 text-center">
-                <Sparkles className="w-8 h-8 text-gray-200 mx-auto mb-3" />
-                <p className="text-gray-500 font-medium">No prompt attribution data yet</p>
-                <p className="text-gray-400 text-sm mt-1.5">
+                <Sparkles className="w-8 h-8 text-ink-3 mx-auto mb-3" />
+                <p className="text-ink-2 font-medium">No prompt attribution data yet</p>
+                <p className="text-ink-3 text-sm mt-1.5">
                   Click <strong>Compute Attribution</strong> to calculate which {promptPlatform} prompts drive the most revenue.
                 </p>
               </div>
@@ -919,16 +919,16 @@ export default function GA4AttributionPage() {
 
         {/* ── GEO Optimization Timeline ─────────────────────────────────── */}
         {selectedBrandId && (
-          <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
+          <section className="bg-surface rounded-2xl border border-divider-light shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-divider-light flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-gray-400" />
-                <h2 className="font-semibold text-gray-900">GEO Optimization Timeline</h2>
-                <span className="text-xs text-gray-400">Log actions and track impact</span>
+                <Clock className="w-4 h-4 text-ink-3" />
+                <h2 className="font-semibold text-ink">GEO Optimization Timeline</h2>
+                <span className="text-xs text-ink-3">Log actions and track impact</span>
               </div>
               <button
                 onClick={() => setShowAddEventForm(v => !v)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-medium transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-lg text-xs font-medium transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Log Event
@@ -937,14 +937,14 @@ export default function GA4AttributionPage() {
 
             {/* Inline add-event form */}
             {showAddEventForm && (
-              <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+              <div className="px-6 py-4 border-b border-divider-light bg-canvas">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
                   <div>
-                    <label className="text-xs text-gray-500 font-medium block mb-1">Event Type</label>
+                    <label className="text-xs text-ink-3 font-medium block mb-1">Event Type</label>
                     <select
                       value={newEventType}
                       onChange={e => setNewEventType(e.target.value)}
-                      className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                      className="w-full bg-surface border border-divider-light rounded-xl px-3 py-2 text-sm text-ink-2 focus:outline-none focus:ring-2 focus:ring-ink/10"
                     >
                       {['GEO Audit', 'GEO Content', 'GEO Optimization', 'GEO Distribution'].map(t => (
                         <option key={t}>{t}</option>
@@ -952,35 +952,35 @@ export default function GA4AttributionPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500 font-medium block mb-1">Date</label>
+                    <label className="text-xs text-ink-3 font-medium block mb-1">Date</label>
                     <input
                       type="date"
                       value={newEventDate}
                       onChange={e => setNewEventDate(e.target.value)}
-                      className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                      className="w-full bg-surface border border-divider-light rounded-xl px-3 py-2 text-sm text-ink-2 focus:outline-none focus:ring-2 focus:ring-ink/10"
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500 font-medium block mb-1">Description (optional)</label>
+                    <label className="text-xs text-ink-3 font-medium block mb-1">Description (optional)</label>
                     <input
                       type="text"
                       value={newEventDescription}
                       onChange={e => setNewEventDescription(e.target.value)}
                       placeholder="What did you do?"
-                      className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                      className="w-full bg-surface border border-divider-light rounded-xl px-3 py-2 text-sm text-ink-2 focus:outline-none focus:ring-2 focus:ring-ink/10"
                     />
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setShowAddEventForm(false)}
-                      className="flex-1 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm hover:bg-gray-100 transition-colors"
+                      className="flex-1 py-2 rounded-xl border border-divider text-ink-2 text-sm hover:bg-surface-muted transition-colors"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleSaveEvent}
                       disabled={savingEvent}
-                      className="flex-1 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-medium transition-colors disabled:opacity-50"
+                      className="flex-1 py-2 rounded-xl bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium transition-colors disabled:opacity-50"
                     >
                       {savingEvent ? 'Saving…' : 'Save'}
                     </button>
@@ -991,15 +991,15 @@ export default function GA4AttributionPage() {
 
             {/* Event list */}
             {optimizationEvents.length > 0 ? (
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-divider-light">
                 {optimizationEvents.map((ev, idx) => {
-                  const colors = EVENT_TYPE_COLORS[ev.event_type] ?? { bg: 'bg-gray-50', text: 'text-gray-700', dot: 'bg-gray-300' }
+                  const colors = EVENT_TYPE_COLORS[ev.event_type] ?? { bg: 'bg-canvas', text: 'text-ink-2', dot: 'bg-ink/20' }
                   return (
-                    <div key={ev.id} className="px-6 py-4 flex items-start gap-4 hover:bg-gray-50/60 transition-colors">
+                    <div key={ev.id} className="px-6 py-4 flex items-start gap-4 hover:bg-surface-warm transition-colors">
                       <div className="flex flex-col items-center gap-1 pt-1 flex-shrink-0">
                         <div className={`w-2.5 h-2.5 rounded-full ${colors.dot}`} />
                         {idx < optimizationEvents.length - 1 && (
-                          <div className="w-px flex-1 bg-gray-100 min-h-[24px]" />
+                          <div className="w-px flex-1 bg-divider-light min-h-[24px]" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -1007,13 +1007,13 @@ export default function GA4AttributionPage() {
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold ${colors.bg} ${colors.text}`}>
                             {ev.event_type}
                           </span>
-                          <span className="text-xs text-gray-400 flex items-center gap-1">
+                          <span className="text-xs text-ink-3 flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
                             {new Date(ev.event_date + 'T00:00:00').toLocaleDateString()}
                           </span>
                         </div>
                         {ev.description && (
-                          <p className="text-sm text-gray-600 mt-1.5">{ev.description}</p>
+                          <p className="text-sm text-ink-2 mt-1.5">{ev.description}</p>
                         )}
                       </div>
                     </div>
@@ -1022,9 +1022,9 @@ export default function GA4AttributionPage() {
               </div>
             ) : (
               <div className="px-8 py-10 text-center">
-                <Clock className="w-8 h-8 text-gray-200 mx-auto mb-3" />
-                <p className="text-gray-500 font-medium">No optimization events logged yet</p>
-                <p className="text-gray-400 text-sm mt-1.5">
+                <Clock className="w-8 h-8 text-ink-3 mx-auto mb-3" />
+                <p className="text-ink-2 font-medium">No optimization events logged yet</p>
+                <p className="text-ink-3 text-sm mt-1.5">
                   Track your GEO actions over time — audits, content updates, and optimizations — to correlate with traffic changes.
                 </p>
               </div>
@@ -1034,25 +1034,25 @@ export default function GA4AttributionPage() {
 
         {/* ── Empty state when connected but no data ────────────────────── */}
         {activeConnection && summary.length === 0 && !loading && (
-          <section className="bg-white rounded-2xl border border-gray-200 shadow-sm px-8 py-10 text-center">
-            <RefreshCw className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-900 font-medium">No AI traffic data yet</p>
-            <p className="text-gray-400 text-sm mt-1.5">
+          <section className="bg-surface rounded-2xl border border-divider-light shadow-sm px-8 py-10 text-center">
+            <RefreshCw className="w-8 h-8 text-ink-3 mx-auto mb-3" />
+            <p className="text-ink font-medium">No AI traffic data yet</p>
+            <p className="text-ink-3 text-sm mt-1.5">
               Click <strong>Sync Now</strong> to pull the latest data. AI platform traffic will appear once users visit from ChatGPT, Perplexity, or other AI tools.
             </p>
           </section>
         )}
 
         {/* ── Setup Guide ───────────────────────────────────────────────── */}
-        <section className="bg-blue-50 border border-blue-100 rounded-2xl shadow-sm px-6 py-4 flex items-center justify-between">
+        <section className="bg-surface-warm border border-divider rounded-2xl shadow-sm px-6 py-4 flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-900">Need help setting up?</p>
-            <p className="text-xs text-gray-500 mt-0.5">Configure Service Account and custom dimensions to enable full attribution.</p>
+            <p className="text-sm font-medium text-ink">Need help setting up?</p>
+            <p className="text-xs text-ink-3 mt-0.5">Configure Service Account and custom dimensions to enable full attribution.</p>
           </div>
           <a
             href="/ga4-setup-guide.md"
             target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors whitespace-nowrap"
+            className="flex items-center gap-1.5 text-ink-2 hover:text-ink text-sm font-medium transition-colors whitespace-nowrap"
           >
             View Guide <ExternalLink className="w-3.5 h-3.5" />
           </a>

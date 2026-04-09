@@ -25,7 +25,7 @@ export default function AdminPanel() {
   if (role !== 'admin') {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-gray-500 text-lg">Admin access required.</p>
+        <p className="text-ink-3 text-lg">Admin access required.</p>
       </div>
     )
   }
@@ -108,61 +108,61 @@ export default function AdminPanel() {
   }
 
   const planColors: Record<string, string> = {
-    starter: 'bg-gray-100 text-gray-700',
-    growth: 'bg-blue-100 text-blue-700',
-    enterprise: 'bg-purple-100 text-purple-700',
-    trial: 'bg-emerald-100 text-emerald-700',
+    starter: 'bg-surface-warm text-ink-2',
+    growth: 'bg-surface-warm text-ink-2',
+    enterprise: 'bg-surface-warm text-ink-2',
+    trial: 'bg-sage-bg text-sage',
   }
 
   return (
     <div className="max-w-3xl mx-auto p-8 space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
-        <p className="text-sm text-gray-500 mt-1">Manage users, credits, and subscriptions for testing.</p>
+        <h1 className="text-2xl font-bold text-ink">Admin Panel</h1>
+        <p className="text-sm text-ink-3 mt-1">Manage users, credits, and subscriptions for testing.</p>
       </div>
 
       {/* Feedback */}
       {feedback && (
         <div className={`p-3 rounded-xl text-sm font-medium ${
           feedback.type === 'success'
-            ? 'bg-green-50 text-green-700 border border-green-200'
-            : 'bg-red-50 text-red-700 border border-red-200'
+            ? 'bg-sage-bg text-sage border border-sage/30'
+            : 'bg-red-soft-bg text-red-soft border border-red-soft/30'
         }`}>
           {feedback.text}
         </div>
       )}
 
       {/* User Lookup */}
-      <section className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">User Lookup</h2>
+      <section className="bg-surface rounded-2xl border border-divider p-6 space-y-4">
+        <h2 className="text-lg font-semibold text-ink">User Lookup</h2>
         <div className="flex gap-2">
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="user@example.com"
-            className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none"
+            className="flex-1 px-4 py-2.5 border border-divider rounded-xl text-sm focus:ring-2 focus:ring-ink/10 focus:border-ink outline-none"
             onKeyDown={(e) => e.key === 'Enter' && lookupUser()}
           />
           <button
             onClick={lookupUser}
             disabled={loading || !email.trim()}
-            className="px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-800 disabled:opacity-50 transition-colors"
+            className="px-5 py-2.5 bg-ink text-ink-inv text-sm font-medium rounded-xl hover:bg-[#2d2d2c] disabled:opacity-50 transition-colors"
           >
             {loading ? 'Searching...' : 'Search'}
           </button>
         </div>
 
         {userInfo && (
-          <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+          <div className="bg-canvas rounded-xl p-4 space-y-2">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-gray-900">{userInfo.user_metadata?.full_name || userInfo.email}</p>
-                <p className="text-xs text-gray-500">{userInfo.email}</p>
+                <p className="font-medium text-ink">{userInfo.user_metadata?.full_name || userInfo.email}</p>
+                <p className="text-xs text-ink-3">{userInfo.email}</p>
               </div>
-              <span className="text-xs text-gray-400 font-mono">{userInfo.id.slice(0, 8)}...</span>
+              <span className="text-xs text-ink-3 font-mono">{userInfo.id.slice(0, 8)}...</span>
             </div>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-ink-3">
               Registered: {new Date(userInfo.created_at).toLocaleDateString()}
             </p>
           </div>
@@ -171,70 +171,70 @@ export default function AdminPanel() {
 
       {/* Subscription Info */}
       {userInfo && (
-        <section className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">Subscription Status</h2>
+        <section className="bg-surface rounded-2xl border border-divider p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-ink">Subscription Status</h2>
           {subInfo ? (
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-gray-500">Plan</p>
-                <span className={`inline-block mt-1 px-3 py-1 text-xs font-semibold rounded-full ${planColors[subInfo.plan] ?? 'bg-gray-100 text-gray-700'}`}>
+                <p className="text-xs text-ink-3">Plan</p>
+                <span className={`inline-block mt-1 px-3 py-1 text-xs font-semibold rounded-full ${planColors[subInfo.plan] ?? 'bg-surface-warm text-ink-2'}`}>
                   {subInfo.plan.toUpperCase()}
                 </span>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Status</p>
-                <p className="font-medium text-gray-900 mt-1 capitalize">{subInfo.status}</p>
+                <p className="text-xs text-ink-3">Status</p>
+                <p className="font-medium text-ink mt-1 capitalize">{subInfo.status}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Billing</p>
-                <p className="font-medium text-gray-900 mt-1">{subInfo.billing_interval}</p>
+                <p className="text-xs text-ink-3">Billing</p>
+                <p className="font-medium text-ink mt-1">{subInfo.billing_interval}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Stripe Customer ID</p>
-                <p className="font-medium text-gray-900 mt-1 font-mono text-xs">N/A</p>
+                <p className="text-xs text-ink-3">Stripe Customer ID</p>
+                <p className="font-medium text-ink mt-1 font-mono text-xs">N/A</p>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-gray-500">No active subscription.</p>
+            <p className="text-sm text-ink-3">No active subscription.</p>
           )}
         </section>
       )}
 
       {/* Credit Management */}
       {userInfo && (
-        <section className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">Credit Management</h2>
+        <section className="bg-surface rounded-2xl border border-divider p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-ink">Credit Management</h2>
 
           {credits ? (
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-xs text-gray-500">Plan Limit</p>
-                <p className="text-2xl font-bold text-gray-900">{credits.credits_limit === -1 ? 'Unlimited' : credits.credits_limit.toLocaleString()}</p>
+              <div className="bg-canvas rounded-xl p-4">
+                <p className="text-xs text-ink-3">Plan Limit</p>
+                <p className="text-2xl font-bold text-ink">{credits.credits_limit === -1 ? 'Unlimited' : credits.credits_limit.toLocaleString()}</p>
               </div>
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-xs text-gray-500">Used</p>
-                <p className="text-2xl font-bold text-red-600">{credits.credits_used.toLocaleString()}</p>
+              <div className="bg-canvas rounded-xl p-4">
+                <p className="text-xs text-ink-3">Used</p>
+                <p className="text-2xl font-bold text-red-soft">{credits.credits_used.toLocaleString()}</p>
               </div>
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-xs text-gray-500">Bonus Credits</p>
-                <p className="text-2xl font-bold text-blue-600">{credits.credits_bonus.toLocaleString()}</p>
+              <div className="bg-canvas rounded-xl p-4">
+                <p className="text-xs text-ink-3">Bonus Credits</p>
+                <p className="text-2xl font-bold text-ink-2">{credits.credits_bonus.toLocaleString()}</p>
               </div>
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-xs text-gray-500">Remaining</p>
-                <p className={`text-2xl font-bold ${credits.credits_remaining <= 0 ? 'text-red-600' : 'text-green-600'}`}>
+              <div className="bg-canvas rounded-xl p-4">
+                <p className="text-xs text-ink-3">Remaining</p>
+                <p className={`text-2xl font-bold ${credits.credits_remaining <= 0 ? 'text-red-soft' : 'text-sage'}`}>
                   {credits.credits_remaining === -1 ? 'Unlimited' : credits.credits_remaining.toLocaleString()}
                 </p>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-gray-500">No usage data this period.</p>
+            <p className="text-sm text-ink-3">No usage data this period.</p>
           )}
 
           <div className="flex flex-wrap gap-3 pt-2">
             <button
               onClick={handleResetCredits}
               disabled={loading}
-              className="px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-xl hover:bg-amber-700 disabled:opacity-50 transition-colors"
+              className="px-4 py-2 bg-caution text-ink-inv text-sm font-medium rounded-xl hover:opacity-80 disabled:opacity-50 transition-colors"
             >
               Reset Credits to 0
             </button>
@@ -244,13 +244,13 @@ export default function AdminPanel() {
                 type="number"
                 value={grantAmount}
                 onChange={(e) => setGrantAmount(Number(e.target.value))}
-                className="w-24 px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 outline-none"
+                className="w-24 px-3 py-2 border border-divider rounded-xl text-sm focus:ring-2 focus:ring-ink/10 focus:border-ink outline-none"
                 min={1}
               />
               <button
                 onClick={handleGrantCredits}
                 disabled={loading || grantAmount <= 0}
-                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                className="px-4 py-2 bg-ink text-ink-inv text-sm font-medium rounded-xl hover:bg-[#2d2d2c] disabled:opacity-50 transition-colors"
               >
                 Grant Credits
               </button>
@@ -261,16 +261,16 @@ export default function AdminPanel() {
 
       {/* Danger Zone */}
       {userInfo && (
-        <section className="bg-red-50 rounded-2xl border border-red-200 p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-red-900">Danger Zone</h2>
-          <p className="text-sm text-red-700">
+        <section className="bg-red-soft-bg rounded-2xl border border-red-soft/30 p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-ink">Danger Zone</h2>
+          <p className="text-sm text-red-soft">
             Reset this user to a completely new state. This deletes all subscription, usage tracking,
             and onboarding email records. The user will need to re-subscribe and re-onboard.
           </p>
           <button
             onClick={handleResetUser}
             disabled={loading}
-            className="px-5 py-2.5 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 disabled:opacity-50 transition-colors"
+            className="px-5 py-2.5 bg-ink text-ink-inv text-sm font-semibold rounded-xl hover:bg-[#2d2d2c] disabled:opacity-50 transition-colors"
           >
             Reset User (Delete All Data)
           </button>
@@ -278,17 +278,17 @@ export default function AdminPanel() {
       )}
 
       {/* Credit Cost Reference */}
-      <section className="bg-white rounded-2xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Credit Cost Reference</h2>
-        <div className="overflow-hidden rounded-xl border border-gray-200">
+      <section className="bg-surface rounded-2xl border border-divider p-6">
+        <h2 className="text-lg font-semibold text-ink mb-4">Credit Cost Reference</h2>
+        <div className="overflow-hidden rounded-xl border border-divider">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50">
+            <thead className="bg-canvas">
               <tr>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">Operation</th>
-                <th className="text-right px-4 py-3 text-gray-500 font-medium">Credits</th>
+                <th className="text-left px-4 py-3 text-ink-3 font-medium">Operation</th>
+                <th className="text-right px-4 py-3 text-ink-3 font-medium">Credits</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-divider-light">
               {[
                 ['GEO Audit (1 URL)', 10],
                 ['Monitor Scan (per prompt)', 1],
@@ -303,16 +303,16 @@ export default function AdminPanel() {
                 ['Distribution Strategy', 5],
                 ['Reddit Strategy', 10],
               ].map(([op, cost]) => (
-                <tr key={op as string} className="hover:bg-gray-50">
-                  <td className="px-4 py-2.5 text-gray-700">{op}</td>
-                  <td className="px-4 py-2.5 text-right font-semibold text-gray-900">{cost}</td>
+                <tr key={op as string} className="hover:bg-surface-warm">
+                  <td className="px-4 py-2.5 text-ink-2">{op}</td>
+                  <td className="px-4 py-2.5 text-right font-semibold text-ink">{cost}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        <div className="mt-4 text-xs text-gray-500 space-y-1">
+        <div className="mt-4 text-xs text-ink-3 space-y-1">
           <p><span className="font-semibold">Trial:</span> 50 credits/month</p>
           <p><span className="font-semibold">Starter ($299/mo):</span> 300 credits/month</p>
           <p><span className="font-semibold">Growth ($599/mo):</span> 1,000 credits/month</p>

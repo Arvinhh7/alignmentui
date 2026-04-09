@@ -130,13 +130,13 @@ function buildOptUrl(auditUrl: string) {
 
 // ─── Score Benchmark ────────────────────────────────────
 function getScoreBenchmark(score: number): { percentile: number; label: string; color: string } {
-  if (score >= 90) return { percentile: 95, label: 'Top 5%', color: 'text-green-600' }
-  if (score >= 80) return { percentile: 85, label: 'Top 15%', color: 'text-green-600' }
-  if (score >= 70) return { percentile: 70, label: 'Top 30%', color: 'text-blue-600' }
-  if (score >= 60) return { percentile: 50, label: 'Top 50%', color: 'text-blue-600' }
-  if (score >= 45) return { percentile: 35, label: 'Top 65%', color: 'text-yellow-600' }
-  if (score >= 30) return { percentile: 20, label: 'Bottom 35%', color: 'text-orange-600' }
-  return { percentile: 10, label: 'Bottom 15%', color: 'text-red-600' }
+  if (score >= 90) return { percentile: 95, label: 'Top 5%', color: 'text-sage' }
+  if (score >= 80) return { percentile: 85, label: 'Top 15%', color: 'text-sage' }
+  if (score >= 70) return { percentile: 70, label: 'Top 30%', color: 'text-ink-2' }
+  if (score >= 60) return { percentile: 50, label: 'Top 50%', color: 'text-ink-2' }
+  if (score >= 45) return { percentile: 35, label: 'Top 65%', color: 'text-caution' }
+  if (score >= 30) return { percentile: 20, label: 'Bottom 35%', color: 'text-caution' }
+  return { percentile: 10, label: 'Bottom 15%', color: 'text-red-soft' }
 }
 
 // ─── Score Ring Component ──────────────────────────────
@@ -148,10 +148,10 @@ function ScoreRing({ score, size = 180, strokeWidth = 12, animate = true }: {
   const offset = circumference - (score / 100) * circumference
 
   const getColor = (s: number) => {
-    if (s >= 85) return { stroke: '#22c55e', text: 'text-green-500', glow: 'shadow-green-500/20' }
-    if (s >= 65) return { stroke: '#3b82f6', text: 'text-blue-500', glow: 'shadow-blue-500/20' }
-    if (s >= 45) return { stroke: '#eab308', text: 'text-yellow-500', glow: 'shadow-yellow-500/20' }
-    return { stroke: '#ef4444', text: 'text-red-600', glow: 'shadow-red-500/20' }
+    if (s >= 85) return { stroke: '#4A7C59', text: 'text-sage', glow: 'shadow-sage/20' }
+    if (s >= 65) return { stroke: '#191918', text: 'text-ink', glow: 'shadow-ink/10' }
+    if (s >= 45) return { stroke: '#B8860B', text: 'text-caution', glow: 'shadow-caution/20' }
+    return { stroke: '#B5453A', text: 'text-red-soft', glow: 'shadow-red-soft/20' }
   }
 
   const color = getColor(score)
@@ -163,7 +163,7 @@ function ScoreRing({ score, size = 180, strokeWidth = 12, animate = true }: {
         <svg className="w-full h-full transform -rotate-90">
           <circle
             cx={size / 2} cy={size / 2} r={radius}
-            stroke="#f3f4f6" strokeWidth={strokeWidth} fill="none"
+            stroke="#EDE8E0" strokeWidth={strokeWidth} fill="none"
           />
           <circle
             cx={size / 2} cy={size / 2} r={radius}
@@ -179,10 +179,10 @@ function ScoreRing({ score, size = 180, strokeWidth = 12, animate = true }: {
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className={`text-5xl font-bold font-mono ${color.text}`}>{score}</span>
-          <span className="text-gray-400 text-sm">/ 100</span>
+          <span className="text-ink-3 text-sm">/ 100</span>
         </div>
       </div>
-      <span className={`mt-2 text-xs font-semibold ${benchmark.color} bg-gray-50 px-3 py-1 rounded-full`}>
+      <span className={`mt-2 text-xs font-semibold ${benchmark.color} bg-canvas px-3 py-1 rounded-full`}>
         {benchmark.label} of websites
       </span>
     </div>
@@ -220,10 +220,10 @@ function RadarChart({ scores, size = 220 }: { scores: number[]; size?: number })
     .join(' ')
 
   const getScoreColor = (s: number) => {
-    if (s >= 85) return '#22c55e'
-    if (s >= 65) return '#3b82f6'
-    if (s >= 45) return '#eab308'
-    return '#ef4444'
+    if (s >= 85) return '#4A7C59'
+    if (s >= 65) return '#191918'
+    if (s >= 45) return '#B8860B'
+    return '#B5453A'
   }
 
   return (
@@ -234,7 +234,7 @@ function RadarChart({ scores, size = 220 }: { scores: number[]; size?: number })
           key={level}
           points={getPolygon(level)}
           fill="none"
-          stroke="#e5e7eb"
+          stroke="#EDE8E0"
           strokeWidth="1"
           opacity={0.6}
         />
@@ -243,14 +243,14 @@ function RadarChart({ scores, size = 220 }: { scores: number[]; size?: number })
       {/* Axis lines */}
       {Array.from({ length: 5 }, (_, i) => {
         const p = getPoint(i, 100)
-        return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="#e5e7eb" strokeWidth="1" opacity={0.5} />
+        return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="#EDE8E0" strokeWidth="1" opacity={0.5} />
       })}
 
       {/* Data polygon */}
       <polygon
         points={dataPolygon}
-        fill="rgba(249, 115, 22, 0.15)"
-        stroke="#f97316"
+        fill="rgba(25, 25, 24, 0.08)"
+        stroke="#191918"
         strokeWidth="2"
         className="transition-all duration-1000"
       />
@@ -274,7 +274,7 @@ function RadarChart({ scores, size = 220 }: { scores: number[]; size?: number })
           <text
             key={i} x={p.x} y={p.y}
             textAnchor="middle" dominantBaseline="middle"
-            className="text-[10px] fill-gray-500 font-medium"
+            className="text-[10px] fill-ink-3 font-medium"
           >
             {label}
           </text>
@@ -331,11 +331,11 @@ function ScanProgressPanel({ url }: { url: string }) {
   const progress = Math.min(((activeStep + 1) / 5) * 90 + elapsed * 2, 95)
 
   return (
-    <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+    <section className="bg-surface rounded-2xl border border-divider-light shadow-sm overflow-hidden">
       {/* Progress bar */}
-      <div className="h-1.5 bg-gray-100 w-full">
+      <div className="h-1.5 bg-surface-warm w-full">
         <div
-          className="h-full bg-gradient-to-r from-primary to-orange-400 rounded-full transition-all duration-1000 ease-out"
+          className="h-full bg-gradient-to-r from-ink to-ink/60 rounded-full transition-all duration-1000 ease-out"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -344,20 +344,20 @@ function ScanProgressPanel({ url }: { url: string }) {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-              <RefreshCw className="w-5 h-5 text-primary animate-spin" />
+            <div className="w-10 h-10 bg-ink/5 rounded-xl flex items-center justify-center">
+              <RefreshCw className="w-5 h-5 text-ink animate-spin" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Analyzing your website...</h3>
-              <p className="text-sm text-gray-500 flex items-center gap-2">
+              <h3 className="text-lg font-bold text-ink">Analyzing your website...</h3>
+              <p className="text-sm text-ink-3 flex items-center gap-2">
                 <Globe className="w-3.5 h-3.5" />
                 {url.replace(/^https?:\/\//, '')}
               </p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-bold font-mono text-primary">{Math.round(progress)}%</p>
-            <p className="text-xs text-gray-400">{elapsed}s elapsed</p>
+            <p className="text-2xl font-bold font-mono text-ink">{Math.round(progress)}%</p>
+            <p className="text-xs text-ink-3">{elapsed}s elapsed</p>
           </div>
         </div>
 
@@ -374,19 +374,19 @@ function ScanProgressPanel({ url }: { url: string }) {
                 key={i}
                 className={`relative p-4 rounded-xl border-2 transition-all duration-500 ${
                   isDone
-                    ? 'border-green-200 bg-green-50'
+                    ? 'border-sage/30 bg-sage-bg'
                     : isActive
-                    ? 'border-primary/40 bg-primary/5 shadow-lg shadow-primary/10'
-                    : 'border-gray-100 bg-gray-50 opacity-50'
+                    ? 'border-ink/20 bg-ink/[0.03] shadow-md shadow-ink/5'
+                    : 'border-divider-light bg-canvas opacity-50'
                 }`}
               >
                 {/* Step number badge */}
                 <div className={`absolute -top-2 -left-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                   isDone
-                    ? 'bg-green-500 text-white'
+                    ? 'bg-sage text-ink-inv'
                     : isActive
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-200 text-gray-500'
+                    ? 'bg-ink text-ink-inv'
+                    : 'bg-surface-muted text-ink-3'
                 }`}>
                   {isDone ? '✓' : i + 1}
                 </div>
@@ -394,10 +394,10 @@ function ScanProgressPanel({ url }: { url: string }) {
                 <div className="flex flex-col items-center text-center gap-2 pt-1">
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                     isDone
-                      ? 'bg-green-100 text-green-600'
+                      ? 'bg-sage-bg text-sage'
                       : isActive
-                      ? 'bg-primary/10 text-primary'
-                      : 'bg-gray-100 text-gray-400'
+                      ? 'bg-ink/5 text-ink'
+                      : 'bg-surface-warm text-ink-3'
                   }`}>
                     {isActive ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -408,12 +408,12 @@ function ScanProgressPanel({ url }: { url: string }) {
                     )}
                   </div>
                   <p className={`text-xs font-semibold ${
-                    isDone ? 'text-green-700' : isActive ? 'text-gray-900' : 'text-gray-400'
+                    isDone ? 'text-sage' : isActive ? 'text-ink' : 'text-ink-3'
                   }`}>
                     {step.label}
                   </p>
                   {isActive && (
-                    <p className="text-[10px] text-gray-400 animate-pulse">{step.desc}</p>
+                    <p className="text-[10px] text-ink-3 animate-pulse">{step.desc}</p>
                   )}
                 </div>
               </div>
@@ -423,23 +423,23 @@ function ScanProgressPanel({ url }: { url: string }) {
 
         {/* Skeleton preview */}
         <div className="mt-8 grid grid-cols-3 gap-4">
-          <div className="bg-gray-50 rounded-xl p-6 flex flex-col items-center animate-pulse">
-            <div className="w-24 h-24 rounded-full bg-gray-200 mb-3" />
-            <div className="w-20 h-4 bg-gray-200 rounded" />
+          <div className="bg-canvas rounded-xl p-6 flex flex-col items-center animate-pulse">
+            <div className="w-24 h-24 rounded-full bg-surface-muted mb-3" />
+            <div className="w-20 h-4 bg-surface-muted rounded" />
           </div>
-          <div className="bg-gray-50 rounded-xl p-6 space-y-3 animate-pulse">
+          <div className="bg-canvas rounded-xl p-6 space-y-3 animate-pulse">
             {[1,2,3,4,5].map(i => (
               <div key={i} className="flex items-center gap-2">
-                <div className="w-8 h-3 bg-gray-200 rounded" />
-                <div className="flex-1 h-2 bg-gray-200 rounded-full" />
-                <div className="w-6 h-3 bg-gray-200 rounded" />
+                <div className="w-8 h-3 bg-surface-muted rounded" />
+                <div className="flex-1 h-2 bg-surface-muted rounded-full" />
+                <div className="w-6 h-3 bg-surface-muted rounded" />
               </div>
             ))}
           </div>
-          <div className="bg-gray-50 rounded-xl p-6 space-y-3 animate-pulse">
+          <div className="bg-canvas rounded-xl p-6 space-y-3 animate-pulse">
             <div className="grid grid-cols-2 gap-2">
               {[1,2,3,4].map(i => (
-                <div key={i} className="h-14 bg-gray-200 rounded-lg" />
+                <div key={i} className="h-14 bg-surface-muted rounded-lg" />
               ))}
             </div>
           </div>
@@ -466,45 +466,45 @@ function InsightCards({ result }: { result: AuditResult }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Strongest */}
-      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 p-5">
+      <div className="bg-gradient-to-br from-sage-bg to-surface-warm rounded-xl border border-sage/30 p-5">
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-green-600">
+          <div className="w-8 h-8 bg-sage-bg rounded-lg flex items-center justify-center text-sage">
             <TrendingUp className="w-4 h-4" />
           </div>
           <div>
-            <p className="text-xs font-medium text-green-600 uppercase tracking-wider">Strongest Dimension</p>
+            <p className="text-xs font-medium text-sage uppercase tracking-wider">Strongest Dimension</p>
           </div>
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-green-600">{strongest.icon}</span>
-            <span className="font-semibold text-gray-900">{strongest.label}</span>
+            <span className="text-sage">{strongest.icon}</span>
+            <span className="font-semibold text-ink">{strongest.label}</span>
           </div>
-          <span className="text-2xl font-bold font-mono text-green-600">{strongest.score}</span>
+          <span className="text-2xl font-bold font-mono text-sage">{strongest.score}</span>
         </div>
-        <p className="text-xs text-green-700 mt-2 opacity-75">
+        <p className="text-xs text-sage mt-2 opacity-75">
           This is your best-performing area for AI visibility.
         </p>
       </div>
 
       {/* Weakest */}
-      <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl border border-red-200 p-5">
+      <div className="bg-surface-warm rounded-xl border border-divider-light p-5">
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center text-red-600">
+          <div className="w-8 h-8 bg-red-soft-bg rounded-lg flex items-center justify-center text-red-soft">
             <Target className="w-4 h-4" />
           </div>
           <div>
-            <p className="text-xs font-medium text-red-600 uppercase tracking-wider">Priority to Fix</p>
+            <p className="text-xs font-medium text-red-soft uppercase tracking-wider">Priority to Fix</p>
           </div>
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-red-500">{weakest.icon}</span>
-            <span className="font-semibold text-gray-900">{weakest.label}</span>
+            <span className="text-red-soft">{weakest.icon}</span>
+            <span className="font-semibold text-ink">{weakest.label}</span>
           </div>
-          <span className="text-2xl font-bold font-mono text-red-600">{weakest.score}</span>
+          <span className="text-2xl font-bold font-mono text-red-soft">{weakest.score}</span>
         </div>
-        <p className="text-xs text-red-700 mt-2 opacity-75">
+        <p className="text-xs text-red-soft mt-2 opacity-75">
           Improving this dimension will have the biggest impact on your score.
         </p>
       </div>
@@ -523,19 +523,19 @@ function DimensionCard({ dimension, icon, label, index, t }: {
   const [expanded, setExpanded] = useState(false)
 
   const statusConfig: Record<string, { bg: string; text: string; label: string; border: string }> = {
-    excellent: { bg: 'bg-green-100', text: 'text-green-700', label: t.dashboard.excellent, border: 'border-green-200' },
-    good: { bg: 'bg-blue-100', text: 'text-blue-700', label: t.dashboard.good, border: 'border-blue-200' },
-    needs_work: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: t.dashboard.needsWork, border: 'border-yellow-200' },
-    poor: { bg: 'bg-red-100', text: 'text-red-700', label: t.dashboard.poor, border: 'border-red-200' },
+    excellent: { bg: 'bg-sage-bg', text: 'text-sage', label: t.dashboard.excellent, border: 'border-sage/30' },
+    good: { bg: 'bg-surface-warm', text: 'text-ink-2', label: t.dashboard.good, border: 'border-divider' },
+    needs_work: { bg: 'bg-caution-bg', text: 'text-caution', label: t.dashboard.needsWork, border: 'border-caution/30' },
+    poor: { bg: 'bg-red-soft-bg', text: 'text-red-soft', label: t.dashboard.poor, border: 'border-red-soft/30' },
   }
 
   const status = statusConfig[dimension.status] || statusConfig.poor
 
   const getBarColor = (score: number) => {
-    if (score >= 85) return 'bg-green-500'
-    if (score >= 65) return 'bg-blue-500'
-    if (score >= 45) return 'bg-yellow-500'
-    return 'bg-red-500'
+    if (score >= 85) return 'bg-sage'
+    if (score >= 65) return 'bg-ink-2'
+    if (score >= 45) return 'bg-caution'
+    return 'bg-red-soft'
   }
 
   const passedCount = dimension.details.filter(d => d.startsWith('✅')).length
@@ -543,7 +543,7 @@ function DimensionCard({ dimension, icon, label, index, t }: {
   const issueCount = dimension.details.filter(d => d.startsWith('❌')).length
 
   return (
-    <div className={`bg-white rounded-xl border overflow-hidden hover:shadow-md transition-all ${expanded ? `${status.border} shadow-md` : 'border-gray-200'}`}>
+    <div className={`bg-surface rounded-xl border overflow-hidden hover:shadow-md transition-all ${expanded ? `${status.border} shadow-md` : 'border-divider-light'}`}>
       {/* Header */}
       <button
         onClick={() => setExpanded(!expanded)}
@@ -555,36 +555,36 @@ function DimensionCard({ dimension, icon, label, index, t }: {
               {icon}
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900 flex items-center gap-2">
-                <span className="text-xs text-gray-400 font-mono">D{index}</span>
+              <h4 className="font-semibold text-ink flex items-center gap-2">
+                <span className="text-xs text-ink-3 font-mono">D{index}</span>
                 {label}
               </h4>
-              <p className="text-xs text-gray-500 mt-0.5">{dimension.description}</p>
+              <p className="text-xs text-ink-3 mt-0.5">{dimension.description}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${status.bg} ${status.text}`}>
               {status.label}
             </span>
-            <span className="text-2xl font-bold font-mono text-gray-900">{dimension.score}</span>
+            <span className="text-2xl font-bold font-mono text-ink">{dimension.score}</span>
           </div>
         </div>
 
         {/* Score Bar */}
-        <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div className="w-full h-2 bg-surface-warm rounded-full overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-700 ${getBarColor(dimension.score)}`}
             style={{ width: `${dimension.score}%` }}
           />
         </div>
 
-        <div className="flex items-center justify-between mt-2 text-xs text-gray-400">
+        <div className="flex items-center justify-between mt-2 text-xs text-ink-3">
           <span className="flex items-center gap-3">
-            {passedCount > 0 && <span className="flex items-center gap-1 text-green-600"><CheckCircle className="w-3 h-3" />{passedCount}</span>}
-            {warningCount > 0 && <span className="flex items-center gap-1 text-yellow-600"><AlertTriangle className="w-3 h-3" />{warningCount}</span>}
-            {issueCount > 0 && <span className="flex items-center gap-1 text-red-600"><XCircle className="w-3 h-3" />{issueCount}</span>}
+            {passedCount > 0 && <span className="flex items-center gap-1 text-sage"><CheckCircle className="w-3 h-3" />{passedCount}</span>}
+            {warningCount > 0 && <span className="flex items-center gap-1 text-caution"><AlertTriangle className="w-3 h-3" />{warningCount}</span>}
+            {issueCount > 0 && <span className="flex items-center gap-1 text-red-soft"><XCircle className="w-3 h-3" />{issueCount}</span>}
           </span>
-          <span className="flex items-center gap-1 text-primary/70 hover:text-primary">
+          <span className="flex items-center gap-1 text-ink-3 hover:text-ink transition-colors">
             {expanded ? 'Hide' : 'View'} details
             <ArrowRight className={`w-3 h-3 transition-transform ${expanded ? 'rotate-90' : ''}`} />
           </span>
@@ -593,24 +593,24 @@ function DimensionCard({ dimension, icon, label, index, t }: {
 
       {/* Expanded Details */}
       {expanded && (
-        <div className="px-5 pb-5 border-t border-gray-100 pt-4 space-y-4">
+        <div className="px-5 pb-5 border-t border-divider-light pt-4 space-y-4">
           {/* Findings */}
           <div>
-            <h5 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5">
+            <h5 className="text-sm font-medium text-ink-2 mb-2 flex items-center gap-1.5">
               <Eye className="w-4 h-4" />
               {t.dashboard.findings}
             </h5>
             <div className="space-y-1.5">
               {dimension.details.map((detail, i) => (
                 <div key={i} className={`text-sm py-1.5 px-3 rounded-lg flex items-start gap-2 ${
-                  detail.startsWith('✅') ? 'bg-green-50 text-green-800' :
-                  detail.startsWith('⚠️') ? 'bg-yellow-50 text-yellow-800' :
-                  detail.startsWith('❌') ? 'bg-red-50 text-red-800' : 'text-gray-600'
+                  detail.startsWith('✅') ? 'bg-sage-bg text-sage' :
+                  detail.startsWith('⚠️') ? 'bg-caution-bg text-caution' :
+                  detail.startsWith('❌') ? 'bg-red-soft-bg text-red-soft' : 'text-ink-2'
                 }`}>
                   <span className="flex-shrink-0 mt-0.5">
-                    {detail.startsWith('✅') ? <CheckCircle className="w-4 h-4 text-green-500" /> :
-                     detail.startsWith('⚠️') ? <AlertTriangle className="w-4 h-4 text-yellow-500" /> :
-                     detail.startsWith('❌') ? <XCircle className="w-4 h-4 text-red-500" /> : null}
+                    {detail.startsWith('✅') ? <CheckCircle className="w-4 h-4 text-sage" /> :
+                     detail.startsWith('⚠️') ? <AlertTriangle className="w-4 h-4 text-caution" /> :
+                     detail.startsWith('❌') ? <XCircle className="w-4 h-4 text-red-soft" /> : null}
                   </span>
                   <span>{detail.replace(/^[✅⚠️❌]\s*/, '')}</span>
                 </div>
@@ -621,14 +621,14 @@ function DimensionCard({ dimension, icon, label, index, t }: {
           {/* Recommendations */}
           {dimension.recommendations.length > 0 && (
             <div>
-              <h5 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-primary" />
+              <h5 className="text-sm font-medium text-ink-2 mb-2 flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-ink-2" />
                 {t.dashboard.recommendations}
               </h5>
               <div className="space-y-2">
                 {dimension.recommendations.map((rec, i) => (
-                  <div key={i} className="text-sm bg-primary/5 border border-primary/10 rounded-lg p-3 text-gray-700">
-                    <span className="font-medium text-primary mr-1">→</span> {rec}
+                  <div key={i} className="text-sm bg-ink/[0.03] border border-ink/10 rounded-lg p-3 text-ink-2">
+                    <span className="font-medium text-ink mr-1">→</span> {rec}
                   </div>
                 ))}
               </div>
@@ -645,13 +645,13 @@ function StatCard({ icon, label, value, color }: {
   icon: React.ReactNode; label: string; value: string | number; color: string
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+    <div className="bg-surface rounded-xl border border-divider-light p-4 flex items-center gap-3">
       <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${color}`}>
         {icon}
       </div>
       <div>
-        <p className="text-2xl font-bold text-gray-900 font-mono">{value}</p>
-        <p className="text-xs text-gray-500">{label}</p>
+        <p className="text-2xl font-bold text-ink font-mono">{value}</p>
+        <p className="text-xs text-ink-3">{label}</p>
       </div>
     </div>
   )
@@ -778,10 +778,10 @@ function FixPanel({
 
   const btnLabel = isRed ? 'View Engineer Guide' : isYellow ? 'Generate Draft' : 'Generate Fix'
   const btnColor = isRed
-    ? 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-200'
+    ? 'bg-red-soft-bg hover:bg-red-soft-bg text-red-soft border border-red-soft/30'
     : isYellow
-    ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200'
-    : 'bg-green-50 hover:bg-green-100 text-green-700 border border-green-200'
+    ? 'bg-caution-bg hover:bg-caution-bg text-caution border border-caution/30'
+    : 'bg-sage-bg hover:bg-sage-bg text-sage border border-sage/30'
 
   return (
     <div className="mt-2">
@@ -798,7 +798,7 @@ function FixPanel({
 
       {/* Loading state */}
       {loading && (
-        <div className="flex items-center gap-2 text-xs text-gray-500 py-2">
+        <div className="flex items-center gap-2 text-xs text-ink-3 py-2">
           <Loader2 className="w-3.5 h-3.5 animate-spin" />
           Claude is generating the fix…
         </div>
@@ -806,7 +806,7 @@ function FixPanel({
 
       {/* Error */}
       {error && (
-        <div className="mt-1.5 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-600 flex items-start gap-1.5">
+        <div className="mt-1.5 p-2 bg-red-soft-bg border border-red-soft/30 rounded text-xs text-red-soft flex items-start gap-1.5">
           <XCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
@@ -815,26 +815,26 @@ function FixPanel({
       {/* Plan display */}
       {plan && !applyResult && (
         <div className={`mt-2 rounded-xl border overflow-hidden ${
-          isRed ? 'border-red-200 bg-red-50/60' :
-          isYellow ? 'border-amber-200 bg-amber-50/60' :
-          'border-green-200 bg-green-50/60'
+          isRed ? 'border-red-soft/30 bg-red-soft-bg/60' :
+          isYellow ? 'border-caution/30 bg-caution-bg/60' :
+          'border-sage/30 bg-sage-bg/60'
         }`}>
           {/* Plan header */}
           <div className="px-3 py-2.5 flex items-start justify-between gap-2">
             <div>
               <p className={`text-xs font-semibold ${
-                isRed ? 'text-red-800' : isYellow ? 'text-amber-800' : 'text-green-800'
+                isRed ? 'text-red-soft' : isYellow ? 'text-caution' : 'text-sage'
               }`}>
                 {isRed ? '⛔ Engineer Guide' : isYellow ? '✏️ AI Draft' : '✅ Auto-fix'} — {plan.fix_title}
               </p>
-              <p className="text-[11px] text-gray-600 mt-0.5 leading-relaxed">{plan.fix_description}</p>
+              <p className="text-[11px] text-ink-2 mt-0.5 leading-relaxed">{plan.fix_description}</p>
               {plan.model_used && (
-                <p className="text-[10px] text-gray-400 mt-1 font-mono">via {plan.model_used} · ~{plan.estimated_minutes}min</p>
+                <p className="text-[10px] text-ink-3 mt-1 font-mono">via {plan.model_used} · ~{plan.estimated_minutes}min</p>
               )}
             </div>
             <button
               onClick={() => { setPlan(null); setError(null) }}
-              className="text-gray-400 hover:text-gray-600 flex-shrink-0 mt-0.5"
+              className="text-ink-3 hover:text-ink-2 flex-shrink-0 mt-0.5"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -845,17 +845,17 @@ function FixPanel({
             <div className="mx-3 mb-3">
               <div className="relative">
                 <pre className={`text-[11px] font-mono rounded-lg p-3 overflow-x-auto border max-h-52 whitespace-pre-wrap break-all ${
-                  isRed ? 'bg-red-900/5 border-red-200 text-red-900' :
-                  isYellow ? 'bg-amber-900/5 border-amber-200 text-amber-900' :
-                  'bg-green-900/5 border-green-200 text-green-900'
+                  isRed ? 'bg-red-soft-bg border-red-soft/30 text-red-soft' :
+                  isYellow ? 'bg-caution-bg border-caution/30 text-caution' :
+                  'bg-sage-bg border-sage/30 text-sage'
                 }`}>
                   {plan.fix_code}
                 </pre>
                 <button
                   onClick={handleCopy}
-                  className="absolute top-2 right-2 flex items-center gap-1 text-[10px] px-2 py-1 bg-white/80 hover:bg-white border border-gray-200 rounded-md text-gray-600 transition-all"
+                  className="absolute top-2 right-2 flex items-center gap-1 text-[10px] px-2 py-1 bg-surface/80 hover:bg-surface border border-divider-light rounded-md text-ink-2 transition-all"
                 >
-                  {copied ? <CheckCheck className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
+                  {copied ? <CheckCheck className="w-3 h-3 text-sage" /> : <Copy className="w-3 h-3" />}
                   {copied ? 'Copied!' : 'Copy'}
                 </button>
               </div>
@@ -865,8 +865,8 @@ function FixPanel({
           {/* Engineer guide */}
           {plan.engineer_guide && (
             <div className="mx-3 mb-3">
-              <div className="bg-white/70 border border-red-200 rounded-lg p-3 max-h-60 overflow-y-auto">
-                <pre className="text-[11px] text-gray-700 whitespace-pre-wrap leading-relaxed font-sans">
+              <div className="bg-surface/70 border border-red-soft/30 rounded-lg p-3 max-h-60 overflow-y-auto">
+                <pre className="text-[11px] text-ink-2 whitespace-pre-wrap leading-relaxed font-sans">
                   {plan.engineer_guide}
                 </pre>
               </div>
@@ -875,21 +875,21 @@ function FixPanel({
 
           {/* Risk note */}
           {plan.risk_note && (
-            <div className="mx-3 mb-3 flex items-start gap-1.5 p-2 bg-amber-50 border border-amber-200 rounded-lg">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
-              <p className="text-[11px] text-amber-800 leading-relaxed">{plan.risk_note}</p>
+            <div className="mx-3 mb-3 flex items-start gap-1.5 p-2 bg-caution-bg border border-caution/30 rounded-lg">
+              <AlertTriangle className="w-3.5 h-3.5 text-caution flex-shrink-0 mt-0.5" />
+              <p className="text-[11px] text-caution leading-relaxed">{plan.risk_note}</p>
             </div>
           )}
 
           {/* Apply steps summary */}
           {plan.apply_steps.length > 0 && !isRed && (
             <div className="mx-3 mb-3">
-              <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5">How to apply</p>
+              <p className="text-[10px] font-semibold text-ink-3 uppercase tracking-wide mb-1.5">How to apply</p>
               <ol className="space-y-1">
                 {plan.apply_steps.map(step => (
-                  <li key={step.step_number} className="flex gap-2 text-[11px] text-gray-600">
+                  <li key={step.step_number} className="flex gap-2 text-[11px] text-ink-2">
                     <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0 mt-0.5 ${
-                      isYellow ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
+                      isYellow ? 'bg-caution-bg text-caution' : 'bg-sage-bg text-sage'
                     }`}>{step.step_number}</span>
                     <span><span className="font-medium">{step.title}:</span> {step.action}</span>
                   </li>
@@ -906,9 +906,9 @@ function FixPanel({
                   type="checkbox"
                   checked={approved}
                   onChange={e => setApproved(e.target.checked)}
-                  className="mt-0.5 w-3.5 h-3.5 accent-amber-600"
+                  className="mt-0.5 w-3.5 h-3.5 accent-[#191918]"
                 />
-                <span className="text-[11px] text-amber-800 leading-relaxed">
+                <span className="text-[11px] text-caution leading-relaxed">
                   I have reviewed this draft and confirm it is accurate and appropriate for my website.
                 </span>
               </label>
@@ -918,18 +918,18 @@ function FixPanel({
           {/* Connection Selector — shown when fix requires Shopify / GitHub access */}
           {plan.requires_connection && !isRed && (
             <div className="mx-3 mb-3">
-              <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+              <p className="text-[10px] font-semibold text-ink-3 uppercase tracking-wide mb-1.5">
                 Apply via connection
               </p>
               {loadingConnections ? (
-                <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
+                <div className="flex items-center gap-1.5 text-[11px] text-ink-3">
                   <Loader2 className="w-3 h-3 animate-spin" />
                   Loading connections…
                 </div>
               ) : connections.length === 0 ? (
-                <div className="flex items-start gap-2 p-2 bg-amber-50 border border-amber-200 rounded-lg">
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-[11px] text-amber-700 leading-relaxed">
+                <div className="flex items-start gap-2 p-2 bg-caution-bg border border-caution/30 rounded-lg">
+                  <AlertTriangle className="w-3.5 h-3.5 text-caution flex-shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-caution leading-relaxed">
                     No {plan.apply_method === 'shopify_asset' ? 'Shopify' : 'GitHub'} connection found.{' '}
                     <a href="/dashboard/connections" className="underline font-medium">
                       Connect your store
@@ -941,7 +941,7 @@ function FixPanel({
                 <select
                   value={selectedConnectionId ?? ''}
                   onChange={e => setSelectedConnectionId(e.target.value || null)}
-                  className="w-full text-[11px] border border-gray-200 rounded-lg px-2.5 py-1.5 bg-white text-gray-700 focus:outline-none focus:border-blue-400"
+                  className="w-full text-[11px] border border-divider-light rounded-lg px-2.5 py-1.5 bg-surface text-ink-2 focus:outline-none focus:border-ink"
                 >
                   <option value="">— No connection (copy code manually) —</option>
                   {connections.map(c => (
@@ -961,9 +961,9 @@ function FixPanel({
               {plan.fix_code && (
                 <button
                   onClick={handleCopy}
-                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-white border border-gray-200 hover:border-gray-300 text-gray-600 rounded-lg font-medium transition-all"
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-surface border border-divider-light hover:border-divider text-ink-2 rounded-lg font-medium transition-all"
                 >
-                  {copied ? <CheckCheck className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copied ? <CheckCheck className="w-3.5 h-3.5 text-sage" /> : <Copy className="w-3.5 h-3.5" />}
                   {copied ? 'Copied!' : 'Copy Code'}
                 </button>
               )}
@@ -973,8 +973,8 @@ function FixPanel({
                   disabled={applying || (isYellow && !approved)}
                   className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold transition-all disabled:opacity-50 ${
                     isYellow
-                      ? 'bg-amber-600 hover:bg-amber-700 text-white disabled:bg-amber-300'
-                      : 'bg-green-600 hover:bg-green-700 text-white disabled:bg-green-300'
+                      ? 'bg-caution hover:bg-caution/90 text-ink-inv disabled:opacity-30'
+                      : 'bg-sage hover:bg-[#3D6B4E] text-ink-inv disabled:opacity-30'
                   }`}
                 >
                   {applying
@@ -997,11 +997,11 @@ function FixPanel({
       {applyResult && !rollbackResult && (
         <div className={`mt-2 rounded-xl border overflow-hidden text-xs ${
           applyResult.success
-            ? 'bg-green-50 border-green-200'
-            : 'bg-red-50 border-red-200'
+            ? 'bg-sage-bg border-sage/30'
+            : 'bg-red-soft-bg border-red-soft/30'
         }`}>
           <div className={`flex items-start gap-1.5 p-3 ${
-            applyResult.success ? 'text-green-800' : 'text-red-700'
+            applyResult.success ? 'text-sage' : 'text-red-soft'
           }`}>
             {applyResult.success
               ? <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -1018,24 +1018,24 @@ function FixPanel({
 
           {/* Rollback row — only when apply succeeded and rollback is available */}
           {applyResult.success && applyResult.rollback_available && (
-            <div className="border-t border-green-200 bg-white/60 px-3 py-2 flex items-center justify-between gap-3">
-              <p className="text-[11px] text-gray-500">Changed your mind? Restore the previous state.</p>
+            <div className="border-t border-sage/30 bg-surface/60 px-3 py-2 flex items-center justify-between gap-3">
+              <p className="text-[11px] text-ink-3">Changed your mind? Restore the previous state.</p>
               {!showRollbackConfirm ? (
                 <button
                   onClick={() => setShowRollbackConfirm(true)}
                   disabled={rollingBack}
-                  className="flex items-center gap-1 text-[11px] px-2.5 py-1 bg-white border border-gray-300 hover:border-red-300 hover:text-red-600 text-gray-600 rounded-lg font-medium transition-all"
+                  className="flex items-center gap-1 text-[11px] px-2.5 py-1 bg-surface border border-divider hover:border-red-soft/30 hover:text-red-soft text-ink-2 rounded-lg font-medium transition-all"
                 >
                   <RotateCcw className="w-3 h-3" />
                   Rollback Fix
                 </button>
               ) : (
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-red-700 font-medium">Confirm rollback?</span>
+                  <span className="text-[11px] text-red-soft font-medium">Confirm rollback?</span>
                   <button
                     onClick={handleRollback}
                     disabled={rollingBack}
-                    className="text-[11px] px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 flex items-center gap-1"
+                    className="text-[11px] px-2.5 py-1 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-lg font-semibold transition-all disabled:opacity-50 flex items-center gap-1"
                   >
                     {rollingBack
                       ? <><Loader2 className="w-3 h-3 animate-spin" /> Restoring…</>
@@ -1044,7 +1044,7 @@ function FixPanel({
                   </button>
                   <button
                     onClick={() => setShowRollbackConfirm(false)}
-                    className="text-[11px] px-2.5 py-1 border border-gray-200 text-gray-500 rounded-lg hover:bg-gray-50"
+                    className="text-[11px] px-2.5 py-1 border border-divider-light text-ink-3 rounded-lg hover:bg-surface-warm"
                   >
                     Cancel
                   </button>
@@ -1055,8 +1055,8 @@ function FixPanel({
 
           {/* Manual apply — no rollback, but remind user how to undo */}
           {applyResult.success && !applyResult.rollback_available && (
-            <div className="border-t border-green-200 bg-white/60 px-3 py-2">
-              <p className="text-[11px] text-gray-500">
+            <div className="border-t border-sage/30 bg-surface/60 px-3 py-2">
+              <p className="text-[11px] text-ink-3">
                 To undo: manually remove the code or file that was applied.
               </p>
             </div>
@@ -1068,12 +1068,12 @@ function FixPanel({
       {rollbackResult && (
         <div className={`mt-2 p-3 rounded-xl border text-xs ${
           rollbackResult.success
-            ? 'bg-amber-50 border-amber-200 text-amber-800'
-            : 'bg-red-50 border-red-200 text-red-700'
+            ? 'bg-caution-bg border-caution/30 text-caution'
+            : 'bg-red-soft-bg border-red-soft/30 text-red-soft'
         }`}>
           <div className="flex items-start gap-1.5">
             {rollbackResult.success
-              ? <RotateCcw className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-600" />
+              ? <RotateCcw className="w-4 h-4 flex-shrink-0 mt-0.5 text-caution" />
               : <XCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
             }
             <div>
@@ -1093,9 +1093,9 @@ function FixPanel({
 }
 
 function ConfidenceBadge({ score }: { score: number }) {
-  const color = score >= 95 ? 'text-green-600 bg-green-50' :
-                score >= 85 ? 'text-blue-600 bg-blue-50' :
-                              'text-orange-600 bg-orange-50'
+  const color = score >= 95 ? 'text-sage bg-sage-bg' :
+                score >= 85 ? 'text-ink-2 bg-surface-warm' :
+                              'text-caution bg-caution-bg'
   const label = score >= 95 ? 'Deterministic' :
                 score >= 85 ? 'Regex-based' :
                               'Heuristic'
@@ -1124,42 +1124,42 @@ function ZoneCheckRow({
   const [showFixPanel, setShowFixPanel] = useState(false)
 
   const statusIcon = check.status === 'pass'
-    ? <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+    ? <CheckCircle className="w-4 h-4 text-sage flex-shrink-0" />
     : check.status === 'warning'
-    ? <AlertTriangle className="w-4 h-4 text-yellow-500 flex-shrink-0" />
-    : <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+    ? <AlertTriangle className="w-4 h-4 text-caution flex-shrink-0" />
+    : <XCircle className="w-4 h-4 text-red-soft flex-shrink-0" />
 
   const fixTypeBadge: Record<string, { label: string; cls: string }> = {
-    auto: { label: 'Auto-fix', cls: 'bg-green-100 text-green-700' },
-    ai_draft: { label: 'AI Draft', cls: 'bg-blue-100 text-blue-700' },
-    manual_required: { label: 'Manual', cls: 'bg-gray-100 text-gray-600' },
+    auto: { label: 'Auto-fix', cls: 'bg-sage-bg text-sage' },
+    ai_draft: { label: 'AI Draft', cls: 'bg-surface-warm text-ink-2' },
+    manual_required: { label: 'Manual', cls: 'bg-surface-warm text-ink-2' },
   }
   const badge = fixTypeBadge[check.fix_type] || fixTypeBadge.manual_required
   const isExpandable = !!(check.fix_suggestion || check.evidence_basis || check.standard_ref || check.status !== 'pass')
 
   if (isLocked) {
     return (
-      <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-gray-50 opacity-60 select-none">
-        <Lock className="w-4 h-4 text-gray-400 flex-shrink-0" />
-        <span className="flex-1 text-sm text-gray-400 blur-[3px]">████████████████████</span>
-        <span className="text-xs text-gray-400">Upgrade to view</span>
+      <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-canvas opacity-60 select-none">
+        <Lock className="w-4 h-4 text-ink-3 flex-shrink-0" />
+        <span className="flex-1 text-sm text-ink-3 blur-[3px]">████████████████████</span>
+        <span className="text-xs text-ink-3">Upgrade to view</span>
       </div>
     )
   }
 
   return (
     <div className={`rounded-lg border overflow-hidden transition-all ${
-      check.status === 'pass' ? 'border-gray-100 bg-white' :
-      check.status === 'warning' ? 'border-yellow-100 bg-yellow-50/40' :
-      'border-red-100 bg-red-50/40'
+      check.status === 'pass' ? 'border-divider-light bg-surface' :
+      check.status === 'warning' ? 'border-caution/30 bg-caution-bg/40' :
+      'border-red-soft/30 bg-red-soft-bg/40'
     }`}>
       <button
         onClick={() => isExpandable && setExpanded(!expanded)}
-        className={`w-full flex items-center gap-3 px-3 py-2.5 text-left ${isExpandable ? 'cursor-pointer hover:bg-gray-50/80' : 'cursor-default'}`}
+        className={`w-full flex items-center gap-3 px-3 py-2.5 text-left ${isExpandable ? 'cursor-pointer hover:bg-surface-warm/80' : 'cursor-default'}`}
       >
         {statusIcon}
-        <span className="flex-1 text-sm text-gray-700 min-w-0">
-          <span className="font-mono text-[10px] text-gray-400 mr-1.5">{check.id}</span>
+        <span className="flex-1 text-sm text-ink-2 min-w-0">
+          <span className="font-mono text-[10px] text-ink-3 mr-1.5">{check.id}</span>
           {check.name}
         </span>
         {check.confidence_score != null && (
@@ -1174,28 +1174,28 @@ function ZoneCheckRow({
           </span>
         )}
         {isExpandable && (
-          expanded ? <ChevronUp className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" /> : <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+          expanded ? <ChevronUp className="w-3.5 h-3.5 text-ink-3 flex-shrink-0" /> : <ChevronDown className="w-3.5 h-3.5 text-ink-3 flex-shrink-0" />
         )}
       </button>
       {expanded && (
-        <div className="px-4 pb-3 pt-1 border-t border-gray-100 space-y-2">
-          <p className="text-xs text-gray-600 leading-relaxed">{check.detail}</p>
+        <div className="px-4 pb-3 pt-1 border-t border-divider-light space-y-2">
+          <p className="text-xs text-ink-2 leading-relaxed">{check.detail}</p>
 
           {/* Evidence section */}
           {check.evidence_basis && (
             <div>
               <button
                 onClick={() => setShowEvidence(!showEvidence)}
-                className="text-[10px] text-gray-400 hover:text-gray-600 flex items-center gap-1"
+                className="text-[10px] text-ink-3 hover:text-ink-2 flex items-center gap-1"
               >
                 {showEvidence ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                 View evidence
               </button>
               {showEvidence && (
-                <div className="mt-1 p-2 bg-gray-50 border border-gray-200 rounded text-[11px] font-mono text-gray-600 break-all leading-relaxed">
+                <div className="mt-1 p-2 bg-canvas border border-divider rounded text-[11px] font-mono text-ink-2 break-all leading-relaxed">
                   {check.evidence_basis}
                   {check.standard_ref && (
-                    <div className="mt-1.5 pt-1.5 border-t border-gray-200 font-sans text-[10px] text-gray-400 not-italic">
+                    <div className="mt-1.5 pt-1.5 border-t border-divider font-sans text-[10px] text-ink-3 not-italic">
                       📋 Standard: {check.standard_ref}
                     </div>
                   )}
@@ -1207,9 +1207,9 @@ function ZoneCheckRow({
           {/* Fix suggestion */}
           {check.fix_suggestion && (
             <div className={`p-2.5 rounded-lg text-xs ${
-              check.zone === 'red' ? 'bg-red-50 border border-red-200 text-red-700' :
-              check.zone === 'yellow' ? 'bg-blue-50 border border-blue-200 text-blue-700' :
-              'bg-green-50 border border-green-200 text-green-700'
+              check.zone === 'red' ? 'bg-red-soft-bg border border-red-soft/30 text-red-soft' :
+              check.zone === 'yellow' ? 'bg-surface-warm border border-divider text-ink-2' :
+              'bg-sage-bg border border-sage/30 text-sage'
             }`}>
               <span className="font-medium">Fix: </span>{check.fix_suggestion}
             </div>
@@ -1223,10 +1223,10 @@ function ZoneCheckRow({
                   onClick={() => setShowFixPanel(true)}
                   className={`flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg font-medium transition-all ${
                     check.zone === 'red'
-                      ? 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-200'
+                      ? 'bg-red-soft-bg hover:bg-red-soft-bg text-red-soft border border-red-soft/30'
                       : check.zone === 'yellow'
-                      ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200'
-                      : 'bg-green-50 hover:bg-green-100 text-green-700 border border-green-200'
+                      ? 'bg-caution-bg hover:bg-caution-bg text-caution border border-caution/30'
+                      : 'bg-sage-bg hover:bg-sage-bg text-sage border border-sage/30'
                   }`}
                 >
                   {check.zone === 'red'
@@ -1266,28 +1266,28 @@ function ZonePanel({
     green: {
       label: 'Green Zone',
       sublabel: 'Auto-detectable · AI can fix',
-      headerBg: 'bg-green-50 border-green-200',
-      iconBg: 'bg-green-100',
-      iconColor: 'text-green-600',
-      badge: 'bg-green-100 text-green-700',
+      headerBg: 'bg-sage-bg border-sage/30',
+      iconBg: 'bg-sage-bg',
+      iconColor: 'text-sage',
+      badge: 'bg-sage-bg text-sage',
       icon: <Zap className="w-4 h-4" />,
     },
     yellow: {
       label: 'Yellow Zone',
       sublabel: 'AI-detectable · Engineer review required',
-      headerBg: 'bg-yellow-50 border-yellow-200',
-      iconBg: 'bg-yellow-100',
-      iconColor: 'text-yellow-700',
-      badge: 'bg-yellow-100 text-yellow-700',
+      headerBg: 'bg-caution-bg border-caution/30',
+      iconBg: 'bg-caution-bg',
+      iconColor: 'text-caution',
+      badge: 'bg-caution-bg text-caution',
       icon: <Wrench className="w-4 h-4" />,
     },
     red: {
       label: 'Red Zone',
       sublabel: 'Manual operation only · High risk',
-      headerBg: 'bg-red-50 border-red-200',
-      iconBg: 'bg-red-100',
-      iconColor: 'text-red-700',
-      badge: 'bg-red-100 text-red-700',
+      headerBg: 'bg-red-soft-bg border-red-soft/30',
+      iconBg: 'bg-red-soft-bg',
+      iconColor: 'text-red-soft',
+      badge: 'bg-red-soft-bg text-red-soft',
       icon: <AlertOctagon className="w-4 h-4" />,
     },
   }[zone]
@@ -1303,32 +1303,32 @@ function ZonePanel({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h4 className="font-bold text-gray-900">{config.label}</h4>
+            <h4 className="font-bold text-ink">{config.label}</h4>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${config.badge}`}>
               {checks.length} checks
             </span>
           </div>
-          <p className="text-xs text-gray-500 mt-0.5">{config.sublabel}</p>
+          <p className="text-xs text-ink-3 mt-0.5">{config.sublabel}</p>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
           <div className="flex items-center gap-2 text-xs">
-            <span className="flex items-center gap-1 text-green-600 font-medium">
+            <span className="flex items-center gap-1 text-sage font-medium">
               <CheckCircle className="w-3.5 h-3.5" />{passCount} pass
             </span>
             {failCount > 0 && (
-              <span className="flex items-center gap-1 text-red-600 font-medium">
+              <span className="flex items-center gap-1 text-red-soft font-medium">
                 <XCircle className="w-3.5 h-3.5" />{failCount} fix
               </span>
             )}
           </div>
-          {isLocked ? <Lock className="w-4 h-4 text-gray-400" /> : (
-            open ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />
+          {isLocked ? <Lock className="w-4 h-4 text-ink-3" /> : (
+            open ? <ChevronUp className="w-4 h-4 text-ink-3" /> : <ChevronDown className="w-4 h-4 text-ink-3" />
           )}
         </div>
       </button>
 
       {open && (
-        <div className="px-5 pb-4 bg-white border-t border-gray-100 space-y-1.5">
+        <div className="px-5 pb-4 bg-surface border-t border-divider-light space-y-1.5">
           {checks.map((check, i) => (
             <ZoneCheckRow
               key={check.id}
@@ -1339,9 +1339,9 @@ function ZonePanel({
             />
           ))}
           {isLocked && (lockedCount || 0) > 0 && (
-            <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 text-center">
-              <Lock className="w-4 h-4 text-gray-400 mx-auto mb-1" />
-              <p className="text-xs text-gray-500">
+            <div className="mt-2 p-3 bg-canvas rounded-lg border border-divider-light text-center">
+              <Lock className="w-4 h-4 text-ink-3 mx-auto mb-1" />
+              <p className="text-xs text-ink-3">
                 <span className="font-semibold">{lockedCount} more checks</span> hidden — upgrade to view full details
               </p>
             </div>
@@ -1367,38 +1367,38 @@ function Layer1CTA({ breakdown, isAdmin, auditUrl }: { breakdown: ZoneBreakdown;
 
   if (isAdmin) {
     return (
-      <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-6 text-white">
+      <div className="bg-ink rounded-2xl p-6 text-ink-inv">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-green-400" />
-            <span className="text-sm font-semibold text-green-400">Admin Mode — Full Access</span>
+            <ShieldCheck className="w-5 h-5 text-sage" />
+            <span className="text-sm font-semibold text-sage">Admin Mode — Full Access</span>
           </div>
           {totalFail > 0 && (
             <button
               onClick={handleFixClick}
-              className="flex items-center gap-1.5 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-xl transition-all"
+              className="flex items-center gap-1.5 px-4 py-2 bg-caution hover:bg-caution/90 text-ink-inv text-sm font-bold rounded-xl transition-all"
             >
               <Zap className="w-4 h-4" />
               Fix These Issues →
             </button>
           )}
         </div>
-        <p className="text-sm text-gray-300">
+        <p className="text-sm text-white/80">
           You have full Layer 1 access. All {34} checks, fix suggestions, and zone details are visible.
           Use the Fix Engine data above to build delivery workflows.
         </p>
         <div className="mt-4 grid grid-cols-3 gap-3 text-center">
           <div className="bg-white/10 rounded-lg p-3">
-            <p className="text-2xl font-bold text-green-400">{breakdown.green_fail}</p>
-            <p className="text-xs text-gray-400 mt-0.5">Green issues</p>
+            <p className="text-2xl font-bold text-sage">{breakdown.green_fail}</p>
+            <p className="text-xs text-white/60 mt-0.5">Green issues</p>
           </div>
           <div className="bg-white/10 rounded-lg p-3">
-            <p className="text-2xl font-bold text-yellow-400">{breakdown.yellow_fail}</p>
-            <p className="text-xs text-gray-400 mt-0.5">Yellow issues</p>
+            <p className="text-2xl font-bold text-caution">{breakdown.yellow_fail}</p>
+            <p className="text-xs text-white/60 mt-0.5">Yellow issues</p>
           </div>
           <div className="bg-white/10 rounded-lg p-3">
-            <p className="text-2xl font-bold text-red-400">{breakdown.red_fail}</p>
-            <p className="text-xs text-gray-400 mt-0.5">Red issues</p>
+            <p className="text-2xl font-bold text-red-soft">{breakdown.red_fail}</p>
+            <p className="text-xs text-white/60 mt-0.5">Red issues</p>
           </div>
         </div>
       </div>
@@ -1408,15 +1408,15 @@ function Layer1CTA({ breakdown, isAdmin, auditUrl }: { breakdown: ZoneBreakdown;
   if (totalFail === 0) return null
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl overflow-hidden border border-gray-700">
+    <div className="bg-ink rounded-2xl overflow-hidden border border-white/10">
       {/* Header */}
       <div className="px-6 pt-6 pb-4 border-b border-white/10">
         <div className="flex items-center gap-2 mb-1">
-          <Building2 className="w-5 h-5 text-orange-400" />
-          <span className="text-xs font-bold text-orange-400 uppercase tracking-wider">Layer 1 · AI Visibility Infrastructure</span>
+          <Building2 className="w-5 h-5 text-caution" />
+          <span className="text-xs font-bold text-caution uppercase tracking-wider">Layer 1 · AI Visibility Infrastructure</span>
         </div>
         <h3 className="text-xl font-bold text-white">一次性改造，长期受益</h3>
-        <p className="text-sm text-gray-400 mt-1">
+        <p className="text-sm text-white/60 mt-1">
           Your site has {totalFail} issues across {breakdown.green_fail} green, {breakdown.yellow_fail} yellow, and {breakdown.red_fail} red zone checks.
         </p>
       </div>
@@ -1425,44 +1425,44 @@ function Layer1CTA({ breakdown, isAdmin, auditUrl }: { breakdown: ZoneBreakdown;
       <div className="px-6 py-4 grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-white/10">
         <div className="bg-white/5 rounded-xl p-4 text-center">
           <div className="flex items-center justify-center gap-1.5 mb-1">
-            <Timer className="w-4 h-4 text-gray-400" />
-            <p className="text-xs text-gray-400 font-medium">DIY 修复估算</p>
+            <Timer className="w-4 h-4 text-white/60" />
+            <p className="text-xs text-white/60 font-medium">DIY 修复估算</p>
           </div>
           <p className="text-2xl font-bold text-white">{hoursLow}–{hoursHigh}h</p>
-          <p className="text-xs text-gray-500 mt-1">≈ {weeksLow}–{weeksHigh} weeks solo</p>
+          <p className="text-xs text-white/40 mt-1">≈ {weeksLow}–{weeksHigh} weeks solo</p>
         </div>
         <div className="bg-white/5 rounded-xl p-4 text-center">
           <div className="flex items-center justify-center gap-1.5 mb-1">
-            <Zap className="w-4 h-4 text-orange-400" />
-            <p className="text-xs text-gray-400 font-medium">Alignment 专家</p>
+            <Zap className="w-4 h-4 text-caution" />
+            <p className="text-xs text-white/60 font-medium">Alignment 专家</p>
           </div>
-          <p className="text-2xl font-bold text-orange-400">6–8 weeks</p>
-          <p className="text-xs text-gray-500 mt-1">全栈交付 · 验收保障</p>
+          <p className="text-2xl font-bold text-caution">6–8 weeks</p>
+          <p className="text-xs text-white/40 mt-1">全栈交付 · 验收保障</p>
         </div>
         <div className="bg-white/5 rounded-xl p-4 text-center">
           <div className="flex items-center justify-center gap-1.5 mb-1">
-            <Bot className="w-4 h-4 text-blue-400" />
-            <p className="text-xs text-gray-400 font-medium">Red Zone 操作</p>
+            <Bot className="w-4 h-4 text-white/60" />
+            <p className="text-xs text-white/60 font-medium">Red Zone 操作</p>
           </div>
-          <p className="text-2xl font-bold text-red-400">{breakdown.red_fail}</p>
-          <p className="text-xs text-gray-500 mt-1">需专家介入，不能自行操作</p>
+          <p className="text-2xl font-bold text-red-soft">{breakdown.red_fail}</p>
+          <p className="text-xs text-white/40 mt-1">需专家介入，不能自行操作</p>
         </div>
       </div>
 
       {/* Pricing row */}
       <div className="px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <p className="text-sm text-gray-300">
-            黄区和红区修复需要 GEO 专业知识。错误修改可能导致 <span className="text-red-400 font-semibold">Google 惩罚或网站崩溃</span>。
+          <p className="text-sm text-white/80">
+            黄区和红区修复需要 GEO 专业知识。错误修改可能导致 <span className="text-red-soft font-semibold">Google 惩罚或网站崩溃</span>。
           </p>
           <div className="flex items-center gap-3 mt-2 flex-wrap">
             {breakdown.yellow_fail > 0 && (
-              <span className="flex items-center gap-1 text-xs text-yellow-400">
+              <span className="flex items-center gap-1 text-xs text-caution">
                 <Wrench className="w-3 h-3" />{breakdown.yellow_fail} Yellow需工程师
               </span>
             )}
             {breakdown.red_fail > 0 && (
-              <span className="flex items-center gap-1 text-xs text-red-400">
+              <span className="flex items-center gap-1 text-xs text-red-soft">
                 <AlertOctagon className="w-3 h-3" />{breakdown.red_fail} Red需人工
               </span>
             )}
@@ -1472,7 +1472,7 @@ function Layer1CTA({ breakdown, isAdmin, auditUrl }: { breakdown: ZoneBreakdown;
           {breakdown.green_fail > 0 && (
             <button
               onClick={handleFixClick}
-              className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all text-sm whitespace-nowrap text-center flex items-center gap-2 justify-center"
+              className="px-5 py-2.5 bg-sage hover:bg-[#3D6B4E] text-ink-inv font-semibold rounded-xl transition-all text-sm whitespace-nowrap text-center flex items-center gap-2 justify-center"
             >
               <Zap className="w-4 h-4" />
               Fix {breakdown.green_fail} Green Issues Now →
@@ -1480,11 +1480,11 @@ function Layer1CTA({ breakdown, isAdmin, auditUrl }: { breakdown: ZoneBreakdown;
           )}
           <a
             href="/pricing"
-            className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-xl transition-all text-sm whitespace-nowrap text-center shadow-lg shadow-orange-500/20"
+            className="px-6 py-3 bg-surface hover:bg-surface-muted text-ink font-bold rounded-xl transition-all text-sm whitespace-nowrap text-center shadow-sm border border-divider"
           >
             查看 Layer 1 服务 — 从 $2,999 起
           </a>
-          <p className="text-[10px] text-gray-500 text-center">一次性 · 6–8 周交付 · 30天效果追踪</p>
+          <p className="text-[10px] text-white/40 text-center">一次性 · 6–8 周交付 · 30天效果追踪</p>
         </div>
       </div>
     </div>
@@ -1521,15 +1521,15 @@ function ZoneBreakdownSection({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-          <FileCode className="w-5 h-5 text-primary" />
+        <h3 className="text-lg font-bold text-ink flex items-center gap-2">
+          <FileCode className="w-5 h-5 text-ink-2" />
           Layer 1 — AI Visibility Infrastructure Audit
-          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+          <span className="text-xs bg-ink/5 text-ink-2 px-2 py-0.5 rounded-full font-medium">
             {breakdown.green_checks.length + breakdown.yellow_checks.length + breakdown.red_checks.length} checks
           </span>
         </h3>
         {!isFullAccess && (
-          <span className="text-xs text-gray-400 flex items-center gap-1">
+          <span className="text-xs text-ink-3 flex items-center gap-1">
             <Lock className="w-3 h-3" />
             {plan === 'starter' ? 'Upgrade to Growth for Yellow/Red zones' : 'Subscribe to unlock all zones'}
           </span>
@@ -1578,45 +1578,45 @@ const DIMENSION_MAP = [
     key: 'ai_accessibility' as const, prefix: 'D1',
     Icon: Shield, label: 'AI Accessibility',
     colorSet: {
-      iconBg: 'bg-blue-50', iconText: 'text-blue-600',
-      bar: 'bg-blue-500', badge: 'bg-blue-100 text-blue-700',
-      border: 'border-blue-100',
+      iconBg: 'bg-surface-warm', iconText: 'text-ink-2',
+      bar: 'bg-ink-2', badge: 'bg-surface-warm text-ink-2',
+      border: 'border-divider-light',
     },
   },
   {
     key: 'semantic_structure' as const, prefix: 'D2',
     Icon: Layers, label: 'Semantic Structure',
     colorSet: {
-      iconBg: 'bg-purple-50', iconText: 'text-purple-600',
-      bar: 'bg-purple-500', badge: 'bg-purple-100 text-purple-700',
-      border: 'border-purple-100',
+      iconBg: 'bg-surface-warm', iconText: 'text-ink-2',
+      bar: 'bg-ink-2', badge: 'bg-surface-warm text-ink-2',
+      border: 'border-divider-light',
     },
   },
   {
     key: 'content_citability' as const, prefix: 'D3',
     Icon: FileText, label: 'Content Citability',
     colorSet: {
-      iconBg: 'bg-orange-50', iconText: 'text-orange-600',
-      bar: 'bg-orange-500', badge: 'bg-orange-100 text-orange-700',
-      border: 'border-orange-100',
+      iconBg: 'bg-surface-warm', iconText: 'text-ink-2',
+      bar: 'bg-ink-2', badge: 'bg-surface-warm text-ink-2',
+      border: 'border-divider-light',
     },
   },
   {
     key: 'risk_boundary' as const, prefix: 'D4',
     Icon: AlertOctagon, label: 'Risk Boundary',
     colorSet: {
-      iconBg: 'bg-red-50', iconText: 'text-red-600',
-      bar: 'bg-red-500', badge: 'bg-red-100 text-red-700',
-      border: 'border-red-100',
+      iconBg: 'bg-red-soft-bg', iconText: 'text-red-soft',
+      bar: 'bg-red-soft', badge: 'bg-red-soft-bg text-red-soft',
+      border: 'border-red-soft/30',
     },
   },
   {
     key: 'reusability' as const, prefix: 'D5',
     Icon: Brain, label: 'Reusability',
     colorSet: {
-      iconBg: 'bg-emerald-50', iconText: 'text-emerald-600',
-      bar: 'bg-emerald-500', badge: 'bg-emerald-100 text-emerald-700',
-      border: 'border-emerald-100',
+      iconBg: 'bg-sage-bg', iconText: 'text-sage',
+      bar: 'bg-sage', badge: 'bg-sage-bg text-sage',
+      border: 'border-sage/30',
     },
   },
 ]
@@ -1624,17 +1624,17 @@ const DIMENSION_MAP = [
 // ─── Zone Badge (Fix Difficulty) ─────────────────────────────────────────────
 function ZoneDifficultyBadge({ zone }: { zone: 'green' | 'yellow' | 'red' }) {
   if (zone === 'green') return (
-    <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium whitespace-nowrap flex-shrink-0">
+    <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-sage-bg text-sage font-medium whitespace-nowrap flex-shrink-0">
       <Zap className="w-2.5 h-2.5" />AI Fix
     </span>
   )
   if (zone === 'yellow') return (
-    <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium whitespace-nowrap flex-shrink-0">
+    <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-caution-bg text-caution font-medium whitespace-nowrap flex-shrink-0">
       <Wrench className="w-2.5 h-2.5" />Engineer
     </span>
   )
   return (
-    <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 font-medium whitespace-nowrap flex-shrink-0">
+    <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-soft-bg text-red-soft font-medium whitespace-nowrap flex-shrink-0">
       <AlertOctagon className="w-2.5 h-2.5" />Manual
     </span>
   )
@@ -1666,10 +1666,10 @@ function UnifiedDimensionCard({
   const score = dimension.score
 
   const getBarColor = (s: number) => {
-    if (s >= 85) return 'bg-green-500'
-    if (s >= 65) return 'bg-blue-500'
-    if (s >= 45) return 'bg-yellow-500'
-    return 'bg-red-500'
+    if (s >= 85) return 'bg-sage'
+    if (s >= 65) return 'bg-ink-2'
+    if (s >= 45) return 'bg-caution'
+    return 'bg-red-soft'
   }
 
   const passCount = checks.filter(c => c.status === 'pass').length
@@ -1679,10 +1679,10 @@ function UnifiedDimensionCard({
   const redFail = checks.filter(c => c.zone === 'red' && c.status !== 'pass').length
 
   const statusLabel = score >= 85 ? 'Excellent' : score >= 65 ? 'Good' : score >= 45 ? 'Needs Work' : 'Poor'
-  const statusColor = score >= 85 ? 'bg-green-100 text-green-700' : score >= 65 ? 'bg-blue-100 text-blue-700' : score >= 45 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
+  const statusColor = score >= 85 ? 'bg-sage-bg text-sage' : score >= 65 ? 'bg-surface-warm text-ink-2' : score >= 45 ? 'bg-caution-bg text-caution' : 'bg-red-soft-bg text-red-soft'
 
   return (
-    <div className={`bg-white rounded-xl border overflow-hidden transition-all hover:shadow-md ${open ? colorSet.border + ' shadow-md border' : 'border-gray-200'}`}>
+    <div className={`bg-surface rounded-xl border overflow-hidden transition-all hover:shadow-md ${open ? colorSet.border + ' shadow-md border' : 'border-divider-light'}`}>
       {/* Header */}
       <button
         onClick={() => setOpen(!open)}
@@ -1694,21 +1694,21 @@ function UnifiedDimensionCard({
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2 mb-1">
-              <h4 className="font-semibold text-gray-900 flex items-center gap-2">
-                <span className="text-xs text-gray-400 font-mono">{prefix}</span>
+              <h4 className="font-semibold text-ink flex items-center gap-2">
+                <span className="text-xs text-ink-3 font-mono">{prefix}</span>
                 {label}
               </h4>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor}`}>
                   {statusLabel}
                 </span>
-                <span className="text-2xl font-bold font-mono text-gray-900">{score}</span>
+                <span className="text-2xl font-bold font-mono text-ink">{score}</span>
               </div>
             </div>
-            <p className="text-xs text-gray-500 mb-2">{dimension.description}</p>
+            <p className="text-xs text-ink-3 mb-2">{dimension.description}</p>
 
             {/* Score bar */}
-            <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-surface-warm rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-700 ${getBarColor(score)}`}
                 style={{ width: `${score}%` }}
@@ -1716,14 +1716,14 @@ function UnifiedDimensionCard({
             </div>
 
             {/* Summary row */}
-            <div className="flex items-center justify-between mt-2 text-xs text-gray-400">
+            <div className="flex items-center justify-between mt-2 text-xs text-ink-3">
               <span className="flex items-center gap-3">
-                {passCount > 0 && <span className="flex items-center gap-1 text-green-600"><CheckCircle className="w-3 h-3" />{passCount} pass</span>}
-                {greenFail > 0 && <span className="flex items-center gap-1 text-green-600"><Zap className="w-3 h-3" />{greenFail} AI-fix</span>}
-                {yellowFail > 0 && <span className="flex items-center gap-1 text-amber-600"><Wrench className="w-3 h-3" />{yellowFail} engineer</span>}
-                {redFail > 0 && <span className="flex items-center gap-1 text-red-600"><AlertOctagon className="w-3 h-3" />{redFail} manual</span>}
+                {passCount > 0 && <span className="flex items-center gap-1 text-sage"><CheckCircle className="w-3 h-3" />{passCount} pass</span>}
+                {greenFail > 0 && <span className="flex items-center gap-1 text-sage"><Zap className="w-3 h-3" />{greenFail} AI-fix</span>}
+                {yellowFail > 0 && <span className="flex items-center gap-1 text-caution"><Wrench className="w-3 h-3" />{yellowFail} engineer</span>}
+                {redFail > 0 && <span className="flex items-center gap-1 text-red-soft"><AlertOctagon className="w-3 h-3" />{redFail} manual</span>}
               </span>
-              <span className="flex items-center gap-1 text-primary/70 hover:text-primary">
+              <span className="flex items-center gap-1 text-ink-3 hover:text-ink transition-colors">
                 {open ? 'Hide' : 'View'} {checks.length} checks
                 <ArrowRight className={`w-3 h-3 transition-transform ${open ? 'rotate-90' : ''}`} />
               </span>
@@ -1734,13 +1734,13 @@ function UnifiedDimensionCard({
 
       {/* Zone checks */}
       {open && (
-        <div className="px-5 pb-4 border-t border-gray-100">
+        <div className="px-5 pb-4 border-t border-divider-light">
           {/* Fix difficulty legend */}
-          <div className="flex items-center gap-3 py-2.5 mb-2 text-[10px] text-gray-400 border-b border-gray-50">
+          <div className="flex items-center gap-3 py-2.5 mb-2 text-[10px] text-ink-3 border-b border-divider-light">
             <span className="font-semibold uppercase tracking-wide">Fix Difficulty:</span>
-            <span className="flex items-center gap-1 text-green-600"><Zap className="w-2.5 h-2.5" />AI Auto-fix</span>
-            <span className="flex items-center gap-1 text-amber-600"><Wrench className="w-2.5 h-2.5" />Engineer Review</span>
-            <span className="flex items-center gap-1 text-red-600"><AlertOctagon className="w-2.5 h-2.5" />Manual Only</span>
+            <span className="flex items-center gap-1 text-sage"><Zap className="w-2.5 h-2.5" />AI Auto-fix</span>
+            <span className="flex items-center gap-1 text-caution"><Wrench className="w-2.5 h-2.5" />Engineer Review</span>
+            <span className="flex items-center gap-1 text-red-soft"><AlertOctagon className="w-2.5 h-2.5" />Manual Only</span>
           </div>
 
           <div className="space-y-1.5">
@@ -1755,9 +1755,9 @@ function UnifiedDimensionCard({
               />
             ))}
             {isLocked && (lockedCount || 0) > 0 && (
-              <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 text-center">
-                <Lock className="w-4 h-4 text-gray-400 mx-auto mb-1" />
-                <p className="text-xs text-gray-500">
+              <div className="mt-2 p-3 bg-canvas rounded-lg border border-divider-light text-center">
+                <Lock className="w-4 h-4 text-ink-3 mx-auto mb-1" />
+                <p className="text-xs text-ink-3">
                   <span className="font-semibold">{lockedCount} checks</span> in this dimension are locked — upgrade to view
                 </p>
               </div>
@@ -1766,15 +1766,15 @@ function UnifiedDimensionCard({
 
           {/* Dimension recommendations */}
           {dimension.recommendations.length > 0 && (
-            <div className="mt-4 pt-3 border-t border-gray-100">
-              <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-primary" />
+            <div className="mt-4 pt-3 border-t border-divider-light">
+              <h5 className="text-xs font-semibold text-ink-3 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-ink-2" />
                 Recommendations
               </h5>
               <div className="space-y-1.5">
                 {dimension.recommendations.map((rec, i) => (
-                  <div key={i} className="text-xs bg-primary/5 border border-primary/10 rounded-lg p-2.5 text-gray-700">
-                    <span className="font-medium text-primary mr-1">→</span> {rec}
+                  <div key={i} className="text-xs bg-ink/[0.03] border border-ink/10 rounded-lg p-2.5 text-ink-2">
+                    <span className="font-medium text-ink mr-1">→</span> {rec}
                   </div>
                 ))}
               </div>
@@ -1819,18 +1819,18 @@ function UnifiedAuditSection({
     <div className="space-y-4">
       {/* Section header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-          <FileCode className="w-5 h-5 text-primary" />
+        <h3 className="text-lg font-bold text-ink flex items-center gap-2">
+          <FileCode className="w-5 h-5 text-ink-2" />
           AI Visibility Audit — 5 Dimensions × {totalChecks} Checks
         </h3>
         <div className="flex items-center gap-2">
           {totalFail > 0 && (
-            <span className="text-xs px-2.5 py-1 bg-red-50 text-red-600 border border-red-200 rounded-full font-medium">
+            <span className="text-xs px-2.5 py-1 bg-red-soft-bg text-red-soft border border-red-soft/30 rounded-full font-medium">
               {totalFail} issues found
             </span>
           )}
           {!isFullAccess && (
-            <span className="text-xs text-gray-400 flex items-center gap-1">
+            <span className="text-xs text-ink-3 flex items-center gap-1">
               <Lock className="w-3 h-3" />
               {isStarterOnly ? 'Upgrade for Yellow/Red zones' : 'Subscribe to unlock all'}
             </span>
@@ -2038,31 +2038,31 @@ export default function GEOAuditPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="min-h-screen bg-canvas">
       <Header title={t.dashboard.geoAudit} subtitle={t.dashboard.geoAuditShort} />
 
       <div className="p-6 space-y-6">
         {/* ═══ GEO Audit Input Section ═══ */}
-        <section className="bg-white rounded-2xl border border-gray-200 shadow-soft p-8 relative">
+        <section className="bg-surface rounded-2xl border border-divider-light shadow-soft p-8 relative">
           {/* Background decoration */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/[0.06] rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-orange-500/[0.05] rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[#C84B31]/[0.06] rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#C84B31]/[0.05] rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl pointer-events-none" />
 
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
-                <Globe className="w-5 h-5 text-red-500" />
+              <div className="w-10 h-10 bg-red-soft-bg rounded-xl flex items-center justify-center">
+                <Globe className="w-5 h-5 text-red-soft" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">{t.dashboard.geoAudit}</h2>
-                <p className="text-gray-500 text-sm">{t.dashboard.geoAuditDesc}</p>
+                <h2 className="text-xl font-bold text-ink">{t.dashboard.geoAudit}</h2>
+                <p className="text-ink-3 text-sm">{t.dashboard.geoAuditDesc}</p>
               </div>
             </div>
 
             {/* URL Input */}
             <div className="mt-6 flex gap-3">
               <div className="flex-1 relative">
-                <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-3" />
                 <input
                   type="text"
                   value={url}
@@ -2070,15 +2070,15 @@ export default function GEOAuditPage() {
                   onKeyDown={handleKeyDown}
                   placeholder={t.dashboard.urlPlaceholder}
                   disabled={isAuditing}
-                  className={`w-full pl-12 pr-4 py-4 bg-gray-50 border rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-400 focus:bg-white transition-all outline-none text-lg disabled:opacity-50 ${
-                    urlError ? 'border-red-300' : isAuditing ? 'border-red-200' : 'border-gray-200'
+                  className={`w-full pl-12 pr-4 py-4 bg-canvas border rounded-xl text-ink placeholder-ink-3 focus:ring-2 focus:ring-ink/10 focus:border-ink focus:bg-surface transition-all outline-none text-lg disabled:opacity-50 ${
+                    urlError ? 'border-red-soft/30' : isAuditing ? 'border-red-soft/30' : 'border-divider-light'
                   }`}
                 />
               </div>
               <button
                 onClick={handleRunAudit}
                 disabled={!url.trim() || isAuditing}
-                className="px-8 py-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap shadow-sm hover:shadow-md"
+                className="px-8 py-4 bg-ink hover:bg-[#2d2d2c] text-ink-inv font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap shadow-sm hover:shadow-md"
               >
                 {isAuditing ? (
                   <>
@@ -2096,25 +2096,25 @@ export default function GEOAuditPage() {
               {recentUrls.length > 0 && (
                 <div className="relative">
                   <button onClick={() => setShowRecentDropdown(!showRecentDropdown)}
-                    className="px-5 py-4 bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-100 flex items-center gap-2 transition-colors whitespace-nowrap">
+                    className="px-5 py-4 bg-canvas border border-divider-light text-ink-2 text-sm font-medium rounded-xl hover:bg-surface-muted flex items-center gap-2 transition-colors whitespace-nowrap">
                     <History className="w-4 h-4" /> Recent ({recentUrls.length})
                   </button>
                   {showRecentDropdown && (
-                    <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
-                      <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100">
-                        <span className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Recent Audits</span>
-                        <button onClick={clearAllRecentUrls} className="text-[10px] text-red-500 hover:text-red-600">Clear All</button>
+                    <div className="absolute right-0 top-full mt-2 w-80 bg-surface border border-divider-light rounded-xl shadow-lg z-50 overflow-hidden">
+                      <div className="flex items-center justify-between px-4 py-2.5 border-b border-divider-light">
+                        <span className="text-xs text-ink-3 font-semibold uppercase tracking-wide">Recent Audits</span>
+                        <button onClick={clearAllRecentUrls} className="text-[10px] text-red-soft hover:text-red-soft">Clear All</button>
                       </div>
                       <div className="max-h-64 overflow-y-auto">
                         {recentUrls.map(recentUrl => (
                           <div key={recentUrl} className="flex items-center group">
                             <button onClick={() => handleSelectRecentUrl(recentUrl)}
-                              className="flex-1 text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-0 transition-colors flex items-center gap-2">
-                              <Globe className="w-3.5 h-3.5 text-gray-400 group-hover:text-red-500 flex-shrink-0" />
-                              <span className="text-sm text-gray-600 truncate">{recentUrl.replace(/^https?:\/\//, '')}</span>
+                              className="flex-1 text-left px-4 py-3 hover:bg-surface-warm border-b border-divider-light last:border-0 transition-colors flex items-center gap-2">
+                              <Globe className="w-3.5 h-3.5 text-ink-3 group-hover:text-red-soft flex-shrink-0" />
+                              <span className="text-sm text-ink-2 truncate">{recentUrl.replace(/^https?:\/\//, '')}</span>
                             </button>
                             <button onClick={(e) => handleRemoveRecentUrl(recentUrl, e)}
-                              className="px-3 py-3 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">
+                              className="px-3 py-3 text-ink-3 hover:text-red-soft opacity-0 group-hover:opacity-100 transition-all">
                               <X className="w-3 h-3" />
                             </button>
                           </div>
@@ -2128,7 +2128,7 @@ export default function GEOAuditPage() {
 
             {/* URL validation error */}
             {urlError && (
-              <div className="mt-3 flex items-center gap-2 text-red-500 text-sm">
+              <div className="mt-3 flex items-center gap-2 text-red-soft text-sm">
                 <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                 <span>{urlError}</span>
               </div>
@@ -2136,9 +2136,9 @@ export default function GEOAuditPage() {
 
             {/* Error display */}
             {error && !isAuditing && (
-              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
-                <XCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-                <p className="text-red-600 text-sm">{error}</p>
+              <div className="mt-4 p-4 bg-red-soft-bg border border-red-soft/30 rounded-xl flex items-center gap-3">
+                <XCircle className="w-5 h-5 text-red-soft flex-shrink-0" />
+                <p className="text-red-soft text-sm">{error}</p>
               </div>
             )}
           </div>
@@ -2156,43 +2156,43 @@ export default function GEOAuditPage() {
             <InsightCards result={auditResult} />
 
             {/* Main Result: Score + Radar + Summary */}
-            <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <section className="bg-surface rounded-2xl border border-divider-light shadow-sm overflow-hidden">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
                 {/* Overall Score Ring + Meta */}
-                <div className="p-8 flex flex-col items-center justify-center border-b lg:border-b-0 lg:border-r border-gray-100">
+                <div className="p-8 flex flex-col items-center justify-center border-b lg:border-b-0 lg:border-r border-divider-light">
                   <ScoreRing score={auditResult.overall_score} />
-                  <h3 className="text-xl font-bold text-gray-900 mt-4">{t.dashboard.overallScore}</h3>
+                  <h3 className="text-xl font-bold text-ink mt-4">{t.dashboard.overallScore}</h3>
                   <div className="mt-2 flex items-center gap-2">
                     <span className={`text-sm font-bold px-3 py-1 rounded-lg ${
-                      auditResult.overall_score >= 85 ? 'bg-green-100 text-green-700' :
-                      auditResult.overall_score >= 65 ? 'bg-blue-100 text-blue-700' :
-                      auditResult.overall_score >= 45 ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-red-100 text-red-700'
+                      auditResult.overall_score >= 85 ? 'bg-sage-bg text-sage' :
+                      auditResult.overall_score >= 65 ? 'bg-surface-warm text-ink-2' :
+                      auditResult.overall_score >= 45 ? 'bg-caution-bg text-caution' :
+                      'bg-red-soft-bg text-red-soft'
                     }`}>
                       Grade {auditResult.grade}
                     </span>
                   </div>
 
                   {/* URL info */}
-                  <div className="mt-4 flex items-center gap-2 text-sm text-gray-500">
+                  <div className="mt-4 flex items-center gap-2 text-sm text-ink-3">
                     <Globe className="w-4 h-4" />
-                    <a href={auditResult.url} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors flex items-center gap-1">
+                    <a href={auditResult.url} target="_blank" rel="noopener noreferrer" className="hover:text-ink transition-colors flex items-center gap-1">
                       {auditResult.url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
                       <ExternalLink className="w-3 h-3" />
                     </a>
                   </div>
                   {auditResult.page_title && (
-                    <p className="text-xs text-gray-400 mt-1 text-center max-w-xs truncate">{auditResult.page_title}</p>
+                    <p className="text-xs text-ink-3 mt-1 text-center max-w-xs truncate">{auditResult.page_title}</p>
                   )}
 
-                  <div className="mt-3 flex items-center gap-2 text-xs text-gray-400">
+                  <div className="mt-3 flex items-center gap-2 text-xs text-ink-3">
                     <Clock className="w-3 h-3" />
                     {t.dashboard.auditDuration} {auditResult.audit_duration_seconds}s
                   </div>
 
                   <button
                     onClick={handleReset}
-                    className="mt-4 px-4 py-2 text-sm text-gray-500 hover:text-primary border border-gray-200 hover:border-primary rounded-lg transition-colors flex items-center gap-2"
+                    className="mt-4 px-4 py-2 text-sm text-ink-3 hover:text-ink border border-divider-light hover:border-ink rounded-lg transition-colors flex items-center gap-2"
                   >
                     <RotateCcw className="w-4 h-4" />
                     Audit another site
@@ -2200,8 +2200,8 @@ export default function GEOAuditPage() {
                 </div>
 
                 {/* Radar Chart + Dimension Scores */}
-                <div className="p-8 border-b lg:border-b-0 lg:border-r border-gray-100">
-                  <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">5 Dimension Overview</h4>
+                <div className="p-8 border-b lg:border-b-0 lg:border-r border-divider-light">
+                  <h4 className="text-sm font-medium text-ink-3 uppercase tracking-wider mb-4">5 Dimension Overview</h4>
 
                   {/* Radar chart */}
                   <RadarChart scores={[
@@ -2213,53 +2213,53 @@ export default function GEOAuditPage() {
                   ]} />
 
                   {/* Weight info */}
-                  <p className="text-xs text-gray-400 mt-3 text-center">
+                  <p className="text-xs text-ink-3 mt-3 text-center">
                     Weight: D1 15% · D2 20% · D3 30% · D4 20% · D5 15%
                   </p>
                 </div>
 
                 {/* Check Summary + Top Recs */}
                 <div className="p-8">
-                  <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-5">Audit Summary</h4>
+                  <h4 className="text-sm font-medium text-ink-3 uppercase tracking-wider mb-5">Audit Summary</h4>
 
                   <div className="grid grid-cols-2 gap-3 mb-6">
                     <StatCard
                       icon={<CheckCircle className="w-5 h-5 text-white" />}
                       label={t.dashboard.passed}
                       value={auditResult.passed_checks}
-                      color="bg-green-500"
+                      color="bg-sage"
                     />
                     <StatCard
                       icon={<AlertTriangle className="w-5 h-5 text-white" />}
                       label={t.dashboard.warnings}
                       value={auditResult.warnings}
-                      color="bg-yellow-500"
+                      color="bg-caution"
                     />
                     <StatCard
                       icon={<XCircle className="w-5 h-5 text-white" />}
                       label={t.dashboard.critical}
                       value={auditResult.critical_issues}
-                      color="bg-red-500"
+                      color="bg-red-soft"
                     />
                     <StatCard
                       icon={<Search className="w-5 h-5 text-white" />}
                       label={t.dashboard.checksPerformed}
                       value={auditResult.total_checks}
-                      color="bg-gray-500"
+                      color="bg-ink"
                     />
                   </div>
 
                   {/* Top Recommendations */}
                   {auditResult.top_recommendations.length > 0 && (
                     <div>
-                      <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-1.5">
-                        <TrendingUp className="w-4 h-4 text-primary" />
+                      <h5 className="text-sm font-medium text-ink-2 mb-3 flex items-center gap-1.5">
+                        <TrendingUp className="w-4 h-4 text-ink-2" />
                         {t.dashboard.topRecommendations}
                       </h5>
                       <div className="space-y-2">
                         {auditResult.top_recommendations.slice(0, 3).map((rec, i) => (
-                          <div key={i} className="text-xs bg-primary/5 border border-primary/10 rounded-lg p-2.5 text-gray-700">
-                            <span className="font-medium text-primary mr-1">{i + 1}.</span> {rec}
+                          <div key={i} className="text-xs bg-ink/[0.03] border border-ink/10 rounded-lg p-2.5 text-ink-2">
+                            <span className="font-medium text-ink mr-1">{i + 1}.</span> {rec}
                           </div>
                         ))}
                       </div>
@@ -2291,22 +2291,22 @@ export default function GEOAuditPage() {
             )}
 
             {/* ── Cross-Module CTAs: Next Steps ── */}
-            <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-2xl border border-red-100 p-6">
-              <h3 className="text-sm font-bold text-red-800 uppercase tracking-wider mb-1">Next Steps</h3>
-              <p className="text-xs text-red-600 mb-4">Based on your audit results, take action to improve AI visibility.</p>
+            <div className="bg-surface-warm rounded-2xl border border-divider-light p-6">
+              <h3 className="text-sm font-bold text-ink uppercase tracking-wider mb-1">Next Steps</h3>
+              <p className="text-xs text-ink-3 mb-4">Based on your audit results, take action to improve AI visibility.</p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <button
                   onClick={() => {
                     if (auditResult.zone_breakdown) storeAuditContext(auditResult.url, auditResult.zone_breakdown)
                     window.location.href = buildOptUrl(auditResult.url)
                   }}
-                  className="flex items-center gap-3 px-4 py-3.5 bg-white hover:bg-red-50 border border-red-200 rounded-xl transition-colors group text-left w-full">
-                  <div className="w-9 h-9 rounded-lg bg-red-100 flex items-center justify-center text-red-600 group-hover:bg-red-200 transition-colors flex-shrink-0">
+                  className="flex items-center gap-3 px-4 py-3.5 bg-surface hover:bg-red-soft-bg border border-red-soft/30 rounded-xl transition-colors group text-left w-full">
+                  <div className="w-9 h-9 rounded-lg bg-red-soft-bg flex items-center justify-center text-red-soft group-hover:bg-red-soft-bg transition-colors flex-shrink-0">
                     <Zap className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">Optimize Now</p>
-                    <p className="text-[10px] text-gray-500">
+                    <p className="text-sm font-semibold text-ink">Optimize Now</p>
+                    <p className="text-[10px] text-ink-3">
                       {auditResult.zone_breakdown
                         ? `${auditResult.zone_breakdown.green_fail + auditResult.zone_breakdown.yellow_fail + auditResult.zone_breakdown.red_fail} issues → fix plan`
                         : 'Generate fix plan & code'}
@@ -2314,23 +2314,23 @@ export default function GEOAuditPage() {
                   </div>
                 </button>
                 <a href="/dashboard/geo-content"
-                  className="flex items-center gap-3 px-4 py-3.5 bg-white hover:bg-purple-50 border border-gray-200 rounded-xl transition-colors group">
-                  <div className="w-9 h-9 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600 group-hover:bg-purple-200 transition-colors">
+                  className="flex items-center gap-3 px-4 py-3.5 bg-surface hover:bg-surface-warm border border-divider-light rounded-xl transition-colors group">
+                  <div className="w-9 h-9 rounded-lg bg-surface-warm flex items-center justify-center text-ink-2 group-hover:bg-surface-muted transition-colors">
                     <FileText className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">Create Content</p>
-                    <p className="text-[10px] text-gray-500">GEO-optimized articles</p>
+                    <p className="text-sm font-semibold text-ink">Create Content</p>
+                    <p className="text-[10px] text-ink-3">GEO-optimized articles</p>
                   </div>
                 </a>
                 <a href="/dashboard/geo-monitor"
-                  className="flex items-center gap-3 px-4 py-3.5 bg-white hover:bg-blue-50 border border-gray-200 rounded-xl transition-colors group">
-                  <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 group-hover:bg-blue-200 transition-colors">
+                  className="flex items-center gap-3 px-4 py-3.5 bg-surface hover:bg-surface-warm border border-divider-light rounded-xl transition-colors group">
+                  <div className="w-9 h-9 rounded-lg bg-surface-warm flex items-center justify-center text-ink-2 group-hover:bg-surface-muted transition-colors">
                     <BarChart3 className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">Monitor Visibility</p>
-                    <p className="text-[10px] text-gray-500">Track AI brand mentions</p>
+                    <p className="text-sm font-semibold text-ink">Monitor Visibility</p>
+                    <p className="text-[10px] text-ink-3">Track AI brand mentions</p>
                   </div>
                 </a>
               </div>
@@ -2340,17 +2340,17 @@ export default function GEOAuditPage() {
 
         {/* ═══ Empty State (before audit) ═══ */}
         {!auditResult && !isAuditing && (
-          <section className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+          <section className="bg-surface rounded-2xl border border-divider-light overflow-hidden">
             {/* Hero section */}
-            <div className="bg-gradient-to-br from-gray-50 to-white p-10 text-center border-b border-gray-100">
+            <div className="bg-gradient-to-br from-canvas to-surface p-10 text-center border-b border-divider-light">
               <div className="max-w-2xl mx-auto">
-                <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/10">
-                  <Zap className="w-8 h-8 text-primary" />
+                <div className="w-16 h-16 bg-surface-muted rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-md shadow-ink/5">
+                  <Zap className="w-8 h-8 text-ink-2" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                <h3 className="text-2xl font-bold text-ink mb-3">
                   How does AI see your website?
                 </h3>
-                <p className="text-gray-500 text-lg leading-relaxed">
+                <p className="text-ink-3 text-lg leading-relaxed">
                   Our AI Readiness Audit analyzes your website across 5 critical dimensions to determine how well AI platforms (ChatGPT, Perplexity, Gemini) can discover, understand, and cite your content.
                 </p>
               </div>
@@ -2358,14 +2358,14 @@ export default function GEOAuditPage() {
 
             {/* 5 Dimension cards */}
             <div className="p-8">
-              <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-6 text-center">What We Analyze</h4>
+              <h4 className="text-sm font-medium text-ink-3 uppercase tracking-wider mb-6 text-center">What We Analyze</h4>
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
                 {[
-                  { icon: <Shield className="w-6 h-6" />, label: 'AI Accessibility', desc: 'Can AI bots crawl and read your content?', color: 'from-blue-50 to-blue-100 text-blue-600 border-blue-200' },
-                  { icon: <Layers className="w-6 h-6" />, label: 'Semantic Structure', desc: 'Is your content self-organized for AI comprehension?', color: 'from-purple-50 to-purple-100 text-purple-600 border-purple-200' },
-                  { icon: <FileText className="w-6 h-6" />, label: 'Content Citability', desc: 'Does your content have quotable fact units?', color: 'from-orange-50 to-orange-100 text-orange-600 border-orange-200' },
-                  { icon: <AlertOctagon className="w-6 h-6" />, label: 'Risk Boundary', desc: 'Is your content safe for AI to reference?', color: 'from-red-50 to-red-100 text-red-600 border-red-200' },
-                  { icon: <Brain className="w-6 h-6" />, label: 'Reusability', desc: 'Will AI reuse your content across answers?', color: 'from-emerald-50 to-emerald-100 text-emerald-600 border-emerald-200' },
+                  { icon: <Shield className="w-6 h-6" />, label: 'AI Accessibility', desc: 'Can AI bots crawl and read your content?', color: 'from-surface-warm to-surface-warm text-ink-2 border-divider' },
+                  { icon: <Layers className="w-6 h-6" />, label: 'Semantic Structure', desc: 'Is your content self-organized for AI comprehension?', color: 'from-surface-warm to-surface-warm text-ink-2 border-divider' },
+                  { icon: <FileText className="w-6 h-6" />, label: 'Content Citability', desc: 'Does your content have quotable fact units?', color: 'from-surface-warm to-surface-warm text-ink-2 border-divider' },
+                  { icon: <AlertOctagon className="w-6 h-6" />, label: 'Risk Boundary', desc: 'Is your content safe for AI to reference?', color: 'from-red-soft-bg to-red-soft-bg text-red-soft border-red-soft/30' },
+                  { icon: <Brain className="w-6 h-6" />, label: 'Reusability', desc: 'Will AI reuse your content across answers?', color: 'from-sage-bg to-sage-bg text-sage border-sage/30' },
                 ].map((dim, i) => (
                   <div key={i} className={`flex flex-col items-center gap-3 p-5 bg-gradient-to-br ${dim.color} rounded-xl border text-center`}>
                     <div className="w-12 h-12 bg-white/60 rounded-xl flex items-center justify-center shadow-sm">
@@ -2379,13 +2379,13 @@ export default function GEOAuditPage() {
 
               {/* Try these URLs */}
               <div className="text-center">
-                <p className="text-sm text-gray-500 mb-3">Try auditing one of these websites:</p>
+                <p className="text-sm text-ink-3 mb-3">Try auditing one of these websites:</p>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {['myticktalk.com', 'stripe.com', 'openai.com', 'notion.so', 'linear.app'].map((example) => (
                     <button
                       key={example}
                       onClick={() => { setUrl(example); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
-                      className="px-4 py-2 text-sm bg-gray-100 hover:bg-primary/10 hover:text-primary text-gray-600 rounded-lg transition-colors flex items-center gap-1.5 border border-transparent hover:border-primary/20"
+                      className="px-4 py-2 text-sm bg-surface-warm hover:bg-ink/5 hover:text-ink text-ink-2 rounded-lg transition-colors flex items-center gap-1.5 border border-transparent hover:border-ink/20"
                     >
                       <Globe className="w-3.5 h-3.5" />
                       {example}

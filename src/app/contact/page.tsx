@@ -117,9 +117,9 @@ function ContactPageInner() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-canvas">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/80 border-b border-gray-200/50">
+      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-surface/80 border-b border-divider-light/50">
         <div className="max-w-7xl mx-auto px-6 py-3">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center group hover:opacity-90 transition-opacity">
@@ -133,8 +133,8 @@ function ContactPageInner() {
                   href={item.href}
                   className={`px-3 py-2 text-sm font-medium transition-colors rounded-lg ${
                     item.href === '/contact/'
-                      ? 'text-red-600 bg-red-50'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      ? 'text-red-soft bg-red-soft-bg'
+                      : 'text-ink-2 hover:text-ink hover:bg-surface-warm'
                   }`}
                 >
                   {item.label}
@@ -146,7 +146,7 @@ function ContactPageInner() {
               <LanguageSwitch />
               <Link
                 href="/login/"
-                className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 rounded-lg hover:from-red-600 hover:to-red-700 transition-all shadow-sm hover:shadow-md"
+                className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-ink-inv bg-ink hover:bg-[#2d2d2c] rounded-lg transition-all shadow-sm hover:shadow-md"
               >
                 {t.nav.getStarted}
               </Link>
@@ -157,22 +157,22 @@ function ContactPageInner() {
 
       {/* Hero */}
       <section className="relative pt-32 pb-16 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white" />
-        <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-red-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-orange-500/5 rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-canvas" />
+        <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-[#C84B31]/[0.05] rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[#C84B31]/[0.05] rounded-full blur-3xl" />
 
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur border border-gray-200/50 rounded-full shadow-sm mb-8">
-            <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-surface/80 backdrop-blur border border-divider-light/50 rounded-full shadow-sm mb-8">
+            <svg className="w-4 h-4 text-red-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
-            <span className="text-sm text-gray-700 font-medium">Contact</span>
+            <span className="text-sm text-ink-2 font-medium">Contact</span>
           </div>
 
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 leading-[1.1] mb-6">
-            Get in <span className="bg-gradient-to-r from-red-500 to-red-600 bg-clip-text text-transparent">Touch</span>
+          <h1 className="text-5xl md:text-6xl font-bold text-ink leading-[1.1] mb-6">
+            Get in <span className="text-ink underline underline-offset-4 decoration-2">Touch</span>
           </h1>
-          <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg md:text-xl text-ink-2 max-w-2xl mx-auto leading-relaxed">
             Have questions about GEO? Want to partner with us? We&apos;d love to hear from you.
           </p>
         </div>
@@ -184,92 +184,92 @@ function ContactPageInner() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
             {/* Form */}
             <div className="lg:col-span-3">
-              <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Send us a message</h2>
+              <div className="bg-surface rounded-2xl border border-divider-light p-8 shadow-sm">
+                <h2 className="text-2xl font-bold text-ink mb-6">Send us a message</h2>
 
                 {subject === 'Managed Service Consultation' && (
-                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
-                    <svg className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  <div className="mb-6 p-4 bg-red-soft-bg border border-divider-light rounded-xl flex items-start gap-3">
+                    <svg className="w-5 h-5 text-red-soft flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     <div>
-                      <p className="text-red-800 font-semibold text-sm">Managed Service Consultation</p>
-                      <p className="text-red-600 text-xs mt-0.5">Our GEO experts will reach out within 24 hours to discuss your plan.</p>
+                      <p className="text-ink font-semibold text-sm">Managed Service Consultation</p>
+                      <p className="text-red-soft text-xs mt-0.5">Our GEO experts will reach out within 24 hours to discuss your plan.</p>
                     </div>
                   </div>
                 )}
 
                 {subject === 'Enterprise Platform' && (
-                  <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-3">
-                    <svg className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                  <div className="mb-6 p-4 bg-surface-warm border border-divider rounded-xl flex items-start gap-3">
+                    <svg className="w-5 h-5 text-ink-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                     <div>
-                      <p className="text-blue-800 font-semibold text-sm">Enterprise Platform Inquiry</p>
-                      <p className="text-blue-600 text-xs mt-0.5">We&apos;ll follow up with custom pricing and a personalized demo.</p>
+                      <p className="text-ink-2 font-semibold text-sm">Enterprise Platform Inquiry</p>
+                      <p className="text-ink-2 text-xs mt-0.5">We&apos;ll follow up with custom pricing and a personalized demo.</p>
                     </div>
                   </div>
                 )}
 
                 {submitted && (
-                  <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3">
-                    <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="mb-6 p-4 bg-sage-bg border border-sage/20 rounded-xl flex items-center gap-3">
+                    <svg className="w-5 h-5 text-sage flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <p className="text-green-800 font-medium">Thank you! We&apos;ll get back to you within 24 hours.</p>
+                    <p className="text-sage font-medium">Thank you! We&apos;ll get back to you within 24 hours.</p>
                   </div>
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Name <span className="text-red-500">*</span>
+                    <label htmlFor="name" className="block text-sm font-medium text-ink-2 mb-1.5">
+                      Name <span className="text-red-soft">*</span>
                     </label>
                     <input
                       id="name"
                       type="text"
                       value={name}
                       onChange={(e) => { setName(e.target.value); setErrors(prev => ({ ...prev, name: false })) }}
-                      className={`w-full px-4 py-3 rounded-xl border ${errors.name ? 'border-red-400 ring-2 ring-red-100' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all`}
+                      className={`w-full px-4 py-3 rounded-xl border ${errors.name ? 'border-divider ring-2 ring-ink/10' : 'border-divider'} focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-transparent transition-all`}
                       placeholder="Your full name"
                     />
-                    {errors.name && <p className="text-red-500 text-sm mt-1">Name is required</p>}
+                    {errors.name && <p className="text-red-soft text-sm mt-1">Name is required</p>}
                   </div>
 
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Email <span className="text-red-500">*</span>
+                    <label htmlFor="email" className="block text-sm font-medium text-ink-2 mb-1.5">
+                      Email <span className="text-red-soft">*</span>
                     </label>
                     <input
                       id="email"
                       type="email"
                       value={email}
                       onChange={(e) => { setEmail(e.target.value); setErrors(prev => ({ ...prev, email: false })) }}
-                      className={`w-full px-4 py-3 rounded-xl border ${errors.email ? 'border-red-400 ring-2 ring-red-100' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all`}
+                      className={`w-full px-4 py-3 rounded-xl border ${errors.email ? 'border-divider ring-2 ring-ink/10' : 'border-divider'} focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-transparent transition-all`}
                       placeholder="you@company.com"
                     />
-                    {errors.email && <p className="text-red-500 text-sm mt-1">Email is required</p>}
+                    {errors.email && <p className="text-red-soft text-sm mt-1">Email is required</p>}
                   </div>
 
                   <div>
-                    <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Company <span className="text-gray-400 text-xs">(optional)</span>
+                    <label htmlFor="company" className="block text-sm font-medium text-ink-2 mb-1.5">
+                      Company <span className="text-ink-3 text-xs">(optional)</span>
                     </label>
                     <input
                       id="company"
                       type="text"
                       value={company}
                       onChange={(e) => setCompany(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 rounded-xl border border-divider focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-transparent transition-all"
                       placeholder="Your company name"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1.5">
+                    <label htmlFor="subject" className="block text-sm font-medium text-ink-2 mb-1.5">
                       Subject
                     </label>
                     <select
                       id="subject"
                       value={subject}
                       onChange={(e) => setSubject(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all bg-white"
+                      className="w-full px-4 py-3 rounded-xl border border-divider focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-transparent transition-all bg-surface"
                     >
                       <option value="">Select a topic</option>
                       {subjectOptions.map((opt) => (
@@ -279,22 +279,22 @@ function ContactPageInner() {
                   </div>
 
                   <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Message <span className="text-red-500">*</span>
+                    <label htmlFor="message" className="block text-sm font-medium text-ink-2 mb-1.5">
+                      Message <span className="text-red-soft">*</span>
                     </label>
                     <textarea
                       id="message"
                       rows={4}
                       value={message}
                       onChange={(e) => { setMessage(e.target.value); setErrors(prev => ({ ...prev, message: false })) }}
-                      className={`w-full px-4 py-3 rounded-xl border ${errors.message ? 'border-red-400 ring-2 ring-red-100' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all resize-none`}
+                      className={`w-full px-4 py-3 rounded-xl border ${errors.message ? 'border-divider ring-2 ring-ink/10' : 'border-divider'} focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-transparent transition-all resize-none`}
                       placeholder="Tell us how we can help..."
                     />
-                    {errors.message && <p className="text-red-500 text-sm mt-1">Message is required</p>}
+                    {errors.message && <p className="text-red-soft text-sm mt-1">Message is required</p>}
                   </div>
 
                   {sendError && (
-                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                    <div className="p-3 bg-red-soft-bg border border-divider-light rounded-lg text-sm text-red-soft">
                       {sendError}
                     </div>
                   )}
@@ -302,7 +302,7 @@ function ContactPageInner() {
                   <button
                     type="submit"
                     disabled={isSending}
-                    className="w-full py-3.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2"
+                    className="w-full py-3.5 bg-ink hover:bg-[#2d2d2c] disabled:opacity-60 disabled:cursor-not-allowed text-ink-inv font-semibold rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2"
                   >
                     {isSending ? (
                       <>
@@ -328,63 +328,63 @@ function ContactPageInner() {
             {/* Info Cards */}
             <div className="lg:col-span-2 space-y-5">
               {/* Email */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-surface rounded-2xl border border-divider-light p-6 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-12 h-12 bg-red-soft-bg rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-red-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Email Us</h3>
-                    <a href="mailto:contact@alignmenttech.ai" className="text-red-500 hover:text-red-600 transition-colors text-sm font-medium">
+                    <h3 className="font-semibold text-ink mb-1">Email Us</h3>
+                    <a href="mailto:contact@alignmenttech.ai" className="text-red-soft hover:text-red-soft transition-colors text-sm font-medium">
                       contact@alignmenttech.ai
                     </a>
-                    <p className="text-gray-500 text-sm mt-1">We&apos;ll respond within 24 hours</p>
+                    <p className="text-ink-3 text-sm mt-1">We&apos;ll respond within 24 hours</p>
                   </div>
                 </div>
               </div>
 
               {/* Location */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-surface rounded-2xl border border-divider-light p-6 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-12 h-12 bg-surface-warm rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-ink-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Visit Us</h3>
-                    <p className="text-gray-700 text-sm font-medium">San Francisco, CA</p>
-                    <p className="text-gray-500 text-sm mt-1">United States</p>
+                    <h3 className="font-semibold text-ink mb-1">Visit Us</h3>
+                    <p className="text-ink-2 text-sm font-medium">San Francisco, CA</p>
+                    <p className="text-ink-3 text-sm mt-1">United States</p>
                   </div>
                 </div>
               </div>
 
               {/* Social */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-surface rounded-2xl border border-divider-light p-6 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-12 h-12 bg-surface-warm rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-ink-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Follow Us</h3>
+                    <h3 className="font-semibold text-ink mb-2">Follow Us</h3>
                     <div className="flex items-center gap-3">
-                      <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center transition-colors">
-                        <svg className="w-4 h-4 text-gray-700" fill="currentColor" viewBox="0 0 24 24">
+                      <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-surface-muted hover:bg-surface-muted rounded-lg flex items-center justify-center transition-colors">
+                        <svg className="w-4 h-4 text-ink-2" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                         </svg>
                       </a>
-                      <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center transition-colors">
-                        <svg className="w-4 h-4 text-gray-700" fill="currentColor" viewBox="0 0 24 24">
+                      <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-surface-muted hover:bg-surface-muted rounded-lg flex items-center justify-center transition-colors">
+                        <svg className="w-4 h-4 text-ink-2" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
                         </svg>
                       </a>
-                      <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center transition-colors">
-                        <svg className="w-4 h-4 text-gray-700" fill="currentColor" viewBox="0 0 24 24">
+                      <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-surface-muted hover:bg-surface-muted rounded-lg flex items-center justify-center transition-colors">
+                        <svg className="w-4 h-4 text-ink-2" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                         </svg>
                       </a>
@@ -394,17 +394,17 @@ function ContactPageInner() {
               </div>
 
               {/* Office Hours */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-surface rounded-2xl border border-divider-light p-6 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-12 h-12 bg-sage-bg rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Office Hours</h3>
-                    <p className="text-gray-700 text-sm font-medium">Mon – Fri, 9 AM – 6 PM PST</p>
-                    <p className="text-gray-500 text-sm mt-1">Excluding public holidays</p>
+                    <h3 className="font-semibold text-ink mb-1">Office Hours</h3>
+                    <p className="text-ink-2 text-sm font-medium">Mon – Fri, 9 AM – 6 PM PST</p>
+                    <p className="text-ink-3 text-sm mt-1">Excluding public holidays</p>
                   </div>
                 </div>
               </div>
@@ -414,28 +414,28 @@ function ContactPageInner() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-surface-warm">
         <div className="max-w-3xl mx-auto px-6">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-gray-700 text-sm font-medium mb-6 shadow-sm">
-              <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-surface border border-divider-light rounded-full text-ink-2 text-sm font-medium mb-6 shadow-sm">
+              <svg className="w-4 h-4 text-red-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               FAQ
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Frequently Asked Questions</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-ink">Frequently Asked Questions</h2>
           </div>
 
           <div className="space-y-3">
             {faqs.map((faq, i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-200 overflow-hidden transition-shadow hover:shadow-sm">
+              <div key={i} className="bg-surface rounded-xl border border-divider-light overflow-hidden transition-shadow hover:shadow-sm">
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-5 text-left"
                 >
-                  <span className="font-semibold text-gray-900 pr-4">{faq.q}</span>
+                  <span className="font-semibold text-ink pr-4">{faq.q}</span>
                   <svg
-                    className={`w-5 h-5 text-gray-500 flex-shrink-0 transition-transform duration-200 ${openFaq === i ? 'rotate-180' : ''}`}
+                    className={`w-5 h-5 text-ink-3 flex-shrink-0 transition-transform duration-200 ${openFaq === i ? 'rotate-180' : ''}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -446,7 +446,7 @@ function ContactPageInner() {
                 <div
                   className={`overflow-hidden transition-all duration-200 ${openFaq === i ? 'max-h-40 pb-5' : 'max-h-0'}`}
                 >
-                  <p className="px-5 text-gray-600 leading-relaxed">{faq.a}</p>
+                  <p className="px-5 text-ink-2 leading-relaxed">{faq.a}</p>
                 </div>
               </div>
             ))}
@@ -455,9 +455,9 @@ function ContactPageInner() {
       </section>
 
       {/* Map Placeholder */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-canvas">
         <div className="max-w-5xl mx-auto px-6">
-          <div className="relative bg-gray-100 rounded-2xl border border-gray-200 overflow-hidden h-72 flex items-center justify-center">
+          <div className="relative bg-surface-muted rounded-2xl border border-divider-light overflow-hidden h-72 flex items-center justify-center">
             <div className="absolute inset-0 opacity-10">
               <div className="absolute inset-0" style={{
                 backgroundImage: `
@@ -469,38 +469,38 @@ function ContactPageInner() {
             </div>
 
             <div className="relative text-center">
-              <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <div className="w-16 h-16 bg-red-soft-bg rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-1">San Francisco, CA</h3>
-              <p className="text-gray-500">United States</p>
+              <h3 className="text-xl font-bold text-ink mb-1">San Francisco, CA</h3>
+              <p className="text-ink-3">United States</p>
             </div>
 
-            <div className="absolute top-6 left-8 w-3 h-3 bg-gray-300 rounded-full" />
-            <div className="absolute top-16 right-16 w-2 h-2 bg-gray-300 rounded-full" />
-            <div className="absolute bottom-12 left-20 w-2.5 h-2.5 bg-gray-300 rounded-full" />
-            <div className="absolute bottom-20 right-32 w-2 h-2 bg-gray-300 rounded-full" />
-            <div className="absolute top-24 left-1/3 w-1.5 h-1.5 bg-gray-300 rounded-full" />
+            <div className="absolute top-6 left-8 w-3 h-3 bg-surface-muted rounded-full" />
+            <div className="absolute top-16 right-16 w-2 h-2 bg-surface-muted rounded-full" />
+            <div className="absolute bottom-12 left-20 w-2.5 h-2.5 bg-surface-muted rounded-full" />
+            <div className="absolute bottom-20 right-32 w-2 h-2 bg-surface-muted rounded-full" />
+            <div className="absolute top-24 left-1/3 w-1.5 h-1.5 bg-surface-muted rounded-full" />
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-gray-900">
+      <section className="py-20 bg-ink">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
             Ready to get started?
           </h2>
-          <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
+          <p className="text-xl text-ink-3 mb-10 max-w-2xl mx-auto">
             Explore our plans or dive into the documentation to see how Alignment AI can transform your GEO strategy.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/pricing/"
-              className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold px-8 py-4 rounded-xl transition-all shadow-sm hover:shadow-md"
+              className="inline-flex items-center justify-center gap-2 bg-ink hover:bg-[#2d2d2c] text-ink-inv font-semibold px-8 py-4 rounded-xl transition-all shadow-sm hover:shadow-md"
             >
               View Pricing
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -509,7 +509,7 @@ function ContactPageInner() {
             </Link>
             <Link
               href="/docs/"
-              className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold px-8 py-4 rounded-xl transition-all border border-white/20"
+              className="inline-flex items-center justify-center gap-2 bg-ink-inv/10 hover:bg-ink-inv/20 text-white font-semibold px-8 py-4 rounded-xl transition-all border border-white/20"
             >
               Read the Docs
             </Link>
@@ -518,45 +518,45 @@ function ContactPageInner() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-100 py-16">
+      <footer className="bg-surface border-t border-divider-light py-16">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             <div className="md:col-span-1">
               <div className="mb-4">
                 <LogoFull width={160} height={100} />
               </div>
-              <p className="text-gray-500 text-sm leading-relaxed">
+              <p className="text-ink-3 text-sm leading-relaxed">
                 AI Signal Intake & Path Decision Engine for Generative Engine Optimization.
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-gray-900 mb-4">Product</h4>
-              <ul className="space-y-3 text-sm text-gray-600">
-                <li><Link href="/system/" className="hover:text-gray-900 transition-colors">System</Link></li>
-                <li><Link href="/technology/" className="hover:text-gray-900 transition-colors">Technology</Link></li>
-                <li><Link href="/pricing/" className="hover:text-gray-900 transition-colors">Pricing</Link></li>
+              <h4 className="font-semibold text-ink mb-4">Product</h4>
+              <ul className="space-y-3 text-sm text-ink-2">
+                <li><Link href="/system/" className="hover:text-ink transition-colors">System</Link></li>
+                <li><Link href="/technology/" className="hover:text-ink transition-colors">Technology</Link></li>
+                <li><Link href="/pricing/" className="hover:text-ink transition-colors">Pricing</Link></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold text-gray-900 mb-4">Resources</h4>
-              <ul className="space-y-3 text-sm text-gray-600">
-                <li><Link href="/docs/" className="hover:text-gray-900 transition-colors">Docs</Link></li>
-                <li><Link href="/insights/" className="hover:text-gray-900 transition-colors">Insights</Link></li>
+              <h4 className="font-semibold text-ink mb-4">Resources</h4>
+              <ul className="space-y-3 text-sm text-ink-2">
+                <li><Link href="/docs/" className="hover:text-ink transition-colors">Docs</Link></li>
+                <li><Link href="/insights/" className="hover:text-ink transition-colors">Insights</Link></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold text-gray-900 mb-4">Contact</h4>
-              <ul className="space-y-3 text-sm text-gray-600">
-                <li><a href="mailto:contact@alignmenttech.ai" className="hover:text-gray-900 transition-colors">Send Email</a></li>
-                <li><Link href="/contact/" className="hover:text-gray-900 transition-colors">Contact Form</Link></li>
+              <h4 className="font-semibold text-ink mb-4">Contact</h4>
+              <ul className="space-y-3 text-sm text-ink-2">
+                <li><a href="mailto:contact@alignmenttech.ai" className="hover:text-ink transition-colors">Send Email</a></li>
+                <li><Link href="/contact/" className="hover:text-ink transition-colors">Contact Form</Link></li>
               </ul>
             </div>
           </div>
 
-          <div className="mt-12 pt-8 border-t border-gray-100 text-center text-gray-500 text-sm">
+          <div className="mt-12 pt-8 border-t border-divider-light text-center text-ink-3 text-sm">
             &copy; {new Date().getFullYear()} Alignment AI. All rights reserved.
           </div>
         </div>
@@ -567,7 +567,7 @@ function ContactPageInner() {
 
 export default function ContactPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full" /></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-canvas flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-ink border-t-transparent rounded-full" /></div>}>
       <ContactPageInner />
     </Suspense>
   )

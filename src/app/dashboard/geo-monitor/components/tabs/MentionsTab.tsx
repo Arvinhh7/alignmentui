@@ -67,7 +67,7 @@ export function MentionsTab() {
       .map(([type, count]) => ({
         label: SUB_TYPE_LABELS[type]?.label || type,
         value: count,
-        color: SUB_TYPE_LABELS[type]?.chartColor || '#9ca3af',
+        color: SUB_TYPE_LABELS[type]?.chartColor || '#9C978E',
       }))
   }, [scanResult])
 
@@ -84,8 +84,8 @@ export function MentionsTab() {
   // ── No data notice ───────────────────────────────────
   if (!scanResult) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-        <MessageSquare className="w-10 h-10 mb-3 text-gray-300" />
+      <div className="flex flex-col items-center justify-center py-20 text-ink-3">
+        <MessageSquare className="w-10 h-10 mb-3 text-ink-3 opacity-50" />
         <p className="text-sm font-medium">Run a scan to see mention analysis</p>
       </div>
     )
@@ -95,25 +95,25 @@ export function MentionsTab() {
     <div className="space-y-6">
       {/* ── Prompt Effectiveness by Intent ──────────────── */}
       <div>
-        <h4 className="text-sm font-semibold text-gray-700 mb-3">Prompt Effectiveness by Intent</h4>
+        <h4 className="text-sm font-semibold text-ink-2 mb-3">Prompt Effectiveness by Intent</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {intentStats.map(intent => (
-            <div key={intent.key} className={`rounded-xl border border-gray-200 p-5 ${intent.bgColor}`}>
+            <div key={intent.key} className={`rounded-xl border border-divider p-5 ${intent.bgColor}`}>
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-lg">{intent.icon}</span>
                 <span className={`text-sm font-semibold ${intent.color}`}>{intent.label}</span>
-                <span className="text-[10px] px-1.5 py-0.5 bg-white/60 rounded-full text-gray-500 font-medium">Stage {intent.stage}</span>
+                <span className="text-[10px] px-1.5 py-0.5 bg-surface/60 rounded-full text-ink-3 font-medium">Stage {intent.stage}</span>
               </div>
               <div className="space-y-1 mt-3">
-                <div className="flex justify-between text-xs text-gray-600">
+                <div className="flex justify-between text-xs text-ink-2">
                   <span>Prompts</span>
                   <span className="font-mono font-bold">{intent.total}</span>
                 </div>
-                <div className="flex justify-between text-xs text-gray-600">
+                <div className="flex justify-between text-xs text-ink-2">
                   <span>Mentioned</span>
                   <span className="font-mono font-bold">{intent.mentioned}</span>
                 </div>
-                <div className="flex justify-between text-xs text-gray-600">
+                <div className="flex justify-between text-xs text-ink-2">
                   <span>Visibility</span>
                   <span className="font-mono font-bold">{formatPct(intent.visibilityPct)}</span>
                 </div>
@@ -126,27 +126,27 @@ export function MentionsTab() {
       {/* ── Quick Stats ────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <MetricCard
-          icon={<Eye className="w-5 h-5 text-blue-600" />}
+          icon={<Eye className="w-5 h-5 text-ink-2" />}
           label="Prompts Used"
           value={formatNum(totalPrompts, 0)}
           subtitle={`${mentionedCount} mentioned / ${notMentionedCount} not mentioned`}
-          color="text-blue-600"
-          bgColor="bg-blue-50"
+          color="text-ink-2"
+          bgColor="bg-surface-warm"
         />
         <MetricCard
-          icon={<Link2 className="w-5 h-5 text-purple-600" />}
+          icon={<Link2 className="w-5 h-5 text-ink-2" />}
           label="Avg Citations"
           value={formatNum(avgCitations)}
           subtitle="Average cited URLs per mentioned result"
-          color="text-purple-600"
-          bgColor="bg-purple-50"
+          color="text-ink-2"
+          bgColor="bg-surface-warm"
         />
       </div>
 
       {/* ── Sub-Type Distribution Donut ─────────────────── */}
       {subTypeSegments.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h4 className="text-sm font-semibold text-gray-700 mb-4">Sub-Type Distribution</h4>
+        <div className="bg-surface rounded-xl border border-divider p-5">
+          <h4 className="text-sm font-semibold text-ink-2 mb-4">Sub-Type Distribution</h4>
           <div className="flex justify-center">
             <DonutChart
               segments={subTypeSegments}
@@ -161,8 +161,8 @@ export function MentionsTab() {
       {notMentionedResults.length > 0 && (
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <h4 className="text-sm font-semibold text-gray-700">Not Mentioned</h4>
-            <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-medium">{notMentionedResults.length}</span>
+            <h4 className="text-sm font-semibold text-ink-2">Not Mentioned</h4>
+            <span className="text-xs px-2 py-0.5 bg-red-soft-bg text-red-soft rounded-full font-medium">{notMentionedResults.length}</span>
           </div>
           <div className="space-y-3">
             {notMentionedResults.map((m, i) => (
@@ -176,8 +176,8 @@ export function MentionsTab() {
       {mentionedResults.length > 0 && (
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <h4 className="text-sm font-semibold text-gray-700">Mentioned</h4>
-            <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">{mentionedResults.length}</span>
+            <h4 className="text-sm font-semibold text-ink-2">Mentioned</h4>
+            <span className="text-xs px-2 py-0.5 bg-sage-bg text-sage rounded-full font-medium">{mentionedResults.length}</span>
           </div>
           <div className="space-y-3">
             {mentionedResults.map((m, i) => (

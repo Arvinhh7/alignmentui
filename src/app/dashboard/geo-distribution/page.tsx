@@ -37,19 +37,19 @@ import {
 // ─── Priority styling ──────────────────────────────────
 function priorityStyle(p: string) {
   switch (p) {
-    case 'critical': return { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-200', dot: 'bg-red-500', label: '🔴 CRITICAL' }
-    case 'high': return { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-200', dot: 'bg-orange-500', label: '🟠 HIGH' }
-    case 'medium': return { bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-200', dot: 'bg-yellow-500', label: '🟡 MEDIUM' }
-    default: return { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200', dot: 'bg-gray-400', label: '⚪ LOW' }
+    case 'critical': return { bg: 'bg-red-soft-bg', text: 'text-red-soft', border: 'border-red-soft/30', dot: 'bg-red-soft', label: 'CRITICAL' }
+    case 'high': return { bg: 'bg-caution-bg', text: 'text-caution', border: 'border-caution/30', dot: 'bg-caution', label: 'HIGH' }
+    case 'medium': return { bg: 'bg-caution-bg', text: 'text-caution', border: 'border-caution/30', dot: 'bg-caution', label: 'MEDIUM' }
+    default: return { bg: 'bg-surface-warm', text: 'text-ink-2', border: 'border-divider', dot: 'bg-ink/20', label: 'LOW' }
   }
 }
 
 function presenceStyle(p: string) {
   switch (p) {
-    case 'strong': return { bg: 'bg-green-100', text: 'text-green-700', label: 'Strong' }
-    case 'moderate': return { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Moderate' }
-    case 'weak': return { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Weak' }
-    default: return { bg: 'bg-gray-100', text: 'text-gray-500', label: 'None' }
+    case 'strong': return { bg: 'bg-sage-bg', text: 'text-sage', label: 'Strong' }
+    case 'moderate': return { bg: 'bg-surface-warm', text: 'text-ink-2', label: 'Moderate' }
+    case 'weak': return { bg: 'bg-caution-bg', text: 'text-caution', label: 'Weak' }
+    default: return { bg: 'bg-surface-warm', text: 'text-ink-3', label: 'None' }
   }
 }
 
@@ -163,17 +163,17 @@ function PushContentModal({ channel, channelId, sourceTab, subreddit, redditTemp
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <div className="p-6 border-b border-gray-200">
+      <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="p-6 border-b border-divider-light">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Push Content to {channel}</h3>
-              <p className="text-sm text-gray-500 mt-0.5">
-                {subreddit && <span className="text-red-500 font-medium">{subreddit}</span>}
-                {!subreddit && <span className="text-gray-600">{channelId}</span>}
+              <h3 className="text-lg font-bold text-ink">Push Content to {channel}</h3>
+              <p className="text-sm text-ink-3 mt-0.5">
+                {subreddit && <span className="text-red-soft font-medium">{subreddit}</span>}
+                {!subreddit && <span className="text-ink-2">{channelId}</span>}
               </p>
             </div>
-            <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5 text-gray-400" /></button>
+            <button onClick={onClose} className="p-1 hover:bg-surface-warm rounded-lg"><X className="w-5 h-5 text-ink-3" /></button>
           </div>
         </div>
 
@@ -181,14 +181,14 @@ function PushContentModal({ channel, channelId, sourceTab, subreddit, redditTemp
           {/* ── Post Type selector (social channels only) ── */}
           {supportsReply && (
             <div>
-              <label className="text-xs text-gray-500 mb-1.5 block font-medium">Post Type</label>
-              <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+              <label className="text-xs text-ink-3 mb-1.5 block font-medium">Post Type</label>
+              <div className="flex gap-1 bg-surface-warm rounded-lg p-1">
                 <button onClick={() => setPostType('post')}
-                  className={`flex-1 py-2.5 rounded-md text-sm font-semibold transition-all flex items-center justify-center gap-1.5 ${postType === 'post' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                  className={`flex-1 py-2.5 rounded-md text-sm font-semibold transition-all flex items-center justify-center gap-1.5 ${postType === 'post' ? 'bg-surface text-ink shadow-sm' : 'text-ink-3 hover:text-ink-2'}`}>
                   <FileText className="w-3.5 h-3.5" /> {labels.postLabel}
                 </button>
                 <button onClick={() => setPostType('reply')}
-                  className={`flex-1 py-2.5 rounded-md text-sm font-semibold transition-all flex items-center justify-center gap-1.5 ${postType === 'reply' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                  className={`flex-1 py-2.5 rounded-md text-sm font-semibold transition-all flex items-center justify-center gap-1.5 ${postType === 'reply' ? 'bg-surface text-caution shadow-sm' : 'text-ink-3 hover:text-ink-2'}`}>
                   <MessageSquare className="w-3.5 h-3.5" /> {labels.replyLabel}
                 </button>
               </div>
@@ -198,25 +198,25 @@ function PushContentModal({ channel, channelId, sourceTab, subreddit, redditTemp
           {/* ── Reply: Target Thread URL ── */}
           {isReply && (
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">Target Thread / Post URL</label>
+              <label className="text-xs text-ink-3 mb-1 block">Target Thread / Post URL</label>
               <input value={targetThreadUrl} onChange={e => setTargetThreadUrl(e.target.value)}
                 placeholder={`Paste the ${channel} URL you want to reply to...`}
-                className="w-full px-3 py-2.5 border border-orange-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400 bg-orange-50/50" />
-              <p className="text-[10px] text-orange-500 mt-1">Paste the link to the thread/post you&apos;re replying to</p>
+                className="w-full px-3 py-2.5 border border-caution/20 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-caution/20 focus:border-caution bg-caution-bg/30" />
+              <p className="text-[10px] text-caution mt-1">Paste the link to the thread/post you&apos;re replying to</p>
             </div>
           )}
 
           {/* ── Source Tabs ── */}
-          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+          <div className="flex gap-1 bg-surface-warm rounded-lg p-1">
             {isReddit && templates.length > 0 && !isReply && (
-              <button onClick={() => setTab('template')} className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${tab === 'template' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>
+              <button onClick={() => setTab('template')} className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${tab === 'template' ? 'bg-surface text-ink shadow-sm' : 'text-ink-3'}`}>
                 Use Template
               </button>
             )}
-            <button onClick={() => setTab('write')} className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${tab === 'write' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>
+            <button onClick={() => setTab('write')} className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${tab === 'write' ? 'bg-surface text-ink shadow-sm' : 'text-ink-3'}`}>
               Write / Paste
             </button>
-            <button onClick={() => setTab('upload')} className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${tab === 'upload' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>
+            <button onClick={() => setTab('upload')} className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${tab === 'upload' ? 'bg-surface text-ink shadow-sm' : 'text-ink-3'}`}>
               Upload File
             </button>
           </div>
@@ -225,25 +225,25 @@ function PushContentModal({ channel, channelId, sourceTab, subreddit, redditTemp
           {tab === 'template' && isReddit && templates.length > 0 && !isReply && (
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-gray-500 mb-1.5 block">Select a Post Template</label>
+                <label className="text-xs text-ink-3 mb-1.5 block">Select a Post Template</label>
                 <div className="space-y-2">
                   {templates.map(tpl => (
                     <button key={tpl.id} onClick={() => applyTemplate(tpl.id)}
                       className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
                         selectedTemplateId === tpl.id
-                          ? 'border-red-400 bg-red-50'
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                          ? 'border-ink bg-surface-muted'
+                          : 'border-divider hover:border-divider-light hover:bg-surface-warm'
                       }`}>
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-semibold text-gray-900">{tpl.template_name}</span>
+                        <span className="text-sm font-semibold text-ink">{tpl.template_name}</span>
                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                          tpl.estimated_engagement === 'high' ? 'bg-green-100 text-green-700' :
-                          tpl.estimated_engagement === 'medium-high' ? 'bg-blue-100 text-blue-700' :
-                          'bg-gray-100 text-gray-600'
+                          tpl.estimated_engagement === 'high' ? 'bg-sage-bg text-sage' :
+                          tpl.estimated_engagement === 'medium-high' ? 'bg-surface-warm text-ink-2' :
+                          'bg-surface-warm text-ink-2'
                         }`}>{tpl.estimated_engagement}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <span className="px-1.5 py-0.5 bg-gray-100 rounded">{tpl.post_type}</span>
+                      <div className="flex items-center gap-2 text-xs text-ink-3">
+                        <span className="px-1.5 py-0.5 bg-surface-warm rounded">{tpl.post_type}</span>
                         <span>{tpl.target_subreddit}</span>
                         <span className="ml-auto">{tpl.best_time_to_post}</span>
                       </div>
@@ -253,12 +253,12 @@ function PushContentModal({ channel, channelId, sourceTab, subreddit, redditTemp
               </div>
 
               {selectedTemplateId && (
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                  <p className="text-xs text-orange-700 font-semibold mb-1 flex items-center gap-1">
+                <div className="bg-caution-bg border border-caution/20 rounded-lg p-3">
+                  <p className="text-xs text-caution font-semibold mb-1 flex items-center gap-1">
                     <Sparkles className="w-3 h-3" /> AI Citation Tips
                   </p>
                   {templates.find(t => t.id === selectedTemplateId)?.ai_optimization_tips.map((tip, i) => (
-                    <p key={i} className="text-xs text-orange-800">{'\u2022'} {tip}</p>
+                    <p key={i} className="text-xs text-ink">{'\u2022'} {tip}</p>
                   ))}
                 </div>
               )}
@@ -268,17 +268,17 @@ function PushContentModal({ channel, channelId, sourceTab, subreddit, redditTemp
           {/* ── Title (hidden for Reply mode) ── */}
           {!isReply && (
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">Title *</label>
+              <label className="text-xs text-ink-3 mb-1 block">Title *</label>
               <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Content title"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400" />
+                className="w-full px-3 py-2.5 border border-divider rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink" />
             </div>
           )}
 
           {!isReply && (
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">Content Type</label>
+              <label className="text-xs text-ink-3 mb-1 block">Content Type</label>
               <select value={contentType} onChange={e => setContentType(e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400">
+                className="w-full px-3 py-2.5 border border-divider rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink">
                 <option value="definition">Definition</option>
                 <option value="comparison_ranking">Comparison & Ranking</option>
                 <option value="how_to">How-To Guide</option>
@@ -292,20 +292,20 @@ function PushContentModal({ channel, channelId, sourceTab, subreddit, redditTemp
 
           {tab === 'upload' ? (
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">Upload Content File</label>
-              <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center hover:border-red-300 transition-colors">
+              <label className="text-xs text-ink-3 mb-1 block">Upload Content File</label>
+              <div className="border-2 border-dashed border-divider rounded-lg p-6 text-center hover:border-ink/30 transition-colors">
                 <input type="file" accept=".txt,.md,.doc,.docx,.pdf" onChange={handleFileSelect} className="hidden" id="content-file" />
                 <label htmlFor="content-file" className="cursor-pointer">
                   {fileName ? (
                     <div>
-                      <FileText className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                      <p className="text-sm font-medium text-gray-900">{fileName}</p>
-                      <p className="text-xs text-gray-400 mt-1">Click to change file</p>
+                      <FileText className="w-8 h-8 text-red-soft mx-auto mb-2" />
+                      <p className="text-sm font-medium text-ink">{fileName}</p>
+                      <p className="text-xs text-ink-3 mt-1">Click to change file</p>
                     </div>
                   ) : (
                     <div>
-                      <Download className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500">Click to upload .txt, .md, .doc, .pdf</p>
+                      <Download className="w-8 h-8 text-ink-3 mx-auto mb-2" />
+                      <p className="text-sm text-ink-3">Click to upload .txt, .md, .doc, .pdf</p>
                     </div>
                   )}
                 </label>
@@ -313,7 +313,7 @@ function PushContentModal({ channel, channelId, sourceTab, subreddit, redditTemp
             </div>
           ) : (
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">
+              <label className="text-xs text-ink-3 mb-1 block">
                 {isReply ? 'Reply Content *' : 'Content Preview / Body'}
               </label>
               <textarea value={preview} onChange={e => setPreview(e.target.value)}
@@ -326,23 +326,23 @@ function PushContentModal({ channel, channelId, sourceTab, subreddit, redditTemp
                 }
                 className={`w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 resize-none ${
                   isReply
-                    ? 'border-orange-200 focus:ring-orange-500/20 focus:border-orange-400 bg-orange-50/30'
-                    : 'border-gray-200 focus:ring-red-500/20 focus:border-red-400'
+                    ? 'border-caution/20 focus:ring-caution/20 focus:border-caution bg-caution-bg/20'
+                    : 'border-divider focus:ring-ink/10 focus:border-ink'
                 }`} />
               {isReply && (
-                <p className="text-[10px] text-orange-500 mt-1">Tip: {getReplyHint(channelId)}</p>
+                <p className="text-[10px] text-caution mt-1">Tip: {getReplyHint(channelId)}</p>
               )}
             </div>
           )}
 
           <div>
-            <label className="text-xs text-gray-500 mb-1 block">Notes (optional)</label>
+            <label className="text-xs text-ink-3 mb-1 block">Notes (optional)</label>
             <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Any notes..."
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400" />
+              className="w-full px-3 py-2.5 border border-divider rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink" />
           </div>
         </div>
 
-        <div className="p-6 border-t border-gray-200 flex gap-3">
+        <div className="p-6 border-t border-divider-light flex gap-3">
           <button onClick={() => {
             if (!canSubmit) return
             onPush({
@@ -358,12 +358,12 @@ function PushContentModal({ channel, channelId, sourceTab, subreddit, redditTemp
           }} disabled={!canSubmit}
             className={`flex-1 px-4 py-2.5 font-medium rounded-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2 ${
               isReply
-                ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white'
-                : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white'
+                ? 'bg-ink hover:bg-[#2d2d2c] text-ink-inv'
+                : 'bg-ink hover:bg-[#2d2d2c] text-ink-inv'
             }`}>
             <ArrowUpRight className="w-4 h-4" /> {isReply ? 'Queue Reply' : 'Push to Queue'}
           </button>
-          <button onClick={onClose} className="px-4 py-2.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
+          <button onClick={onClose} className="px-4 py-2.5 bg-surface-warm text-ink-2 rounded-lg hover:bg-surface-muted transition-colors">Cancel</button>
         </div>
       </div>
     </div>
@@ -381,56 +381,56 @@ function ChannelRecCard({ rec, expanded, onToggle, onPush }: {
   const pres = presenceStyle(rec.current_presence)
 
   return (
-    <div className={`bg-white rounded-xl border ${ps.border} overflow-hidden transition-all hover:shadow-md`}>
+    <div className={`bg-surface rounded-xl border ${ps.border} overflow-hidden transition-all hover:shadow-md`}>
       <div className="p-5 cursor-pointer" onClick={onToggle}>
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
             <span className="text-2xl">{rec.channel.icon || catIcon(rec.channel.source_category)}</span>
             <div>
-              <h4 className="font-semibold text-gray-900">{rec.channel.name}</h4>
+              <h4 className="font-semibold text-ink">{rec.channel.name}</h4>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ps.bg} ${ps.text}`}>{ps.label}</span>
-                <span className="text-xs text-gray-400">{rec.channel.source_category.toUpperCase()}</span>
+                <span className="text-xs text-ink-3">{rec.channel.source_category.toUpperCase()}</span>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <p className="text-lg font-bold font-mono text-gray-900">{rec.priority_score}</p>
-              <p className="text-xs text-gray-400">/ 100</p>
+              <p className="text-lg font-bold font-mono text-ink">{rec.priority_score}</p>
+              <p className="text-xs text-ink-3">/ 100</p>
             </div>
-            {expanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+            {expanded ? <ChevronUp className="w-4 h-4 text-ink-3" /> : <ChevronDown className="w-4 h-4 text-ink-3" />}
           </div>
         </div>
 
         {/* Key Metrics Row */}
         <div className="grid grid-cols-3 gap-3 mt-3">
-          <div className="bg-gray-50 rounded-lg p-2.5 text-center">
-            <p className="text-xs text-gray-500">AI Citation</p>
-            <p className="text-sm font-bold text-gray-900">{rec.channel.chatgpt_citation_weight}/100</p>
+          <div className="bg-canvas rounded-lg p-2.5 text-center">
+            <p className="text-xs text-ink-3">AI Citation</p>
+            <p className="text-sm font-bold text-ink">{rec.channel.chatgpt_citation_weight}/100</p>
           </div>
-          <div className="bg-gray-50 rounded-lg p-2.5 text-center">
-            <p className="text-xs text-gray-500">Presence</p>
+          <div className="bg-canvas rounded-lg p-2.5 text-center">
+            <p className="text-xs text-ink-3">Presence</p>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${pres.bg} ${pres.text}`}>{pres.label}</span>
           </div>
-          <div className="bg-gray-50 rounded-lg p-2.5 text-center">
-            <p className="text-xs text-gray-500">AI Citation Gap</p>
-            <p className="text-sm font-bold text-blue-600">{rec.gap_opportunity > 0 ? `${rec.gap_opportunity}%` : 'Cited'}</p>
+          <div className="bg-canvas rounded-lg p-2.5 text-center">
+            <p className="text-xs text-ink-3">AI Citation Gap</p>
+            <p className="text-sm font-bold text-ink-2">{rec.gap_opportunity > 0 ? `${rec.gap_opportunity}%` : 'Cited'}</p>
           </div>
         </div>
       </div>
 
       {/* Expanded Details */}
       {expanded && (
-        <div className="px-5 pb-5 border-t border-gray-100 pt-4 space-y-4">
-          <p className="text-sm text-gray-700">{rec.reason}</p>
+        <div className="px-5 pb-5 border-t border-divider-light pt-4 space-y-4">
+          <p className="text-sm text-ink-2">{rec.reason}</p>
 
           <div>
-            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Action Items</h5>
+            <h5 className="text-xs font-semibold text-ink-3 uppercase tracking-wider mb-2">Action Items</h5>
             <ul className="space-y-1.5">
               {rec.action_items.map((a, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                  <ArrowRight className="w-3.5 h-3.5 mt-0.5 text-red-500 flex-shrink-0" />
+                <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
+                  <ArrowRight className="w-3.5 h-3.5 mt-0.5 text-red-soft flex-shrink-0" />
                   {a}
                 </li>
               ))}
@@ -438,30 +438,30 @@ function ChannelRecCard({ rec, expanded, onToggle, onPush }: {
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-xs">
-            <div className="bg-gray-50 rounded-lg p-3">
-              <span className="text-gray-500">AI Indexing:</span>
-              <span className="ml-1 font-medium text-gray-700">~{rec.channel.estimated_ingestion_days} days</span>
+            <div className="bg-canvas rounded-lg p-3">
+              <span className="text-ink-3">AI Indexing:</span>
+              <span className="ml-1 font-medium text-ink-2">~{rec.channel.estimated_ingestion_days} days</span>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <span className="text-gray-500">AI Indexing Retention:</span>
-              <span className="ml-1 font-medium text-gray-700">{rec.channel.content_longevity}</span>
+            <div className="bg-canvas rounded-lg p-3">
+              <span className="text-ink-3">AI Indexing Retention:</span>
+              <span className="ml-1 font-medium text-ink-2">{rec.channel.content_longevity}</span>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <span className="text-gray-500">Content Types:</span>
-              <span className="ml-1 font-medium text-gray-700">{rec.content_type_match.join(', ') || 'All'}</span>
+            <div className="bg-canvas rounded-lg p-3">
+              <span className="text-ink-3">Content Types:</span>
+              <span className="ml-1 font-medium text-ink-2">{rec.content_type_match.join(', ') || 'All'}</span>
             </div>
           </div>
 
           <div className="flex items-center gap-3 pt-2">
             {rec.channel.url && (
               <a href={rec.channel.url} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm text-red-600 hover:text-red-700 font-medium">
+                className="inline-flex items-center gap-1.5 text-sm text-red-soft hover:text-red-soft font-medium">
                 <ExternalLink className="w-3.5 h-3.5" />
                 Visit {rec.channel.name}
               </a>
             )}
             {rec.channel.id === 'reddit' && onPush && (
-              <button className="inline-flex items-center gap-1.5 text-sm text-orange-600 hover:text-orange-700 font-medium"
+              <button className="inline-flex items-center gap-1.5 text-sm text-caution hover:text-ink-2 font-medium"
                 onClick={(e) => { e.stopPropagation(); onPush(rec.channel.name, rec.channel.id) }}>
                 <MessageSquare className="w-3.5 h-3.5" /> View Reddit Strategy
               </button>
@@ -471,7 +471,7 @@ function ChannelRecCard({ rec, expanded, onToggle, onPush }: {
           {/* Push Content — prominent CTA */}
           {onPush && (
             <button onClick={(e) => { e.stopPropagation(); onPush(rec.channel.name, rec.channel.id) }}
-              className="w-full mt-4 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 text-sm">
+              className="w-full mt-4 py-3 bg-ink hover:bg-[#2d2d2c] text-ink-inv font-semibold rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 text-sm">
               <ArrowUpRight className="w-4 h-4" /> Push Content to {rec.channel.name}
             </button>
           )}
@@ -484,10 +484,10 @@ function ChannelRecCard({ rec, expanded, onToggle, onPush }: {
 // ─── Map Channel Status styling ──────────────────────────
 function mapStatusStyle(s: string) {
   switch (s) {
-    case 'cited': return { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300', dot: 'bg-green-500', label: 'Cited' }
-    case 'planned': return { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300', dot: 'bg-blue-500', label: 'Planned' }
-    case 'active': return { bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-300', dot: 'bg-yellow-500', label: 'Active' }
-    default: return { bg: 'bg-gray-100', text: 'text-gray-500', border: 'border-gray-200', dot: 'bg-gray-300', label: 'Gap' }
+    case 'cited': return { bg: 'bg-sage-bg', text: 'text-sage', border: 'border-sage/30', dot: 'bg-sage', label: 'Cited' }
+    case 'planned': return { bg: 'bg-surface-warm', text: 'text-ink-2', border: 'border-divider', dot: 'bg-surface-muted', label: 'Planned' }
+    case 'active': return { bg: 'bg-caution-bg', text: 'text-caution', border: 'border-caution/30', dot: 'bg-caution', label: 'Active' }
+    default: return { bg: 'bg-surface-warm', text: 'text-ink-3', border: 'border-divider', dot: 'bg-ink/15', label: 'Gap' }
   }
 }
 
@@ -501,7 +501,7 @@ function MapChannelCard({ item, onPush, onRedditLink }: {
   const ps = priorityStyle(item.priority)
 
   return (
-    <div className={`bg-white rounded-xl border ${ms.border} p-4 hover:shadow-md transition-all relative overflow-hidden`}>
+    <div className={`bg-surface rounded-xl border ${ms.border} p-4 hover:shadow-md transition-all relative overflow-hidden`}>
       {/* Status indicator stripe */}
       <div className={`absolute top-0 left-0 right-0 h-1 ${ms.dot}`} />
 
@@ -509,8 +509,8 @@ function MapChannelCard({ item, onPush, onRedditLink }: {
         <div className="flex items-center gap-2.5">
           <span className="text-2xl">{item.icon || catIcon(item.source_category)}</span>
           <div>
-            <h4 className="font-semibold text-gray-900 text-sm">{item.channel_name}</h4>
-            <span className="text-xs text-gray-400">{item.source_category.toUpperCase()}</span>
+            <h4 className="font-semibold text-ink text-sm">{item.channel_name}</h4>
+            <span className="text-xs text-ink-3">{item.source_category.toUpperCase()}</span>
           </div>
         </div>
         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ms.bg} ${ms.text}`}>
@@ -519,19 +519,19 @@ function MapChannelCard({ item, onPush, onRedditLink }: {
       </div>
 
       <div className="grid grid-cols-3 gap-2 mt-3">
-        <div className="text-center bg-gray-50 rounded-lg p-2">
-          <p className="text-xs text-gray-400">AI Weight</p>
-          <p className="text-sm font-bold text-gray-900">{item.chatgpt_citation_weight}</p>
+        <div className="text-center bg-canvas rounded-lg p-2">
+          <p className="text-xs text-ink-3">AI Weight</p>
+          <p className="text-sm font-bold text-ink">{item.chatgpt_citation_weight}</p>
         </div>
-        <div className="text-center bg-gray-50 rounded-lg p-2">
-          <p className="text-xs text-gray-400">Citations</p>
-          <p className={`text-sm font-bold ${item.citation_count > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+        <div className="text-center bg-canvas rounded-lg p-2">
+          <p className="text-xs text-ink-3">Citations</p>
+          <p className={`text-sm font-bold ${item.citation_count > 0 ? 'text-sage' : 'text-ink-3'}`}>
             {item.citation_count}
           </p>
         </div>
-        <div className="text-center bg-gray-50 rounded-lg p-2">
-          <p className="text-xs text-gray-400">AI Citation Gap</p>
-          <p className="text-sm font-bold text-blue-600">{item.gap_opportunity > 0 ? `${item.gap_opportunity}%` : 'Cited'}</p>
+        <div className="text-center bg-canvas rounded-lg p-2">
+          <p className="text-xs text-ink-3">AI Citation Gap</p>
+          <p className="text-sm font-bold text-ink-2">{item.gap_opportunity > 0 ? `${item.gap_opportunity}%` : 'Cited'}</p>
         </div>
       </div>
 
@@ -545,16 +545,16 @@ function MapChannelCard({ item, onPush, onRedditLink }: {
       </div>
 
       {/* Action buttons */}
-      <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
+      <div className="mt-3 pt-3 border-t border-divider-light space-y-2">
         {item.channel_id === 'reddit' && onRedditLink && (
           <button onClick={onRedditLink}
-            className="w-full py-2 text-xs text-orange-600 hover:text-orange-700 hover:bg-orange-50 font-medium flex items-center justify-center gap-1.5 rounded-lg transition-colors border border-orange-200">
+            className="w-full py-2 text-xs text-caution hover:text-ink-2 hover:bg-caution-bg font-medium flex items-center justify-center gap-1.5 rounded-lg transition-colors border border-caution/20">
             <MessageSquare className="w-3.5 h-3.5" /> View Reddit Strategy
           </button>
         )}
         {onPush && (
           <button onClick={() => onPush(item.channel_name, item.channel_id)}
-            className="w-full py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 text-xs">
+            className="w-full py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv font-semibold rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 text-xs">
             <ArrowUpRight className="w-3.5 h-3.5" /> Push Content
           </button>
         )}
@@ -575,9 +575,9 @@ function DarkTagInput({ value, onChange, placeholder }: { value: string[]; onCha
       {value.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-2">
           {value.map((tag, i) => (
-            <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-200">
+            <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-surface-warm text-ink-2 text-xs font-medium rounded-full border border-divider">
               {tag}
-              <button onClick={() => onChange(value.filter((_, j) => j !== i))} className="hover:text-red-500 transition-colors"><X className="w-3 h-3" /></button>
+              <button onClick={() => onChange(value.filter((_, j) => j !== i))} className="hover:text-red-soft transition-colors"><X className="w-3 h-3" /></button>
             </span>
           ))}
         </div>
@@ -587,9 +587,9 @@ function DarkTagInput({ value, onChange, placeholder }: { value: string[]; onCha
           type="text" value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }}
           placeholder={placeholder}
-          className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+          className="flex-1 px-4 py-2.5 bg-canvas border border-divider rounded-lg text-ink placeholder:text-ink-3 text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
         />
-        <button onClick={addTag} className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Add</button>
+        <button onClick={addTag} className="px-4 py-2.5 bg-surface-warm hover:bg-surface-muted border border-divider rounded-lg text-sm font-medium text-ink-2 hover:text-ink transition-colors">Add</button>
       </div>
     </div>
   )
@@ -1117,50 +1117,50 @@ export default function GEODistributionPage() {
   const isAnyLoading = strategyLoading || redditLoading
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="min-h-screen bg-canvas">
       <Header title={t.dashboard.geoDistribution} subtitle={t.dashboard.geoDistributionDesc} />
 
       <div className="p-6 space-y-6">
         {/* ═══ Brand Input Section ═══ */}
-        <section className="bg-white rounded-2xl border border-gray-200 shadow-soft p-8 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/[0.06] rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-green-500/[0.05] rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl pointer-events-none" />
+        <section className="bg-surface rounded-2xl border border-divider-light shadow-soft p-8 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-surface-muted/[0.06] rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-sage-bg/[0.05] rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl pointer-events-none" />
 
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-                <Share2 className="w-5 h-5 text-blue-500" />
+              <div className="w-10 h-10 bg-surface-warm rounded-xl flex items-center justify-center">
+                <Share2 className="w-5 h-5 text-ink-2" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">AI Citation Channel Strategy Engine</h2>
-                <p className="text-gray-500 text-sm">Discover where to publish content so AI platforms cite your brand</p>
+                <h2 className="text-xl font-bold text-ink">AI Citation Channel Strategy Engine</h2>
+                <p className="text-ink-3 text-sm">Discover where to publish content so AI platforms cite your brand</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">Brand Name *</label>
+                <label className="text-xs text-ink-3 mb-1 block">Brand Name *</label>
                 <input
                   value={brandName} onChange={e => setBrandName(e.target.value)}
                   placeholder="e.g., TickTalk"
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white"
+                  className="w-full px-4 py-2.5 bg-canvas border border-divider rounded-lg text-ink placeholder:text-ink-3 text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink focus:bg-surface"
                 />
                 {/* Inline Recent Records */}
                 {recentRecords.length > 0 && !brandName.trim() && (
                   <div className="mt-1.5">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] text-gray-500 uppercase tracking-wider flex items-center gap-1"><History className="w-3 h-3" /> Recent</span>
-                      <button onClick={clearRecentRecords} className="text-[10px] text-gray-400 hover:text-red-500 transition-colors">Clear</button>
+                      <span className="text-[10px] text-ink-3 uppercase tracking-wider flex items-center gap-1"><History className="w-3 h-3" /> Recent</span>
+                      <button onClick={clearRecentRecords} className="text-[10px] text-ink-3 hover:text-red-soft transition-colors">Clear</button>
                     </div>
                     <div className="flex flex-col gap-0.5">
                       {recentRecords.slice(0, 5).map((rec, idx) => (
                         <button key={idx} onClick={() => loadRecentRecord(rec)}
-                          className="w-full text-left px-2.5 py-1.5 rounded-md hover:bg-gray-100 transition-colors group">
+                          className="w-full text-left px-2.5 py-1.5 rounded-md hover:bg-surface-muted transition-colors group">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium text-gray-600 group-hover:text-gray-900">{rec.brandName}</span>
-                            {rec.domain && <span className="text-[9px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">{rec.domain}</span>}
+                            <span className="text-xs font-medium text-ink-2 group-hover:text-ink">{rec.brandName}</span>
+                            {rec.domain && <span className="text-[9px] text-ink-3 bg-surface-warm px-1.5 py-0.5 rounded">{rec.domain}</span>}
                             {(rec.competitorTags?.length || rec.competitors) && (
-                              <span className="text-[9px] text-gray-400 ml-auto truncate max-w-[120px]">
+                              <span className="text-[9px] text-ink-3 ml-auto truncate max-w-[120px]">
                                 {rec.competitorTags?.length ? `${rec.competitorTags.length} competitors` : rec.competitors}
                               </span>
                             )}
@@ -1172,11 +1172,11 @@ export default function GEODistributionPage() {
                 )}
               </div>
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">Domain</label>
+                <label className="text-xs text-ink-3 mb-1 block">Domain</label>
                 <input
                   value={domain} onChange={e => setDomain(e.target.value)}
                   placeholder="e.g., myticktalk.com"
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white"
+                  className="w-full px-4 py-2.5 bg-canvas border border-divider rounded-lg text-ink placeholder:text-ink-3 text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink focus:bg-surface"
                 />
                 {/* Inline Recent Domains */}
                 {recentRecords.length > 0 && !domain.trim() && (() => {
@@ -1184,11 +1184,11 @@ export default function GEODistributionPage() {
                   if (uniqueDomains.length === 0) return null
                   return (
                     <div className="mt-1.5">
-                      <span className="text-[10px] text-gray-500 uppercase tracking-wider flex items-center gap-1 mb-1"><History className="w-3 h-3" /> Recent</span>
+                      <span className="text-[10px] text-ink-3 uppercase tracking-wider flex items-center gap-1 mb-1"><History className="w-3 h-3" /> Recent</span>
                       <div className="flex flex-wrap gap-1">
                         {uniqueDomains.slice(0, 5).map((d, idx) => (
                           <button key={idx} onClick={() => setDomain(d)}
-                            className="px-2 py-1 rounded-md text-[10px] text-gray-500 bg-gray-100 hover:bg-gray-200 hover:text-gray-900 transition-colors">
+                            className="px-2 py-1 rounded-md text-[10px] text-ink-3 bg-surface-warm hover:bg-surface-muted hover:text-ink transition-colors">
                             {d}
                           </button>
                         ))}
@@ -1198,13 +1198,13 @@ export default function GEODistributionPage() {
                 })()}
               </div>
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">Industry</label>
+                <label className="text-xs text-ink-3 mb-1 block">Industry</label>
                 <select
                   value={industry} onChange={e => setIndustry(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white"
+                  className="w-full px-4 py-2.5 bg-canvas border border-divider rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink focus:bg-surface"
                 >
                   {industries.map(ind => (
-                    <option key={ind.value} value={ind.value} className="bg-white">{ind.label}</option>
+                    <option key={ind.value} value={ind.value} className="bg-surface">{ind.label}</option>
                   ))}
                 </select>
               </div>
@@ -1212,66 +1212,66 @@ export default function GEODistributionPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">Brand Description (optional)</label>
+                <label className="text-xs text-ink-3 mb-1 block">Brand Description (optional)</label>
                 <DarkTagInput value={brandDescTags} onChange={setBrandDescTags} placeholder="Add description keyword" />
               </div>
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">Competitors (optional)</label>
+                <label className="text-xs text-ink-3 mb-1 block">Competitors (optional)</label>
                 <DarkTagInput value={competitorTags} onChange={setCompetitorTags} placeholder="e.g., Apple Watch" />
               </div>
             </div>
 
             {/* AI Platform Selection (single-select) */}
             <div className="mb-4">
-              <label className="text-xs text-gray-500 mb-2 block">Target AI Platform *</label>
+              <label className="text-xs text-ink-3 mb-2 block">Target AI Platform *</label>
               <div className="flex flex-wrap gap-2">
                 {AI_PLATFORMS.map(p => (
                   <button key={p.id} onClick={() => setSelectedPlatform(p.id)}
                     className={`px-3 py-2 rounded-lg text-sm font-medium border transition-all flex items-center gap-1.5 ${
                       selectedPlatform === p.id
-                        ? 'bg-red-50 border-red-300 text-red-700 shadow-sm ring-1 ring-red-200'
-                        : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+                        ? 'bg-red-soft-bg border-red-soft/30 text-red-soft shadow-sm ring-1 ring-red-soft/20'
+                        : 'bg-canvas border-divider text-ink-3 hover:bg-surface-muted hover:text-ink-2'
                     }`}>
                     <span>{p.icon}</span>
                     <span>{p.label}</span>
-                    {selectedPlatform === p.id && <CheckCircle className="w-3.5 h-3.5 text-red-500" />}
+                    {selectedPlatform === p.id && <CheckCircle className="w-3.5 h-3.5 text-red-soft" />}
                   </button>
                 ))}
               </div>
-              <p className="text-[10px] text-gray-400 mt-1">Select one AI platform to get targeted channel recommendations.</p>
+              <p className="text-[10px] text-ink-3 mt-1">Select one AI platform to get targeted channel recommendations.</p>
             </div>
 
             {/* Content Type (single-select) */}
             <div className="mb-4">
-              <label className="text-xs text-gray-500 mb-2 block">Content Type *</label>
+              <label className="text-xs text-ink-3 mb-2 block">Content Type *</label>
               <div className="flex flex-wrap gap-2">
                 {CONTENT_TYPES.map(ct => (
                   <button key={ct.id} onClick={() => setSelectedContentType(prev => prev === ct.id ? '' : ct.id)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                       selectedContentType === ct.id
-                        ? 'bg-blue-50 border-blue-300 text-blue-700 ring-1 ring-blue-200 shadow-sm'
-                        : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+                        ? 'bg-surface-warm border-divider text-ink-2 ring-1 ring-divider shadow-sm'
+                        : 'bg-canvas border-divider text-ink-3 hover:bg-surface-muted hover:text-ink-2'
                     }`}>
                     {ct.label}
                     {selectedContentType === ct.id && <span className="ml-1">✓</span>}
                   </button>
                 ))}
               </div>
-              <p className="text-[10px] text-gray-400 mt-1">Select one content type to get targeted channel recommendations.</p>
+              <p className="text-[10px] text-ink-3 mt-1">Select one content type to get targeted channel recommendations.</p>
             </div>
 
             <div className="flex gap-3 items-center">
               <button
                 onClick={handleAnalyze}
                 disabled={!brandName.trim() || isAnyLoading}
-                className="px-6 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-sm hover:shadow-md"
+                className="px-6 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-sm hover:shadow-md"
               >
                 {strategyLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
                 {strategyLoading ? 'Analyzing...' : 'Generate Strategy'}
               </button>
               {isAnyLoading && (
                 <button onClick={handleStop}
-                  className="px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 flex items-center gap-2 transition-colors">
+                  className="px-4 py-2.5 bg-surface-warm text-ink-2 font-medium rounded-lg hover:bg-surface-muted flex items-center gap-2 transition-colors">
                   <StopCircle className="w-4 h-4" /> Stop
                 </button>
               )}
@@ -1282,56 +1282,56 @@ export default function GEODistributionPage() {
               <div className="space-y-4 mt-6">
                 {/* Platform badges */}
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs text-gray-400">Platforms:</span>
+                  <span className="text-xs text-ink-3">Platforms:</span>
                   {(() => {
                     const p = (strategy.target_platforms || [selectedPlatform])[0] || selectedPlatform
                     const pInfo = AI_PLATFORMS.find(ap => ap.id === p)
                     return (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-600 rounded-full text-xs font-medium border border-red-100">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-soft-bg text-red-soft rounded-full text-xs font-medium border border-red-soft/30">
                         {pInfo?.icon} {pInfo?.label || p}
                       </span>
                     )
                   })()}
                   {selectedContentType && (
                     <>
-                      <span className="text-xs text-gray-300 mx-1">|</span>
-                      <span className="text-xs text-gray-400">Content:</span>
-                      <span className="inline-flex items-center px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-xs font-medium border border-blue-100">
+                      <span className="text-xs text-ink-3 mx-1">|</span>
+                      <span className="text-xs text-ink-3">Content:</span>
+                      <span className="inline-flex items-center px-2 py-0.5 bg-surface-warm text-ink-2 rounded-full text-xs font-medium border border-divider">
                         {CONTENT_TYPES.find(c => c.id === selectedContentType)?.label || selectedContentType}
                       </span>
                     </>
                   )}
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <p className="text-gray-500 text-xs mb-1">Total Channels</p>
-                    <p className="text-2xl font-bold font-mono text-gray-900">{strategy.total_channels}</p>
+                  <div className="bg-canvas rounded-xl p-4 border border-divider">
+                    <p className="text-ink-3 text-xs mb-1">Total Channels</p>
+                    <p className="text-2xl font-bold font-mono text-ink">{strategy.total_channels}</p>
                   </div>
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <p className="text-gray-500 text-xs mb-1">High Priority</p>
-                    <p className="text-2xl font-bold font-mono text-red-500">{strategy.high_priority_count}</p>
+                  <div className="bg-canvas rounded-xl p-4 border border-divider">
+                    <p className="text-ink-3 text-xs mb-1">High Priority</p>
+                    <p className="text-2xl font-bold font-mono text-red-soft">{strategy.high_priority_count}</p>
                   </div>
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <p className="text-gray-500 text-xs mb-1">Content Type</p>
-                    <p className="text-sm font-semibold text-blue-600 capitalize">{selectedContentType ? CONTENT_TYPES.find(c => c.id === selectedContentType)?.label || selectedContentType : 'All'}</p>
+                  <div className="bg-canvas rounded-xl p-4 border border-divider">
+                    <p className="text-ink-3 text-xs mb-1">Content Type</p>
+                    <p className="text-sm font-semibold text-ink-2 capitalize">{selectedContentType ? CONTENT_TYPES.find(c => c.id === selectedContentType)?.label || selectedContentType : 'All'}</p>
                   </div>
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <p className="text-gray-500 text-xs mb-1">Industry</p>
-                    <p className="text-lg font-semibold text-green-600 capitalize">{strategy.industry}</p>
+                  <div className="bg-canvas rounded-xl p-4 border border-divider">
+                    <p className="text-ink-3 text-xs mb-1">Industry</p>
+                    <p className="text-lg font-semibold text-sage capitalize">{strategy.industry}</p>
                   </div>
-                  <div className={`rounded-xl p-4 border ${strategy.monitor_data_available ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-dashed border-gray-300'}`}>
-                    <p className="text-gray-500 text-xs mb-1 flex items-center gap-1">
+                  <div className={`rounded-xl p-4 border ${strategy.monitor_data_available ? 'bg-sage-bg border-sage/30' : 'bg-canvas border-dashed border-divider'}`}>
+                    <p className="text-ink-3 text-xs mb-1 flex items-center gap-1">
                       <Activity className="w-3 h-3" /> {strategy.monitor_data_available ? 'Monitor Data' : 'Monitor Sync'}
                     </p>
                     {strategy.monitor_data_available ? (
                       <div>
-                        <p className="text-lg font-bold text-green-600">{strategy.monitor_cited_channels} cited</p>
-                        <p className="text-xs text-green-500">Live citation data synced</p>
+                        <p className="text-lg font-bold text-sage">{strategy.monitor_cited_channels} cited</p>
+                        <p className="text-xs text-sage">Live citation data synced</p>
                       </div>
                     ) : (
                       <div>
-                        <p className="text-sm font-medium text-gray-500">Optional</p>
-                        <p className="text-[10px] text-gray-400">Enhanced after Monitor scan</p>
+                        <p className="text-sm font-medium text-ink-3">Optional</p>
+                        <p className="text-[10px] text-ink-3">Enhanced after Monitor scan</p>
                       </div>
                     )}
                   </div>
@@ -1343,14 +1343,14 @@ export default function GEODistributionPage() {
 
         {/* Error */}
         {strategyError && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-            <p className="text-sm text-red-700">{strategyError}</p>
+          <div className="bg-red-soft-bg border border-red-soft/30 rounded-xl p-4 flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-red-soft flex-shrink-0" />
+            <p className="text-sm text-red-soft">{strategyError}</p>
           </div>
         )}
 
         {/* ═══ Tab Navigation ═══ */}
-        <div className="bg-white rounded-xl border border-gray-200 p-1.5 flex gap-1">
+        <div className="bg-surface rounded-xl border border-divider-light p-1.5 flex gap-1">
           {([
             { key: 'strategy' as TabKey, label: 'AI Visibility Channel', icon: <Target className="w-4 h-4" /> },
             { key: 'map' as TabKey, label: 'AI Visibility Coverage', icon: <Map className="w-4 h-4" /> },
@@ -1367,8 +1367,8 @@ export default function GEODistributionPage() {
               }}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 activeTab === tab.key
-                  ? 'bg-red-500 text-white shadow-sm'
-                  : 'text-gray-500 hover:bg-gray-50'
+                  ? 'bg-ink text-ink-inv shadow-sm'
+                  : 'text-ink-3 hover:bg-surface-warm'
               }`}
             >
               {tab.icon}
@@ -1383,27 +1383,27 @@ export default function GEODistributionPage() {
         {activeTab === 'strategy' && (
           <div className="space-y-6">
             {!strategy && !strategyLoading && (
-              <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
-                <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <Target className="w-10 h-10 text-gray-300" />
+              <div className="bg-surface rounded-xl border border-divider-light p-16 text-center">
+                <div className="w-20 h-20 bg-surface-warm rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Target className="w-10 h-10 text-ink-3" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">AI Citation Channel Strategy</h3>
-                <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                <h3 className="text-xl font-semibold text-ink mb-2">AI Citation Channel Strategy</h3>
+                <p className="text-ink-3 mb-6 max-w-md mx-auto">
                   Enter your brand details above and click &quot;Analyze Channels&quot; to get a prioritized list of distribution channels ranked by ChatGPT citation weight.
                 </p>
                 <div className="flex justify-center gap-3">
                   {['Reddit #1 UGC', 'Wikipedia #1 Reference', 'G2 #1 Review'].map(hint => (
-                    <span key={hint} className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">{hint}</span>
+                    <span key={hint} className="px-3 py-1.5 bg-surface-warm text-ink-2 rounded-full text-xs font-medium">{hint}</span>
                   ))}
                 </div>
               </div>
             )}
 
             {strategyLoading && (
-              <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
-                <Loader2 className="w-12 h-12 animate-spin text-red-500 mx-auto mb-4" />
-                <p className="text-gray-600 font-medium">Analyzing channels for {brandName}...</p>
-                <p className="text-gray-400 text-sm mt-1">Scoring 20+ channels × industry weight × AI citation data</p>
+              <div className="bg-surface rounded-xl border border-divider-light p-16 text-center">
+                <Loader2 className="w-12 h-12 animate-spin text-red-soft mx-auto mb-4" />
+                <p className="text-ink-2 font-medium">Analyzing channels for {brandName}...</p>
+                <p className="text-ink-3 text-sm mt-1">Scoring 20+ channels × industry weight × AI citation data</p>
               </div>
             )}
 
@@ -1411,26 +1411,26 @@ export default function GEODistributionPage() {
               <>
                 {/* Monitor Data Sync Banner — only show when data IS available (enhancement layer) */}
                 {monitorSync && monitorSync.monitor_data_available && (
-                  <div className="rounded-xl border border-green-200 bg-green-50 p-4 flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-green-100">
-                      <Link2 className="w-5 h-5 text-green-600" />
+                  <div className="rounded-xl border border-sage/30 bg-sage-bg p-4 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-sage-bg">
+                      <Link2 className="w-5 h-5 text-sage" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-green-800">
+                      <p className="text-sm font-medium text-sage">
                         Monitor Data Synced: {monitorSync.total_citations} citations across {monitorSync.total_sources} channels
                       </p>
                       {monitorSync.top_cited_channels.length > 0 && (
-                        <p className="text-xs text-green-600 mt-0.5">
+                        <p className="text-xs text-sage mt-0.5">
                           Top cited: {monitorSync.top_cited_channels.slice(0, 3).join(', ')}
                           {monitorSync.uncited_channels.length > 0 && (
-                            <span className="text-red-500 ml-2">
+                            <span className="text-red-soft ml-2">
                               | {monitorSync.uncited_channels.length} uncited channels (gaps)
                             </span>
                           )}
                         </p>
                       )}
                     </div>
-                    <a href="/dashboard/geo-monitor" className="text-xs px-2.5 py-1 bg-green-100 text-green-700 rounded-full font-medium flex items-center gap-1 hover:bg-green-200 transition-colors">
+                    <a href="/dashboard/geo-monitor" className="text-xs px-2.5 py-1 bg-sage-bg text-sage rounded-full font-medium flex items-center gap-1 hover:bg-surface-warm transition-colors">
                       <CircleDot className="w-3 h-3" /> View in Monitor &rarr;
                     </a>
                   </div>
@@ -1438,15 +1438,15 @@ export default function GEODistributionPage() {
 
                 {/* Top 3 Actions */}
                 {strategy.top_3_actions.length > 0 && (
-                  <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-xl border border-red-100 p-6">
-                    <h3 className="text-sm font-semibold text-red-800 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <div className="bg-red-soft-bg rounded-xl border border-red-soft/30 p-6">
+                    <h3 className="text-sm font-semibold text-red-soft uppercase tracking-wider mb-3 flex items-center gap-2">
                       <Sparkles className="w-4 h-4" /> AI-Recommended Actions
                     </h3>
                     <div className="space-y-2">
                       {strategy.top_3_actions.map((action, i) => (
                         <div key={i} className="flex items-start gap-3">
-                          <span className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">{i + 1}</span>
-                          <p className="text-sm text-gray-800">{action}</p>
+                          <span className="w-6 h-6 bg-ink text-ink-inv rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">{i + 1}</span>
+                          <p className="text-sm text-ink-2">{action}</p>
                         </div>
                       ))}
                     </div>
@@ -1456,24 +1456,24 @@ export default function GEODistributionPage() {
                 {/* Cross-Module CTAs */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <a href="/dashboard/geo-content"
-                    className="flex items-center gap-3 px-4 py-3 bg-white hover:bg-purple-50 border border-gray-200 rounded-xl transition-colors">
-                    <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600"><FileText className="w-4 h-4" /></div>
-                    <div><p className="text-sm font-medium text-gray-900">Create Content</p><p className="text-[10px] text-gray-400">Generate articles in GEO Content</p></div>
+                    className="flex items-center gap-3 px-4 py-3 bg-surface hover:bg-surface-warm border border-divider-light rounded-xl transition-colors">
+                    <div className="w-8 h-8 rounded-lg bg-surface-warm flex items-center justify-center text-ink-2"><FileText className="w-4 h-4" /></div>
+                    <div><p className="text-sm font-medium text-ink">Create Content</p><p className="text-[10px] text-ink-3">Generate articles in GEO Content</p></div>
                   </a>
                   <a href="/dashboard/geo-monitor"
-                    className="flex items-center gap-3 px-4 py-3 bg-white hover:bg-blue-50 border border-gray-200 rounded-xl transition-colors">
-                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600"><BarChart3 className="w-4 h-4" /></div>
-                    <div><p className="text-sm font-medium text-gray-900">Track in Monitor</p><p className="text-[10px] text-gray-400">Verify AI visibility improvements</p></div>
+                    className="flex items-center gap-3 px-4 py-3 bg-surface hover:bg-surface-warm border border-divider-light rounded-xl transition-colors">
+                    <div className="w-8 h-8 rounded-lg bg-surface-warm flex items-center justify-center text-ink-2"><BarChart3 className="w-4 h-4" /></div>
+                    <div><p className="text-sm font-medium text-ink">Track in Monitor</p><p className="text-[10px] text-ink-3">Verify AI visibility improvements</p></div>
                   </a>
                 </div>
 
                 {/* Channel Recommendations */}
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <Target className="w-5 h-5 text-red-500" />
+                    <h3 className="text-lg font-semibold text-ink flex items-center gap-2">
+                      <Target className="w-5 h-5 text-red-soft" />
                       Channel Recommendations
-                      <span className="text-sm font-normal text-gray-400">({strategy.recommendations.length} channels)</span>
+                      <span className="text-sm font-normal text-ink-3">({strategy.recommendations.length} channels)</span>
                     </h3>
                   </div>
                   <div className="space-y-3">
@@ -1509,22 +1509,22 @@ export default function GEODistributionPage() {
           <div className="space-y-4">
             {/* ── Header ─────────────────────────────── */}
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <Package className="w-5 h-5 text-blue-500" />
+              <h3 className="text-lg font-semibold text-ink flex items-center gap-2">
+                <Package className="w-5 h-5 text-ink-2" />
                 Content Queue
               </h3>
               <div className="flex items-center gap-2">
                 {selectedQueueIds.size > 0 && (
-                  <div className="flex items-center gap-2 mr-2 pr-2 border-r border-gray-200">
-                    <span className="text-xs text-gray-500">{selectedQueueIds.size} selected</span>
+                  <div className="flex items-center gap-2 mr-2 pr-2 border-r border-divider">
+                    <span className="text-xs text-ink-3">{selectedQueueIds.size} selected</span>
                     <button onClick={() => handleBatchStatus('published')}
-                      className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">Published</button>
+                      className="px-2 py-1 text-xs bg-sage-bg text-sage rounded hover:bg-surface-warm">Published</button>
                     <button onClick={() => handleBatchStatus('verified')}
-                      className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200">AI Verified</button>
+                      className="px-2 py-1 text-xs bg-surface-warm text-ink-2 rounded hover:bg-surface-muted">AI Verified</button>
                   </div>
                 )}
                 <button onClick={() => setShowAddQueue(true)}
-                  className="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 flex items-center gap-2">
+                  className="px-4 py-2 bg-ink text-ink-inv text-sm font-medium rounded-lg hover:bg-[#2d2d2c] flex items-center gap-2">
                   <Plus className="w-4 h-4" /> Add Content
                 </button>
               </div>
@@ -1534,9 +1534,9 @@ export default function GEODistributionPage() {
             {queueStats && queueStats.total > 0 && (
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { label: 'Pending', value: (queueStats.by_status['draft'] || 0) + (queueStats.by_status['ready'] || 0) + (queueStats.by_status['scheduled'] || 0), color: 'bg-amber-50 text-amber-700', dot: 'bg-amber-500' },
-                  { label: 'Published', value: queueStats.by_status['published'] || 0, color: 'bg-green-50 text-green-700', dot: 'bg-green-500' },
-                  { label: 'AI Verified', value: queueStats.by_status['verified'] || 0, color: 'bg-purple-50 text-purple-700', dot: 'bg-purple-500' },
+                  { label: 'Pending', value: (queueStats.by_status['draft'] || 0) + (queueStats.by_status['ready'] || 0) + (queueStats.by_status['scheduled'] || 0), color: 'bg-caution-bg text-caution', dot: 'bg-caution' },
+                  { label: 'Published', value: queueStats.by_status['published'] || 0, color: 'bg-sage-bg text-sage', dot: 'bg-sage-bg' },
+                  { label: 'AI Verified', value: queueStats.by_status['verified'] || 0, color: 'bg-surface-warm text-ink-2', dot: 'bg-ink/30' },
                 ].map(s => (
                   <div key={s.label} className={`${s.color} rounded-xl p-3 text-center`}>
                     <div className="flex items-center justify-center gap-1 mb-1">
@@ -1551,25 +1551,25 @@ export default function GEODistributionPage() {
 
             {/* ── Status Pipeline Flow ───────────────── */}
             {queueStats && queueStats.total > 0 && (
-              <div className="bg-white rounded-xl border border-gray-200 p-4">
+              <div className="bg-surface rounded-xl border border-divider-light p-4">
                 <div className="flex items-center gap-1">
                   {['draft', 'ready', 'scheduled', 'published', 'verified'].map((st, idx) => {
                     const count = queueStats.by_status[st] || 0
                     const pct = queueStats.total > 0 ? Math.round((count / queueStats.total) * 100) : 0
                     const colors: Record<string, string> = {
-                      draft: 'bg-gray-300', ready: 'bg-blue-400', scheduled: 'bg-indigo-400',
-                      published: 'bg-green-400', verified: 'bg-purple-500',
+                      draft: 'bg-surface-muted', ready: 'bg-surface-muted', scheduled: 'bg-ink/40',
+                      published: 'bg-sage-bg', verified: 'bg-ink/30',
                     }
                     return (
                       <div key={st} className="flex items-center flex-1">
                         <div className="flex-1">
-                          <div className="h-2 rounded-full overflow-hidden bg-gray-100">
+                          <div className="h-2 rounded-full overflow-hidden bg-surface-warm">
                             <div className={`h-full ${colors[st]} rounded-full transition-all`}
                               style={{ width: `${Math.max(pct, 4)}%` }}></div>
                           </div>
-                          <div className="text-[10px] text-gray-500 mt-1 text-center capitalize">{st} ({count})</div>
+                          <div className="text-[10px] text-ink-3 mt-1 text-center capitalize">{st} ({count})</div>
                         </div>
-                        {idx < 4 && <ChevronRight className="w-3 h-3 text-gray-300 mx-1 flex-shrink-0" />}
+                        {idx < 4 && <ChevronRight className="w-3 h-3 text-ink-3 mx-1 flex-shrink-0" />}
                       </div>
                     )
                   })}
@@ -1579,21 +1579,21 @@ export default function GEODistributionPage() {
 
             {/* ── Add Form (Phase 5 Enhanced) ─────────── */}
             {showAddQueue && (
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h4 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
-                  <Plus className="w-4 h-4 text-red-500" /> Add Content to Queue
+              <div className="bg-surface rounded-xl border border-divider-light p-6">
+                <h4 className="font-medium text-ink mb-4 flex items-center gap-2">
+                  <Plus className="w-4 h-4 text-red-soft" /> Add Content to Queue
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                   <div className="lg:col-span-2">
-                    <label className="text-xs text-gray-500 mb-1 block">Title *</label>
+                    <label className="text-xs text-ink-3 mb-1 block">Title *</label>
                     <input value={newQueueTitle} onChange={e => setNewQueueTitle(e.target.value)}
                       placeholder="Content title"
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-red-400" />
+                      className="w-full px-3 py-2 border border-divider rounded-lg text-sm focus:outline-none focus:border-ink" />
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Content Type</label>
+                    <label className="text-xs text-ink-3 mb-1 block">Content Type</label>
                     <select value={newQueueType} onChange={e => setNewQueueType(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-red-400">
+                      className="w-full px-3 py-2 border border-divider rounded-lg text-sm focus:outline-none focus:border-ink">
                       <option value="faq">FAQ</option>
                       <option value="comparison">Comparison</option>
                       <option value="definition">Definition</option>
@@ -1603,15 +1603,15 @@ export default function GEODistributionPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Target Channel</label>
+                    <label className="text-xs text-ink-3 mb-1 block">Target Channel</label>
                     <input value={newQueueChannel} onChange={e => setNewQueueChannel(e.target.value)}
                       placeholder="e.g., Reddit, Medium"
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-red-400" />
+                      className="w-full px-3 py-2 border border-divider rounded-lg text-sm focus:outline-none focus:border-ink" />
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500 mb-1 block">Priority</label>
+                    <label className="text-xs text-ink-3 mb-1 block">Priority</label>
                     <select value={newQueuePriority} onChange={e => setNewQueuePriority(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-red-400">
+                      className="w-full px-3 py-2 border border-divider rounded-lg text-sm focus:outline-none focus:border-ink">
                       <option value="critical">Critical</option>
                       <option value="high">High</option>
                       <option value="medium">Medium</option>
@@ -1619,19 +1619,19 @@ export default function GEODistributionPage() {
                     </select>
                   </div>
                   <div className="lg:col-span-3">
-                    <label className="text-xs text-gray-500 mb-1 block">Notes</label>
+                    <label className="text-xs text-ink-3 mb-1 block">Notes</label>
                     <input value={newQueueNotes} onChange={e => setNewQueueNotes(e.target.value)}
                       placeholder="Optional notes..."
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-red-400" />
+                      className="w-full px-3 py-2 border border-divider rounded-lg text-sm focus:outline-none focus:border-ink" />
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={handleAddQueue} disabled={!newQueueTitle.trim()}
-                    className="px-4 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 disabled:opacity-50">
+                    className="px-4 py-2 bg-ink text-ink-inv text-sm rounded-lg hover:bg-[#2d2d2c] disabled:opacity-50">
                     Add to Queue
                   </button>
                   <button onClick={() => setShowAddQueue(false)}
-                    className="px-4 py-2 text-gray-500 text-sm rounded-lg hover:bg-gray-100">
+                    className="px-4 py-2 text-ink-3 text-sm rounded-lg hover:bg-surface-warm">
                     Cancel
                   </button>
                 </div>
@@ -1639,41 +1639,41 @@ export default function GEODistributionPage() {
             )}
 
             {/* ── Filter Bar ─────────────────────────── */}
-            <div className="bg-white rounded-xl border border-gray-200 p-3 flex items-center gap-4 flex-wrap">
-              <div className="flex items-center gap-2 text-xs text-gray-500">
+            <div className="bg-surface rounded-xl border border-divider-light p-3 flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-2 text-xs text-ink-3">
                 <Filter className="w-3.5 h-3.5" /> Filters:
               </div>
               <select value={queueStatusFilter} onChange={e => setQueueStatusFilter(e.target.value)}
-                className="text-xs px-2 py-1.5 border border-gray-200 rounded-lg bg-white">
+                className="text-xs px-2 py-1.5 border border-divider rounded-lg bg-surface">
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
                 <option value="published">Published</option>
                 <option value="verified">AI Verified</option>
               </select>
               <select value={queuePriorityFilter} onChange={e => setQueuePriorityFilter(e.target.value)}
-                className="text-xs px-2 py-1.5 border border-gray-200 rounded-lg bg-white">
+                className="text-xs px-2 py-1.5 border border-divider rounded-lg bg-surface">
                 <option value="all">All Priority</option>
                 <option value="critical">Critical</option>
                 <option value="high">High</option>
                 <option value="medium">Medium</option>
                 <option value="low">Low</option>
               </select>
-              <span className="text-xs text-gray-400 ml-auto">
+              <span className="text-xs text-ink-3 ml-auto">
                 {filteredQueue.length} of {queue.length} items
               </span>
             </div>
 
             {/* ── Queue Data Table ────────────────────── */}
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-surface rounded-xl border border-divider-light overflow-hidden">
               {queueLoading ? (
                 <div className="p-12 text-center">
-                  <Loader2 className="w-8 h-8 text-gray-300 mx-auto mb-3 animate-spin" />
-                  <p className="text-sm text-gray-400">Loading queue...</p>
+                  <Loader2 className="w-8 h-8 text-ink-3 mx-auto mb-3 animate-spin" />
+                  <p className="text-sm text-ink-3">Loading queue...</p>
                 </div>
               ) : filteredQueue.length === 0 ? (
                 <div className="p-12 text-center">
-                  <Package className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-sm">
+                  <Package className="w-12 h-12 text-ink-3 mx-auto mb-4" />
+                  <p className="text-ink-3 text-sm">
                     {queue.length === 0
                       ? 'No items in queue yet. Add content to start tracking your distribution pipeline.'
                       : 'No items match the current filters.'}
@@ -1682,72 +1682,72 @@ export default function GEODistributionPage() {
               ) : (
                 <div>
                   <table className="w-full text-sm">
-                    <thead className="bg-gray-50 border-b border-gray-200">
+                    <thead className="bg-canvas border-b border-divider">
                       <tr>
                         <th className="px-3 py-3 w-8">
                           <input type="checkbox"
                             checked={selectedQueueIds.size === filteredQueue.length && filteredQueue.length > 0}
                             onChange={toggleSelectAll}
-                            className="rounded border-gray-300 text-red-500 focus:ring-red-400" />
+                            className="rounded border-divider text-ink focus:ring-ink/20" />
                         </th>
-                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Title</th>
-                        <th className="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase">Source</th>
-                        <th className="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase">Channel</th>
-                        <th className="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase">Priority</th>
-                        <th className="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
-                        <th className="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase">Created</th>
+                        <th className="text-left px-4 py-3 text-xs font-semibold text-ink-3 uppercase">Title</th>
+                        <th className="text-left px-3 py-3 text-xs font-semibold text-ink-3 uppercase">Source</th>
+                        <th className="text-left px-3 py-3 text-xs font-semibold text-ink-3 uppercase">Channel</th>
+                        <th className="text-left px-3 py-3 text-xs font-semibold text-ink-3 uppercase">Priority</th>
+                        <th className="text-left px-3 py-3 text-xs font-semibold text-ink-3 uppercase">Status</th>
+                        <th className="text-left px-3 py-3 text-xs font-semibold text-ink-3 uppercase">Created</th>
                         <th className="px-3 py-3 w-16"></th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-divider-light">
                       {filteredQueue.map(item => {
                         const priStyle = item.priority === 'critical'
-                          ? 'bg-red-100 text-red-700'
+                          ? 'bg-red-soft-bg text-red-soft'
                           : item.priority === 'high'
-                          ? 'bg-orange-100 text-orange-700'
+                          ? 'bg-caution-bg text-caution'
                           : item.priority === 'medium'
-                          ? 'bg-yellow-100 text-yellow-700'
-                          : 'bg-gray-100 text-gray-600'
+                          ? 'bg-caution-bg text-caution'
+                          : 'bg-surface-warm text-ink-2'
                         const statusColors: Record<string, string> = {
-                          draft: 'bg-gray-100 text-gray-600',
-                          ready: 'bg-blue-100 text-blue-700',
-                          scheduled: 'bg-indigo-100 text-indigo-700',
-                          published: 'bg-green-100 text-green-700',
-                          verified: 'bg-purple-100 text-purple-700',
-                          failed: 'bg-red-100 text-red-700',
-                          archived: 'bg-stone-100 text-stone-600',
+                          draft: 'bg-surface-warm text-ink-2',
+                          ready: 'bg-surface-warm text-ink-2',
+                          scheduled: 'bg-surface-warm text-ink-2',
+                          published: 'bg-sage-bg text-sage',
+                          verified: 'bg-surface-warm text-ink-2',
+                          failed: 'bg-red-soft-bg text-red-soft',
+                          archived: 'bg-surface-warm text-ink-3',
                         }
                         const isExpanded = expandedQueueId === item.id
                         return (
                           <React.Fragment key={item.id}>
-                            <tr className={`hover:bg-gray-50 cursor-pointer ${selectedQueueIds.has(item.id) ? 'bg-red-50/40' : ''}`}
+                            <tr className={`hover:bg-surface-warm cursor-pointer ${selectedQueueIds.has(item.id) ? 'bg-red-soft-bg/40' : ''}`}
                               onClick={() => setExpandedQueueId(isExpanded ? null : item.id)}>
                               <td className="px-3 py-3" onClick={e => e.stopPropagation()}>
                                 <input type="checkbox"
                                   checked={selectedQueueIds.has(item.id)}
                                   onChange={() => toggleSelectQueue(item.id)}
-                                  className="rounded border-gray-300 text-red-500 focus:ring-red-400" />
+                                  className="rounded border-divider text-ink focus:ring-ink/20" />
                               </td>
                               <td className="px-4 py-3">
-                                <div className="font-medium text-gray-900 truncate max-w-[280px]">{item.title}</div>
-                                {item.notes && <div className="text-[10px] text-gray-400 truncate max-w-[280px]">{item.notes}</div>}
+                                <div className="font-medium text-ink truncate max-w-[280px]">{item.title}</div>
+                                {item.notes && <div className="text-[10px] text-ink-3 truncate max-w-[280px]">{item.notes}</div>}
                               </td>
                               <td className="px-3 py-3">
                                 <div className="flex items-center gap-1.5">
                                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                                    item.source_tab === 'strategy' ? 'bg-blue-100 text-blue-700' :
-                                    item.source_tab === 'map' ? 'bg-green-100 text-green-700' :
-                                    item.source_tab === 'reddit' ? 'bg-orange-100 text-orange-700' :
-                                    'bg-gray-100 text-gray-500'
+                                    item.source_tab === 'strategy' ? 'bg-surface-warm text-ink-2' :
+                                    item.source_tab === 'map' ? 'bg-sage-bg text-sage' :
+                                    item.source_tab === 'reddit' ? 'bg-caution-bg text-caution' :
+                                    'bg-surface-warm text-ink-3'
                                   }`}>
                                     {item.source_tab || 'manual'}
                                   </span>
                                   {item.post_type === 'reply' && (
-                                    <span className="text-[10px] px-1.5 py-0.5 bg-orange-100 text-orange-600 rounded-full font-medium">reply</span>
+                                    <span className="text-[10px] px-1.5 py-0.5 bg-caution-bg text-caution rounded-full font-medium">reply</span>
                                   )}
                                 </div>
                               </td>
-                              <td className="px-3 py-3 text-gray-600 text-xs">{item.target_channel || '—'}</td>
+                              <td className="px-3 py-3 text-ink-2 text-xs">{item.target_channel || '—'}</td>
                               <td className="px-3 py-3" onClick={e => e.stopPropagation()}>
                                 <select value={item.priority}
                                   onChange={e => handleUpdatePriority(item.id, e.target.value)}
@@ -1761,122 +1761,126 @@ export default function GEODistributionPage() {
                               <td className="px-3 py-3" onClick={e => e.stopPropagation()}>
                                 <select value={item.status}
                                   onChange={e => handleUpdateStatus(item.id, e.target.value)}
-                                  className={`text-[11px] px-2 py-0.5 rounded-full font-medium border-0 cursor-pointer ${statusColors[item.status] || 'bg-gray-100 text-gray-600'}`}>
+                                  className={`text-[11px] px-2 py-0.5 rounded-full font-medium border-0 cursor-pointer ${statusColors[item.status] || 'bg-surface-warm text-ink-2'}`}>
                                   <option value="draft">Pending</option>
                                   <option value="published">Published</option>
                                   <option value="verified">AI Verified</option>
                                 </select>
                               </td>
-                              <td className="px-3 py-3 text-xs text-gray-400">
+                              <td className="px-3 py-3 text-xs text-ink-3">
                                 {item.created_at ? new Date(item.created_at).toLocaleDateString() : '—'}
                               </td>
                               <td className="px-3 py-3 flex items-center gap-1">
                                 <button onClick={(e) => { e.stopPropagation(); openEditItem(item); }}
-                                  className="p-1 text-gray-400 hover:text-blue-500" title="Edit">
+                                  aria-label="Edit item"
+                                  title="Edit"
+                                  className="p-1 text-ink-3 hover:text-ink-2 rounded focus:outline-none focus:ring-2 focus:ring-ink/10 transition-colors">
                                   <Pencil className="w-3.5 h-3.5" />
                                 </button>
                                 <button onClick={(e) => { e.stopPropagation(); handleDeleteQueue(item.id); }}
-                                  className="p-1 text-gray-400 hover:text-red-500" title="Delete">
+                                  aria-label="Delete item"
+                                  title="Delete"
+                                  className="p-1 text-ink-3 hover:text-red-soft rounded focus:outline-none focus:ring-2 focus:ring-red-soft/20 transition-colors">
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                                 {isExpanded
-                                  ? <ChevronUp className="w-3.5 h-3.5 text-gray-400" />
-                                  : <ChevronDown className="w-3.5 h-3.5 text-gray-400" />}
+                                  ? <ChevronUp className="w-3.5 h-3.5 text-ink-3" />
+                                  : <ChevronDown className="w-3.5 h-3.5 text-ink-3" />}
                               </td>
                             </tr>
                             {/* ── Expanded Detail Row ──── */}
                             {isExpanded && (
-                              <tr className="bg-gray-50/60">
+                              <tr className="bg-canvas/60">
                                 <td colSpan={8} className="px-6 py-4">
                                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                                     {/* Info column */}
                                     <div className="space-y-2">
-                                      <div><span className="text-gray-400">Source Module:</span> <span className="text-gray-700 capitalize">{item.source_module}</span></div>
-                                      <div><span className="text-gray-400">Source Tab:</span>{' '}
+                                      <div><span className="text-ink-3">Source Module:</span> <span className="text-ink-2 capitalize">{item.source_module}</span></div>
+                                      <div><span className="text-ink-3">Source Tab:</span>{' '}
                                         <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                                          item.source_tab === 'strategy' ? 'bg-blue-100 text-blue-700' :
-                                          item.source_tab === 'map' ? 'bg-green-100 text-green-700' :
-                                          item.source_tab === 'reddit' ? 'bg-orange-100 text-orange-700' :
-                                          'bg-gray-100 text-gray-600'
+                                          item.source_tab === 'strategy' ? 'bg-surface-warm text-ink-2' :
+                                          item.source_tab === 'map' ? 'bg-sage-bg text-sage' :
+                                          item.source_tab === 'reddit' ? 'bg-caution-bg text-caution' :
+                                          'bg-surface-warm text-ink-2'
                                         }`}>{item.source_tab || 'manual'}</span>
                                       </div>
-                                      <div><span className="text-gray-400">Brand:</span> <span className="text-gray-700">{item.brand_name || '—'}</span></div>
-                                      <div><span className="text-gray-400">Industry:</span> <span className="text-gray-700 capitalize">{item.industry || '—'}</span></div>
+                                      <div><span className="text-ink-3">Brand:</span> <span className="text-ink-2">{item.brand_name || '—'}</span></div>
+                                      <div><span className="text-ink-3">Industry:</span> <span className="text-ink-2 capitalize">{item.industry || '—'}</span></div>
                                       {item.content_file_name && (
-                                        <div><span className="text-gray-400">File:</span> <span className="text-gray-700">{item.content_file_name}</span></div>
+                                        <div><span className="text-ink-3">File:</span> <span className="text-ink-2">{item.content_file_name}</span></div>
                                       )}
-                                      <div><span className="text-gray-400">Post Type:</span>{' '}
+                                      <div><span className="text-ink-3">Post Type:</span>{' '}
                                         <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                                          item.post_type === 'reply' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
+                                          item.post_type === 'reply' ? 'bg-caution-bg text-caution' : 'bg-surface-warm text-ink-2'
                                         }`}>{item.post_type === 'reply' ? 'Reply / Comment' : 'Main Post'}</span>
                                       </div>
                                       {item.target_thread_url && (
-                                        <div><span className="text-gray-400">Thread URL:</span>{' '}
+                                        <div><span className="text-ink-3">Thread URL:</span>{' '}
                                           <a href={item.target_thread_url} target="_blank" rel="noopener noreferrer"
-                                            className="text-orange-600 underline truncate max-w-[200px] inline-block align-bottom">{item.target_thread_url}</a>
+                                            className="text-caution underline truncate max-w-[200px] inline-block align-bottom">{item.target_thread_url}</a>
                                         </div>
                                       )}
                                       {item.subreddit && (
-                                        <div><span className="text-gray-400">Subreddit:</span> <span className="text-orange-600 font-medium">{item.subreddit}</span></div>
+                                        <div><span className="text-ink-3">Subreddit:</span> <span className="text-caution font-medium">{item.subreddit}</span></div>
                                       )}
                                       {item.target_url && (
-                                        <div><span className="text-gray-400">Published URL:</span>{' '}
+                                        <div><span className="text-ink-3">Published URL:</span>{' '}
                                           <a href={item.target_url} target="_blank" rel="noopener noreferrer"
-                                            className="text-blue-600 underline">{item.target_url}</a>
+                                            className="text-ink-2 underline">{item.target_url}</a>
                                         </div>
                                       )}
                                       {item.publish_status && (
-                                        <div><span className="text-gray-400">Publish Status:</span>{' '}
+                                        <div><span className="text-ink-3">Publish Status:</span>{' '}
                                           <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                                            item.publish_status === 'success' ? 'bg-green-100 text-green-700' :
-                                            item.publish_status === 'failed' ? 'bg-red-100 text-red-700' :
-                                            item.publish_status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                                            'bg-gray-100 text-gray-600'
+                                            item.publish_status === 'success' ? 'bg-sage-bg text-sage' :
+                                            item.publish_status === 'failed' ? 'bg-red-soft-bg text-red-soft' :
+                                            item.publish_status === 'pending' ? 'bg-caution-bg text-caution' :
+                                            'bg-surface-warm text-ink-2'
                                           }`}>{item.publish_status}</span>
                                         </div>
                                       )}
                                       {item.publish_error && (
-                                        <div className="text-red-500"><span className="text-gray-400">Error:</span> {item.publish_error}</div>
+                                        <div className="text-red-soft"><span className="text-ink-3">Error:</span> {item.publish_error}</div>
                                       )}
                                     </div>
                                     {/* Dates column */}
                                     <div className="space-y-2">
-                                      <div><span className="text-gray-400">Created:</span> <span className="text-gray-700">{item.created_at ? new Date(item.created_at).toLocaleString() : '—'}</span></div>
-                                      <div><span className="text-gray-400">Updated:</span> <span className="text-gray-700">{item.updated_at ? new Date(item.updated_at).toLocaleString() : '—'}</span></div>
-                                      {item.scheduled_at && <div><span className="text-gray-400">Scheduled:</span> <span className="text-gray-700">{new Date(item.scheduled_at).toLocaleString()}</span></div>}
-                                      {item.published_at && <div><span className="text-gray-400">Published:</span> <span className="text-green-700 font-medium">{new Date(item.published_at).toLocaleString()}</span></div>}
-                                      {item.verified_at && <div><span className="text-gray-400">Verified:</span> <span className="text-purple-700 font-medium">{new Date(item.verified_at).toLocaleString()}</span></div>}
+                                      <div><span className="text-ink-3">Created:</span> <span className="text-ink-2">{item.created_at ? new Date(item.created_at).toLocaleString() : '—'}</span></div>
+                                      <div><span className="text-ink-3">Updated:</span> <span className="text-ink-2">{item.updated_at ? new Date(item.updated_at).toLocaleString() : '—'}</span></div>
+                                      {item.scheduled_at && <div><span className="text-ink-3">Scheduled:</span> <span className="text-ink-2">{new Date(item.scheduled_at).toLocaleString()}</span></div>}
+                                      {item.published_at && <div><span className="text-ink-3">Published:</span> <span className="text-sage font-medium">{new Date(item.published_at).toLocaleString()}</span></div>}
+                                      {item.verified_at && <div><span className="text-ink-3">Verified:</span> <span className="text-ink-2 font-medium">{new Date(item.verified_at).toLocaleString()}</span></div>}
                                       {item.verification_url && (
-                                        <div><span className="text-gray-400">AI Citation URL:</span>{' '}
+                                        <div><span className="text-ink-3">AI Citation URL:</span>{' '}
                                           <a href={item.verification_url} target="_blank" rel="noopener noreferrer"
-                                            className="text-purple-600 underline">{item.verification_url}</a>
+                                            className="text-ink-2 underline">{item.verification_url}</a>
                                         </div>
                                       )}
                                     </div>
                                     {/* Status History column */}
                                     <div>
-                                      <div className="flex items-center gap-1 text-gray-500 mb-2">
+                                      <div className="flex items-center gap-1 text-ink-3 mb-2">
                                         <History className="w-3 h-3" /> Status History
                                       </div>
                                       {item.status_history && item.status_history.length > 0 ? (
                                         <div className="space-y-1.5 max-h-32 overflow-y-auto">
                                           {item.status_history.map((h, hi) => (
                                             <div key={hi} className="flex items-center gap-2 text-[11px]">
-                                              <span className="text-gray-400">{new Date(h.changed_at).toLocaleString()}</span>
-                                              <span className="bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded capitalize">{h.from_status}</span>
-                                              <ArrowRight className="w-3 h-3 text-gray-400" />
-                                              <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded capitalize">{h.to_status}</span>
+                                              <span className="text-ink-3">{new Date(h.changed_at).toLocaleString()}</span>
+                                              <span className="bg-surface-muted text-ink-2 px-1.5 py-0.5 rounded capitalize">{h.from_status}</span>
+                                              <ArrowRight className="w-3 h-3 text-ink-3" />
+                                              <span className="bg-surface-warm text-ink-2 px-1.5 py-0.5 rounded capitalize">{h.to_status}</span>
                                             </div>
                                           ))}
                                         </div>
                                       ) : (
-                                        <p className="text-gray-400 italic">No status changes yet</p>
+                                        <p className="text-ink-3 italic">No status changes yet</p>
                                       )}
                                     </div>
                                   </div>
                                   {item.content_preview && (
-                                    <div className="mt-3 p-3 bg-white rounded-lg border border-gray-100 text-xs text-gray-600">
-                                      <span className="text-gray-400 text-[10px] uppercase font-semibold block mb-1">Preview</span>
+                                    <div className="mt-3 p-3 bg-surface rounded-lg border border-divider-light text-xs text-ink-2">
+                                      <span className="text-ink-3 text-[10px] uppercase font-semibold block mb-1">Preview</span>
                                       {item.content_preview}
                                     </div>
                                   )}
@@ -1895,36 +1899,36 @@ export default function GEODistributionPage() {
             {/* ── Channel Breakdown (from stats) ─────── */}
             {queueStats && Object.keys(queueStats.by_channel).length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white rounded-xl border border-gray-200 p-4">
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase mb-3 flex items-center gap-1">
+                <div className="bg-surface rounded-xl border border-divider-light p-4">
+                  <h4 className="text-xs font-semibold text-ink-3 uppercase mb-3 flex items-center gap-1">
                     <BarChart3 className="w-3.5 h-3.5" /> By Channel
                   </h4>
                   <div className="space-y-2">
                     {Object.entries(queueStats.by_channel).sort((a, b) => b[1] - a[1]).map(([ch, cnt]) => (
                       <div key={ch} className="flex items-center gap-2 text-xs">
-                        <span className="text-gray-600 capitalize w-24 truncate">{ch}</span>
-                        <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-red-400 rounded-full"
+                        <span className="text-ink-2 capitalize w-24 truncate">{ch}</span>
+                        <div className="flex-1 h-1.5 bg-surface-warm rounded-full overflow-hidden">
+                          <div className="h-full bg-red-soft rounded-full"
                             style={{ width: `${Math.round((cnt / queueStats.total) * 100)}%` }}></div>
                         </div>
-                        <span className="text-gray-500 font-medium w-6 text-right">{cnt}</span>
+                        <span className="text-ink-3 font-medium w-6 text-right">{cnt}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-                <div className="bg-white rounded-xl border border-gray-200 p-4">
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase mb-3 flex items-center gap-1">
+                <div className="bg-surface rounded-xl border border-divider-light p-4">
+                  <h4 className="text-xs font-semibold text-ink-3 uppercase mb-3 flex items-center gap-1">
                     <ListChecks className="w-3.5 h-3.5" /> By Content Type
                   </h4>
                   <div className="space-y-2">
                     {Object.entries(queueStats.by_content_type).sort((a, b) => b[1] - a[1]).map(([ct, cnt]) => (
                       <div key={ct} className="flex items-center gap-2 text-xs">
-                        <span className="text-gray-600 capitalize w-24 truncate">{ct}</span>
-                        <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-blue-400 rounded-full"
+                        <span className="text-ink-2 capitalize w-24 truncate">{ct}</span>
+                        <div className="flex-1 h-1.5 bg-surface-warm rounded-full overflow-hidden">
+                          <div className="h-full bg-ink-2 rounded-full"
                             style={{ width: `${Math.round((cnt / queueStats.total) * 100)}%` }}></div>
                         </div>
-                        <span className="text-gray-500 font-medium w-6 text-right">{cnt}</span>
+                        <span className="text-ink-3 font-medium w-6 text-right">{cnt}</span>
                       </div>
                     ))}
                   </div>
@@ -1935,59 +1939,59 @@ export default function GEODistributionPage() {
             {/* ══ Edit Queue Item Modal ════════════════ */}
             {editingItem && (
               <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={closeEditItem}>
-                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg" onClick={e => e.stopPropagation()}>
+                <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-lg" onClick={e => e.stopPropagation()}>
                   {/* Header */}
-                  <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                    <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                      <Pencil className="w-4 h-4 text-blue-500" /> Edit Content
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-divider-light">
+                    <h3 className="font-semibold text-ink flex items-center gap-2">
+                      <Pencil className="w-4 h-4 text-ink-2" /> Edit Content
                     </h3>
-                    <button onClick={closeEditItem} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                    <button onClick={closeEditItem} className="p-1 text-ink-3 hover:text-ink-2 rounded-lg hover:bg-surface-warm">
                       <X className="w-5 h-5" />
                     </button>
                   </div>
                   {/* Body — simplified to AI Visibility-relevant fields */}
                   <div className="px-6 py-5 space-y-4">
                     <div>
-                      <label className="text-xs text-gray-500 mb-1 block font-medium">Title</label>
+                      <label className="text-xs text-ink-3 mb-1 block font-medium">Title</label>
                       <input value={editTitle} onChange={e => setEditTitle(e.target.value)}
-                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100" />
+                        className="w-full px-3 py-2.5 border border-divider rounded-lg text-sm focus:outline-none focus:border-ink focus:ring-1 focus:ring-ink/10" />
                     </div>
                     <div>
-                      <label className="text-xs text-gray-500 mb-1 block font-medium">Published URL <span className="text-gray-300">(where you published the content)</span></label>
+                      <label className="text-xs text-ink-3 mb-1 block font-medium">Published URL <span className="text-ink-3">(where you published the content)</span></label>
                       <input value={editUrl} onChange={e => setEditUrl(e.target.value)}
                         placeholder="https://..."
-                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100" />
+                        className="w-full px-3 py-2.5 border border-divider rounded-lg text-sm focus:outline-none focus:border-ink focus:ring-1 focus:ring-ink/10" />
                     </div>
                     <div>
-                      <label className="text-xs text-gray-500 mb-1 block font-medium">Verification Status</label>
+                      <label className="text-xs text-ink-3 mb-1 block font-medium">Verification Status</label>
                       <select value={editingItem.status === 'verified' ? 'verified' : editingItem.status === 'published' ? 'published' : 'draft'}
                         onChange={e => handleUpdateStatus(editingItem.id, e.target.value)}
-                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-400">
+                        className="w-full px-3 py-2.5 border border-divider rounded-lg text-sm focus:outline-none focus:border-ink">
                         <option value="draft">Pending</option>
                         <option value="published">Published</option>
                         <option value="verified">AI Verified</option>
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-500 mb-1 block font-medium">Notes</label>
+                      <label className="text-xs text-ink-3 mb-1 block font-medium">Notes</label>
                       <textarea value={editNotes} onChange={e => setEditNotes(e.target.value)}
                         rows={2} placeholder="Optional notes..."
-                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 resize-none" />
+                        className="w-full px-3 py-2.5 border border-divider rounded-lg text-sm focus:outline-none focus:border-ink focus:ring-1 focus:ring-ink/10 resize-none" />
                     </div>
                   </div>
                   {/* Footer */}
-                  <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl">
-                    <span className="text-[10px] text-gray-400">
+                  <div className="flex items-center justify-between px-6 py-4 border-t border-divider-light bg-canvas/50 rounded-b-2xl">
+                    <span className="text-[10px] text-ink-3">
                       ID: {editingItem.id.slice(0, 8)}... · Created {editingItem.created_at ? new Date(editingItem.created_at).toLocaleDateString() : '—'}
                     </span>
                     <div className="flex gap-2">
                       <button onClick={closeEditItem}
-                        className="px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 rounded-lg transition-colors">
+                        className="px-4 py-2 text-sm text-ink-3 hover:bg-surface-warm rounded-lg transition-colors">
                         Cancel
                       </button>
                       <button onClick={handleSaveEdit}
                         disabled={!editTitle.trim() || editSaving}
-                        className="px-5 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center gap-2 transition-colors">
+                        className="px-5 py-2 bg-ink text-ink-inv text-sm font-medium rounded-lg hover:bg-[#2d2d2c] disabled:opacity-50 flex items-center gap-2 transition-colors">
                         {editSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                         Save
                       </button>
@@ -2005,16 +2009,16 @@ export default function GEODistributionPage() {
         {activeTab === 'reddit' && (
           <div className="space-y-6">
             {!brandName.trim() && (
-              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">Enter your brand details above first</p>
+              <div className="bg-surface rounded-xl border border-divider-light p-12 text-center">
+                <MessageSquare className="w-12 h-12 text-ink-3 mx-auto mb-4" />
+                <p className="text-ink-3">Enter your brand details above first</p>
               </div>
             )}
 
             {redditLoading && !redditResult && (
-              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                <Loader2 className="w-10 h-10 animate-spin text-red-500 mx-auto mb-4" />
-                <p className="text-gray-600">Generating comprehensive Reddit strategy for {brandName}...</p>
+              <div className="bg-surface rounded-xl border border-divider-light p-12 text-center">
+                <Loader2 className="w-10 h-10 animate-spin text-red-soft mx-auto mb-4" />
+                <p className="text-ink-2">Generating comprehensive Reddit strategy for {brandName}...</p>
                 {/* Progressive loading indicator */}
                 <div className="flex items-center justify-center gap-3 mt-4">
                   {['subreddits', 'templates', 'competitors', 'complete'].map((phase) => {
@@ -2026,8 +2030,8 @@ export default function GEODistributionPage() {
                     const labels: Record<string, string> = { subreddits: 'Subreddits', templates: 'Templates', competitors: 'Competitors', complete: 'Finalizing' }
                     return (
                       <div key={phase} className="flex items-center gap-1.5">
-                        <div className={`w-2.5 h-2.5 rounded-full transition-all ${isDone ? 'bg-green-500' : isActive ? 'bg-red-500 animate-pulse' : 'bg-gray-300'}`} />
-                        <span className={`text-xs ${isDone ? 'text-green-600 font-medium' : isActive ? 'text-red-600 font-medium' : 'text-gray-400'}`}>{labels[phase]}</span>
+                        <div className={`w-2.5 h-2.5 rounded-full transition-all ${isDone ? 'bg-sage-bg' : isActive ? 'bg-red-soft animate-pulse' : 'bg-surface-muted'}`} />
+                        <span className={`text-xs ${isDone ? 'text-sage font-medium' : isActive ? 'text-red-soft font-medium' : 'text-ink-3'}`}>{labels[phase]}</span>
                       </div>
                     )
                   })}
@@ -2036,16 +2040,16 @@ export default function GEODistributionPage() {
             )}
 
             {!redditLoading && !redditResult && brandName.trim() && (
-              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <div className="bg-surface rounded-xl border border-divider-light p-12 text-center">
+                <div className="w-16 h-16 bg-red-soft-bg rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <span className="text-3xl">🔴</span>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Reddit Deep Strategy</h3>
-                <p className="text-gray-500 text-sm mb-4 max-w-md mx-auto">
+                <h3 className="text-lg font-semibold text-ink mb-2">Reddit Deep Strategy</h3>
+                <p className="text-ink-3 text-sm mb-4 max-w-md mx-auto">
                   Reddit is ChatGPT&apos;s #1 UGC citation source. Get AI-differentiated subreddit recommendations, competitor analysis, and post templates.
                 </p>
                 <button onClick={() => handleRedditStrategy()}
-                  className="px-5 py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm font-medium flex items-center gap-2 mx-auto">
+                  className="px-5 py-2.5 bg-ink text-ink-inv rounded-lg hover:bg-[#2d2d2c] text-sm font-medium flex items-center gap-2 mx-auto">
                   <Crosshair className="w-4 h-4" /> Generate Reddit Strategy
                 </button>
               </div>
@@ -2054,7 +2058,7 @@ export default function GEODistributionPage() {
             {redditResult && (
               <>
                 {/* Reddit Importance Banner with Monitor Data */}
-                <div className="bg-gradient-to-r from-red-500 to-orange-500 rounded-xl p-6 text-white relative overflow-hidden">
+                <div className="bg-ink rounded-xl p-6 text-ink-inv relative overflow-hidden">
                   {/* Progressive loading bar overlay */}
                   {redditLoading && (
                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
@@ -2104,7 +2108,7 @@ export default function GEODistributionPage() {
                 </div>
 
                 {/* Reddit Sub-Tab Navigation */}
-                <div className="bg-white rounded-xl border border-gray-200 p-1 flex gap-1">
+                <div className="bg-surface rounded-xl border border-divider-light p-1 flex gap-1">
                   {([
                     { key: 'subreddits' as RedditSubTab, label: 'Subreddits', icon: <MapPin className="w-3.5 h-3.5" />, count: redditResult.subreddit_recommendations.length },
                     { key: 'competitors' as RedditSubTab, label: 'Competitor Intel', icon: <Swords className="w-3.5 h-3.5" />, count: redditResult.competitor_reddit_insights.length },
@@ -2114,13 +2118,13 @@ export default function GEODistributionPage() {
                       onClick={() => setRedditSubTab(tab.key)}
                       className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all ${
                         redditSubTab === tab.key
-                          ? 'bg-red-500 text-white shadow-sm'
-                          : 'text-gray-500 hover:bg-gray-50'
+                          ? 'bg-ink text-ink-inv shadow-sm'
+                          : 'text-ink-3 hover:bg-surface-warm'
                       }`}
                     >
                       {tab.icon}
                       {tab.label}
-                      {tab.count > 0 && <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${redditSubTab === tab.key ? 'bg-white/20' : 'bg-gray-100'}`}>{tab.count}</span>}
+                      {tab.count > 0 && <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${redditSubTab === tab.key ? 'bg-white/20' : 'bg-surface-warm'}`}>{tab.count}</span>}
                     </button>
                   ))}
                 </div>
@@ -2130,22 +2134,22 @@ export default function GEODistributionPage() {
                   <div className="space-y-4">
                     <div className="space-y-3">
                       {redditResult.subreddit_recommendations.map((sub, i) => (
-                        <div key={sub.name} className="bg-white rounded-xl border border-gray-200 p-5">
+                        <div key={sub.name} className="bg-surface rounded-xl border border-divider-light p-5">
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex items-center gap-3">
-                              <span className="w-8 h-8 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-bold">#{i + 1}</span>
+                              <span className="w-8 h-8 bg-red-soft-bg text-red-soft rounded-full flex items-center justify-center text-sm font-bold">#{i + 1}</span>
                               <div>
                                 <a href={sub.url} target="_blank" rel="noopener noreferrer"
-                                  className="font-semibold text-gray-900 hover:text-red-600 flex items-center gap-1.5">
+                                  className="font-semibold text-ink hover:text-red-soft flex items-center gap-1.5">
                                   {sub.name} <ExternalLink className="w-3.5 h-3.5" />
                                 </a>
                                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                  <span className="text-xs text-gray-500">{sub.subscribers} subscribers</span>
-                                  <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-medium">{sub.post_type}</span>
+                                  <span className="text-xs text-ink-3">{sub.subscribers} subscribers</span>
+                                  <span className="text-xs px-2 py-0.5 bg-surface-warm text-ink-2 rounded-full font-medium">{sub.post_type}</span>
                                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                                    sub.ai_citation_likelihood === 'high' ? 'bg-green-100 text-green-700' :
-                                    sub.ai_citation_likelihood === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                                    'bg-gray-100 text-gray-500'
+                                    sub.ai_citation_likelihood === 'high' ? 'bg-sage-bg text-sage' :
+                                    sub.ai_citation_likelihood === 'medium' ? 'bg-caution-bg text-caution' :
+                                    'bg-surface-warm text-ink-3'
                                   }`}>
                                     AI Citation: {sub.ai_citation_likelihood || 'N/A'}
                                   </span>
@@ -2153,83 +2157,83 @@ export default function GEODistributionPage() {
                               </div>
                             </div>
                             <div className="text-right">
-                              <p className="text-lg font-bold font-mono text-gray-900">{sub.relevance_score}</p>
-                              <p className="text-xs text-gray-400">relevance</p>
+                              <p className="text-lg font-bold font-mono text-ink">{sub.relevance_score}</p>
+                              <p className="text-xs text-ink-3">relevance</p>
                             </div>
                           </div>
 
                           {/* Phase 4: Differentiation metrics */}
                           <div className="grid grid-cols-3 gap-3 mb-3">
-                            <div className="bg-gray-50 rounded-lg p-2.5 text-center">
-                              <p className="text-xs text-gray-400">Competitor Activity</p>
+                            <div className="bg-canvas rounded-lg p-2.5 text-center">
+                              <p className="text-xs text-ink-3">Competitor Activity</p>
                               <p className={`text-xs font-semibold ${
-                                sub.competitor_activity === 'active' ? 'text-red-600' :
-                                sub.competitor_activity === 'moderate' ? 'text-yellow-600' :
-                                'text-green-600'
+                                sub.competitor_activity === 'active' ? 'text-red-soft' :
+                                sub.competitor_activity === 'moderate' ? 'text-caution' :
+                                'text-sage'
                               }`}>{sub.competitor_activity || 'Unknown'}</p>
                             </div>
-                            <div className="bg-gray-50 rounded-lg p-2.5 text-center">
-                              <p className="text-xs text-gray-400">Content Saturation</p>
+                            <div className="bg-canvas rounded-lg p-2.5 text-center">
+                              <p className="text-xs text-ink-3">Content Saturation</p>
                               <p className={`text-xs font-semibold ${
-                                sub.content_saturation === 'high' ? 'text-red-600' :
-                                sub.content_saturation === 'medium' ? 'text-yellow-600' :
-                                'text-green-600'
+                                sub.content_saturation === 'high' ? 'text-red-soft' :
+                                sub.content_saturation === 'medium' ? 'text-caution' :
+                                'text-sage'
                               }`}>{sub.content_saturation || 'Medium'}</p>
                             </div>
-                            <div className="bg-gray-50 rounded-lg p-2.5 text-center">
-                              <p className="text-xs text-gray-400">Post Frequency</p>
-                              <p className="text-xs font-semibold text-gray-700">{sub.recommended_frequency || 'N/A'}</p>
+                            <div className="bg-canvas rounded-lg p-2.5 text-center">
+                              <p className="text-xs text-ink-3">Post Frequency</p>
+                              <p className="text-xs font-semibold text-ink-2">{sub.recommended_frequency || 'N/A'}</p>
                             </div>
                           </div>
 
                           {sub.title_template && (
-                            <div className="bg-gray-50 rounded-lg p-3 mb-3">
-                              <p className="text-xs text-gray-500 mb-1">Suggested Title:</p>
-                              <p className="text-sm text-gray-800 font-medium italic">&ldquo;{sub.title_template}&rdquo;</p>
+                            <div className="bg-canvas rounded-lg p-3 mb-3">
+                              <p className="text-xs text-ink-3 mb-1">Suggested Title:</p>
+                              <p className="text-sm text-ink font-medium italic">&ldquo;{sub.title_template}&rdquo;</p>
                             </div>
                           )}
 
                           {sub.engagement_strategy && (
-                            <div className="bg-blue-50 rounded-lg p-3 mb-3">
-                              <p className="text-xs text-blue-600 font-semibold mb-0.5">Engagement Strategy</p>
-                              <p className="text-xs text-blue-800">{sub.engagement_strategy}</p>
+                            <div className="bg-surface-warm rounded-lg p-3 mb-3">
+                              <p className="text-xs text-ink-2 font-semibold mb-0.5">Engagement Strategy</p>
+                              <p className="text-xs text-ink-2">{sub.engagement_strategy}</p>
                             </div>
                           )}
 
                           <div className="grid grid-cols-2 gap-3">
                             <div>
-                              <p className="text-xs text-gray-500 font-semibold mb-1">Guidelines</p>
+                              <p className="text-xs text-ink-3 font-semibold mb-1">Guidelines</p>
                               {sub.content_guidelines.map((g, j) => (
-                                <p key={j} className="text-xs text-gray-600 flex items-start gap-1.5 mb-0.5">
-                                  <CheckCircle className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" /> {g}
+                                <p key={j} className="text-xs text-ink-2 flex items-start gap-1.5 mb-0.5">
+                                  <CheckCircle className="w-3 h-3 text-sage mt-0.5 flex-shrink-0" /> {g}
                                 </p>
                               ))}
                             </div>
                             <div>
-                              <p className="text-xs text-gray-500 font-semibold mb-1">Risks</p>
+                              <p className="text-xs text-ink-3 font-semibold mb-1">Risks</p>
                               {sub.risks.map((r, j) => (
-                                <p key={j} className="text-xs text-red-600 flex items-start gap-1.5 mb-0.5">
-                                  <AlertTriangle className="w-3 h-3 text-red-500 mt-0.5 flex-shrink-0" /> {r}
+                                <p key={j} className="text-xs text-red-soft flex items-start gap-1.5 mb-0.5">
+                                  <AlertTriangle className="w-3 h-3 text-red-soft mt-0.5 flex-shrink-0" /> {r}
                                 </p>
                               ))}
                               {sub.self_promo_rules && (
-                                <p className="text-xs text-orange-600 flex items-start gap-1.5 mt-1">
-                                  <Shield className="w-3 h-3 text-orange-500 mt-0.5 flex-shrink-0" /> {sub.self_promo_rules}
+                                <p className="text-xs text-caution flex items-start gap-1.5 mt-1">
+                                  <Shield className="w-3 h-3 text-caution mt-0.5 flex-shrink-0" /> {sub.self_promo_rules}
                                 </p>
                               )}
                             </div>
                           </div>
 
                           {sub.best_posting_times && (
-                            <p className="text-xs text-gray-500 mt-3 flex items-center gap-1.5">
+                            <p className="text-xs text-ink-3 mt-3 flex items-center gap-1.5">
                               <Clock className="w-3 h-3" /> {sub.best_posting_times}
                             </p>
                           )}
 
                           {/* Push Content to Reddit */}
-                          <div className="mt-4 pt-3 border-t border-gray-100">
+                          <div className="mt-4 pt-3 border-t border-divider-light">
                             <button onClick={() => openPushModal('Reddit', 'reddit', 'reddit', sub.name)}
-                              className="w-full py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 text-sm">
+                              className="w-full py-3 bg-ink hover:bg-[#2d2d2c] text-ink-inv font-semibold rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 text-sm">
                               <ArrowUpRight className="w-4 h-4" /> Push Content to {sub.name}
                             </button>
                           </div>
@@ -2239,25 +2243,25 @@ export default function GEODistributionPage() {
 
                     {/* Best Practices + Risks */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-white rounded-xl border border-gray-200 p-5">
-                        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                          <Star className="w-3.5 h-3.5 text-yellow-500" /> Best Practices
+                      <div className="bg-surface rounded-xl border border-divider-light p-5">
+                        <h4 className="text-xs font-semibold text-ink-3 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                          <Star className="w-3.5 h-3.5 text-caution" /> Best Practices
                         </h4>
                         <div className="space-y-1.5">
                           {redditResult.general_tips.map((tip, i) => (
-                            <p key={i} className="text-xs text-gray-700 flex items-start gap-1.5">
-                              <CheckCircle className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" /> {tip}
+                            <p key={i} className="text-xs text-ink-2 flex items-start gap-1.5">
+                              <CheckCircle className="w-3 h-3 text-sage mt-0.5 flex-shrink-0" /> {tip}
                             </p>
                           ))}
                         </div>
                       </div>
-                      <div className="bg-red-50 rounded-xl border border-red-200 p-5">
-                        <h4 className="text-xs font-semibold text-red-800 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                      <div className="bg-red-soft-bg rounded-xl border border-red-soft/30 p-5">
+                        <h4 className="text-xs font-semibold text-red-soft uppercase tracking-wider mb-3 flex items-center gap-1.5">
                           <AlertTriangle className="w-3.5 h-3.5" /> Risk Warnings
                         </h4>
                         <div className="space-y-1.5">
                           {redditResult.risk_warnings.map((warn, i) => (
-                            <p key={i} className="text-xs text-red-700">{warn}</p>
+                            <p key={i} className="text-xs text-red-soft">{warn}</p>
                           ))}
                         </div>
                       </div>
@@ -2269,30 +2273,30 @@ export default function GEODistributionPage() {
                 {redditSubTab === 'competitors' && (
                   <div className="space-y-4">
                     {redditLoading && redditResult.competitor_reddit_insights.length === 0 ? (
-                      <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                        <Loader2 className="w-8 h-8 animate-spin text-purple-500 mx-auto mb-3" />
-                        <p className="text-gray-600 text-sm">Loading competitor intelligence...</p>
-                        <p className="text-gray-400 text-xs mt-1">This data is being fetched in the background</p>
+                      <div className="bg-surface rounded-xl border border-divider-light p-12 text-center">
+                        <Loader2 className="w-8 h-8 animate-spin text-ink-2 mx-auto mb-3" />
+                        <p className="text-ink-2 text-sm">Loading competitor intelligence...</p>
+                        <p className="text-ink-3 text-xs mt-1">This data is being fetched in the background</p>
                       </div>
                     ) : redditResult.competitor_reddit_insights.length === 0 ? (
-                      <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                        <Swords className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                        <p className="text-gray-500 text-sm">No competitor data available.</p>
-                        <p className="text-gray-400 text-xs mt-1">Add competitors in the Brand Input section above, then regenerate Reddit Strategy.</p>
+                      <div className="bg-surface rounded-xl border border-divider-light p-12 text-center">
+                        <Swords className="w-10 h-10 text-ink-3 mx-auto mb-3" />
+                        <p className="text-ink-3 text-sm">No competitor data available.</p>
+                        <p className="text-ink-3 text-xs mt-1">Add competitors in the Brand Input section above, then regenerate Reddit Strategy.</p>
                       </div>
                     ) : (
                       <>
                         {/* Monitor competitor Reddit citations */}
                         {redditResult.monitor_reddit_data && Object.keys(redditResult.monitor_reddit_data.competitor_reddit_citations).length > 0 && (
-                          <div className="bg-purple-50 rounded-xl border border-purple-200 p-5">
-                            <h4 className="text-xs font-semibold text-purple-800 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                          <div className="bg-surface-warm rounded-xl border border-divider p-5">
+                            <h4 className="text-xs font-semibold text-ink-2 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                               <Activity className="w-3.5 h-3.5" /> Monitor: Competitor Reddit Citations
                             </h4>
                             <div className="flex flex-wrap gap-3">
                               {Object.entries(redditResult.monitor_reddit_data.competitor_reddit_citations).map(([comp, count]) => (
-                                <div key={comp} className="bg-white rounded-lg px-4 py-2 flex items-center gap-2">
-                                  <span className="text-sm font-medium text-gray-900">{comp}</span>
-                                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${count > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500'}`}>
+                                <div key={comp} className="bg-surface rounded-lg px-4 py-2 flex items-center gap-2">
+                                  <span className="text-sm font-medium text-ink">{comp}</span>
+                                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${count > 0 ? 'bg-red-soft-bg text-red-soft' : 'bg-surface-warm text-ink-3'}`}>
                                     {count} citations
                                   </span>
                                 </div>
@@ -2302,61 +2306,61 @@ export default function GEODistributionPage() {
                         )}
 
                         {redditResult.competitor_reddit_insights.map((comp, i) => (
-                          <div key={comp.competitor_name} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                            <div className="px-5 py-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                          <div key={comp.competitor_name} className="bg-surface rounded-xl border border-divider-light overflow-hidden">
+                            <div className="px-5 py-4 bg-canvas border-b border-divider flex items-center justify-between">
                               <div className="flex items-center gap-3">
-                                <span className="w-8 h-8 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-sm font-bold">{i + 1}</span>
+                                <span className="w-8 h-8 bg-caution-bg text-caution rounded-full flex items-center justify-center text-sm font-bold">{i + 1}</span>
                                 <div>
-                                  <h4 className="font-semibold text-gray-900">{comp.competitor_name}</h4>
+                                  <h4 className="font-semibold text-ink">{comp.competitor_name}</h4>
                                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                                    comp.activity_level === 'active' ? 'bg-red-100 text-red-700' :
-                                    comp.activity_level === 'moderate' ? 'bg-yellow-100 text-yellow-700' :
-                                    'bg-green-100 text-green-700'
+                                    comp.activity_level === 'active' ? 'bg-red-soft-bg text-red-soft' :
+                                    comp.activity_level === 'moderate' ? 'bg-caution-bg text-caution' :
+                                    'bg-sage-bg text-sage'
                                   }`}>
                                     {comp.activity_level} on Reddit
                                   </span>
                                 </div>
                               </div>
                               {comp.estimated_post_frequency && (
-                                <span className="text-xs text-gray-500">{comp.estimated_post_frequency}</span>
+                                <span className="text-xs text-ink-3">{comp.estimated_post_frequency}</span>
                               )}
                             </div>
 
                             <div className="p-5 space-y-4">
                               <div className="flex flex-wrap gap-2">
                                 {comp.estimated_subreddits.map(sub => (
-                                  <span key={sub} className="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">{sub}</span>
+                                  <span key={sub} className="px-2.5 py-1 bg-surface-warm text-ink-2 rounded-full text-xs font-medium">{sub}</span>
                                 ))}
                               </div>
 
                               {comp.content_types_used.length > 0 && (
                                 <div>
-                                  <p className="text-xs text-gray-500 mb-1.5">Content types used:</p>
+                                  <p className="text-xs text-ink-3 mb-1.5">Content types used:</p>
                                   <div className="flex flex-wrap gap-1.5">
                                     {comp.content_types_used.map(ct => (
-                                      <span key={ct} className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs">{ct}</span>
+                                      <span key={ct} className="px-2 py-0.5 bg-surface-warm text-ink-2 rounded text-xs">{ct}</span>
                                     ))}
                                   </div>
                                 </div>
                               )}
 
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                <div className="bg-green-50 rounded-lg p-3">
-                                  <p className="text-xs text-green-700 font-semibold mb-1.5">Strengths</p>
+                                <div className="bg-sage-bg rounded-lg p-3">
+                                  <p className="text-xs text-sage font-semibold mb-1.5">Strengths</p>
                                   {comp.strengths.map((s, j) => (
-                                    <p key={j} className="text-xs text-green-800 mb-0.5">• {s}</p>
+                                    <p key={j} className="text-xs text-sage mb-0.5">• {s}</p>
                                   ))}
                                 </div>
-                                <div className="bg-red-50 rounded-lg p-3">
-                                  <p className="text-xs text-red-700 font-semibold mb-1.5">Weaknesses</p>
+                                <div className="bg-red-soft-bg rounded-lg p-3">
+                                  <p className="text-xs text-red-soft font-semibold mb-1.5">Weaknesses</p>
                                   {comp.weaknesses.map((w, j) => (
-                                    <p key={j} className="text-xs text-red-800 mb-0.5">• {w}</p>
+                                    <p key={j} className="text-xs text-red-soft mb-0.5">• {w}</p>
                                   ))}
                                 </div>
-                                <div className="bg-blue-50 rounded-lg p-3">
-                                  <p className="text-xs text-blue-700 font-semibold mb-1.5">Your Opportunity</p>
+                                <div className="bg-surface-warm rounded-lg p-3">
+                                  <p className="text-xs text-ink-2 font-semibold mb-1.5">Your Opportunity</p>
                                   {comp.opportunity_gaps.map((g, j) => (
-                                    <p key={j} className="text-xs text-blue-800 mb-0.5">• {g}</p>
+                                    <p key={j} className="text-xs text-ink-2 mb-0.5">• {g}</p>
                                   ))}
                                 </div>
                               </div>
@@ -2379,31 +2383,31 @@ export default function GEODistributionPage() {
         {activeTab === 'map' && (
           <div className="space-y-6">
             {!brandName.trim() && (
-              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                <Map className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">Enter your brand details above first</p>
+              <div className="bg-surface rounded-xl border border-divider-light p-12 text-center">
+                <Map className="w-12 h-12 text-ink-3 mx-auto mb-4" />
+                <p className="text-ink-3">Enter your brand details above first</p>
               </div>
             )}
 
             {mapLoading && (
-              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                <Loader2 className="w-10 h-10 animate-spin text-red-500 mx-auto mb-4" />
-                <p className="text-gray-600">Loading Distribution Map...</p>
-                <p className="text-gray-400 text-sm mt-1">Syncing Monitor citation data with channel strategy</p>
+              <div className="bg-surface rounded-xl border border-divider-light p-12 text-center">
+                <Loader2 className="w-10 h-10 animate-spin text-red-soft mx-auto mb-4" />
+                <p className="text-ink-2">Loading Distribution Map...</p>
+                <p className="text-ink-3 text-sm mt-1">Syncing Monitor citation data with channel strategy</p>
               </div>
             )}
 
             {!mapLoading && !distMap && brandName.trim() && (
-              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Map className="w-8 h-8 text-blue-500" />
+              <div className="bg-surface rounded-xl border border-divider-light p-12 text-center">
+                <div className="w-16 h-16 bg-surface-warm rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Map className="w-8 h-8 text-ink-2" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Distribution Coverage Map</h3>
-                <p className="text-gray-500 text-sm mb-4 max-w-md mx-auto">
+                <h3 className="text-lg font-semibold text-ink mb-2">Distribution Coverage Map</h3>
+                <p className="text-ink-3 text-sm mb-4 max-w-md mx-auto">
                   Visualize all distribution channels with their priority, gap opportunities, and citation status.
                 </p>
                 <button onClick={handleLoadMap}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm font-medium">
+                  className="px-4 py-2 bg-ink text-ink-inv rounded-lg hover:bg-[#2d2d2c] text-sm font-medium">
                   Load Distribution Map
                 </button>
               </div>
@@ -2413,46 +2417,46 @@ export default function GEODistributionPage() {
               <>
                 {/* Coverage Summary */}
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
-                    <Layers className="w-5 h-5 text-gray-400 mx-auto mb-1" />
-                    <p className="text-2xl font-bold text-gray-900 font-mono">{distMap.total_count}</p>
-                    <p className="text-xs text-gray-500">Total Channels</p>
+                  <div className="bg-surface rounded-xl border border-divider-light p-4 text-center">
+                    <Layers className="w-5 h-5 text-ink-3 mx-auto mb-1" />
+                    <p className="text-2xl font-bold text-ink font-mono">{distMap.total_count}</p>
+                    <p className="text-xs text-ink-3">Total Channels</p>
                   </div>
-                  <div className="bg-green-50 rounded-xl border border-green-200 p-4 text-center">
-                    <CheckCircle className="w-5 h-5 text-green-500 mx-auto mb-1" />
-                    <p className="text-2xl font-bold text-green-600 font-mono">{distMap.cited_count}</p>
-                    <p className="text-xs text-green-600">Cited by AI</p>
+                  <div className="bg-sage-bg rounded-xl border border-sage/30 p-4 text-center">
+                    <CheckCircle className="w-5 h-5 text-sage mx-auto mb-1" />
+                    <p className="text-2xl font-bold text-sage font-mono">{distMap.cited_count}</p>
+                    <p className="text-xs text-sage">Cited by AI</p>
                   </div>
-                  <div className="bg-blue-50 rounded-xl border border-blue-200 p-4 text-center">
-                    <Clock className="w-5 h-5 text-blue-500 mx-auto mb-1" />
-                    <p className="text-2xl font-bold text-blue-600 font-mono">{distMap.planned_count}</p>
-                    <p className="text-xs text-blue-600">Planned</p>
+                  <div className="bg-surface-warm rounded-xl border border-divider p-4 text-center">
+                    <Clock className="w-5 h-5 text-ink-2 mx-auto mb-1" />
+                    <p className="text-2xl font-bold text-ink-2 font-mono">{distMap.planned_count}</p>
+                    <p className="text-xs text-ink-2">Planned</p>
                   </div>
-                  <div className="bg-red-50 rounded-xl border border-red-200 p-4 text-center">
-                    <AlertCircle className="w-5 h-5 text-red-500 mx-auto mb-1" />
-                    <p className="text-2xl font-bold text-red-600 font-mono">{distMap.gap_count}</p>
-                    <p className="text-xs text-red-600">Gaps</p>
+                  <div className="bg-red-soft-bg rounded-xl border border-red-soft/30 p-4 text-center">
+                    <AlertCircle className="w-5 h-5 text-red-soft mx-auto mb-1" />
+                    <p className="text-2xl font-bold text-red-soft font-mono">{distMap.gap_count}</p>
+                    <p className="text-xs text-red-soft">Gaps</p>
                   </div>
-                  <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
-                    <TrendingUp className="w-5 h-5 text-gray-400 mx-auto mb-1" />
-                    <p className="text-2xl font-bold text-gray-900 font-mono">{distMap.overall_coverage_pct}%</p>
-                    <p className="text-xs text-gray-500">Coverage</p>
+                  <div className="bg-surface rounded-xl border border-divider-light p-4 text-center">
+                    <TrendingUp className="w-5 h-5 text-ink-3 mx-auto mb-1" />
+                    <p className="text-2xl font-bold text-ink font-mono">{distMap.overall_coverage_pct}%</p>
+                    <p className="text-xs text-ink-3">Coverage</p>
                   </div>
                 </div>
 
                 {/* Coverage Progress Bar */}
-                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <div className="bg-surface rounded-xl border border-divider-light p-6">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-ink-3 uppercase tracking-wider flex items-center gap-2">
                       <Eye className="w-4 h-4" /> Overall AI Citation Coverage
                     </h3>
-                    <span className="text-lg font-bold text-gray-900 font-mono">{distMap.overall_coverage_pct}%</span>
+                    <span className="text-lg font-bold text-ink font-mono">{distMap.overall_coverage_pct}%</span>
                   </div>
-                  <div className="w-full h-4 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 transition-all"
+                  <div className="w-full h-4 bg-surface-warm rounded-full overflow-hidden">
+                    <div className="h-full rounded-full bg-gradient-to-r from-red-soft via-caution to-sage transition-all"
                          style={{ width: `${Math.max(distMap.overall_coverage_pct, 3)}%` }} />
                   </div>
-                  <div className="flex justify-between mt-2 text-xs text-gray-400">
+                  <div className="flex justify-between mt-2 text-xs text-ink-3">
                     <span>0% — No coverage</span>
                     <span>100% — All channels cited</span>
                   </div>
@@ -2460,13 +2464,13 @@ export default function GEODistributionPage() {
 
                 {/* Monitor Sync Recommendations */}
                 {monitorSync && monitorSync.recommendations.length > 0 && (
-                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100 p-6">
-                    <h3 className="text-sm font-semibold text-blue-800 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <div className="bg-surface-warm rounded-xl border border-divider p-6">
+                    <h3 className="text-sm font-semibold text-ink-2 uppercase tracking-wider mb-3 flex items-center gap-2">
                       <Activity className="w-4 h-4" /> Monitor × Distribution Insights
                     </h3>
                     <div className="space-y-2">
                       {monitorSync.recommendations.map((rec, i) => (
-                        <p key={i} className="text-sm text-gray-800">{rec}</p>
+                        <p key={i} className="text-sm text-ink-2">{rec}</p>
                       ))}
                     </div>
                   </div>
@@ -2474,17 +2478,17 @@ export default function GEODistributionPage() {
 
                 {/* Source Category Breakdown from Monitor */}
                 {monitorSync && monitorSync.monitor_data_available && Object.keys(monitorSync.source_category_breakdown).length > 0 && (
-                  <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <div className="bg-surface rounded-xl border border-divider-light p-6">
+                    <h3 className="text-sm font-semibold text-ink-3 uppercase tracking-wider mb-4 flex items-center gap-2">
                       <BarChart3 className="w-4 h-4" /> Source Category Citations (from Monitor)
                     </h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       {Object.entries(monitorSync.source_category_breakdown).map(([cat, count]) => (
-                        <div key={cat} className="bg-gray-50 rounded-lg p-3 flex items-center gap-3">
+                        <div key={cat} className="bg-canvas rounded-lg p-3 flex items-center gap-3">
                           <span className="text-xl">{catIcon(cat)}</span>
                           <div>
-                            <p className="text-xs text-gray-500 uppercase">{cat}</p>
-                            <p className="text-lg font-bold text-gray-900">{count}</p>
+                            <p className="text-xs text-ink-3 uppercase">{cat}</p>
+                            <p className="text-lg font-bold text-ink">{count}</p>
                           </div>
                         </div>
                       ))}
@@ -2494,21 +2498,21 @@ export default function GEODistributionPage() {
 
                 {/* Filter Bar */}
                 <div className="flex items-center gap-2">
-                  <Filter className="w-4 h-4 text-gray-400" />
+                  <Filter className="w-4 h-4 text-ink-3" />
                   {['all', 'cited', 'gap', 'planned'].map(f => (
                     <button
                       key={f}
                       onClick={() => setMapFilter(f)}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                         mapFilter === f
-                          ? 'bg-red-500 text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          ? 'bg-ink text-ink-inv'
+                          : 'bg-surface-warm text-ink-2 hover:bg-surface-muted'
                       }`}
                     >
                       {f === 'all' ? 'All' : f === 'cited' ? `Cited (${distMap.cited_count})` : f === 'gap' ? `Gaps (${distMap.gap_count})` : `Planned (${distMap.planned_count})`}
                     </button>
                   ))}
-                  <button onClick={handleLoadMap} className="ml-auto text-xs text-gray-500 hover:text-red-500 flex items-center gap-1">
+                  <button onClick={handleLoadMap} className="ml-auto text-xs text-ink-3 hover:text-red-soft flex items-center gap-1">
                     <Activity className="w-3.5 h-3.5" /> Refresh
                   </button>
                 </div>
@@ -2544,38 +2548,38 @@ export default function GEODistributionPage() {
 
                 {/* Citation Detail Table */}
                 {monitorSync && monitorSync.monitor_data_available && monitorSync.channel_citations.some(c => c.citation_count > 0) && (
-                  <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                  <div className="bg-surface rounded-xl border border-divider-light overflow-hidden">
+                    <div className="px-6 py-4 bg-canvas border-b border-divider">
+                      <h3 className="text-sm font-semibold text-ink-3 uppercase tracking-wider flex items-center gap-2">
                         <Link2 className="w-4 h-4" /> Detailed Citation Data (from Monitor)
                       </h3>
                     </div>
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-gray-100">
-                          <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Channel</th>
-                          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Category</th>
-                          <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Citations</th>
-                          <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">URLs</th>
-                          <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Sentiment</th>
-                          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Presence</th>
+                        <tr className="border-b border-divider-light">
+                          <th className="text-left px-6 py-3 text-xs font-semibold text-ink-3 uppercase">Channel</th>
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-ink-3 uppercase">Category</th>
+                          <th className="text-center px-4 py-3 text-xs font-semibold text-ink-3 uppercase">Citations</th>
+                          <th className="text-center px-4 py-3 text-xs font-semibold text-ink-3 uppercase">URLs</th>
+                          <th className="text-center px-4 py-3 text-xs font-semibold text-ink-3 uppercase">Sentiment</th>
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-ink-3 uppercase">Presence</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100">
+                      <tbody className="divide-y divide-divider-light">
                         {monitorSync.channel_citations
                           .filter(c => c.citation_count > 0)
                           .map(cc => {
                             const pres = presenceStyle(cc.presence_level)
                             return (
-                              <tr key={cc.channel_id} className="hover:bg-gray-50">
-                                <td className="px-6 py-3 font-medium text-gray-900">{cc.channel_name}</td>
+                              <tr key={cc.channel_id} className="hover:bg-surface-warm">
+                                <td className="px-6 py-3 font-medium text-ink">{cc.channel_name}</td>
                                 <td className="px-4 py-3">
-                                  <span className="text-xs text-gray-500">{catIcon(cc.source_category)} {cc.source_category.toUpperCase()}</span>
+                                  <span className="text-xs text-ink-3">{catIcon(cc.source_category)} {cc.source_category.toUpperCase()}</span>
                                 </td>
-                                <td className="px-4 py-3 text-center font-bold font-mono text-gray-900">{cc.citation_count}</td>
-                                <td className="px-4 py-3 text-center font-mono text-gray-600">{cc.url_count}</td>
+                                <td className="px-4 py-3 text-center font-bold font-mono text-ink">{cc.citation_count}</td>
+                                <td className="px-4 py-3 text-center font-mono text-ink-2">{cc.url_count}</td>
                                 <td className="px-4 py-3 text-center">
-                                  <span className={`text-xs font-medium ${cc.avg_sentiment > 0.3 ? 'text-green-600' : cc.avg_sentiment < -0.3 ? 'text-red-600' : 'text-gray-500'}`}>
+                                  <span className={`text-xs font-medium ${cc.avg_sentiment > 0.3 ? 'text-sage' : cc.avg_sentiment < -0.3 ? 'text-red-soft' : 'text-ink-3'}`}>
                                     {cc.avg_sentiment > 0 ? '+' : ''}{cc.avg_sentiment.toFixed(2)}
                                   </span>
                                 </td>
@@ -2595,23 +2599,23 @@ export default function GEODistributionPage() {
         )}
 
         {/* ═══ Bottom Insight ═══ */}
-        <section className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-yellow-500" />
+        <section className="bg-surface rounded-xl border border-divider-light p-6">
+          <h3 className="text-sm font-medium text-ink-3 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-caution" />
             AI Citation Intelligence
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-red-50 rounded-lg p-4">
-              <p className="text-xs text-red-600 font-semibold mb-1">#1 UGC Source</p>
-              <p className="text-sm text-gray-800">Reddit is ChatGPT&apos;s most-cited UGC source. Posts with 50+ upvotes have 3× higher citation probability.</p>
+            <div className="bg-red-soft-bg rounded-lg p-4">
+              <p className="text-xs text-red-soft font-semibold mb-1">#1 UGC Source</p>
+              <p className="text-sm text-ink-2">Reddit is ChatGPT&apos;s most-cited UGC source. Posts with 50+ upvotes have 3× higher citation probability.</p>
             </div>
-            <div className="bg-blue-50 rounded-lg p-4">
-              <p className="text-xs text-blue-600 font-semibold mb-1">#1 Reference Source</p>
-              <p className="text-sm text-gray-800">Wikipedia remains the top reference. Having a Wikipedia page increases AI citation by 5-10×.</p>
+            <div className="bg-surface-warm rounded-lg p-4">
+              <p className="text-xs text-ink-2 font-semibold mb-1">#1 Reference Source</p>
+              <p className="text-sm text-ink-2">Wikipedia remains the top reference. Having a Wikipedia page increases AI citation by 5-10×.</p>
             </div>
-            <div className="bg-green-50 rounded-lg p-4">
-              <p className="text-xs text-green-600 font-semibold mb-1">Content Longevity</p>
-              <p className="text-sm text-gray-800">Documentation and wiki content stays indexed permanently. Blog and medium posts last 2-5 years.</p>
+            <div className="bg-sage-bg rounded-lg p-4">
+              <p className="text-xs text-sage font-semibold mb-1">Content Longevity</p>
+              <p className="text-sm text-ink-2">Documentation and wiki content stays indexed permanently. Blog and medium posts last 2-5 years.</p>
             </div>
           </div>
         </section>

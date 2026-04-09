@@ -26,28 +26,28 @@ const PLATFORM_META: Record<ConnectionPlatform, {
   label: string; color: string; docsUrl: string; tokenLabel: string; tokenDesc: string; placeholder: string
 }> = {
   shopify: {
-    label: 'Shopify', color: 'text-green-700 bg-green-50 border-green-200',
+    label: 'Shopify', color: 'text-sage bg-sage-bg border-sage/30',
     docsUrl: 'https://help.shopify.com/en/manual/apps/app-types/custom-apps',
     tokenLabel: 'Admin API Access Token',
     tokenDesc: 'Go to Shopify Admin → Settings → Apps → Develop apps → Create app → API credentials',
     placeholder: 'shpat_xxxxxxxxxxxxxxxxxxxxxxxxxxxx',
   },
   wordpress: {
-    label: 'WordPress', color: 'text-blue-700 bg-blue-50 border-blue-200',
+    label: 'WordPress', color: 'text-ink-2 bg-surface-warm border-divider',
     docsUrl: 'https://make.wordpress.org/core/2020/11/05/application-passwords-integration-guide/',
     tokenLabel: 'Application Password',
     tokenDesc: 'Go to WordPress Admin → Users → Your Profile → Application Passwords',
     placeholder: 'xxxx xxxx xxxx xxxx xxxx xxxx',
   },
   github: {
-    label: 'GitHub', color: 'text-gray-700 bg-gray-50 border-gray-200',
+    label: 'GitHub', color: 'text-ink-2 bg-surface-warm border-divider',
     docsUrl: 'https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens',
     tokenLabel: 'Personal Access Token',
     tokenDesc: 'Go to GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens (repo scope)',
     placeholder: 'github_pat_xxxx...',
   },
   custom: {
-    label: 'Custom', color: 'text-purple-700 bg-purple-50 border-purple-200',
+    label: 'Custom', color: 'text-ink-2 bg-surface-warm border-divider',
     docsUrl: '',
     tokenLabel: 'API Key (optional)',
     tokenDesc: 'Optional. Sent as X-Api-Key and Authorization: Bearer headers.',
@@ -161,7 +161,7 @@ function WebsiteConnectionsSection({ userId }: { userId: string }) {
     <div className="space-y-4">
       {/* Existing connections */}
       {loading ? (
-        <div className="flex items-center gap-2 text-sm text-gray-400">
+        <div className="flex items-center gap-2 text-sm text-ink-3">
           <Loader2 className="w-4 h-4 animate-spin" /> Loading connections...
         </div>
       ) : connections.length > 0 ? (
@@ -202,7 +202,7 @@ function WebsiteConnectionsSection({ userId }: { userId: string }) {
                     <button
                       onClick={() => handleRemove(conn.id)}
                       disabled={removing === conn.id}
-                      className="p-1.5 rounded-lg hover:bg-red-100 text-red-500 transition-colors"
+                      className="p-1.5 rounded-lg hover:bg-red-soft-bg text-red-soft transition-colors"
                       title="Remove connection"
                     >
                       {removing === conn.id
@@ -216,27 +216,27 @@ function WebsiteConnectionsSection({ userId }: { userId: string }) {
           })}
         </div>
       ) : (
-        <p className="text-sm text-gray-400">No website connections yet. Add one below.</p>
+        <p className="text-sm text-ink-3">No website connections yet. Add one below.</p>
       )}
 
       {/* Add connection button / form */}
       {!showForm ? (
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 hover:bg-gray-100 border border-dashed border-gray-300 text-gray-600 text-sm font-medium rounded-xl transition-colors w-full justify-center"
+          className="flex items-center gap-2 px-4 py-2.5 bg-surface-warm hover:bg-surface-muted border border-dashed border-divider text-ink-2 text-sm font-medium rounded-xl transition-colors w-full justify-center"
         >
           <Plus className="w-4 h-4" /> Connect a Website
         </button>
       ) : (
-        <div className="border border-gray-200 rounded-2xl p-5 space-y-4 bg-gray-50">
+        <div className="border border-divider-light rounded-2xl p-5 space-y-4 bg-surface-warm">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-gray-800">New Website Connection</p>
-            <button onClick={() => { setShowForm(false); resetForm() }} className="text-gray-400 hover:text-gray-600">✕</button>
+            <p className="text-sm font-semibold text-ink">New Website Connection</p>
+            <button onClick={() => { setShowForm(false); resetForm() }} className="text-ink-3 hover:text-ink-2">✕</button>
           </div>
 
           {/* Platform selector */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1.5">Platform</label>
+            <label className="block text-xs font-medium text-ink-2 mb-1.5">Platform</label>
             <div className="grid grid-cols-4 gap-2">
               {(['shopify', 'wordpress', 'github', 'custom'] as ConnectionPlatform[]).map(p => (
                 <button
@@ -245,7 +245,7 @@ function WebsiteConnectionsSection({ userId }: { userId: string }) {
                   className={`py-2 rounded-xl border text-xs font-semibold transition-all ${
                     platform === p
                       ? PLATFORM_META[p].color + ' border-current'
-                      : 'bg-white border-gray-200 text-gray-500 hover:border-gray-400'
+                      : 'bg-surface border-divider-light text-ink-3 hover:border-divider'
                   }`}
                 >
                   {PLATFORM_META[p].label}
@@ -256,26 +256,26 @@ function WebsiteConnectionsSection({ userId }: { userId: string }) {
 
           {/* Site URL */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1.5">
+            <label className="block text-xs font-medium text-ink-2 mb-1.5">
               {platform === 'github' ? 'GitHub Repository' : 'Site URL'}
             </label>
             <input
               value={platform === 'github' ? ghRepo : siteUrl}
               onChange={e => platform === 'github' ? setGhRepo(e.target.value) : setSiteUrl(e.target.value)}
               placeholder={platform === 'github' ? 'owner/repo or https://github.com/owner/repo' : 'https://yourstore.myshopify.com'}
-              className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-400 outline-none"
+              className="w-full px-3.5 py-2.5 bg-surface border border-divider rounded-xl text-sm focus:ring-2 focus:ring-ink/10 focus:border-ink outline-none"
             />
           </div>
 
           {/* WordPress: username field */}
           {platform === 'wordpress' && (
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">WordPress Username</label>
+              <label className="block text-xs font-medium text-ink-2 mb-1.5">WordPress Username</label>
               <input
                 value={wpUser}
                 onChange={e => setWpUser(e.target.value)}
                 placeholder="admin"
-                className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-red-400 focus:ring-2 focus:ring-red-500/20"
+                className="w-full px-3.5 py-2.5 bg-surface border border-divider rounded-xl text-sm outline-none focus:border-ink focus:ring-2 focus:ring-ink/10"
               />
             </div>
           )}
@@ -283,13 +283,13 @@ function WebsiteConnectionsSection({ userId }: { userId: string }) {
           {/* Token / credential field */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-medium text-gray-600">{meta.tokenLabel}</label>
+              <label className="text-xs font-medium text-ink-2">{meta.tokenLabel}</label>
               <a href={meta.docsUrl} target="_blank" rel="noopener noreferrer"
-                className="text-[10px] text-red-500 hover:underline flex items-center gap-0.5">
+                className="text-[10px] text-ink-2 hover:underline flex items-center gap-0.5">
                 <ExternalLink className="w-3 h-3" /> How to get it
               </a>
             </div>
-            <p className="text-[10px] text-gray-400 mb-1.5">{meta.tokenDesc}</p>
+            <p className="text-[10px] text-ink-3 mb-1.5">{meta.tokenDesc}</p>
             <div className="relative">
               <input
                 type={showToken ? 'text' : 'password'}
@@ -307,12 +307,12 @@ function WebsiteConnectionsSection({ userId }: { userId: string }) {
                   else setApiKey(v)
                 }}
                 placeholder={meta.placeholder}
-                className="w-full px-3.5 py-2.5 pr-10 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-red-400 focus:ring-2 focus:ring-red-500/20 font-mono"
+                className="w-full px-3.5 py-2.5 pr-10 bg-surface border border-divider rounded-xl text-sm outline-none focus:border-ink focus:ring-2 focus:ring-ink/10 font-mono"
               />
               <button
                 type="button"
                 onClick={() => setShowToken(!showToken)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-3 hover:text-ink-2"
               >
                 {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -322,12 +322,12 @@ function WebsiteConnectionsSection({ userId }: { userId: string }) {
           {/* Custom: API endpoint */}
           {platform === 'custom' && (
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Verification Endpoint (optional)</label>
+              <label className="block text-xs font-medium text-ink-2 mb-1.5">Verification Endpoint (optional)</label>
               <input
                 value={apiEndpoint}
                 onChange={e => setApiEndpoint(e.target.value)}
                 placeholder="https://api.yoursite.com/status"
-                className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-red-400 focus:ring-2 focus:ring-red-500/20"
+                className="w-full px-3.5 py-2.5 bg-surface border border-divider rounded-xl text-sm outline-none focus:border-ink focus:ring-2 focus:ring-ink/10"
               />
             </div>
           )}
@@ -335,20 +335,20 @@ function WebsiteConnectionsSection({ userId }: { userId: string }) {
           {/* Display name + scope */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Display Name (optional)</label>
+              <label className="block text-xs font-medium text-ink-2 mb-1.5">Display Name (optional)</label>
               <input
                 value={displayName}
                 onChange={e => setDisplayName(e.target.value)}
                 placeholder="My Shopify Store"
-                className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-red-400 focus:ring-2 focus:ring-red-500/20"
+                className="w-full px-3.5 py-2.5 bg-surface border border-divider rounded-xl text-sm outline-none focus:border-ink focus:ring-2 focus:ring-ink/10"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Permission Scope</label>
+              <label className="block text-xs font-medium text-ink-2 mb-1.5">Permission Scope</label>
               <select
                 value={scope}
                 onChange={e => setScope(e.target.value as 'read_only' | 'read_write')}
-                className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-red-400"
+                className="w-full px-3.5 py-2.5 bg-surface border border-divider rounded-xl text-sm outline-none focus:border-ink"
               >
                 <option value="read_only">Read Only (safe)</option>
                 <option value="read_write">Read + Write (fixes)</option>
@@ -360,8 +360,8 @@ function WebsiteConnectionsSection({ userId }: { userId: string }) {
           {testResult && (
             <div className={`p-3 rounded-xl border text-xs ${
               testResult.success
-                ? 'bg-green-50 border-green-200 text-green-700'
-                : 'bg-red-50 border-red-200 text-red-700'
+                ? 'bg-sage-bg border-sage/30 text-sage'
+                : 'bg-red-soft-bg border-red-soft/30 text-red-soft'
             }`}>
               <p className="font-semibold mb-1">{testResult.success ? '✅ Connection verified' : '❌ Verification failed'}</p>
               <p>{testResult.status_message}</p>
@@ -376,7 +376,7 @@ function WebsiteConnectionsSection({ userId }: { userId: string }) {
           )}
 
           {error && (
-            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs">{error}</div>
+            <div className="p-3 rounded-xl bg-red-soft-bg border border-red-soft/30 text-red-soft text-xs">{error}</div>
           )}
 
           {/* Action buttons */}
@@ -384,7 +384,7 @@ function WebsiteConnectionsSection({ userId }: { userId: string }) {
             <button
               onClick={handleTest}
               disabled={testing}
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2.5 bg-surface border border-divider text-ink-2 text-sm font-medium rounded-xl hover:bg-surface-warm disabled:opacity-50 transition-colors"
             >
               {testing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
               Test Connection
@@ -392,13 +392,13 @@ function WebsiteConnectionsSection({ userId }: { userId: string }) {
             <button
               onClick={handleSave}
               disabled={saving || (!testResult?.success && !confirm)}
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-xl disabled:opacity-50 transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-semibold rounded-xl disabled:opacity-50 transition-colors"
             >
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Link2 className="w-3.5 h-3.5" />}
               Save Connection
             </button>
           </div>
-          <p className="text-[10px] text-gray-400">
+          <p className="text-[10px] text-ink-3">
             Credentials are stored encrypted server-side. Token previews (first 8 + last 4 chars) are shown for identification only.
           </p>
         </div>
@@ -420,15 +420,15 @@ function Section({
   children: React.ReactNode
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-      <div className="px-6 py-5 border-b border-gray-100">
+    <div className="bg-surface rounded-2xl border border-divider-light overflow-hidden">
+      <div className="px-6 py-5 border-b border-divider-light">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center">
-            <Icon className="w-4 h-4 text-gray-600" />
+          <div className="w-8 h-8 rounded-lg bg-surface-warm border border-divider-light flex items-center justify-center">
+            <Icon className="w-4 h-4 text-ink-2" />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
-            <p className="text-xs text-gray-400 mt-0.5">{description}</p>
+            <h2 className="text-sm font-semibold text-ink">{title}</h2>
+            <p className="text-xs text-ink-3 mt-0.5">{description}</p>
           </div>
         </div>
       </div>
@@ -442,8 +442,8 @@ function Feedback({ type, message }: { type: 'success' | 'error'; message: strin
   return (
     <div className={`flex items-start gap-2.5 p-3 rounded-xl text-sm mt-3 ${
       type === 'success'
-        ? 'bg-green-50 border border-green-100 text-green-700'
-        : 'bg-red-50 border border-red-100 text-red-600'
+        ? 'bg-sage-bg border border-sage/20 text-sage'
+        : 'bg-red-soft-bg border border-red-soft/20 text-red-soft'
     }`}>
       {type === 'success'
         ? <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -460,12 +460,12 @@ const PLAN_LABELS: Record<string, string> = {
   enterprise: 'Enterprise',
 }
 const STATUS_STYLES: Record<string, string> = {
-  active: 'bg-green-50 text-green-700 border-green-200',
-  trialing: 'bg-blue-50 text-blue-700 border-blue-200',
-  past_due: 'bg-red-50 text-red-700 border-red-200',
-  canceled: 'bg-gray-100 text-gray-500 border-gray-200',
-  paused: 'bg-amber-50 text-amber-700 border-amber-200',
-  incomplete: 'bg-orange-50 text-orange-700 border-orange-200',
+  active: 'bg-sage-bg text-sage border-sage/30',
+  trialing: 'bg-surface-muted text-ink-2 border-divider',
+  past_due: 'bg-red-soft-bg text-red-soft border-red-soft/30',
+  canceled: 'bg-surface-muted text-ink-3 border-divider-light',
+  paused: 'bg-caution-bg text-caution border-caution/30',
+  incomplete: 'bg-caution-bg text-caution border-caution/30',
 }
 
 function formatDate(iso: string | null) {
@@ -647,11 +647,11 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-canvas">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-8 py-6">
-        <h1 className="text-xl font-bold text-gray-900">Account Settings</h1>
-        <p className="text-sm text-gray-400 mt-1">Manage your profile, security, and subscription</p>
+      <div className="bg-surface border-b border-divider-light px-8 py-6">
+        <h1 className="heading-dash">Account Settings</h1>
+        <p className="text-sm text-ink-3 mt-1">Manage your profile, security, and subscription</p>
       </div>
 
       <div className="max-w-2xl mx-auto px-8 py-8 space-y-5">
@@ -660,29 +660,29 @@ export default function SettingsPage() {
         <Section icon={User} title="Profile" description="Update your name and company">
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Full Name</label>
+              <label className="block text-xs font-medium text-ink-2 mb-1.5">Full Name</label>
               <input
                 type="text"
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
                 placeholder="Your full name"
-                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-400 focus:bg-white transition-all outline-none"
+                className="w-full px-3.5 py-2.5 bg-surface-warm border border-divider rounded-xl text-sm focus:ring-2 focus:ring-ink/10 focus:border-ink focus:bg-surface transition-all outline-none"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Company Name</label>
+              <label className="block text-xs font-medium text-ink-2 mb-1.5">Company Name</label>
               <input
                 type="text"
                 value={companyName}
                 onChange={e => setCompanyName(e.target.value)}
                 placeholder="Your company"
-                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-400 focus:bg-white transition-all outline-none"
+                className="w-full px-3.5 py-2.5 bg-surface-warm border border-divider rounded-xl text-sm focus:ring-2 focus:ring-ink/10 focus:border-ink focus:bg-surface transition-all outline-none"
               />
             </div>
             <button
               onClick={handleProfileSave}
               disabled={profileSaving}
-              className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-xl transition-all disabled:opacity-50">
+              className="flex items-center gap-2 px-4 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium rounded-xl transition-all disabled:opacity-50">
               {profileSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               Save Changes
             </button>
@@ -692,26 +692,26 @@ export default function SettingsPage() {
 
         {/* ── Email ── */}
         <Section icon={Mail} title="Email Address" description="Change the email linked to your account">
-          <div className="mb-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
-            <p className="text-xs text-gray-400">Current email</p>
-            <p className="text-sm font-medium text-gray-800 mt-0.5">{user?.email || '—'}</p>
+          <div className="mb-4 p-3 bg-surface-warm rounded-xl border border-divider-light">
+            <p className="text-xs text-ink-3">Current email</p>
+            <p className="text-sm font-medium text-ink mt-0.5">{user?.email || '—'}</p>
           </div>
           <form onSubmit={handleEmailChange} className="space-y-3">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">New Email Address</label>
+              <label className="block text-xs font-medium text-ink-2 mb-1.5">New Email Address</label>
               <input
                 type="email"
                 value={newEmail}
                 onChange={e => setNewEmail(e.target.value)}
                 placeholder="new@company.com"
                 required
-                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-400 focus:bg-white transition-all outline-none"
+                className="w-full px-3.5 py-2.5 bg-surface-warm border border-divider rounded-xl text-sm focus:ring-2 focus:ring-ink/10 focus:border-ink focus:bg-surface transition-all outline-none"
               />
             </div>
             <button
               type="submit"
               disabled={emailSaving || !newEmail.trim()}
-              className="flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-xl transition-all disabled:opacity-50">
+              className="flex items-center gap-2 px-4 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium rounded-xl transition-all disabled:opacity-50">
               {emailSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               Send Confirmation Email
             </button>
@@ -721,13 +721,13 @@ export default function SettingsPage() {
 
         {/* ── Password ── */}
         <Section icon={Lock} title="Password" description="Send a password reset link to your email">
-          <p className="text-sm text-gray-500 mb-4 leading-relaxed">
-            We&apos;ll send a reset link to <span className="font-medium text-gray-700">{user?.email}</span>. Click the link to set a new password.
+          <p className="text-sm text-ink-3 mb-4 leading-relaxed">
+            We&apos;ll send a reset link to <span className="font-medium text-ink-2">{user?.email}</span>. Click the link to set a new password.
           </p>
           <button
             onClick={handlePasswordReset}
             disabled={passwordSending}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-xl transition-all disabled:opacity-50">
+            className="flex items-center gap-2 px-4 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium rounded-xl transition-all disabled:opacity-50">
             {passwordSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
             Send Reset Email
           </button>
@@ -738,40 +738,40 @@ export default function SettingsPage() {
         {role === 'user' && (
           <Section icon={CreditCard} title="Subscription" description="Manage your plan and billing">
             {subLoading ? (
-              <div className="flex items-center gap-2 text-gray-400 text-sm">
+              <div className="flex items-center gap-2 text-ink-3 text-sm">
                 <Loader2 className="w-4 h-4 animate-spin" /> Loading subscription…
               </div>
             ) : subscription ? (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <p className="text-xs text-gray-400">Plan</p>
-                    <p className="text-sm font-semibold text-gray-900 mt-0.5 capitalize">
+                  <div className="p-3 bg-surface-warm rounded-xl border border-divider-light">
+                    <p className="text-xs text-ink-3">Plan</p>
+                    <p className="text-sm font-semibold text-ink mt-0.5 capitalize">
                       {PLAN_LABELS[subscription.plan] ?? subscription.plan}
                     </p>
                   </div>
-                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <p className="text-xs text-gray-400">Status</p>
-                    <span className={`inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full border capitalize ${STATUS_STYLES[subscription.status] ?? 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                  <div className="p-3 bg-surface-warm rounded-xl border border-divider-light">
+                    <p className="text-xs text-ink-3">Status</p>
+                    <span className={`inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full border capitalize ${STATUS_STYLES[subscription.status] ?? 'bg-surface-muted text-ink-3 border-divider-light'}`}>
                       {subscription.status}
                     </span>
                   </div>
-                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <p className="text-xs text-gray-400">Billing</p>
-                    <p className="text-sm font-medium text-gray-800 mt-0.5 capitalize">{subscription.billing_interval}ly</p>
+                  <div className="p-3 bg-surface-warm rounded-xl border border-divider-light">
+                    <p className="text-xs text-ink-3">Billing</p>
+                    <p className="text-sm font-medium text-ink mt-0.5 capitalize">{subscription.billing_interval}ly</p>
                   </div>
-                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <p className="text-xs text-gray-400">
+                  <div className="p-3 bg-surface-warm rounded-xl border border-divider-light">
+                    <p className="text-xs text-ink-3">
                       {subscription.status === 'trialing' ? 'Trial ends' : subscription.cancel_at_period_end ? 'Cancels on' : 'Next billing'}
                     </p>
-                    <p className="text-sm font-medium text-gray-800 mt-0.5">
+                    <p className="text-sm font-medium text-ink mt-0.5">
                       {formatDate(subscription.status === 'trialing' ? subscription.trial_ends_at : subscription.current_period_end)}
                     </p>
                   </div>
                 </div>
 
                 {subscription.cancel_at_period_end && (
-                  <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-100 rounded-xl text-sm text-amber-700">
+                  <div className="flex items-start gap-2 p-3 bg-caution-bg border border-caution/20 rounded-xl text-sm text-caution">
                     <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                     <p>Your subscription will cancel at the end of the current period. Reactivate anytime in the portal.</p>
                   </div>
@@ -780,23 +780,23 @@ export default function SettingsPage() {
                 <button
                   onClick={handleManageSubscription}
                   disabled={portalLoading}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-xl transition-all disabled:opacity-50">
+                  className="flex items-center gap-2 px-4 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium rounded-xl transition-all disabled:opacity-50">
                   {portalLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
                   {portalLoading ? 'Redirecting…' : 'Update Billing & Payment'}
                 </button>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-ink-3 mt-1">
                   Update payment method, view invoices, or change plan interval.
                 </p>
 
                 {/* Cancel — buried deep below billing to maximise retention */}
                 {(subscription.status === 'trialing' || subscription.status === 'active') && !subscription.cancel_at_period_end && (
-                  <div className="pt-4 border-t border-gray-100 mt-3">
-                    <p className="text-xs text-gray-400 mb-1.5">
+                  <div className="pt-4 border-t border-divider-light mt-3">
+                    <p className="text-xs text-ink-3 mb-1.5">
                       Thinking about leaving? We may have a better option for you first.
                     </p>
                     <button
                       onClick={() => window.dispatchEvent(new CustomEvent('openCancelModal'))}
-                      className="text-xs text-gray-400 hover:text-red-500 underline underline-offset-2 transition-colors"
+                      className="text-xs text-ink-3 hover:text-red-soft underline underline-offset-2 transition-colors"
                     >
                       Cancel subscription →
                     </button>
@@ -805,10 +805,10 @@ export default function SettingsPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                <p className="text-sm text-gray-500">No active subscription found.</p>
+                <p className="text-sm text-ink-3">No active subscription found.</p>
                 <a
                   href="/pricing"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-xl transition-all">
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium rounded-xl transition-all">
                   <ExternalLink className="w-4 h-4" />
                   View Plans
                 </a>
@@ -821,7 +821,7 @@ export default function SettingsPage() {
         {role !== 'demo' && (
           <Section icon={Key} title="MCP — AI Tools Integration" description="Connect Claude Desktop, Cursor, or Windsurf to query your brand data with natural language">
             <div className="space-y-4">
-              <p className="text-sm text-gray-600 leading-relaxed">
+              <p className="text-sm text-ink-2 leading-relaxed">
                 Create an API token for each AI tool you want to connect. Each token is linked to your account and shown only once — copy it immediately after creation.
               </p>
               <div className="flex gap-2">
@@ -831,12 +831,12 @@ export default function SettingsPage() {
                   onChange={e => setMcpNewLabel(e.target.value)}
                   placeholder="e.g. Claude-Desktop-MacBook"
                   onKeyDown={e => e.key === 'Enter' && handleCreateMcpToken()}
-                  className="flex-1 px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-400 outline-none"
+                  className="flex-1 px-3.5 py-2.5 bg-surface-warm border border-divider rounded-xl text-sm focus:ring-2 focus:ring-ink/10 focus:border-ink outline-none"
                 />
                 <button
                   onClick={handleCreateMcpToken}
                   disabled={mcpCreating || !mcpNewLabel.trim()}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-xl disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium rounded-xl disabled:opacity-50"
                 >
                   {mcpCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                   {mcpCreating ? 'Creating…' : 'Create Token'}
@@ -844,49 +844,51 @@ export default function SettingsPage() {
               </div>
 
               {mcpCreatedToken && (
-                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
-                  <p className="text-sm font-medium text-amber-800">Copy this token now — it won&apos;t be shown again:</p>
+                <div className="p-4 bg-caution-bg border border-caution/30 rounded-xl space-y-2">
+                  <p className="text-sm font-medium text-caution">Copy this token now — it won&apos;t be shown again:</p>
                   <div className="flex items-center gap-2">
-                    <code className="flex-1 px-3 py-2 bg-white border border-amber-200 rounded-lg text-sm font-mono break-all">{mcpCreatedToken.token}</code>
+                    <code className="flex-1 px-3 py-2 bg-surface border border-caution/20 rounded-lg text-sm font-mono break-all">{mcpCreatedToken.token}</code>
                     <button
                       onClick={() => { navigator.clipboard.writeText(mcpCreatedToken.token); setMcpFeedback({ type: 'success', msg: 'Copied to clipboard.' }) }}
-                      className="p-2 border border-amber-300 rounded-lg hover:bg-amber-100"
+                      aria-label="Copy token"
+                      title="Copy token"
+                      className="p-2 border border-caution/30 rounded-lg hover:bg-caution-bg transition-colors focus:outline-none focus:ring-2 focus:ring-caution/20"
                     >
-                      <Copy className="w-4 h-4 text-amber-700" />
+                      <Copy className="w-4 h-4 text-caution" />
                     </button>
                   </div>
-                  <p className="text-xs text-amber-700 mt-1">Paste into Claude Desktop config as <code className="font-mono">ALIGNMENT_API_TOKEN</code></p>
+                  <p className="text-xs text-caution mt-1">Paste into Claude Desktop config as <code className="font-mono">ALIGNMENT_API_TOKEN</code></p>
                 </div>
               )}
 
               {mcpFeedback && <Feedback type={mcpFeedback.type} message={mcpFeedback.msg} />}
 
               {mcpLoading ? (
-                <div className="flex items-center gap-2 text-gray-400 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading tokens…</div>
+                <div className="flex items-center gap-2 text-ink-3 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading tokens…</div>
               ) : mcpTokens.length > 0 ? (
-                <div className="overflow-hidden rounded-xl border border-gray-200">
+                <div className="overflow-hidden rounded-xl border border-divider-light">
                   <table className="w-full text-sm">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-surface-warm">
                       <tr>
-                        <th className="text-left px-4 py-2.5 text-gray-600 font-medium">Label</th>
-                        <th className="text-left px-4 py-2.5 text-gray-600 font-medium">Prefix</th>
-                        <th className="text-left px-4 py-2.5 text-gray-600 font-medium">Last Used</th>
-                        <th className="text-right px-4 py-2.5 text-gray-600 font-medium">Actions</th>
+                        <th className="text-left px-4 py-2.5 text-ink-2 font-medium">Label</th>
+                        <th className="text-left px-4 py-2.5 text-ink-2 font-medium">Prefix</th>
+                        <th className="text-left px-4 py-2.5 text-ink-2 font-medium">Last Used</th>
+                        <th className="text-right px-4 py-2.5 text-ink-2 font-medium">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-divider-light">
                       {mcpTokens.map(t => (
                         <tr key={t.id} className={!t.is_active ? 'opacity-50' : ''}>
-                          <td className="px-4 py-2.5 text-gray-800">{t.label}</td>
-                          <td className="px-4 py-2.5 font-mono text-gray-600">{t.token_prefix}…</td>
-                          <td className="px-4 py-2.5 text-gray-500">{t.last_used_at ? new Date(t.last_used_at).toLocaleString() : '—'}</td>
+                          <td className="px-4 py-2.5 text-ink">{t.label}</td>
+                          <td className="px-4 py-2.5 font-mono text-ink-2">{t.token_prefix}…</td>
+                          <td className="px-4 py-2.5 text-ink-3">{t.last_used_at ? new Date(t.last_used_at).toLocaleString() : '—'}</td>
                           <td className="px-4 py-2.5 text-right">
                             {t.is_active ? (
-                              <button onClick={() => handleRevokeMcpToken(t.id)} className="text-red-500 hover:text-red-700 text-xs font-medium inline-flex items-center gap-1">
+                              <button onClick={() => handleRevokeMcpToken(t.id)} className="text-red-soft hover:text-red-soft/70 text-xs font-medium inline-flex items-center gap-1">
                                 <Trash2 className="w-3 h-3" /> Revoke
                               </button>
                             ) : (
-                              <span className="text-gray-400 text-xs">Revoked</span>
+                              <span className="text-ink-3 text-xs">Revoked</span>
                             )}
                           </td>
                         </tr>
@@ -895,14 +897,14 @@ export default function SettingsPage() {
                   </table>
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">No tokens yet. Create one above to get started.</p>
+                <p className="text-sm text-ink-3">No tokens yet. Create one above to get started.</p>
               )}
 
-              <div className="pt-1 border-t border-gray-100 flex items-center justify-between">
-                <a href="/docs/mcp-setup" target="_blank" rel="noopener noreferrer" className="text-xs text-red-500 hover:underline">
+              <div className="pt-1 border-t border-divider-light flex items-center justify-between">
+                <a href="/docs/mcp-setup" target="_blank" rel="noopener noreferrer" className="text-xs text-ink-2 hover:underline">
                   MCP setup guide →
                 </a>
-                <span className="text-xs text-gray-400">Name tokens by device: e.g. <code className="font-mono">Claude-Desktop-MacBook</code></span>
+                <span className="text-xs text-ink-3">Name tokens by device: e.g. <code className="font-mono">Claude-Desktop-MacBook</code></span>
               </div>
             </div>
           </Section>
@@ -917,18 +919,18 @@ export default function SettingsPage() {
           {user?.id ? (
             <WebsiteConnectionsSection userId={user.id} />
           ) : (
-            <p className="text-sm text-gray-400">Sign in to manage website connections.</p>
+            <p className="text-sm text-ink-3">Sign in to manage website connections.</p>
           )}
         </Section>
 
         {/* ── Danger Zone ── */}
         <Section icon={AlertTriangle} title="Danger Zone" description="Irreversible account actions">
-          <p className="text-sm text-gray-500 mb-4 leading-relaxed">
+          <p className="text-sm text-ink-3 mb-4 leading-relaxed">
             To delete your account or request a data export, please contact our support team directly.
           </p>
           <a
             href="mailto:contact@alignmenttech.ai?subject=Account%20Deletion%20Request"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-red-50 border border-red-200 text-red-600 hover:text-red-700 text-sm font-medium rounded-xl transition-all">
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-surface hover:bg-red-soft-bg border border-red-soft/30 text-red-soft hover:text-red-soft text-sm font-medium rounded-xl transition-all">
             <Mail className="w-4 h-4" />
             Contact Support to Delete Account
           </a>

@@ -23,9 +23,9 @@ const PLAN_DISPLAY: Record<string, string> = {
 }
 
 const PLAN_COLORS: Record<string, string> = {
-  starter: 'bg-gray-100 text-gray-700',
-  growth: 'bg-blue-100 text-blue-700',
-  enterprise: 'bg-purple-100 text-purple-700',
+  starter: 'bg-surface-muted text-ink-2',
+  growth: 'bg-surface-muted text-ink-2',
+  enterprise: 'bg-surface-muted text-ink-2',
 }
 
 type CancelReason =
@@ -59,40 +59,40 @@ function CounterOffer({ reason, plan, lang, onPause, onDowngrade, onContinueCanc
     return (
       <div className="space-y-3">
         {plan !== 'starter' && (
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
-            <p className="font-semibold text-blue-900 text-sm mb-1">
+          <div className="p-4 bg-surface-warm border border-divider rounded-xl">
+            <p className="font-semibold text-ink text-sm mb-1">
               {isZh ? '💡 降级到 Starter ($299/月)' : '💡 Switch to Starter ($299/mo)'}
             </p>
-            <p className="text-blue-700 text-xs mb-3">
+            <p className="text-ink-2 text-xs mb-3">
               {isZh
                 ? '保留核心 AI 可见度追踪功能，费用直接降低 50%，随时可以升回来。'
                 : 'Keep core AI visibility tracking at 50% less cost — upgrade anytime.'}
             </p>
             <button
               onClick={onDowngrade}
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium rounded-lg transition-colors"
             >
               {isZh ? '切换到 Starter' : 'Switch to Starter'}
             </button>
           </div>
         )}
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
-          <p className="font-semibold text-emerald-900 text-sm mb-1">
+        <div className="p-4 bg-sage-bg border border-sage/20 rounded-xl">
+          <p className="font-semibold text-ink text-sm mb-1">
             {isZh ? '⏸ 免费暂停 1 个月' : '⏸ Pause for 1 month — free'}
           </p>
-          <p className="text-emerald-700 text-xs mb-3">
+          <p className="text-ink-2 text-xs mb-3">
             {isZh
               ? '账号和数据完全保留，1 个月后自动恢复。暂停期间不收取任何费用。'
               : 'Your account and all data stay intact. Auto-resumes in 1 month. Zero charge.'}
           </p>
           <button
             onClick={onPause}
-            className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+            className="px-4 py-2 bg-sage text-ink-inv text-sm font-medium rounded-lg hover:bg-[#3D6B4E] transition-colors"
           >
             {isZh ? '暂停订阅' : 'Pause my subscription'}
           </button>
         </div>
-        <button onClick={onContinueCancel} className="text-xs text-gray-400 hover:text-gray-500 underline underline-offset-2 mt-1">
+        <button onClick={onContinueCancel} className="text-xs text-ink-3 hover:text-ink-3 underline underline-offset-2 mt-1">
           {isZh ? '以上都不适合我，继续取消' : 'None of these work for me'}
         </button>
       </div>
@@ -102,39 +102,39 @@ function CounterOffer({ reason, plan, lang, onPause, onDowngrade, onContinueCanc
   if (reason === 'not_using') {
     return (
       <div className="space-y-3">
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
-          <p className="font-semibold text-emerald-900 text-sm mb-1">
+        <div className="p-4 bg-sage-bg border border-sage/20 rounded-xl">
+          <p className="font-semibold text-ink text-sm mb-1">
             {isZh ? '⏸ 先暂停，而不是取消' : '⏸ Pause instead of canceling'}
           </p>
-          <p className="text-emerald-700 text-xs mb-3">
+          <p className="text-ink-2 text-xs mb-3">
             {isZh
               ? '现在忙没关系，先免费暂停 1 个月 — 数据全部保留，随时回来继续。'
               : "Too busy right now? Pause free for 1 month — all your data stays, come back anytime."}
           </p>
           <button
             onClick={onPause}
-            className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+            className="px-4 py-2 bg-sage text-ink-inv text-sm font-medium rounded-lg hover:bg-[#3D6B4E] transition-colors"
           >
             {isZh ? '暂停 1 个月' : 'Pause for 1 month'}
           </button>
         </div>
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
-          <p className="font-semibold text-blue-900 text-sm mb-1">
+        <div className="p-4 bg-surface-warm border border-divider rounded-xl">
+          <p className="font-semibold text-ink text-sm mb-1">
             {isZh ? '📚 预约 15 分钟使用指导' : '📚 Get a 15-min onboarding call'}
           </p>
-          <p className="text-blue-700 text-xs mb-3">
+          <p className="text-ink-2 text-xs mb-3">
             {isZh
               ? '我们的团队可以帮您快速上手，让每一次使用都更有价值。'
               : "Our team will walk you through best practices to get more value from every session."}
           </p>
           <a
             href="mailto:contact@alignmenttech.ai?subject=Onboarding%20Call%20Request"
-            className="inline-block px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-block px-4 py-2 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium rounded-lg transition-colors"
           >
             {isZh ? '预约指导' : 'Book a call'}
           </a>
         </div>
-        <button onClick={onContinueCancel} className="text-xs text-gray-400 hover:text-gray-500 underline underline-offset-2 mt-1">
+        <button onClick={onContinueCancel} className="text-xs text-ink-3 hover:text-ink-3 underline underline-offset-2 mt-1">
           {isZh ? '以上都不适合我，继续取消' : 'None of these work for me'}
         </button>
       </div>
@@ -144,39 +144,39 @@ function CounterOffer({ reason, plan, lang, onPause, onDowngrade, onContinueCanc
   if (reason === 'missing_features') {
     return (
       <div className="space-y-3">
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
-          <p className="font-semibold text-amber-900 text-sm mb-1">
+        <div className="p-4 bg-caution-bg border border-caution/20 rounded-xl">
+          <p className="font-semibold text-ink text-sm mb-1">
             {isZh ? '🔧 告诉我们缺少什么' : '🔧 Tell us what you need'}
           </p>
-          <p className="text-amber-700 text-xs mb-3">
+          <p className="text-caution text-xs mb-3">
             {isZh
               ? '我们 24 小时内回复。您需要的功能可能已在开发路线图中，或者我们可以为您优先排期。'
               : "We reply within 24 hours. The feature you need may already be on our roadmap — or we can prioritize it for you."}
           </p>
           <a
             href="mailto:contact@alignmenttech.ai?subject=Feature%20Request%20%E2%80%94%20Cancel%20Intent"
-            className="inline-block px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors"
+            className="inline-block px-4 py-2 bg-ink text-ink-inv text-sm font-medium rounded-lg hover:bg-[#2d2d2c] transition-colors"
           >
             {isZh ? '发送功能需求' : 'Send feature request'}
           </a>
         </div>
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
-          <p className="font-semibold text-emerald-900 text-sm mb-1">
+        <div className="p-4 bg-sage-bg border border-sage/20 rounded-xl">
+          <p className="font-semibold text-ink text-sm mb-1">
             {isZh ? '⏸ 暂停等待功能上线' : '⏸ Pause while we build it'}
           </p>
-          <p className="text-emerald-700 text-xs mb-3">
+          <p className="text-ink-2 text-xs mb-3">
             {isZh
               ? '免费暂停 1 个月，功能上线后再恢复，数据全部保留。'
               : "Pause free for 1 month, resume when the feature ships — your data stays safe."}
           </p>
           <button
             onClick={onPause}
-            className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+            className="px-4 py-2 bg-sage text-ink-inv text-sm font-medium rounded-lg hover:bg-[#3D6B4E] transition-colors"
           >
             {isZh ? '暂停订阅' : 'Pause my subscription'}
           </button>
         </div>
-        <button onClick={onContinueCancel} className="text-xs text-gray-400 hover:text-gray-500 underline underline-offset-2 mt-1">
+        <button onClick={onContinueCancel} className="text-xs text-ink-3 hover:text-ink-3 underline underline-offset-2 mt-1">
           {isZh ? '以上都不适合我，继续取消' : 'None of these work for me'}
         </button>
       </div>
@@ -186,23 +186,23 @@ function CounterOffer({ reason, plan, lang, onPause, onDowngrade, onContinueCanc
   if (reason === 'switching') {
     return (
       <div className="space-y-3">
-        <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl">
-          <p className="font-semibold text-purple-900 text-sm mb-1">
+        <div className="p-4 bg-surface-warm border border-divider rounded-xl">
+          <p className="font-semibold text-ink text-sm mb-1">
             {isZh ? '🔍 Alignment AI 做到了竞品做不到的事' : '🔍 What no other tool can do'}
           </p>
-          <ul className="text-purple-700 text-xs space-y-1 mb-3">
+          <ul className="text-ink-2 text-xs space-y-1 mb-3">
             <li>• {isZh ? '基于您自定义 Prompt 的真实 AI 可见度追踪' : 'Real AI visibility tracking driven by your own prompts'}</li>
             <li>• {isZh ? '同时覆盖 ChatGPT、Perplexity、Grok、Google AI Overview' : 'Cross-platform: ChatGPT, Perplexity, Grok & Google AI'}</li>
             <li>• {isZh ? '从诊断到内容到分发的完整 GEO 闭环' : 'Full GEO loop: audit → content → distribution → monitor'}</li>
           </ul>
           <a
             href="mailto:contact@alignmenttech.ai?subject=Competitive%20Question"
-            className="inline-block px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors"
+            className="inline-block px-4 py-2 bg-ink text-ink-inv text-sm font-medium rounded-lg hover:bg-[#2d2d2c] transition-colors"
           >
             {isZh ? '和我们聊聊您的需求' : 'Talk to us about your needs'}
           </a>
         </div>
-        <button onClick={onContinueCancel} className="text-xs text-gray-400 hover:text-gray-500 underline underline-offset-2 mt-1">
+        <button onClick={onContinueCancel} className="text-xs text-ink-3 hover:text-ink-3 underline underline-offset-2 mt-1">
           {isZh ? '我已决定，继续取消' : "I've decided, continue canceling"}
         </button>
       </div>
@@ -212,34 +212,34 @@ function CounterOffer({ reason, plan, lang, onPause, onDowngrade, onContinueCanc
   // other
   return (
     <div className="space-y-3">
-      <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
-        <p className="font-semibold text-gray-900 text-sm mb-1">
+      <div className="p-4 bg-surface-warm border border-divider-light rounded-xl">
+        <p className="font-semibold text-ink text-sm mb-1">
           {isZh ? '💬 能告诉我们原因吗？' : '💬 Can you tell us more?'}
         </p>
-        <p className="text-gray-600 text-xs mb-3">
+        <p className="text-ink-2 text-xs mb-3">
           {isZh
             ? '您的反馈直接影响产品方向。我们会在 24 小时内回复，也许我们能解决您的问题。'
             : "Your feedback directly shapes our product. We'll reply in 24 hours — maybe we can solve the issue."}
         </p>
         <a
           href="mailto:contact@alignmenttech.ai?subject=Cancel%20Feedback"
-          className="inline-block px-4 py-2 bg-gray-800 text-white text-sm font-medium rounded-lg hover:bg-gray-900 transition-colors"
+          className="inline-block px-4 py-2 bg-ink text-ink-inv text-sm font-medium rounded-lg hover:bg-[#2d2d2c] transition-colors"
         >
           {isZh ? '发送反馈' : 'Send feedback'}
         </a>
       </div>
-      <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
-        <p className="font-semibold text-emerald-900 text-sm mb-1">
+      <div className="p-4 bg-sage-bg border border-sage/20 rounded-xl">
+        <p className="font-semibold text-ink text-sm mb-1">
           {isZh ? '⏸ 或者先暂停 1 个月' : '⏸ Or pause for a month'}
         </p>
-        <p className="text-emerald-700 text-xs mb-3">
+        <p className="text-ink-2 text-xs mb-3">
           {isZh ? '不着急做决定 — 免费暂停，数据保留，随时恢复。' : "No rush — pause free, keep your data, resume whenever."}
         </p>
-        <button onClick={onPause} className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors">
+        <button onClick={onPause} className="px-4 py-2 bg-sage text-ink-inv text-sm font-medium rounded-lg hover:bg-[#3D6B4E] transition-colors">
           {isZh ? '暂停订阅' : 'Pause my subscription'}
         </button>
       </div>
-      <button onClick={onContinueCancel} className="text-xs text-gray-400 hover:text-gray-500 underline underline-offset-2 mt-1">
+      <button onClick={onContinueCancel} className="text-xs text-ink-3 hover:text-ink-3 underline underline-offset-2 mt-1">
         {isZh ? '以上都不适合我，继续取消' : 'None of these work for me'}
       </button>
     </div>
@@ -385,19 +385,19 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
 
   // Banner color
   const bannerClass =
-    isPaymentFailed ? 'bg-red-50 border-red-200'
-    : isUrgentTrial && daysLeft !== null && daysLeft <= 2 ? 'bg-red-50 border-red-200'
-    : isUrgentTrial && daysLeft !== null && daysLeft <= 5 ? 'bg-amber-50 border-amber-200'
-    : isPaused ? 'bg-gray-50 border-gray-200'
-    : isCancelScheduled ? 'bg-orange-50 border-orange-200'
-    : 'bg-blue-50 border-blue-200'
+    isPaymentFailed ? 'bg-red-soft-bg border-red-soft/20'
+    : isUrgentTrial && daysLeft !== null && daysLeft <= 2 ? 'bg-red-soft-bg border-red-soft/20'
+    : isUrgentTrial && daysLeft !== null && daysLeft <= 5 ? 'bg-caution-bg border-caution/20'
+    : isPaused ? 'bg-surface-warm border-divider-light'
+    : isCancelScheduled ? 'bg-caution-bg border-caution/20'
+    : 'bg-surface-warm border-divider'
 
   return (
     <>
       {/* ── Success Toast ───────────────────────────────────────────────────── */}
       {showSuccessToast && (
         <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2">
-          <div className="flex items-center gap-3 bg-green-600 text-white px-5 py-3 rounded-xl shadow-xl">
+          <div className="flex items-center gap-3 bg-sage text-ink-inv px-5 py-3 rounded-xl shadow-xl">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -405,11 +405,11 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
               <p className="font-semibold text-sm">
                 {isZh ? '🎉 订阅成功！' : '🎉 Subscription activated!'}
               </p>
-              <p className="text-xs text-green-100">
+              <p className="text-xs text-ink-inv/70">
                 {isZh ? '14 天免费试用已开始，尽情探索所有功能。' : 'Your 14-day trial has started. Explore all features.'}
               </p>
             </div>
-            <button onClick={() => setShowSuccessToast(false)} className="text-green-200 hover:text-white ml-2">
+            <button onClick={() => setShowSuccessToast(false)} className="text-ink-inv/50 hover:text-ink-inv transition-colors ml-2">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -429,12 +429,12 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
                 {isPaymentFailed ? '⚠️' : isPaused ? '⏸' : isCancelScheduled ? '📅' : '⏰'}
               </span>
               <span className={`text-xs font-medium ${
-                isPaymentFailed ? 'text-red-700'
-                : isCancelScheduled ? 'text-orange-700'
-                : isPaused ? 'text-gray-600'
-                : daysLeft !== null && daysLeft <= 2 ? 'text-red-700'
-                : daysLeft !== null && daysLeft <= 5 ? 'text-amber-700'
-                : 'text-blue-700'
+                isPaymentFailed ? 'text-red-soft'
+                : isCancelScheduled ? 'text-caution'
+                : isPaused ? 'text-ink-2'
+                : daysLeft !== null && daysLeft <= 2 ? 'text-red-soft'
+                : daysLeft !== null && daysLeft <= 5 ? 'text-caution'
+                : 'text-ink-2'
               }`}>
                 {isPaymentFailed
                   ? (isZh ? '付款失败 — 请更新支付方式以保留访问权限' : 'Payment failed — update billing to keep access')
@@ -453,7 +453,7 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
               {(isUrgentTrial || isCancelScheduled) && sub.plan !== 'enterprise' && (
                 <Link
                   href="/pricing"
-                  className="text-xs font-semibold text-red-600 hover:text-red-700 px-3 py-1.5 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+                  className="text-xs font-semibold text-red-soft border border-red-soft/30 hover:bg-red-soft-bg px-3 py-1.5 rounded-lg transition-colors"
                 >
                   {isZh ? '升级计划' : 'Upgrade'}
                 </Link>
@@ -461,7 +461,7 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
               <button
                 onClick={handleManagePortal}
                 disabled={portalLoading}
-                className="text-xs font-medium text-gray-600 hover:text-gray-900 px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-white transition-colors disabled:opacity-50"
+                className="text-xs font-medium text-ink-2 hover:text-ink px-3 py-1.5 border border-divider-light rounded-lg hover:bg-surface transition-colors disabled:opacity-50"
               >
                 {portalLoading
                   ? (isZh ? '跳转中...' : 'Redirecting…')
@@ -478,12 +478,12 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
       ── */}
       {showCancelModal && sub && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 max-h-[90vh] overflow-y-auto">
+          <div className="relative bg-surface rounded-2xl shadow-2xl max-w-md w-full p-8 max-h-[90vh] overflow-y-auto">
 
             {/* ── X close button — prominent, easy to find ── */}
             <button
               onClick={() => setShowCancelModal(false)}
-              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 transition-all"
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-surface-muted hover:bg-surface-muted text-ink-3 hover:text-ink transition-all"
               aria-label="Close"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -495,9 +495,9 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
             <div className="flex items-center gap-1.5 mb-6">
               {(['reason', 'counteroffer', 'data_summary', 'confirm'] as const).map((s, i) => (
                 <div key={s} className={`h-1 rounded-full flex-1 transition-colors ${
-                  cancelStep === s ? 'bg-gray-800'
-                  : ['reason', 'counteroffer', 'data_summary', 'confirm'].indexOf(cancelStep) > i ? 'bg-gray-400'
-                  : 'bg-gray-200'
+                  cancelStep === s ? 'bg-ink'
+                  : ['reason', 'counteroffer', 'data_summary', 'confirm'].indexOf(cancelStep) > i ? 'bg-ink-3'
+                  : 'bg-surface-muted'
                 }`} />
               ))}
             </div>
@@ -505,10 +505,10 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
             {/* ── Step 1: Reason ── */}
             {cancelStep === 'reason' && (
               <>
-                <h2 className="text-lg font-bold text-gray-900 mb-1 pr-8">
+                <h2 className="text-lg font-bold text-ink mb-1 pr-8">
                   {isZh ? '取消前，请告诉我们原因' : 'Before you go — what happened?'}
                 </h2>
-                <p className="text-sm text-gray-500 mb-5">
+                <p className="text-sm text-ink-3 mb-5">
                   {isZh
                     ? '您的反馈帮助我们改进产品。根据原因，我们可能有更好的方案。'
                     : 'Your feedback helps us improve. We may have a better solution depending on your reason.'}
@@ -521,11 +521,11 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
                         setCancelReason(r.value)
                         setCancelStep('counteroffer') // → always go to counteroffer first
                       }}
-                      className="w-full text-left px-4 py-3 border border-gray-200 rounded-xl hover:border-gray-900 hover:bg-gray-50 text-sm text-gray-700 transition-all group"
+                      className="w-full text-left px-4 py-3 border border-divider-light rounded-xl hover:border-ink hover:bg-surface-warm text-sm text-ink-2 transition-all group"
                     >
                       <span className="flex items-center justify-between">
                         {isZh ? r.label_zh : r.label}
-                        <svg className="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5 text-ink-3 group-hover:text-ink-2 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                       </span>
@@ -538,10 +538,10 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
             {/* ── Step 2: Counter-offer (personalised by reason) ── */}
             {cancelStep === 'counteroffer' && cancelReason && (
               <>
-                <h2 className="text-lg font-bold text-gray-900 mb-1 pr-8">
+                <h2 className="text-lg font-bold text-ink mb-1 pr-8">
                   {isZh ? '我们可以这样帮您' : 'Before you cancel — we have a better option'}
                 </h2>
-                <p className="text-sm text-gray-500 mb-5">
+                <p className="text-sm text-ink-3 mb-5">
                   {isZh
                     ? '很多用户遇到同样情况后选择了以下方案，希望对您也有帮助。'
                     : 'Many users in your situation chose one of these options instead.'}
@@ -560,10 +560,10 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
             {/* ── Step 3: Data summary / "what you'll lose" ── */}
             {cancelStep === 'data_summary' && (
               <>
-                <h2 className="text-lg font-bold text-gray-900 mb-1 pr-8">
+                <h2 className="text-lg font-bold text-ink mb-1 pr-8">
                   {isZh ? '取消后，这些将会消失' : "Here's what you'll lose"}
                 </h2>
-                <p className="text-sm text-gray-500 mb-4">
+                <p className="text-sm text-ink-3 mb-4">
                   {isZh
                     ? '取消后 30 天数据归档删除，无法恢复。'
                     : 'After cancellation, your data is archived and permanently deleted in 30 days.'}
@@ -571,26 +571,26 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
 
                 {/* Show actual usage if non-zero, otherwise show feature value list */}
                 {usage && ((usage.answers_analyzed ?? 0) > 0 || (usage.prompts_used ?? 0) > 0 || (usage.brands_count ?? 0) > 0) ? (
-                  <div className="bg-gray-50 rounded-xl p-4 mb-5 space-y-2.5">
+                  <div className="bg-surface-warm rounded-xl p-4 mb-5 space-y-2.5">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">{isZh ? '已分析的 AI 回答' : 'AI responses analyzed'}</span>
-                      <span className="font-semibold text-gray-900">{(usage.answers_analyzed ?? 0).toLocaleString()}</span>
+                      <span className="text-ink-3">{isZh ? '已分析的 AI 回答' : 'AI responses analyzed'}</span>
+                      <span className="font-semibold text-ink">{(usage.answers_analyzed ?? 0).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">{isZh ? '已配置的 Prompt' : 'Prompts configured'}</span>
-                      <span className="font-semibold text-gray-900">{usage.prompts_used ?? 0}</span>
+                      <span className="text-ink-3">{isZh ? '已配置的 Prompt' : 'Prompts configured'}</span>
+                      <span className="font-semibold text-ink">{usage.prompts_used ?? 0}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">{isZh ? '追踪的品牌' : 'Brands tracked'}</span>
-                      <span className="font-semibold text-gray-900">{usage.brands_count ?? 0}</span>
+                      <span className="text-ink-3">{isZh ? '追踪的品牌' : 'Brands tracked'}</span>
+                      <span className="font-semibold text-ink">{usage.brands_count ?? 0}</span>
                     </div>
-                    <p className="text-xs text-red-500 mt-2 pt-2 border-t border-gray-200 font-medium">
+                    <p className="text-xs text-red-soft mt-2 pt-2 border-t border-divider-light font-medium">
                       {isZh ? '⚠️ 这些数据将在 30 天后永久删除。' : '⚠️ All of this data will be permanently deleted in 30 days.'}
                     </p>
                   </div>
                 ) : (
-                  <div className="bg-gray-50 rounded-xl p-4 mb-5 space-y-2">
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                  <div className="bg-surface-warm rounded-xl p-4 mb-5 space-y-2">
+                    <p className="text-xs font-semibold text-ink-3 uppercase tracking-wide mb-3">
                       {isZh ? '您将失去访问权限' : "You'll lose access to"}
                     </p>
                     {[
@@ -600,9 +600,9 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
                       isZh ? '📡 GEO 内容分发策略（Reddit + 渠道矩阵）' : '📡 GEO distribution strategy (Reddit + channel matrix)',
                       isZh ? '🔧 网站 AI 可读性诊断与优化建议' : '🔧 Website AI-readiness audit & optimization',
                     ].map((item, i) => (
-                      <p key={i} className="text-xs text-gray-600 leading-relaxed">{item}</p>
+                      <p key={i} className="text-xs text-ink-2 leading-relaxed">{item}</p>
                     ))}
-                    <p className="text-xs text-red-500 mt-2 pt-2 border-t border-gray-200 font-medium">
+                    <p className="text-xs text-red-soft mt-2 pt-2 border-t border-divider-light font-medium">
                       {isZh ? '⚠️ 取消后，您的配置数据将在 30 天后永久删除。' : '⚠️ Your configuration data will be permanently deleted in 30 days.'}
                     </p>
                   </div>
@@ -611,13 +611,13 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
                 {/* Primary action: keep subscription */}
                 <button
                   onClick={() => setShowCancelModal(false)}
-                  className="w-full py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors"
+                  className="w-full py-3 bg-ink text-ink-inv rounded-xl font-semibold hover:bg-[#2d2d2c] transition-colors"
                 >
                   {isZh ? '保留我的订阅' : 'Keep my subscription'}
                 </button>
                 <button
                   onClick={() => setCancelStep('confirm')}
-                  className="w-full mt-2 py-2 text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
+                  className="w-full mt-2 py-2 text-xs text-ink-3 hover:text-ink-2 underline underline-offset-2 transition-colors"
                 >
                   {isZh ? '我了解风险，继续取消' : 'I understand, continue canceling'}
                 </button>
@@ -627,7 +627,7 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
             {/* ── Step 4: Final confirm — Keep is primary, Cancel is small gray ── */}
             {cancelStep === 'confirm' && (
               <>
-                <h2 className="text-lg font-bold text-gray-900 mb-2 pr-8">
+                <h2 className="text-lg font-bold text-ink mb-2 pr-8">
                   {cancelDone
                   ? (isZh ? '订阅已安排取消' : 'Cancellation confirmed')
                   : (isZh ? '最后确认' : 'Last step')}
@@ -636,24 +636,24 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
                 {cancelDone ? (
                   /* ── Success state ── */
                   <>
-                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-green-50 mx-auto mb-4">
-                      <svg className="w-6 h-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-sage-bg mx-auto mb-4">
+                      <svg className="w-6 h-6 text-sage" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <p className="text-sm text-gray-700 mb-2 leading-relaxed text-center">
+                    <p className="text-sm text-ink-2 mb-2 leading-relaxed text-center">
                       {isZh
                         ? `您的订阅将在 ${cancelEndDate ?? '账期结束时'} 到期，到期前可正常使用所有功能。`
                         : `Your subscription will end on ${cancelEndDate ?? 'your billing period end date'}. You keep full access until then.`}
                     </p>
-                    <p className="text-xs text-gray-400 mb-6 text-center leading-relaxed">
+                    <p className="text-xs text-ink-3 mb-6 text-center leading-relaxed">
                       {isZh
                         ? '如需退款或重新激活，请发邮件至 contact@alignmenttech.ai。'
                         : 'To request a refund or reactivate, email contact@alignmenttech.ai.'}
                     </p>
                     <button
                       onClick={() => { setShowCancelModal(false); setCancelDone(false) }}
-                      className="w-full py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors"
+                      className="w-full py-3 bg-ink text-ink-inv rounded-xl font-semibold hover:bg-[#2d2d2c] transition-colors"
                     >
                       {isZh ? '关闭' : 'Close'}
                     </button>
@@ -661,12 +661,12 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
                 ) : (
                   /* ── Confirm state ── */
                   <>
-                    <p className="text-sm text-gray-600 mb-3 leading-relaxed">
+                    <p className="text-sm text-ink-2 mb-3 leading-relaxed">
                       {isZh
                         ? `您的 ${PLAN_DISPLAY[sub.plan] ?? sub.plan} 计划将在 ${periodEnd ?? '当前账期结束时'} 前保持有效，到期前您仍可正常使用所有功能。`
                         : `Your ${PLAN_DISPLAY[sub.plan] ?? sub.plan} plan stays active until ${periodEnd ?? 'the end of your billing period'} — you keep full access until then.`}
                     </p>
-                    <p className="text-xs text-gray-400 mb-6 leading-relaxed">
+                    <p className="text-xs text-ink-3 mb-6 leading-relaxed">
                       {isZh
                         ? '需要退款？发邮件到 contact@alignmenttech.ai，我们在 24 小时内处理。'
                         : 'Need a refund? Email contact@alignmenttech.ai — we respond within 24 hours.'}
@@ -675,7 +675,7 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
                     {/* Primary: Keep (big, black) */}
                     <button
                       onClick={() => setShowCancelModal(false)}
-                      className="w-full py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors mb-3"
+                      className="w-full py-3 bg-ink text-ink-inv rounded-xl font-semibold hover:bg-[#2d2d2c] transition-colors mb-3"
                     >
                       {isZh ? '保留我的订阅' : 'Keep my subscription'}
                     </button>
@@ -685,7 +685,7 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
                       <button
                         onClick={handleFinalCancel}
                         disabled={cancelLoading}
-                        className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors disabled:opacity-50"
+                        className="text-xs text-ink-3 hover:text-ink-2 underline underline-offset-2 transition-colors disabled:opacity-50"
                       >
                         {cancelLoading
                           ? (isZh ? '处理中…' : 'Processing…')

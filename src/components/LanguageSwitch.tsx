@@ -8,7 +8,7 @@ export default function LanguageSwitch() {
   return (
     <button
       onClick={() => setLang(lang === 'en' ? 'zh' : 'en')}
-      className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-all"
+      className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-warm hover:bg-surface-muted rounded-lg text-[13px] font-medium text-ink-2 transition-all"
       title={lang === 'en' ? 'Switch to Chinese' : '切换到英文'}
     >
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

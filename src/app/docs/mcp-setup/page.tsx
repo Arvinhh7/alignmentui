@@ -196,21 +196,21 @@ function CodeBlock({ code, label }: { code: string; label?: string }) {
   return (
     <div className="relative group">
       {label && (
-        <div className="flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-t-xl border-b border-gray-700">
-          <Terminal className="w-3.5 h-3.5 text-gray-400" />
-          <span className="text-xs text-gray-400 font-mono">{label}</span>
+        <div className="flex items-center gap-2 px-4 py-2 bg-ink rounded-t-xl border-b border-ink/70">
+          <Terminal className="w-3.5 h-3.5 text-ink-3" />
+          <span className="text-xs text-ink-3 font-mono">{label}</span>
         </div>
       )}
-      <div className={`relative bg-gray-900 ${label ? 'rounded-b-xl' : 'rounded-xl'} overflow-hidden`}>
-        <pre className="p-4 text-sm text-gray-200 font-mono overflow-x-auto leading-relaxed whitespace-pre-wrap break-all">{code}</pre>
+      <div className={`relative bg-ink ${label ? 'rounded-b-xl' : 'rounded-xl'} overflow-hidden`}>
+        <pre className="p-4 text-sm text-ink-inv font-mono overflow-x-auto leading-relaxed whitespace-pre-wrap break-all">{code}</pre>
         <button
           onClick={copy}
-          className="absolute top-3 right-3 p-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors opacity-0 group-hover:opacity-100"
+          className="absolute top-3 right-3 p-1.5 rounded-lg bg-ink/70 hover:bg-ink/50 transition-colors opacity-0 group-hover:opacity-100"
           title="Copy"
         >
           {copied
-            ? <CheckCircle2 className="w-4 h-4 text-green-400" />
-            : <Copy className="w-4 h-4 text-gray-300" />}
+            ? <CheckCircle2 className="w-4 h-4 text-sage" />
+            : <Copy className="w-4 h-4 text-ink-3" />}
         </button>
       </div>
     </div>
@@ -220,11 +220,11 @@ function CodeBlock({ code, label }: { code: string; label?: string }) {
 function Step({ num, title, children }: { num: number; title: string; children: React.ReactNode }) {
   return (
     <div className="flex gap-5">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-red-500 text-white text-sm font-bold flex items-center justify-center mt-0.5">
+      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-ink text-ink-inv text-sm font-bold flex items-center justify-center mt-0.5">
         {num}
       </div>
       <div className="flex-1 space-y-3">
-        <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+        <h3 className="text-base font-semibold text-ink">{title}</h3>
         {children}
       </div>
     </div>
@@ -236,7 +236,7 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
     <button
       onClick={onClick}
       className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-        active ? 'bg-gray-900 text-white' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+        active ? 'bg-ink text-ink-inv' : 'text-ink-3 hover:text-ink-2 hover:bg-surface-muted'
       }`}
     >
       {children}
@@ -274,19 +274,19 @@ export default function MCPSetupPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-canvas">
       {/* Nav */}
-      <nav className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <nav className="bg-surface border-b border-divider-light sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
           <Link href="/">
             <LogoFull width={120} height={38} />
           </Link>
           <div className="flex items-center gap-3">
-            <Link href="/docs/" className="text-sm text-gray-500 hover:text-gray-700">{c.nav.docs}</Link>
+            <Link href="/docs/" className="text-sm text-ink-3 hover:text-ink-2">{c.nav.docs}</Link>
             <LanguageSwitch />
             <Link
               href="/dashboard/settings"
-              className="text-sm text-white bg-red-500 hover:bg-red-600 px-3.5 py-1.5 rounded-xl font-medium flex items-center gap-1.5 transition-colors"
+              className="text-sm text-ink-inv bg-ink hover:bg-[#2d2d2c] px-3.5 py-1.5 rounded-xl font-medium flex items-center gap-1.5 transition-colors"
             >
               <Key className="w-3.5 h-3.5" />
               {c.nav.getToken}
@@ -299,24 +299,24 @@ export default function MCPSetupPage() {
 
         {/* Header */}
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-50 border border-red-100 rounded-full text-xs font-medium text-red-600 mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-surface-muted border border-divider rounded-full text-xs font-medium text-ink-2 mb-4">
             <Zap className="w-3.5 h-3.5" />
             {c.badge}
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">{c.title}</h1>
-          <p className="text-gray-500 text-lg leading-relaxed">{c.subtitle}</p>
+          <h1 className="text-3xl font-bold text-ink mb-3">{c.title}</h1>
+          <p className="text-ink-3 text-lg leading-relaxed">{c.subtitle}</p>
         </div>
 
         {/* What you can ask */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-3">
-          <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-            <MessageSquare className="w-4 h-4 text-red-500" />
+        <div className="bg-surface rounded-2xl border border-divider-light p-6 space-y-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-ink-2">
+            <MessageSquare className="w-4 h-4 text-ink-2" />
             {c.questionsTitle}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {c.questions.map((q) => (
-              <div key={q} className="flex items-start gap-2 px-3 py-2.5 bg-gray-50 rounded-xl text-sm text-gray-600">
-                <span className="text-red-400 mt-0.5 flex-shrink-0">›</span>
+              <div key={q} className="flex items-start gap-2 px-3 py-2.5 bg-surface-warm rounded-xl text-sm text-ink-2">
+                <span className="text-ink-3 mt-0.5 flex-shrink-0">›</span>
                 <span className="italic">{q}</span>
               </div>
             ))}
@@ -328,43 +328,43 @@ export default function MCPSetupPage() {
 
           {/* Step 1 */}
           <Step num={1} title={c.steps[0].title}>
-            <p className="text-sm text-gray-600">{c.steps[0].body}</p>
-            <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-              <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-amber-700 space-y-1">
+            <p className="text-sm text-ink-2">{c.steps[0].body}</p>
+            <div className="flex items-start gap-3 p-4 bg-caution-bg border border-caution/20 rounded-xl">
+              <AlertCircle className="w-4 h-4 text-caution flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-caution space-y-1">
                 <p className="font-medium">{c.steps[0].warning}</p>
-                <p><code className="font-mono bg-amber-100 px-1 rounded">{c.steps[0].warningDetail}</code></p>
+                <p><code className="font-mono bg-caution-bg px-1 rounded">{c.steps[0].warningDetail}</code></p>
               </div>
             </div>
             <Link
               href="/dashboard/settings"
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-xl transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium rounded-xl transition-colors"
             >
               <Key className="w-4 h-4" />
               {c.steps[0].cta}
             </Link>
             <div className="space-y-2">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{c.steps[0].namingTitle}</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs font-mono text-gray-600">
+              <p className="text-xs font-medium text-ink-3 uppercase tracking-wide">{c.steps[0].namingTitle}</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs font-mono text-ink-2">
                 {['Claude-Desktop-Mac', 'Cursor-Work-PC', 'Windsurf-Laptop', 'MyBrand-Production', 'Test-Local'].map(n => (
-                  <div key={n} className="px-2.5 py-1.5 bg-gray-100 rounded-lg">{n}</div>
+                  <div key={n} className="px-2.5 py-1.5 bg-surface-muted rounded-lg">{n}</div>
                 ))}
               </div>
-              <p className="text-xs text-gray-400">{c.steps[0].namingHint}</p>
+              <p className="text-xs text-ink-3">{c.steps[0].namingHint}</p>
             </div>
           </Step>
 
           {/* Step 2 */}
           <Step num={2} title={c.steps[1].title}>
-            <p className="text-sm text-gray-600">{c.steps[1].body}</p>
+            <p className="text-sm text-ink-2">{c.steps[1].body}</p>
             <CodeBlock
               label="Terminal"
               code="pip install git+https://github.com/Alignment-GEOAI/product-backend.git#subdirectory=mcp-server"
             />
-            <p className="text-xs text-gray-400">{c.steps[1].note}</p>
-            <details className="text-xs text-gray-500 cursor-pointer">
-              <summary className="hover:text-gray-700">{c.steps[0].pythonHint}</summary>
-              <div className="mt-2 p-3 bg-gray-50 rounded-xl">
+            <p className="text-xs text-ink-3">{c.steps[1].note}</p>
+            <details className="text-xs text-ink-3 cursor-pointer">
+              <summary className="hover:text-ink-2">{c.steps[0].pythonHint}</summary>
+              <div className="mt-2 p-3 bg-surface-warm rounded-xl">
                 <p>{c.steps[0].pythonDetail}</p>
               </div>
             </details>
@@ -372,8 +372,8 @@ export default function MCPSetupPage() {
 
           {/* Step 3 */}
           <Step num={3} title={c.steps[2].title}>
-            <p className="text-sm text-gray-600">{c.steps[2].body}</p>
-            <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+            <p className="text-sm text-ink-2">{c.steps[2].body}</p>
+            <div className="flex gap-1 bg-surface-muted p-1 rounded-xl w-fit">
               <TabButton active={client === 'claude'} onClick={() => setClient('claude')}>{c.tabs.claude}</TabButton>
               <TabButton active={client === 'cursor'} onClick={() => setClient('cursor')}>{c.tabs.cursor}</TabButton>
               <TabButton active={client === 'windsurf'} onClick={() => setClient('windsurf')}>{c.tabs.windsurf}</TabButton>
@@ -382,17 +382,17 @@ export default function MCPSetupPage() {
             {client === 'claude' && (
               <div className="space-y-3">
                 <div className="text-sm space-y-1">
-                  <div className="flex items-center gap-2 text-gray-500">
-                    <span className="px-2 py-0.5 bg-gray-100 rounded text-xs font-mono">{c.steps[2].claudeMacPath}</span>
+                  <div className="flex items-center gap-2 text-ink-3">
+                    <span className="px-2 py-0.5 bg-surface-muted rounded text-xs font-mono">{c.steps[2].claudeMacPath}</span>
                     <span className="font-mono text-xs">~/Library/Application Support/Claude/claude_desktop_config.json</span>
                   </div>
-                  <div className="flex items-center gap-2 text-gray-500">
-                    <span className="px-2 py-0.5 bg-gray-100 rounded text-xs font-mono">{c.steps[2].claudeWinPath}</span>
+                  <div className="flex items-center gap-2 text-ink-3">
+                    <span className="px-2 py-0.5 bg-surface-muted rounded text-xs font-mono">{c.steps[2].claudeWinPath}</span>
                     <span className="font-mono text-xs">%APPDATA%\Claude\claude_desktop_config.json</span>
                   </div>
                 </div>
                 <CodeBlock label="claude_desktop_config.json" code={CLAUDE_CONFIG} />
-                <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-100 rounded-xl text-sm text-blue-700">
+                <div className="flex items-start gap-2 p-3 bg-surface-warm border border-divider-light rounded-xl text-sm text-ink-2">
                   <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <p>{c.steps[2].hint} Claude Desktop</p>
                 </div>
@@ -401,13 +401,13 @@ export default function MCPSetupPage() {
 
             {client === 'cursor' && (
               <div className="space-y-3">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-ink-2">
                   {lang === 'en'
                     ? 'In Cursor: Settings → MCP → Add New MCP Server, paste the config below:'
                     : '在 Cursor 中：Settings → MCP → Add New MCP Server，粘贴以下配置：'}
                 </p>
                 <CodeBlock label="Cursor MCP Config" code={CURSOR_CONFIG} />
-                <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-100 rounded-xl text-sm text-blue-700">
+                <div className="flex items-start gap-2 p-3 bg-surface-warm border border-divider-light rounded-xl text-sm text-ink-2">
                   <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <p>{c.steps[2].hintCursor} Cursor</p>
                 </div>
@@ -416,13 +416,13 @@ export default function MCPSetupPage() {
 
             {client === 'windsurf' && (
               <div className="space-y-3">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-ink-2">
                   {lang === 'en'
                     ? 'In Windsurf: Settings → MCP → Add New MCP Server, paste the config below:'
                     : '在 Windsurf 中：Settings → MCP → Add New MCP Server，粘贴以下配置：'}
                 </p>
                 <CodeBlock label="Windsurf MCP Config" code={CURSOR_CONFIG} />
-                <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-100 rounded-xl text-sm text-blue-700">
+                <div className="flex items-start gap-2 p-3 bg-surface-warm border border-divider-light rounded-xl text-sm text-ink-2">
                   <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <p>{c.steps[2].hintCursor} Windsurf</p>
                 </div>
@@ -432,16 +432,16 @@ export default function MCPSetupPage() {
 
           {/* Step 4 */}
           <Step num={4} title={c.steps[3].title}>
-            <p className="text-sm text-gray-600">{c.steps[3].body}</p>
+            <p className="text-sm text-ink-2">{c.steps[3].body}</p>
             <CodeBlock code={lang === 'en'
               ? 'How is my brand performing on AI platforms?'
               : '我的品牌最近 AI 可见度怎么样？'}
             />
-            <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-100 rounded-xl">
-              <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-green-700 space-y-1">
+            <div className="flex items-start gap-3 p-4 bg-sage-bg border border-sage-bg rounded-xl">
+              <CheckCircle2 className="w-4 h-4 text-sage flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-sage space-y-1">
                 <p className="font-medium">{c.steps[3].successTitle}</p>
-                <ul className="space-y-0.5 text-green-600">
+                <ul className="space-y-0.5 text-sage">
                   {(c.steps[3].successItems ?? []).map(item => (
                     <li key={item}>· {item}</li>
                   ))}
@@ -452,16 +452,16 @@ export default function MCPSetupPage() {
         </div>
 
         {/* Available tools */}
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="text-sm font-semibold text-gray-900">{c.toolsTitle}</h2>
-            <p className="text-xs text-gray-400 mt-0.5">{c.toolsSubtitle}</p>
+        <div className="bg-surface rounded-2xl border border-divider-light overflow-hidden">
+          <div className="px-6 py-4 border-b border-divider-light">
+            <h2 className="text-sm font-semibold text-ink">{c.toolsTitle}</h2>
+            <p className="text-xs text-ink-3 mt-0.5">{c.toolsSubtitle}</p>
           </div>
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-divider-light">
             {c.tools.map(({ name, desc }) => (
               <div key={name} className="px-6 py-3 flex items-start gap-3">
-                <code className="text-xs font-mono text-red-600 bg-red-50 px-2 py-0.5 rounded-md flex-shrink-0 mt-0.5">{name}</code>
-                <span className="text-sm text-gray-600">{desc}</span>
+                <code className="text-xs font-mono text-ink bg-surface-muted px-2 py-0.5 rounded-md flex-shrink-0 mt-0.5">{name}</code>
+                <span className="text-sm text-ink-2">{desc}</span>
               </div>
             ))}
           </div>
@@ -469,22 +469,22 @@ export default function MCPSetupPage() {
 
         {/* FAQ */}
         <div className="space-y-4">
-          <h2 className="text-base font-semibold text-gray-900">{c.faqTitle}</h2>
+          <h2 className="text-base font-semibold text-ink">{c.faqTitle}</h2>
           <div className="space-y-3">
             {c.faqs.map(({ q, a }, i) => (
               <div
                 key={i}
-                className="bg-white rounded-xl border border-gray-200 overflow-hidden"
+                className="bg-surface rounded-xl border border-divider-light overflow-hidden"
               >
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full px-5 py-3.5 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center justify-between text-left"
+                  className="w-full px-5 py-3.5 text-sm font-medium text-ink-2 hover:bg-surface-warm flex items-center justify-between text-left"
                 >
                   <span>{q}</span>
-                  <ChevronRight className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${openFaq === i ? 'rotate-90' : ''}`} />
+                  <ChevronRight className={`w-4 h-4 text-ink-3 flex-shrink-0 transition-transform ${openFaq === i ? 'rotate-90' : ''}`} />
                 </button>
                 {openFaq === i && (
-                  <div className="px-5 pb-4 text-sm text-gray-500 leading-relaxed">{a}</div>
+                  <div className="px-5 pb-4 text-sm text-ink-3 leading-relaxed">{a}</div>
                 )}
               </div>
             ))}
@@ -492,14 +492,14 @@ export default function MCPSetupPage() {
         </div>
 
         {/* CTA */}
-        <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="bg-ink rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <p className="text-white font-semibold">{c.ctaTitle}</p>
-            <p className="text-gray-400 text-sm mt-0.5">{c.ctaBody}</p>
+            <p className="text-ink-inv font-semibold">{c.ctaTitle}</p>
+            <p className="text-ink-3 text-sm mt-0.5">{c.ctaBody}</p>
           </div>
           <Link
             href="/login"
-            className="flex-shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-xl transition-colors"
+            className="flex-shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium rounded-xl transition-colors"
           >
             {c.ctaButton} <ExternalLink className="w-4 h-4" />
           </Link>

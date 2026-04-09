@@ -15,15 +15,15 @@ import {
 
 // ─── Shared constants (mirrored from geo-monitor) ─────────────────────────────
 const CATEGORY_COLORS: Record<string, string> = {
-  info_cognition:      'bg-blue-100 text-blue-700',
-  solution_explore:    'bg-teal-100 text-teal-700',
-  comparison_decision: 'bg-orange-100 text-orange-700',
-  action_choice:       'bg-red-100 text-red-700',
-  recommendation:      'bg-red-100 text-red-700',
-  comparison:          'bg-orange-100 text-orange-700',
-  information:         'bg-blue-100 text-blue-700',
-  review:              'bg-orange-100 text-orange-700',
-  howto:               'bg-red-100 text-red-700',
+  info_cognition:      'bg-surface-warm text-ink-2',
+  solution_explore:    'bg-sage-bg text-sage',
+  comparison_decision: 'bg-caution-bg text-caution',
+  action_choice:       'bg-red-soft-bg text-red-soft',
+  recommendation:      'bg-red-soft-bg text-red-soft',
+  comparison:          'bg-caution-bg text-caution',
+  information:         'bg-surface-warm text-ink-2',
+  review:              'bg-caution-bg text-caution',
+  howto:               'bg-red-soft-bg text-red-soft',
 }
 
 const CATEGORY_LABEL_MAP: Record<string, string> = {
@@ -68,14 +68,14 @@ function autoClassify(template: string): string {
 }
 
 const SUB_TYPE_LABELS: Record<string, { label: string; icon: string; color: string }> = {
-  primary_recommendation: { label: 'Primary Recommendation', icon: '🏆', color: 'bg-green-100 text-green-800' },
-  alternative_option:     { label: 'Alternative Option',     icon: '🔄', color: 'bg-blue-100 text-blue-800' },
-  feature_highlight:      { label: 'Feature Highlight',      icon: '⭐', color: 'bg-amber-100 text-amber-800' },
-  use_case:               { label: 'Use Case',               icon: '🎯', color: 'bg-purple-100 text-purple-800' },
-  industry_context:       { label: 'Industry Context',       icon: '🏢', color: 'bg-indigo-100 text-indigo-800' },
-  warning_caution:        { label: 'Warning / Caution',      icon: '⚠️', color: 'bg-red-100 text-red-800' },
-  passing_reference:      { label: 'Passing Reference',      icon: '💬', color: 'bg-yellow-100 text-yellow-800' },
-  not_mentioned:          { label: 'Not Mentioned',          icon: '❌', color: 'bg-red-50 text-red-700' },
+  primary_recommendation: { label: 'Primary Recommendation', icon: '🏆', color: 'bg-sage-bg text-sage' },
+  alternative_option:     { label: 'Alternative Option',     icon: '🔄', color: 'bg-surface-warm text-ink-2' },
+  feature_highlight:      { label: 'Feature Highlight',      icon: '⭐', color: 'bg-caution-bg text-caution' },
+  use_case:               { label: 'Use Case',               icon: '🎯', color: 'bg-surface-warm text-ink-2' },
+  industry_context:       { label: 'Industry Context',       icon: '🏢', color: 'bg-surface-muted text-ink-2' },
+  warning_caution:        { label: 'Warning / Caution',      icon: '⚠️', color: 'bg-red-soft-bg text-red-soft' },
+  passing_reference:      { label: 'Passing Reference',      icon: '💬', color: 'bg-caution-bg text-caution' },
+  not_mentioned:          { label: 'Not Mentioned',          icon: '❌', color: 'bg-red-soft-bg text-red-soft' },
 }
 
 const BRAND_CONFIG_KEY = 'alignment_monitor_brand_config'
@@ -91,10 +91,10 @@ function getBrandName(): string {
 // ─── Stats Banner ─────────────────────────────────────────────────────────────
 function StatBanner({ label, value, sub, color }: { label: string; value: string | number; sub?: string; color: string }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">{label}</p>
+    <div className="bg-surface rounded-2xl border border-divider-light shadow-sm p-5">
+      <p className="text-[11px] font-bold text-ink-3 uppercase tracking-wider mb-1">{label}</p>
       <p className={`text-2xl font-bold ${color}`}>{value}</p>
-      {sub && <p className="text-[11px] text-gray-500 mt-0.5">{sub}</p>}
+      {sub && <p className="text-[11px] text-ink-3 mt-0.5">{sub}</p>}
     </div>
   )
 }
@@ -102,7 +102,7 @@ function StatBanner({ label, value, sub, color }: { label: string; value: string
 // ─── Intent Badge ─────────────────────────────────────────────────────────────
 function IntentBadge({ category }: { category: string }) {
   const resolved = resolveIntent(category)
-  const color = CATEGORY_COLORS[resolved] || 'bg-gray-100 text-gray-600'
+  const color = CATEGORY_COLORS[resolved] || 'bg-surface-warm text-ink-2'
   const label = CATEGORY_LABEL_MAP[resolved] || resolved
   return <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${color}`}>{label}</span>
 }
@@ -263,23 +263,23 @@ export default function PromptsPage() {
 
   // ─── Render ───────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-canvas">
       <div className="max-w-6xl mx-auto px-6 py-8">
 
         {/* ── Header ──────────────────────────────────────────────────────────── */}
         <div className="flex items-start justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Prompts</h1>
-            <p className="text-gray-500 text-sm mt-1">
+            <h1 className="text-2xl font-bold text-ink">Prompts</h1>
+            <p className="text-ink-3 text-sm mt-1">
               Discovery-oriented queries that drive your AI visibility scans
-              {brandName && <> · <span className="font-semibold text-gray-700">{brandName}</span></>}
+              {brandName && <> · <span className="font-semibold text-ink-2">{brandName}</span></>}
             </p>
           </div>
           <div className="flex items-center gap-3">
             {credits && (
-              <div className="flex items-center gap-1.5 text-[12px] text-gray-500 bg-white border border-gray-200 px-3 py-1.5 rounded-xl">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span className="font-semibold text-gray-700">{activeCount}</span>
+              <div className="flex items-center gap-1.5 text-[12px] text-ink-3 bg-surface border border-divider px-3 py-1.5 rounded-xl">
+                <Sparkles className="w-3.5 h-3.5 text-caution" />
+                <span className="font-semibold text-ink-2">{activeCount}</span>
                 <span>/ 50 active</span>
               </div>
             )}
@@ -287,14 +287,14 @@ export default function PromptsPage() {
               href={api.getExportCSVUrl('prompts', brandName)}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-[13px] font-semibold px-3.5 py-2 rounded-xl transition-colors"
+              className="flex items-center gap-1.5 bg-surface border border-divider hover:bg-surface-warm text-ink-2 text-[13px] font-semibold px-3.5 py-2 rounded-xl transition-colors"
             >
               <Download className="w-3.5 h-3.5" />
               Export CSV
             </a>
             <button
               onClick={() => { setShowAdd(true); setEditingPrompt(null) }}
-              className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-[13px] font-semibold px-4 py-2 rounded-xl transition-colors"
+              className="flex items-center gap-1.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-[13px] font-semibold px-4 py-2 rounded-xl transition-colors"
             >
               <Plus className="w-4 h-4" />
               Add Prompt
@@ -304,22 +304,22 @@ export default function PromptsPage() {
 
         {/* ── Stats Row ────────────────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <StatBanner label="Total Prompts"   value={prompts.length}  sub="across all intents"        color="text-gray-900" />
-          <StatBanner label="Active"          value={activeCount}     sub="used in next scan"         color="text-emerald-600" />
-          <StatBanner label="Scanned"         value={withScanData}    sub="have visibility data"      color="text-blue-600" />
-          <StatBanner label="Visible Prompts" value={visibleCount}    sub={`${withScanData ? Math.round((visibleCount / withScanData) * 100) : 0}% mention rate`} color="text-purple-600" />
+          <StatBanner label="Total Prompts"   value={prompts.length}  sub="across all intents"        color="text-ink" />
+          <StatBanner label="Active"          value={activeCount}     sub="used in next scan"         color="text-sage" />
+          <StatBanner label="Scanned"         value={withScanData}    sub="have visibility data"      color="text-ink-2" />
+          <StatBanner label="Visible Prompts" value={visibleCount}    sub={`${withScanData ? Math.round((visibleCount / withScanData) * 100) : 0}% mention rate`} color="text-ink-2" />
         </div>
 
         {/* ── Add / Edit Form ───────────────────────────────────────────────────── */}
         {(showAdd || editingPrompt) && (
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
+          <div className="bg-surface rounded-2xl border border-divider-light shadow-sm p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-[15px] font-bold text-gray-900">{editingPrompt ? 'Edit Prompt' : 'New Prompt'}</h3>
-                <p className="text-[12px] text-gray-500 mt-0.5">Write discovery-oriented queries — no brand name needed. AI checks if your brand appears in the response.</p>
+                <h3 className="text-[15px] font-bold text-ink">{editingPrompt ? 'Edit Prompt' : 'New Prompt'}</h3>
+                <p className="text-[12px] text-ink-3 mt-0.5">Write discovery-oriented queries — no brand name needed. AI checks if your brand appears in the response.</p>
               </div>
-              <button onClick={() => { setShowAdd(false); setEditingPrompt(null) }} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
-                <X className="w-4 h-4 text-gray-500" />
+              <button onClick={() => { setShowAdd(false); setEditingPrompt(null) }} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-surface-muted transition-colors">
+                <X className="w-4 h-4 text-ink-3" />
               </button>
             </div>
 
@@ -331,7 +331,7 @@ export default function PromptsPage() {
               }
               placeholder="e.g., What are the best GEO tools for tracking AI visibility in 2026?"
               rows={3}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 resize-none"
+              className="w-full px-4 py-3 border border-divider rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink resize-none"
             />
 
             {/* Auto-detected intent preview */}
@@ -339,12 +339,12 @@ export default function PromptsPage() {
               const tmpl = editingPrompt ? editingPrompt.template : newTemplate
               if (!tmpl.trim()) return null
               const cat = autoClassify(tmpl)
-              const color = CATEGORY_COLORS[cat] || 'bg-gray-100 text-gray-600'
+              const color = CATEGORY_COLORS[cat] || 'bg-surface-warm text-ink-2'
               const label = CATEGORY_LABEL_MAP[cat] || cat
               return (
-                <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-2.5 mt-3">
-                  <Sparkles className="w-4 h-4 text-amber-500" />
-                  <span className="text-[11px] text-gray-500">Auto-detected intent:</span>
+                <div className="flex items-center gap-2 bg-canvas rounded-xl px-4 py-2.5 mt-3">
+                  <Sparkles className="w-4 h-4 text-caution" />
+                  <span className="text-[11px] text-ink-3">Auto-detected intent:</span>
                   <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold ${color}`}>{label}</span>
                 </div>
               )
@@ -354,14 +354,14 @@ export default function PromptsPage() {
               <button
                 onClick={editingPrompt ? handleUpdate : handleAdd}
                 disabled={isSaving || !(editingPrompt ? editingPrompt.template.trim() : newTemplate.trim())}
-                className="flex items-center gap-2 bg-red-500 hover:bg-red-600 disabled:opacity-40 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors"
+                className="flex items-center gap-2 bg-ink hover:bg-[#2d2d2c] disabled:opacity-40 text-ink-inv font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors"
               >
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 {editingPrompt ? 'Update' : 'Add Prompt'}
               </button>
               <button
                 onClick={() => { setShowAdd(false); setEditingPrompt(null) }}
-                className="px-4 py-2.5 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl text-sm transition-colors"
+                className="px-4 py-2.5 border border-divider text-ink-2 hover:bg-surface-warm rounded-xl text-sm transition-colors"
               >
                 Cancel
               </button>
@@ -370,8 +370,8 @@ export default function PromptsPage() {
         )}
 
         {/* ── Filters + Batch Actions ─────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100 flex-wrap gap-3">
+        <div className="bg-surface rounded-2xl border border-divider-light shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-3 border-b border-divider-light flex-wrap gap-3">
             {/* Status tabs */}
             <div className="flex items-center gap-1">
               {([ ['active', activeCount], ['inactive', inactiveCount], ['all', prompts.length] ] as [typeof statusFilter, number][]).map(([val, count]) => (
@@ -380,23 +380,23 @@ export default function PromptsPage() {
                   onClick={() => setStatusFilter(val)}
                   className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all ${
                     statusFilter === val
-                      ? 'bg-gray-100 text-gray-900'
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'bg-ink text-ink-inv'
+                      : 'text-ink-3 hover:text-ink-2'
                   }`}
                 >
                   {val.charAt(0).toUpperCase() + val.slice(1)}
-                  <span className="ml-1.5 text-[10px] font-bold text-gray-400">{count}</span>
+                  <span className="ml-1.5 text-[10px] font-bold text-ink-3">{count}</span>
                 </button>
               ))}
             </div>
 
             {/* Intent filter */}
             <div className="flex items-center gap-2">
-              <Filter className="w-3.5 h-3.5 text-gray-400" />
+              <Filter className="w-3.5 h-3.5 text-ink-3" />
               <select
                 value={intentFilter}
                 onChange={e => setIntentFilter(e.target.value)}
-                className="text-[12px] font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none cursor-pointer"
+                className="text-[12px] font-medium text-ink-2 bg-canvas border border-divider rounded-lg px-2.5 py-1.5 focus:outline-none cursor-pointer"
               >
                 <option value="all">All Intents ({prompts.length})</option>
                 <option value="info_cognition">🧠 Info Cognition</option>
@@ -409,10 +409,10 @@ export default function PromptsPage() {
 
           {/* Batch action bar */}
           {selectedIds.size > 0 && (
-            <div className={`flex items-center justify-between px-6 py-3 ${batchConfirmStep ? 'bg-red-50 border-b border-red-200' : 'bg-amber-50 border-b border-amber-200'}`}>
+            <div className={`flex items-center justify-between px-6 py-3 ${batchConfirmStep ? 'bg-red-soft-bg border-b border-red-soft/30' : 'bg-caution-bg border-b border-caution/30'}`}>
               <div className="flex items-center gap-3">
-                <input type="checkbox" checked={selectedIds.size === filteredPrompts.length} onChange={toggleSelectAll} className="w-4 h-4 rounded text-red-500" />
-                <span className="text-[13px] font-semibold text-gray-700">
+                <input type="checkbox" checked={selectedIds.size === filteredPrompts.length} onChange={toggleSelectAll} className="w-4 h-4 rounded text-ink" />
+                <span className="text-[13px] font-semibold text-ink-2">
                   {batchConfirmStep
                     ? `Confirm delete ${selectedIds.size} prompt${selectedIds.size > 1 ? 's' : ''}?`
                     : `${selectedIds.size} selected`}
@@ -421,16 +421,16 @@ export default function PromptsPage() {
               <div className="flex items-center gap-2">
                 {batchConfirmStep ? (
                   <>
-                    <button onClick={() => { setBatchConfirmStep(false) }} className="px-3 py-1.5 text-[12px] text-gray-600 border border-gray-200 rounded-lg hover:bg-white transition-colors">Cancel</button>
-                    <button onClick={handleBatchDelete} disabled={isBatchDeleting} className="flex items-center gap-1.5 px-4 py-1.5 bg-red-600 text-white text-[12px] font-bold rounded-lg transition-colors disabled:opacity-50">
+                    <button onClick={() => { setBatchConfirmStep(false) }} className="px-3 py-1.5 text-[12px] text-ink-2 border border-divider rounded-lg hover:bg-surface transition-colors">Cancel</button>
+                    <button onClick={handleBatchDelete} disabled={isBatchDeleting} className="flex items-center gap-1.5 px-4 py-1.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-[12px] font-bold rounded-lg transition-colors disabled:opacity-50">
                       {isBatchDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                       Yes, Delete
                     </button>
                   </>
                 ) : (
                   <>
-                    <button onClick={() => { setSelectedIds(new Set()); setBatchConfirmStep(false) }} className="px-3 py-1.5 text-[12px] text-gray-600 border border-gray-200 rounded-lg hover:bg-white transition-colors">Deselect</button>
-                    <button onClick={handleBatchDelete} className="flex items-center gap-1.5 px-4 py-1.5 bg-red-500 text-white text-[12px] font-semibold rounded-lg transition-colors">
+                    <button onClick={() => { setSelectedIds(new Set()); setBatchConfirmStep(false) }} className="px-3 py-1.5 text-[12px] text-ink-2 border border-divider rounded-lg hover:bg-surface transition-colors">Deselect</button>
+                    <button onClick={handleBatchDelete} className="flex items-center gap-1.5 px-4 py-1.5 bg-ink text-ink-inv text-[12px] font-semibold rounded-lg transition-colors">
                       <Trash2 className="w-3.5 h-3.5" /> Delete Selected
                     </button>
                   </>
@@ -446,24 +446,24 @@ export default function PromptsPage() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[900px]">
                 <thead>
-                  <tr className="bg-gray-50/60">
+                  <tr className="bg-canvas">
                     <th className="px-4 py-3 w-10">
-                      <input type="checkbox" checked={filteredPrompts.length > 0 && selectedIds.size === filteredPrompts.length} onChange={toggleSelectAll} className="w-4 h-4 rounded text-red-500 border-gray-300" />
+                      <input type="checkbox" checked={filteredPrompts.length > 0 && selectedIds.size === filteredPrompts.length} onChange={toggleSelectAll} className="w-4 h-4 rounded text-ink border-divider" />
                     </th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Prompt</th>
-                    <th className="px-3 py-3 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider w-24">
+                    <th className="px-4 py-3 text-left text-[10px] font-bold text-ink-3 uppercase tracking-wider">Prompt</th>
+                    <th className="px-3 py-3 text-center text-[10px] font-bold text-ink-3 uppercase tracking-wider w-24">
                       <div className="flex items-center justify-center gap-1"><Eye className="w-3 h-3" /> Visible</div>
                     </th>
-                    <th className="px-3 py-3 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider w-24">
+                    <th className="px-3 py-3 text-center text-[10px] font-bold text-ink-3 uppercase tracking-wider w-24">
                       <div className="flex items-center justify-center gap-1"><ThumbsUp className="w-3 h-3" /> Sentiment</div>
                     </th>
-                    <th className="px-3 py-3 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider w-28">Intent</th>
-                    <th className="px-3 py-3 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider w-28">Competitors</th>
-                    <th className="px-3 py-3 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider w-24">Added</th>
-                    <th className="px-3 py-3 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider w-24">Actions</th>
+                    <th className="px-3 py-3 text-center text-[10px] font-bold text-ink-3 uppercase tracking-wider w-28">Intent</th>
+                    <th className="px-3 py-3 text-center text-[10px] font-bold text-ink-3 uppercase tracking-wider w-28">Competitors</th>
+                    <th className="px-3 py-3 text-center text-[10px] font-bold text-ink-3 uppercase tracking-wider w-24">Added</th>
+                    <th className="px-3 py-3 text-center text-[10px] font-bold text-ink-3 uppercase tracking-wider w-24">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-divider-light">
                   {filteredPrompts.map(prompt => {
                     const hasScan = !!prompt.last_scanned_at
                     const visibilityPct = hasScan ? prompt.mention_rate : null
@@ -480,29 +480,29 @@ export default function PromptsPage() {
                       if (days < 30) return `${days}d ago`
                       return `${Math.floor(days / 30)} mo. ago`
                     })()
-                    const AVATAR_COLORS = ['#3b82f6','#22c55e','#f59e0b','#a855f7','#6366f1','#14b8a6']
+                    const AVATAR_COLORS = ['#4A6FA5','#4A7C59','#B8860B','#7B5E96','#6B6860','#5E8B7E']
 
                     return (
                       <tr
                         key={prompt.id}
                         className={`group transition-colors ${
-                          selectedIds.has(prompt.id) ? 'bg-red-50/30' :
-                          !prompt.is_active ? 'opacity-50 bg-gray-50/40' :
-                          'hover:bg-gray-50/60'
+                          selectedIds.has(prompt.id) ? 'bg-red-soft-bg/30' :
+                          !prompt.is_active ? 'opacity-50 bg-canvas/40' :
+                          'hover:bg-canvas/60'
                         }`}
                       >
                         {/* Checkbox */}
                         <td className="px-4 py-3.5 w-10">
-                          <input type="checkbox" checked={selectedIds.has(prompt.id)} onChange={() => toggleSelect(prompt.id)} className="w-4 h-4 rounded text-red-500 border-gray-300" />
+                          <input type="checkbox" checked={selectedIds.has(prompt.id)} onChange={() => toggleSelect(prompt.id)} className="w-4 h-4 rounded text-ink border-divider" />
                         </td>
 
                         {/* Prompt text */}
                         <td className="px-4 py-3.5 max-w-xs">
-                          <p className={`text-[13px] leading-snug ${prompt.is_active ? 'text-gray-900' : 'text-gray-500 line-through'}`}>
+                          <p className={`text-[13px] leading-snug ${prompt.is_active ? 'text-ink' : 'text-ink-3 line-through'}`}>
                             {prompt.template}
                           </p>
                           {prompt.last_sub_type && prompt.last_sub_type !== 'not_mentioned' && (
-                            <span className={`inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded-full ${SUB_TYPE_LABELS[prompt.last_sub_type]?.color || 'bg-gray-100 text-gray-600'}`}>
+                            <span className={`inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded-full ${SUB_TYPE_LABELS[prompt.last_sub_type]?.color || 'bg-surface-warm text-ink-2'}`}>
                               {SUB_TYPE_LABELS[prompt.last_sub_type]?.icon} {SUB_TYPE_LABELS[prompt.last_sub_type]?.label || prompt.last_sub_type}
                             </span>
                           )}
@@ -511,11 +511,11 @@ export default function PromptsPage() {
                         {/* Visibility */}
                         <td className="px-3 py-3.5 text-center">
                           {visibilityPct !== null ? (
-                            <span className={`text-[13px] font-bold ${visibilityPct >= 80 ? 'text-emerald-600' : visibilityPct >= 50 ? 'text-amber-600' : 'text-red-500'}`}>
+                            <span className={`text-[13px] font-bold ${visibilityPct >= 80 ? 'text-sage' : visibilityPct >= 50 ? 'text-caution' : 'text-red-soft'}`}>
                               {visibilityPct}%
                             </span>
                           ) : (
-                            <span className="text-[11px] text-gray-300">—</span>
+                            <span className="text-[11px] text-ink-3">—</span>
                           )}
                         </td>
 
@@ -523,11 +523,11 @@ export default function PromptsPage() {
                         <td className="px-3 py-3.5 text-center">
                           {sentiment !== null ? (
                             <div className="flex items-center justify-center gap-1.5">
-                              <div className={`w-2 h-2 rounded-full ${sentiment >= 60 ? 'bg-emerald-500' : sentiment >= 40 ? 'bg-amber-500' : 'bg-red-500'}`} />
-                              <span className="text-[12px] font-bold text-gray-800">{sentiment}</span>
+                              <div className={`w-2 h-2 rounded-full ${sentiment >= 60 ? 'bg-sage' : sentiment >= 40 ? 'bg-caution' : 'bg-red-soft'}`} />
+                              <span className="text-[12px] font-bold text-ink">{sentiment}</span>
                             </div>
                           ) : (
-                            <span className="text-[11px] text-gray-300">—</span>
+                            <span className="text-[11px] text-ink-3">—</span>
                           )}
                         </td>
 
@@ -544,24 +544,24 @@ export default function PromptsPage() {
                                 <span
                                   key={i}
                                   title={c}
-                                  className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white ring-2 ring-white"
+                                  className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-ink-inv ring-2 ring-surface"
                                   style={{ backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length] }}
                                 >
                                   {c.charAt(0).toUpperCase()}
                                 </span>
                               ))}
                               {(prompt.last_competitors_mentioned || []).length > 3 && (
-                                <span className="text-[9px] font-bold text-gray-500 ml-1">+{(prompt.last_competitors_mentioned || []).length - 3}</span>
+                                <span className="text-[9px] font-bold text-ink-3 ml-1">+{(prompt.last_competitors_mentioned || []).length - 3}</span>
                               )}
                             </div>
                           ) : (
-                            <span className="text-[11px] text-gray-300">—</span>
+                            <span className="text-[11px] text-ink-3">—</span>
                           )}
                         </td>
 
                         {/* Added */}
                         <td className="px-3 py-3.5 text-center">
-                          <span className="text-[11px] text-gray-500">{addedLabel}</span>
+                          <span className="text-[11px] text-ink-3">{addedLabel}</span>
                         </td>
 
                         {/* Actions */}
@@ -570,28 +570,30 @@ export default function PromptsPage() {
                             <button
                               onClick={() => handleToggle(prompt.id, prompt.is_active)}
                               disabled={!!isToggling}
-                              className={`p-1.5 rounded-lg transition-colors ${isToggling ? 'opacity-50' : 'hover:bg-gray-100'}`}
+                              className={`p-1.5 rounded-lg transition-colors ${isToggling ? 'opacity-50' : 'hover:bg-surface-muted'}`}
                               title={prompt.is_active ? 'Deactivate' : 'Activate'}
                             >
                               {prompt.is_active
-                                ? <ToggleRight className="w-4 h-4 text-emerald-500" />
-                                : <ToggleLeft className="w-4 h-4 text-gray-400" />
+                                ? <ToggleRight className="w-4 h-4 text-sage" />
+                                : <ToggleLeft className="w-4 h-4 text-ink-3" />
                               }
                             </button>
                             <button
                               onClick={() => { setEditingPrompt(prompt); setShowAdd(false) }}
-                              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                              aria-label="Edit prompt"
                               title="Edit"
+                              className="p-1.5 rounded-lg hover:bg-surface-muted transition-colors focus:outline-none focus:ring-2 focus:ring-ink/10"
                             >
-                              <Edit2 className="w-3.5 h-3.5 text-gray-400" />
+                              <Edit2 className="w-3.5 h-3.5 text-ink-3" />
                             </button>
                             <button
                               onClick={() => handleDelete(prompt.id)}
                               disabled={isDeleting}
-                              className="p-1.5 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+                              aria-label="Delete prompt"
                               title="Delete"
+                              className="p-1.5 rounded-lg hover:bg-red-soft-bg transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-red-soft/20"
                             >
-                              {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin text-red-400" /> : <Trash2 className="w-3.5 h-3.5 text-red-400" />}
+                              {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin text-red-soft" /> : <Trash2 className="w-3.5 h-3.5 text-red-soft" />}
                             </button>
                           </div>
                         </td>
@@ -603,8 +605,8 @@ export default function PromptsPage() {
 
               {filteredPrompts.length === 0 && !isLoading && (
                 <div className="text-center py-16">
-                  <MessageSquare className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                  <p className="text-[13px] text-gray-500 mb-4">
+                  <MessageSquare className="w-10 h-10 text-ink-3 mx-auto mb-3" />
+                  <p className="text-[13px] text-ink-3 mb-4">
                     {prompts.length === 0
                       ? 'No prompts yet. Add your first discovery prompt to start tracking AI visibility.'
                       : 'No prompts match the current filter.'
@@ -613,7 +615,7 @@ export default function PromptsPage() {
                   {prompts.length === 0 && (
                     <button
                       onClick={() => setShowAdd(true)}
-                      className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors mx-auto"
+                      className="flex items-center gap-2 bg-ink hover:bg-[#2d2d2c] text-ink-inv font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors mx-auto"
                     >
                       <Plus className="w-4 h-4" />
                       Add First Prompt
@@ -627,28 +629,28 @@ export default function PromptsPage() {
 
         {/* ── Footer Info ──────────────────────────────────────────────────────── */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 flex items-start gap-3">
-            <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+          <div className="bg-surface-warm border border-divider rounded-2xl p-5 flex items-start gap-3">
+            <Info className="w-5 h-5 text-ink-2 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-[13px] font-semibold text-blue-900 mb-1">How Prompts Work</p>
-              <p className="text-[12px] text-blue-700 leading-relaxed">
+              <p className="text-[13px] font-semibold text-ink mb-1">How Prompts Work</p>
+              <p className="text-[12px] text-ink-2 leading-relaxed">
                 Write discovery-oriented prompts without your brand name — the way real users ask AI.
                 Each active prompt is sent to AI engines during a scan, and the system checks whether AI mentions your brand.
                 <strong> Intent is auto-detected</strong> from your prompt text.
               </p>
             </div>
           </div>
-          <div className="bg-gray-900 rounded-2xl p-5 text-white">
+          <div className="bg-ink rounded-2xl p-5 text-ink-inv">
             <div className="flex items-center gap-2 mb-3">
-              <Zap className="w-4 h-4 text-amber-400" />
+              <Zap className="w-4 h-4 text-caution" />
               <span className="text-[13px] font-semibold">Ready to Scan?</span>
             </div>
-            <p className="text-[12px] text-gray-400 mb-4 leading-relaxed">
+            <p className="text-[12px] text-ink-3 mb-4 leading-relaxed">
               {activeCount} active prompt{activeCount !== 1 ? 's' : ''} are ready. Run a scan to populate visibility, sentiment, and competitor data.
             </p>
             <Link
               href="/dashboard/geo-monitor"
-              className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-semibold text-[13px] px-4 py-2 rounded-xl transition-colors w-fit"
+              className="flex items-center gap-2 bg-ink-inv hover:bg-surface-warm text-ink font-semibold text-[13px] px-4 py-2 rounded-xl transition-colors w-fit"
             >
               <ArrowRight className="w-3.5 h-3.5" />
               Go to Monitor →

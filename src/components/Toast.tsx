@@ -35,10 +35,10 @@ export function useToast(): ToastContextValue {
 
 // ─── Config per type ──────────────────────────────────────────────────────────
 const CONFIG: Record<ToastType, { icon: React.ElementType; accent: string; bg: string; iconColor: string }> = {
-  success: { icon: CheckCircle2, accent: 'border-l-emerald-500', bg: 'bg-white',   iconColor: 'text-emerald-500' },
-  error:   { icon: XCircle,      accent: 'border-l-red-500',     bg: 'bg-white',   iconColor: 'text-red-500'     },
-  warning: { icon: AlertTriangle, accent: 'border-l-amber-500',  bg: 'bg-white',   iconColor: 'text-amber-500'   },
-  info:    { icon: Info,          accent: 'border-l-blue-500',   bg: 'bg-white',   iconColor: 'text-blue-500'    },
+  success: { icon: CheckCircle2, accent: 'border-l-sage',        bg: 'bg-surface',   iconColor: 'text-sage'        },
+  error:   { icon: XCircle,      accent: 'border-l-red-soft',    bg: 'bg-surface',   iconColor: 'text-red-soft'    },
+  warning: { icon: AlertTriangle, accent: 'border-l-caution',    bg: 'bg-surface',   iconColor: 'text-caution'     },
+  info:    { icon: Info,          accent: 'border-l-ink-2',      bg: 'bg-surface',   iconColor: 'text-ink-2'       },
 }
 
 // ─── Single Toast Component ───────────────────────────────────────────────────
@@ -49,22 +49,22 @@ function Toast({ item, onDismiss }: { item: ToastItem; onDismiss: (id: string) =
     <div
       className={`
         flex items-start gap-3 w-80 ${bg} rounded-2xl shadow-lg border-l-4 ${accent}
-        border border-gray-100 p-4 animate-[slideInRight_0.25s_ease-out]
+        border border-divider-light p-4 animate-[slideInRight_0.25s_ease-out]
       `}
       role="alert"
       aria-live="polite"
     >
       <Icon className={`w-4.5 h-4.5 flex-shrink-0 mt-0.5 ${iconColor}`} strokeWidth={2.5} />
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-semibold text-gray-900 leading-snug">{item.title}</p>
-        {item.message && <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">{item.message}</p>}
+        <p className="text-[13px] font-semibold text-ink leading-snug">{item.title}</p>
+        {item.message && <p className="text-[11px] text-ink-3 mt-0.5 leading-relaxed">{item.message}</p>}
       </div>
       <button
         onClick={() => onDismiss(item.id)}
-        className="p-0.5 rounded-md hover:bg-gray-100 transition-colors flex-shrink-0"
+        className="p-0.5 rounded-md hover:bg-surface-muted transition-colors flex-shrink-0"
         aria-label="Dismiss"
       >
-        <X className="w-3.5 h-3.5 text-gray-400" />
+        <X className="w-3.5 h-3.5 text-ink-3" />
       </button>
     </div>
   )

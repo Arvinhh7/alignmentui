@@ -151,16 +151,16 @@ export default function HelpPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#fafafa] text-[#0a0a0a]">
+    <main className="min-h-screen bg-canvas text-ink">
       {/* Header */}
-      <div className="border-b border-black/8 bg-white">
+      <div className="border-b border-divider-light bg-surface">
         <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
-          <Link href="/" className="text-sm font-semibold text-[#ef4444] hover:opacity-80 transition-opacity">
+          <Link href="/" className="text-sm font-semibold text-ink hover:text-ink-2 transition-colors">
             ← Alignment AI
           </Link>
           <Link
             href={`mailto:${SUPPORT_EMAIL}`}
-            className="text-sm text-[#64748b] hover:text-[#ef4444] transition-colors"
+            className="text-sm text-ink-3 hover:text-ink transition-colors"
           >
             Contact Support →
           </Link>
@@ -168,12 +168,12 @@ export default function HelpPage() {
       </div>
 
       {/* Hero */}
-      <div className="bg-white border-b border-black/8 py-12 text-center">
+      <div className="bg-surface border-b border-divider-light py-12 text-center">
         <h1 className="text-3xl font-bold mb-3">Help Center</h1>
-        <p className="text-[#64748b] max-w-md mx-auto">
+        <p className="text-ink-3 max-w-md mx-auto">
           Everything you need to know about Alignment GEO — the AI visibility app for Shopify.
         </p>
-        <div className="mt-6 inline-flex items-center gap-2 bg-[#fef9e7] border border-[#f59e0b]/30 rounded-full px-4 py-2 text-sm text-[#92400e]">
+        <div className="mt-6 inline-flex items-center gap-2 bg-caution-bg border border-caution/30 rounded-full px-4 py-2 text-sm text-caution">
           <span>💡</span>
           <span>Analytics data appears once AI bots start visiting your store — zero data on a fresh install is normal.</span>
         </div>
@@ -191,19 +191,19 @@ export default function HelpPage() {
                 return (
                   <div
                     key={key}
-                    className="bg-white border border-black/8 rounded-xl overflow-hidden"
+                    className="bg-surface border border-divider-light rounded-xl overflow-hidden"
                   >
                     <button
                       className="w-full text-left px-5 py-4 flex items-center justify-between gap-4 hover:bg-black/[0.02] transition-colors"
                       onClick={() => toggleItem(key)}
                     >
                       <span className="font-medium text-sm">{item.q}</span>
-                      <span className={`text-[#64748b] text-lg flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+                      <span className={`text-ink-3 text-lg flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
                         ↓
                       </span>
                     </button>
                     {isOpen && (
-                      <div className="px-5 pb-4 text-sm text-[#1e293b] leading-relaxed border-t border-black/5 pt-3">
+                      <div className="px-5 pb-4 text-sm text-ink leading-relaxed border-t border-divider-light pt-3">
                         {item.a}
                       </div>
                     )}
@@ -215,14 +215,14 @@ export default function HelpPage() {
         ))}
 
         {/* Still need help */}
-        <div className="bg-white border border-black/8 rounded-2xl p-8 text-center">
+        <div className="bg-surface border border-divider-light rounded-2xl p-8 text-center">
           <h2 className="text-lg font-semibold mb-2">Still need help?</h2>
-          <p className="text-[#64748b] text-sm mb-5">
+          <p className="text-ink-3 text-sm mb-5">
             Our support team typically responds within 48 business hours.
           </p>
           <a
             href={`mailto:${SUPPORT_EMAIL}`}
-            className="inline-block bg-[#ef4444] text-white text-sm font-medium px-6 py-3 rounded-lg hover:bg-[#dc2626] transition-colors"
+            className="inline-block bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium px-6 py-3 rounded-lg transition-colors"
           >
             Email Support: {SUPPORT_EMAIL}
           </a>
@@ -230,12 +230,12 @@ export default function HelpPage() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-black/8 bg-white py-6 mt-4">
-        <div className="max-w-5xl mx-auto px-6 flex items-center justify-between text-xs text-[#64748b]">
+      <footer className="border-t border-divider-light bg-surface py-6 mt-4">
+        <div className="max-w-5xl mx-auto px-6 flex items-center justify-between text-xs text-ink-3">
           <span>© 2026 Alignment AI. All rights reserved.</span>
           <div className="flex gap-4">
-            <Link href="/privacy" className="hover:text-[#0a0a0a] transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-[#0a0a0a] transition-colors">Terms of Service</Link>
+            <Link href="/privacy" className="hover:text-ink transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-ink transition-colors">Terms of Service</Link>
           </div>
         </div>
       </footer>

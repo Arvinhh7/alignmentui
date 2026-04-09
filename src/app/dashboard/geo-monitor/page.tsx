@@ -9,7 +9,7 @@ import { ControlBar } from './components/ControlBar'
 import { BrandSetupPanel } from './components/BrandSetupPanel'
 import { VisibilityTab } from './components/tabs/VisibilityTab'
 
-const TabLoader = () => <div className="flex items-center justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-gray-400" /></div>
+const TabLoader = () => <div className="flex items-center justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-ink-3" /></div>
 
 const MentionsTab = dynamic(() => import('./components/tabs/MentionsTab').then(m => ({ default: m.MentionsTab })), { loading: TabLoader })
 const CitationsTab = dynamic(() => import('./components/tabs/CitationsTab').then(m => ({ default: m.CitationsTab })), { loading: TabLoader })
@@ -37,16 +37,16 @@ function DashboardContent() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="min-h-screen bg-canvas">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-8 py-6">
+      <div className="bg-surface border-b border-divider-light px-8 py-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
-            <BarChart3 className="w-5 h-5 text-green-600" />
+          <div className="w-10 h-10 rounded-xl bg-sage-bg flex items-center justify-center">
+            <BarChart3 className="w-5 h-5 text-sage" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">{t.dashboard.geoMonitor}</h1>
-            <p className="text-sm text-gray-400">{t.dashboard.geoMonitorDesc}</p>
+            <h1 className="heading-dash">{t.dashboard.geoMonitor}</h1>
+            <p className="text-sm text-ink-3">{t.dashboard.geoMonitorDesc}</p>
           </div>
         </div>
       </div>
@@ -60,23 +60,23 @@ function DashboardContent() {
 
         {/* Error */}
         {ctx.scanError && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
-            <span className="text-sm text-red-700">{ctx.scanError}</span>
+          <div className="bg-red-soft-bg border border-red-soft/30 rounded-xl p-4 flex items-center gap-3">
+            <span className="text-sm text-red-soft">{ctx.scanError}</span>
           </div>
         )}
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1 overflow-x-auto">
+        <div className="flex items-center gap-1 bg-surface border border-divider-light rounded-xl p-1 overflow-x-auto">
           {tabs.map(tab => (
             <button key={tab.key} onClick={() => ctx.setActiveTab(tab.key)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                ctx.activeTab === tab.key ? 'bg-red-500 text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'
+                ctx.activeTab === tab.key ? 'bg-ink text-ink-inv shadow-sm' : 'text-ink-2 hover:bg-surface-warm'
               }`}>
               {tab.icon}
               {tab.label}
               {tab.badge && (
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                  ctx.activeTab === tab.key ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
+                  ctx.activeTab === tab.key ? 'bg-[rgba(250,247,242,0.2)] text-ink-inv' : 'bg-surface-muted text-ink-3'
                 }`}>{tab.badge}</span>
               )}
             </button>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Menu } from 'lucide-react'
 import Sidebar, { SIDEBAR_COLLAPSED_WIDTH, SIDEBAR_EXPANDED_WIDTH } from '@/components/Sidebar'
 import { useAuth } from '@/hooks/useAuth'
 import { useSubscription } from '@/hooks/useSubscription'
@@ -15,7 +16,10 @@ const SIDEBAR_KEY = 'sidebar_expanded'
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { isLoading, isAuthenticated, role, user } = useAuth()
   const { lang } = useLanguage()
-  const [expanded, setExpanded] = useState(false)
+  const [expandedPref, setExpandedPref] = useState(false)
+  const [viewportCollapsed, setViewportCollapsed] = useState(false)
+  const expanded = expandedPref && !viewportCollapsed
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Preserve scroll position across module navigation
   useScrollRestoration()
@@ -31,15 +35,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     try {
       const saved = localStorage.getItem(SIDEBAR_KEY)
-      if (saved === 'true') setExpanded(true)
+      if (saved === 'true') setExpandedPref(true)
     } catch {}
 
     const handler = () => {
-      try { setExpanded(localStorage.getItem(SIDEBAR_KEY) === 'true') } catch {}
+      try { setExpandedPref(localStorage.getItem(SIDEBAR_KEY) === 'true') } catch {}
     }
     const interval = setInterval(handler, 200)
     window.addEventListener('storage', handler)
     return () => { clearInterval(interval); window.removeEventListener('storage', handler) }
+  }, [])
+
+  // Close mobile menu and sync viewport-collapsed state on resize
+  useEffect(() => {
+    const onResize = () => {
+      const w = window.innerWidth
+      if (w >= 768) setMobileMenuOpen(false)
+      setViewportCollapsed(w >= 768 && w < 1024)
+    }
+    onResize()
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
   }, [])
 
   // Redirect unauthenticated users to login
@@ -98,10 +114,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (stillResolving) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-canvas flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-gray-500">Loading...</p>
+          <div className="w-8 h-8 border-2 border-ink border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-ink-3">Loading...</p>
         </div>
       </div>
     )
@@ -112,13 +128,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return null
   }
 
-  const marginLeft = expanded ? SIDEBAR_EXPANDED_WIDTH : SIDEBAR_COLLAPSED_WIDTH
+  const sidebarW = expanded ? SIDEBAR_EXPANDED_WIDTH : SIDEBAR_COLLAPSED_WIDTH
 
   return (
     <ToastProvider>
-      <div className="min-h-screen bg-gray-50">
-        <Sidebar />
-        <main className="transition-all duration-300 ease-in-out" style={{ marginLeft }}>
+      <div className="min-h-screen bg-canvas">
+        {/* Mobile top bar — hidden on md+ (sidebar is always visible there) */}
+        <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-canvas border-b border-divider flex items-center px-4 z-30">
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="w-9 h-9 flex items-center justify-center rounded-lg text-ink-2 hover:bg-surface-muted transition-colors"
+            aria-label="Open navigation menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <div className="flex-1 flex items-center justify-center">
+            <span className="text-sm font-semibold text-ink">Alignment AI</span>
+          </div>
+          {/* Spacer to balance the hamburger button */}
+          <div className="w-9" />
+        </div>
+
+        <Sidebar mobileOpen={mobileMenuOpen} onMobileClose={() => setMobileMenuOpen(false)} />
+
+        {/* pt-14 on mobile to clear the fixed top bar; md+ uses sidebar margin */}
+        <main
+          className="transition-all duration-300 ease-in-out pt-14 md:pt-0 md:[margin-left:var(--sidebar-w)]"
+          style={{ '--sidebar-w': `${sidebarW}px` } as React.CSSProperties}
+        >
           <SubscriptionBanner lang={lang} />
           {children}
         </main>

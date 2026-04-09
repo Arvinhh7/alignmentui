@@ -163,9 +163,9 @@ function ROISimulatorInner() {
   const serviceIncludes = (r.includes as string[]) || []
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-canvas">
       {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <nav className="bg-surface border-b border-divider-light sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-3">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center group hover:opacity-90 transition-opacity"><LogoFull width={140} height={45} /></Link>
@@ -175,16 +175,16 @@ function ROISimulatorInner() {
                 { label: t.nav.technology, href: '#' }, { label: t.nav.pricing, href: '/pricing/' },
                 { label: t.nav.docs, href: '#' }, { label: t.nav.insights, href: '#' }, { label: t.nav.contact, href: '#' },
               ].map((item, i) => (
-                <Link key={i} href={item.href} className="px-3 py-2 text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors rounded-lg hover:bg-gray-50">{item.label}</Link>
+                <Link key={i} href={item.href} className="px-3 py-2 text-ink-2 hover:text-ink text-sm font-medium transition-colors rounded-lg hover:bg-surface-warm">{item.label}</Link>
               ))}
-              <Link href="/roi-simulator" className="ml-1 px-3 py-1.5 text-red-600 hover:text-red-700 text-sm font-semibold transition-colors rounded-lg bg-red-50 hover:bg-red-100 flex items-center gap-1.5">
+              <Link href="/roi-simulator" className="ml-1 px-3 py-1.5 text-red-soft hover:text-red-soft text-sm font-semibold transition-colors rounded-lg bg-red-soft-bg hover:bg-red-soft-bg flex items-center gap-1.5">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                 {(t as unknown as Record<string, string>).nav_roi}
               </Link>
             </div>
             <div className="flex items-center gap-3">
               <LanguageSwitch />
-              <Link href="/login/" className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 rounded-lg hover:from-red-600 hover:to-red-700 transition-all shadow-sm">{t.nav.getStarted}</Link>
+              <Link href="/login/" className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-ink-inv bg-ink rounded-lg hover:bg-[#2d2d2c] transition-all shadow-sm">{t.nav.getStarted}</Link>
             </div>
           </div>
         </div>
@@ -192,22 +192,22 @@ function ROISimulatorInner() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-red-900" />
+        <div className="absolute inset-0 bg-ink" />
         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 30% 50%, rgba(239,68,68,0.3) 0%, transparent 50%), radial-gradient(circle at 70% 30%, rgba(251,146,60,0.2) 0%, transparent 50%)' }} />
         <div className="relative max-w-5xl mx-auto px-6 py-20 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur border border-white/20 rounded-full mb-6">
-            <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            <svg className="w-4 h-4 text-red-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
             <span className="text-sm text-white/90 font-medium">{r.pillBadge as string}</span>
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4">{r.title as string}</h1>
-          <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto">{r.subtitle as string}</p>
+          <p className="text-lg md:text-xl text-white/70 max-w-2xl mx-auto">{r.subtitle as string}</p>
         </div>
       </section>
 
       {/* Main Card */}
       <section className="relative -mt-10 z-10 pb-16">
         <div className="max-w-4xl mx-auto px-6">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+          <div className="bg-surface rounded-2xl shadow-xl border border-divider-light overflow-hidden">
 
             {/* Input */}
             <div className="p-8 md:p-10">
@@ -218,9 +218,9 @@ function ROISimulatorInner() {
                   { n: 3, label: r.stepResults as string },
                 ].map((s, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    {i > 0 && <div className={`w-8 h-px ${showResult ? 'bg-red-300' : 'bg-gray-200'}`} />}
+                    {i > 0 && <div className={`w-8 h-px ${showResult ? 'bg-red-soft/50' : 'bg-divider-light'}`} />}
                     <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                      (s.n === 1 && showInput) ? 'bg-red-500 text-white' : (s.n === 3 && showResult) ? 'bg-red-500 text-white' : showResult ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'
+                      (s.n === 1 && showInput) ? 'bg-ink text-ink-inv' : (s.n === 3 && showResult) ? 'bg-ink text-ink-inv' : showResult ? 'bg-sage-bg text-sage' : 'bg-surface-muted text-ink-3'
                     }`}>
                       {showResult && s.n <= 2 ? <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> : <span>{s.n}</span>}
                       <span className="hidden sm:inline">{s.label}</span>
@@ -231,19 +231,19 @@ function ROISimulatorInner() {
 
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">{r.aovLabel as string} <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-semibold text-ink-2 mb-2">{r.aovLabel as string} <span className="text-red-soft">*</span></label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">$</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-3 font-medium">$</span>
                     <input type="number" value={aov} onChange={e => setAov(e.target.value)} placeholder={r.aovPlaceholder as string} min="1" disabled={showResult}
-                      className="w-full pl-8 pr-16 py-3.5 border border-gray-300 rounded-xl text-gray-900 text-lg font-medium focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all disabled:bg-gray-50 disabled:text-gray-500" />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">{r.aovUnit as string}</span>
+                      className="w-full pl-8 pr-16 py-3.5 border border-divider rounded-xl text-ink text-lg font-medium focus:ring-2 focus:ring-ink focus:border-ink transition-all disabled:bg-surface-muted disabled:text-ink-3" />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-ink-3 text-sm font-medium">{r.aovUnit as string}</span>
                   </div>
-                  <p className="mt-1.5 text-xs text-gray-400">{r.aovHint as string}</p>
+                  <p className="mt-1.5 text-xs text-ink-3">{r.aovHint as string}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">{r.industryLabel as string} <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-semibold text-ink-2 mb-2">{r.industryLabel as string} <span className="text-red-soft">*</span></label>
                   <select value={selectedIndustry} onChange={e => setSelectedIndustry(e.target.value)} disabled={showResult}
-                    className="w-full px-4 py-3.5 border border-gray-300 rounded-xl text-gray-900 text-lg font-medium focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all appearance-none bg-white disabled:bg-gray-50 disabled:text-gray-500"
+                    className="w-full px-4 py-3.5 border border-divider rounded-xl text-ink text-lg font-medium focus:ring-2 focus:ring-ink focus:border-ink transition-all appearance-none bg-surface disabled:bg-surface-muted disabled:text-ink-3"
                     style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 12px center', backgroundRepeat: 'no-repeat', backgroundSize: '20px' }}>
                     <option value="">{r.industryPlaceholder as string}</option>
                     {models.map(m => <option key={m.code} value={m.code}>{modelName(m)}</option>)}
@@ -254,19 +254,19 @@ function ROISimulatorInner() {
               {showInput && !isCalculating && (
                 <div className="mt-8 text-center">
                   <button onClick={handleCalculateClick} disabled={!aov || !selectedIndustry}
-                    className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-lg font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed">
+                    className="inline-flex items-center gap-2 px-10 py-4 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-lg font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                     {r.calculate as string}
                   </button>
-                  <p className="mt-3 text-xs text-gray-400">{lang === 'zh' ? '点击后将跳转至免费注册页面' : 'You\'ll be redirected to create a free account'}</p>
+                  <p className="mt-3 text-xs text-ink-3">{lang === 'zh' ? '点击后将跳转至免费注册页面' : 'You\'ll be redirected to create a free account'}</p>
                 </div>
               )}
 
               {isCalculating && (
                 <div className="mt-8 text-center">
-                  <div className="inline-flex items-center gap-3 px-8 py-4 bg-gray-100 rounded-xl">
-                    <svg className="animate-spin w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
-                    <span className="text-gray-600 font-medium">{r.calculating as string}</span>
+                  <div className="inline-flex items-center gap-3 px-8 py-4 bg-surface-muted rounded-xl">
+                    <svg className="animate-spin w-5 h-5 text-ink" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                    <span className="text-ink-2 font-medium">{r.calculating as string}</span>
                   </div>
                 </div>
               )}
@@ -275,68 +275,68 @@ function ROISimulatorInner() {
             {/* Results */}
             {showResult && result && (
               <div ref={resultRef}>
-                <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8 md:p-10">
+                <div className="bg-ink p-8 md:p-10">
                   <h2 className="text-2xl font-bold text-white mb-8 text-center">{r.resultTitle as string}</h2>
 
                   {/* 3 Core Cards — Customers first */}
                   <div className="grid md:grid-cols-3 gap-5 mb-8">
-                    <div className="bg-gradient-to-br from-red-500/15 to-orange-500/10 backdrop-blur rounded-2xl p-6 text-center border border-red-500/30 ring-1 ring-red-500/10">
-                      <div className="text-sm text-gray-300 mb-3 font-medium">{r.potentialCustomers as string}</div>
+                    <div className="bg-red-soft/15 backdrop-blur rounded-2xl p-6 text-center border border-red-soft/30 ring-1 ring-red-soft/10">
+                      <div className="text-sm text-white/70 mb-3 font-medium">{r.potentialCustomers as string}</div>
                       <div className="text-4xl md:text-5xl font-black text-white leading-tight">
                         {fmtCustomers(potentialCustomersLow)} – {fmtCustomers(potentialCustomersHigh)}
                       </div>
-                      <div className="text-xs text-gray-400 mt-2">{r.potentialCustomersNote as string}</div>
+                      <div className="text-xs text-white/50 mt-2">{r.potentialCustomersNote as string}</div>
                     </div>
-                    <div className="bg-white/[0.07] backdrop-blur rounded-2xl p-6 text-center border border-white/10 hover:border-green-500/30 transition-all">
-                      <div className="text-sm text-gray-400 mb-3 font-medium">{r.revenueUplift as string}</div>
-                      <div className="text-3xl md:text-4xl font-bold text-green-400 leading-tight">{fmtK(result.revenue_low)} – {fmtK(result.revenue_high)}</div>
-                      <div className="text-xs text-gray-500 mt-2">{lang === 'zh' ? '6个月内' : 'over 6 months'}</div>
+                    <div className="bg-white/[0.07] backdrop-blur rounded-2xl p-6 text-center border border-white/10 hover:border-sage/30 transition-all">
+                      <div className="text-sm text-white/50 mb-3 font-medium">{r.revenueUplift as string}</div>
+                      <div className="text-3xl md:text-4xl font-bold text-sage leading-tight">{fmtK(result.revenue_low)} – {fmtK(result.revenue_high)}</div>
+                      <div className="text-xs text-white/40 mt-2">{lang === 'zh' ? '6个月内' : 'over 6 months'}</div>
                     </div>
                     <div className="bg-white/[0.07] backdrop-blur rounded-2xl p-6 text-center border border-white/10">
-                      <div className="text-sm text-gray-400 mb-3 font-medium">{r.roiRange as string}</div>
-                      <div className="text-3xl md:text-4xl font-bold text-gray-200 leading-tight">{result.roi_low}x – {result.roi_high}x</div>
-                      <div className="text-xs text-gray-500 mt-2">{lang === 'zh' ? '预估投资回报' : 'estimated return'}</div>
+                      <div className="text-sm text-white/50 mb-3 font-medium">{r.roiRange as string}</div>
+                      <div className="text-3xl md:text-4xl font-bold text-white/80 leading-tight">{result.roi_low}x – {result.roi_high}x</div>
+                      <div className="text-xs text-white/40 mt-2">{lang === 'zh' ? '预估投资回报' : 'estimated return'}</div>
                     </div>
                   </div>
 
                   {/* Explanation */}
                   <div className="bg-white/[0.04] rounded-xl p-5 border border-white/[0.06]">
-                    <p className="text-gray-300 text-sm leading-relaxed">{customerExplanation(result)}</p>
+                    <p className="text-white/70 text-sm leading-relaxed">{customerExplanation(result)}</p>
                   </div>
                 </div>
 
                 {/* Trust Section */}
-                <div className="bg-gray-50 p-8 md:p-10 grid md:grid-cols-2 gap-6">
+                <div className="bg-surface-warm p-8 md:p-10 grid md:grid-cols-2 gap-6">
                   {/* Revenue Opportunity Breakdown */}
-                  <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                  <div className="bg-surface rounded-xl p-6 border border-divider-light shadow-sm">
                     <div className="flex items-center gap-2 mb-5">
-                      <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center">
-                        <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      <div className="w-8 h-8 bg-red-soft-bg rounded-lg flex items-center justify-center">
+                        <svg className="w-4 h-4 text-red-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       </div>
-                      <h3 className="font-semibold text-gray-900">{r.opportunityTitle as string}</h3>
+                      <h3 className="font-semibold text-ink">{r.opportunityTitle as string}</h3>
                     </div>
                     <div className="space-y-0">
                       {/* Monthly customers */}
-                      <div className="flex items-center justify-between py-3 border-b border-gray-100">
-                        <span className="text-sm text-gray-500">{r.opportunityMonthlyCustomers as string}</span>
-                        <span className="text-sm font-semibold text-gray-800">
+                      <div className="flex items-center justify-between py-3 border-b border-divider-light">
+                        <span className="text-sm text-ink-3">{r.opportunityMonthlyCustomers as string}</span>
+                        <span className="text-sm font-semibold text-ink">
                           {fmtCustomers(Math.round(potentialCustomersLow / 6))} – {fmtCustomers(Math.round(potentialCustomersHigh / 6))}
                         </span>
                       </div>
                       {/* Revenue per customer */}
-                      <div className="flex items-center justify-between py-3 border-b border-gray-100">
-                        <span className="text-sm text-gray-500">{r.opportunityRevenuePerCustomer as string}</span>
-                        <span className="text-sm font-semibold text-gray-800">{fmtUSD(result.aov)}</span>
+                      <div className="flex items-center justify-between py-3 border-b border-divider-light">
+                        <span className="text-sm text-ink-3">{r.opportunityRevenuePerCustomer as string}</span>
+                        <span className="text-sm font-semibold text-ink">{fmtUSD(result.aov)}</span>
                       </div>
                       {/* 6-month total revenue — red highlight */}
-                      <div className="flex items-center justify-between py-4 border-b border-red-100 bg-red-50 -mx-6 px-6">
-                        <span className="text-sm font-semibold text-red-700">{r.opportunityTotalRevenue as string}</span>
-                        <span className="text-2xl font-black text-red-600">{fmtK(result.revenue_low)} – {fmtK(result.revenue_high)}</span>
+                      <div className="flex items-center justify-between py-4 border-b border-red-soft/20 bg-red-soft-bg -mx-6 px-6">
+                        <span className="text-sm font-semibold text-red-soft">{r.opportunityTotalRevenue as string}</span>
+                        <span className="text-2xl font-black text-red-soft">{fmtK(result.revenue_low)} – {fmtK(result.revenue_high)}</span>
                       </div>
                       {/* Expected ROI — red highlight */}
-                      <div className="flex items-center justify-between py-4 bg-red-50 -mx-6 px-6 rounded-b-xl">
-                        <span className="text-sm font-semibold text-red-700">{r.opportunityExpectedRoi as string}</span>
-                        <span className="text-2xl font-black text-red-600">{result.roi_low}× – {result.roi_high}×</span>
+                      <div className="flex items-center justify-between py-4 bg-red-soft-bg -mx-6 px-6 rounded-b-xl">
+                        <span className="text-sm font-semibold text-red-soft">{r.opportunityExpectedRoi as string}</span>
+                        <span className="text-2xl font-black text-red-soft">{result.roi_low}× – {result.roi_high}×</span>
                       </div>
                     </div>
                   </div>
@@ -344,17 +344,17 @@ function ROISimulatorInner() {
                   {/* What's included + Benchmark */}
                   <div className="space-y-5">
                     {/* What's included in GEO Pro */}
-                    <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                    <div className="bg-surface rounded-xl p-6 border border-divider-light shadow-sm">
                       <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center">
-                          <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        <div className="w-8 h-8 bg-red-soft-bg rounded-lg flex items-center justify-center">
+                          <svg className="w-4 h-4 text-red-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         </div>
-                        <h3 className="font-semibold text-gray-900">{r.whatsIncluded as string}</h3>
+                        <h3 className="font-semibold text-ink">{r.whatsIncluded as string}</h3>
                       </div>
                       <ul className="space-y-2">
                         {serviceIncludes.map((item, i) => (
-                          <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                            <svg className="w-3.5 h-3.5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                          <li key={i} className="flex items-center gap-2 text-sm text-ink-2">
+                            <svg className="w-3.5 h-3.5 text-sage flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                             {item}
                           </li>
                         ))}
@@ -362,19 +362,19 @@ function ROISimulatorInner() {
                     </div>
 
                     {/* Industry Benchmark */}
-                    <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                    <div className="bg-surface rounded-xl p-6 border border-divider-light shadow-sm">
                       <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
-                          <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        <div className="w-8 h-8 bg-sage-bg rounded-lg flex items-center justify-center">
+                          <svg className="w-4 h-4 text-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         </div>
-                        <h3 className="font-semibold text-gray-900">{r.benchmarkTitle as string}</h3>
+                        <h3 className="font-semibold text-ink">{r.benchmarkTitle as string}</h3>
                       </div>
-                      <div className="rounded-xl border border-gray-200 overflow-hidden">
+                      <div className="rounded-xl border border-divider-light overflow-hidden">
                         {/* Alignment ROI — hero */}
-                        <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-5 text-center">
+                        <div className="bg-ink p-5 text-center">
                           <div className="flex items-center justify-center gap-1.5 mb-2">
-                            <svg className="w-3.5 h-3.5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
-                            <span className="text-xs font-semibold text-green-400 uppercase tracking-wide">
+                            <svg className="w-3.5 h-3.5 text-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+                            <span className="text-xs font-semibold text-sage uppercase tracking-wide">
                               {lang === 'zh' ? '使用 Alignment' : 'With Alignment'}
                             </span>
                           </div>
@@ -383,11 +383,11 @@ function ROISimulatorInner() {
                           </div>
                         </div>
                         {/* Industry avg — secondary */}
-                        <div className="bg-gray-50 px-5 py-3 text-center border-t border-gray-200">
-                          <div className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">
+                        <div className="bg-surface-warm px-5 py-3 text-center border-t border-divider-light">
+                          <div className="text-xs text-ink-3 font-medium uppercase tracking-wide mb-1">
                             {lang === 'zh' ? `${industryDisplayName()} 行业平均` : `${industryDisplayName()} Industry Avg.`}
                           </div>
-                          <div className="text-lg font-semibold text-gray-500">
+                          <div className="text-lg font-semibold text-ink-3">
                             {result.benchmark_roi_low}x – {result.benchmark_roi_high}x
                           </div>
                         </div>
@@ -397,19 +397,19 @@ function ROISimulatorInner() {
                 </div>
 
                 {/* CTA */}
-                <div className="bg-white p-8 border-t border-gray-100">
+                <div className="bg-surface p-8 border-t border-divider-light">
                   <div className="text-center">
                     <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
-                      <Link href="/contact/?subject=managed-service&from=roi" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-lg font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl">
+                      <Link href="/contact/?subject=managed-service&from=roi" className="inline-flex items-center gap-2 px-8 py-4 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-lg font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl">
                         {r.ctaStart as string}
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                       </Link>
-                      <button onClick={handleReset} className="inline-flex items-center gap-2 px-6 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-all">
+                      <button onClick={handleReset} className="inline-flex items-center gap-2 px-6 py-4 bg-surface-muted hover:bg-surface-muted/80 text-ink-2 font-medium rounded-xl transition-all">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
                         {r.ctaAdjust as string}
                       </button>
                     </div>
-                    <Link href="/pricing/" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-600 transition-colors">
+                    <Link href="/pricing/" className="inline-flex items-center gap-1.5 text-sm text-ink-3 hover:text-ink-2 transition-colors">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                       {r.ctaPlatform as string}
                     </Link>
@@ -424,25 +424,25 @@ function ROISimulatorInner() {
       {/* Disclaimer */}
       <section className="py-8">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-xs text-gray-400 leading-relaxed">{r.disclaimer as string}</p>
+          <p className="text-xs text-ink-3 leading-relaxed">{r.disclaimer as string}</p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 py-12">
+      <footer className="bg-surface border-t border-divider-light py-12">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center gap-3 mb-6 md:mb-0">
-              <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center"><span className="text-white font-bold text-lg">A</span></div>
-              <span className="text-xl font-bold text-gray-900">Alignment AI</span>
+              <div className="w-10 h-10 bg-ink rounded-xl flex items-center justify-center"><span className="text-ink-inv font-bold text-lg">A</span></div>
+              <span className="text-xl font-bold text-ink">Alignment AI</span>
             </div>
-            <div className="flex items-center gap-8 text-sm text-gray-600">
-              <Link href="/features/" className="hover:text-gray-900">Features</Link>
-              <Link href="/pricing/" className="hover:text-gray-900">Pricing</Link>
-              <Link href="/roi-simulator" className="hover:text-gray-900 text-red-600 font-medium">ROI Calculator</Link>
-              <Link href="/login/" className="hover:text-gray-900">Dashboard</Link>
+            <div className="flex items-center gap-8 text-sm text-ink-2">
+              <Link href="/features/" className="hover:text-ink">Features</Link>
+              <Link href="/pricing/" className="hover:text-ink">Pricing</Link>
+              <Link href="/roi-simulator" className="hover:text-ink text-red-soft font-medium">ROI Calculator</Link>
+              <Link href="/login/" className="hover:text-ink">Dashboard</Link>
             </div>
-            <p className="mt-6 md:mt-0 text-sm text-gray-400">&copy; 2026 Alignment AI. All rights reserved.</p>
+            <p className="mt-6 md:mt-0 text-sm text-ink-3">&copy; 2026 Alignment AI. All rights reserved.</p>
           </div>
         </div>
       </footer>
@@ -452,7 +452,7 @@ function ROISimulatorInner() {
 
 export default function ROISimulatorPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full" /></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-canvas flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-ink border-t-transparent rounded-full" /></div>}>
       <ROISimulatorInner />
     </Suspense>
   )

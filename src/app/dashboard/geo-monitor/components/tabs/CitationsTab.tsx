@@ -29,7 +29,7 @@ export function CitationsTab() {
       .map(([type, count]) => ({
         label: DOMAIN_TYPE_LABELS[type]?.label || type,
         value: count,
-        color: DOMAIN_TYPE_LABELS[type]?.chartColor || '#9ca3af',
+        color: DOMAIN_TYPE_LABELS[type]?.chartColor || '#9C978E',
       }))
   }, [scanResult])
 
@@ -51,15 +51,15 @@ export function CitationsTab() {
   return (
     <div className="space-y-6">
       {/* ── Sub-tab selector ─────────────────────────────── */}
-      <div className="flex gap-1 p-1 bg-gray-100 rounded-lg w-fit">
+      <div className="flex gap-1 p-1 bg-surface-warm rounded-lg w-fit">
         {subTabs.map(tab => (
           <button
             key={tab.key}
             onClick={() => ctx.setCitationsSubTab(tab.key)}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
               ctx.citationsSubTab === tab.key
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-surface text-ink shadow-sm'
+                : 'text-ink-3 hover:text-ink-2'
             }`}
           >
             {tab.label}
@@ -71,15 +71,15 @@ export function CitationsTab() {
       {ctx.citationsSubTab === 'sources_overview' && (
         <>
           {!scanResult ? (
-            <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-              <Globe className="w-10 h-10 mb-3 text-gray-300" />
+            <div className="flex flex-col items-center justify-center py-20 text-ink-3">
+              <Globe className="w-10 h-10 mb-3 text-ink-3 opacity-50" />
               <p className="text-sm font-medium">Run a scan to see citation data</p>
             </div>
           ) : (
             <>
               {/* Source Domain Cards */}
               <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-3">Source Domains</h4>
+                <h4 className="text-sm font-semibold text-ink-2 mb-3">Source Domains</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {scanResult.source_domains
                     .slice()
@@ -87,11 +87,11 @@ export function CitationsTab() {
                     .map((d, i) => {
                       const typeInfo = DOMAIN_TYPE_LABELS[d.domain_type]
                       return (
-                        <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
+                        <div key={i} className="bg-surface rounded-xl border border-divider p-5 hover:shadow-md transition-shadow">
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex items-center gap-2 min-w-0">
-                              <Globe className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                              <span className="text-sm font-medium text-gray-900 truncate">{d.domain}</span>
+                              <Globe className="w-4 h-4 text-ink-3 flex-shrink-0" />
+                              <span className="text-sm font-medium text-ink truncate">{d.domain}</span>
                             </div>
                             {typeInfo && (
                               <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${typeInfo.color}`}>
@@ -101,19 +101,19 @@ export function CitationsTab() {
                           </div>
                           <div className="flex items-end justify-between">
                             <div>
-                              <p className="text-2xl font-bold font-mono text-gray-900">{d.url_count}</p>
-                              <p className="text-xs text-gray-500">AI-mentioned URLs</p>
+                              <p className="text-2xl font-bold font-mono text-ink">{d.url_count}</p>
+                              <p className="text-xs text-ink-3">AI-mentioned URLs</p>
                             </div>
                             <div className="text-right">
                               {d.citation_share != null ? (
                                 <>
-                                  <p className="text-lg font-bold font-mono text-gray-700">{d.citation_share.toFixed(1)}%</p>
-                                  <p className="text-xs text-gray-500">Citation share</p>
+                                  <p className="text-lg font-bold font-mono text-ink-2">{d.citation_share.toFixed(1)}%</p>
+                                  <p className="text-xs text-ink-3">Citation share</p>
                                 </>
                               ) : (
                                 <>
-                                  <p className="text-lg font-bold font-mono text-gray-700">{formatPct(d.frequency_pct)}</p>
-                                  <p className="text-xs text-gray-500">Frequency</p>
+                                  <p className="text-lg font-bold font-mono text-ink-2">{formatPct(d.frequency_pct)}</p>
+                                  <p className="text-xs text-ink-3">Frequency</p>
                                 </>
                               )}
                             </div>
@@ -126,8 +126,8 @@ export function CitationsTab() {
 
               {/* Source Type Distribution Donut */}
               {sourceTypeSegments.length > 0 && (
-                <div className="bg-white rounded-xl border border-gray-200 p-5">
-                  <h4 className="text-sm font-semibold text-gray-700 mb-4">Source Type Distribution</h4>
+                <div className="bg-surface rounded-xl border border-divider p-5">
+                  <h4 className="text-sm font-semibold text-ink-2 mb-4">Source Type Distribution</h4>
                   <div className="flex justify-center">
                     <DonutChart
                       segments={sourceTypeSegments}
@@ -146,13 +146,13 @@ export function CitationsTab() {
       {ctx.citationsSubTab === 'url_detail' && (
         <>
           {!scanResult ? (
-            <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-              <Link2 className="w-10 h-10 mb-3 text-gray-300" />
+            <div className="flex flex-col items-center justify-center py-20 text-ink-3">
+              <Link2 className="w-10 h-10 mb-3 text-ink-3 opacity-50" />
               <p className="text-sm font-medium">Run a scan to see citation data</p>
             </div>
           ) : (
-            <div className="bg-white rounded-xl border border-gray-200 p-5">
-              <h4 className="text-sm font-semibold text-gray-700 mb-3">URL Citation Details</h4>
+            <div className="bg-surface rounded-xl border border-divider p-5">
+              <h4 className="text-sm font-semibold text-ink-2 mb-3">URL Citation Details</h4>
               <DataTable
                 columns={[
                   { key: 'domain', label: 'Domain' },

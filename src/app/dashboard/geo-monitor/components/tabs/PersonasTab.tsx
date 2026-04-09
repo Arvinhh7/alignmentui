@@ -43,7 +43,7 @@ const PRESET_PERSONAS: Persona[] = [
     role: 'Analyst / Researcher',
     goal: 'Understand the landscape, compare options, gather facts',
     focusIntents: ['info_cognition', 'information'],
-    color: '#3b82f6',
+    color: '#4A6FA5',
     icon: '🔬',
     isPreset: true,
   },
@@ -53,7 +53,7 @@ const PRESET_PERSONAS: Persona[] = [
     role: 'Solution Seeker',
     goal: 'Explore alternatives and evaluate use cases',
     focusIntents: ['solution_explore', 'comparison'],
-    color: '#8b5cf6',
+    color: '#7B5E96',
     icon: '🧭',
     isPreset: true,
   },
@@ -63,7 +63,7 @@ const PRESET_PERSONAS: Persona[] = [
     role: 'CTO / VP / Director',
     goal: 'Make confident vendor decisions with confidence',
     focusIntents: ['comparison_decision', 'comparison', 'review'],
-    color: '#f59e0b',
+    color: '#B8860B',
     icon: '🏆',
     isPreset: true,
   },
@@ -73,13 +73,13 @@ const PRESET_PERSONAS: Persona[] = [
     role: 'Ready-to-Purchase User',
     goal: 'Find the best product to buy right now',
     focusIntents: ['action_choice', 'recommendation', 'howto'],
-    color: '#10b981',
+    color: '#4A7C59',
     icon: '💳',
     isPreset: true,
   },
 ]
 
-const PERSONA_COLORS = ['#ef4444', '#f97316', '#14b8a6', '#6366f1', '#ec4899']
+const PERSONA_COLORS = ['#191918', '#B8860B', '#4A7C59', '#4A6FA5', '#B5453A']
 const LOCAL_KEY = 'alignment_custom_personas'
 
 // ─── Scoring Engine ───────────────────────────────────
@@ -207,9 +207,9 @@ function RadarChart({ scores }: { scores: PersonaScore[] }) {
         const labelPt = toPoint(angle, R + 18)
         return (
           <g key={label}>
-            <line x1={CX} y1={CY} x2={tip.x} y2={tip.y} stroke="#e5e7eb" strokeWidth="0.8" />
+            <line x1={CX} y1={CY} x2={tip.x} y2={tip.y} stroke="#EDE8E0" strokeWidth="0.8" />
             <text x={labelPt.x} y={labelPt.y} textAnchor="middle" dominantBaseline="middle"
-              fontSize="8" fill="#9ca3af" fontFamily="system-ui, sans-serif">{label}</text>
+              fontSize="8" fill="#9C978E" fontFamily="system-ui, sans-serif">{label}</text>
           </g>
         )
       })}
@@ -232,7 +232,7 @@ function RadarChart({ scores }: { scores: PersonaScore[] }) {
         )
       })}
       {/* Center dot */}
-      <circle cx={CX} cy={CY} r="2" fill="#d1d5db" />
+      <circle cx={CX} cy={CY} r="2" fill="#EDE8E0" />
     </svg>
   )
 }
@@ -241,17 +241,17 @@ function RadarChart({ scores }: { scores: PersonaScore[] }) {
 
 function PersonaCard({ ps, isSelected, onClick }: { ps: PersonaScore; isSelected: boolean; onClick: () => void }) {
   const { persona, visibilityScore, mentionRate, sentimentScore, relevantPrompts } = ps
-  const scoreColor = visibilityScore >= 65 ? 'text-green-600'
-    : visibilityScore >= 35 ? 'text-amber-600'
-    : 'text-red-600'
-  const scoreBg = visibilityScore >= 65 ? 'bg-green-50 border-green-200'
-    : visibilityScore >= 35 ? 'bg-amber-50 border-amber-200'
-    : 'bg-red-50 border-red-200'
+  const scoreColor = visibilityScore >= 65 ? 'text-sage'
+    : visibilityScore >= 35 ? 'text-caution'
+    : 'text-red-soft'
+  const scoreBg = visibilityScore >= 65 ? 'bg-sage-bg border-sage/30'
+    : visibilityScore >= 35 ? 'bg-caution-bg border-caution/30'
+    : 'bg-red-soft-bg border-red-soft/30'
 
   return (
     <button onClick={onClick}
       className={`w-full text-left rounded-xl border p-4 transition-all ${
-        isSelected ? 'border-2 shadow-md' : 'border border-gray-200 hover:shadow-sm'
+        isSelected ? 'border-2 shadow-md' : 'border border-divider hover:shadow-sm'
       }`}
       style={isSelected ? { borderColor: persona.color } : {}}
     >
@@ -259,34 +259,34 @@ function PersonaCard({ ps, isSelected, onClick }: { ps: PersonaScore; isSelected
         <div className="flex items-center gap-2.5">
           <span className="text-2xl">{persona.icon}</span>
           <div>
-            <div className="text-sm font-bold text-gray-900">{persona.name}</div>
-            <div className="text-xs text-gray-500">{persona.role}</div>
+            <div className="text-sm font-bold text-ink">{persona.name}</div>
+            <div className="text-xs text-ink-3">{persona.role}</div>
           </div>
         </div>
         <div className={`text-right px-2 py-1 rounded-lg ${scoreBg}`}>
           <div className={`text-xl font-bold font-mono ${scoreColor}`}>{visibilityScore}</div>
-          <div className="text-[9px] text-gray-400 font-medium">/ 100</div>
+          <div className="text-[9px] text-ink-3 font-medium">/ 100</div>
         </div>
       </div>
       <div className="space-y-1.5">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-gray-500">Mention Rate</span>
-          <span className="font-mono font-medium text-gray-700">{formatPct(mentionRate)}</span>
+          <span className="text-ink-3">Mention Rate</span>
+          <span className="font-mono font-medium text-ink-2">{formatPct(mentionRate)}</span>
         </div>
-        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div className="h-1.5 bg-surface-warm rounded-full overflow-hidden">
           <div className="h-full rounded-full transition-all duration-700"
             style={{ width: `${Math.min(mentionRate, 100)}%`, backgroundColor: persona.color }} />
         </div>
         <div className="flex items-center justify-between text-xs">
-          <span className="text-gray-500">Sentiment</span>
-          <span className="font-mono font-medium text-gray-700">{formatPct(sentimentScore)}</span>
+          <span className="text-ink-3">Sentiment</span>
+          <span className="font-mono font-medium text-ink-2">{formatPct(sentimentScore)}</span>
         </div>
-        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-          <div className="h-full rounded-full bg-green-400 transition-all duration-700"
+        <div className="h-1.5 bg-surface-warm rounded-full overflow-hidden">
+          <div className="h-full rounded-full bg-sage transition-all duration-700"
             style={{ width: `${Math.min(sentimentScore, 100)}%` }} />
         </div>
       </div>
-      <div className="mt-3 text-[10px] text-gray-400">
+      <div className="mt-3 text-[10px] text-ink-3">
         {relevantPrompts} relevant prompt{relevantPrompts !== 1 ? 's' : ''} analyzed
       </div>
     </button>
@@ -332,52 +332,52 @@ function CustomPersonaModal({ onSave, onClose, editPersona }: {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+      <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-md p-6">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-base font-bold text-gray-900">
+          <h3 className="text-base font-bold text-ink">
             {editPersona ? 'Edit Persona' : 'Add Custom Persona'}
           </h3>
-          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
-            <X className="w-4 h-4 text-gray-500" />
+          <button onClick={onClose} className="p-1.5 hover:bg-surface-warm rounded-lg transition-colors">
+            <X className="w-4 h-4 text-ink-3" />
           </button>
         </div>
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1.5">Persona Name *</label>
+            <label className="block text-xs font-medium text-ink-2 mb-1.5">Persona Name *</label>
             <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
               placeholder="e.g. Enterprise IT Manager"
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400" />
+              className="w-full px-3 py-2 text-sm border border-divider rounded-lg focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1.5">Role / Title</label>
+            <label className="block text-xs font-medium text-ink-2 mb-1.5">Role / Title</label>
             <input value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
               placeholder="e.g. IT Manager at Fortune 500"
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400" />
+              className="w-full px-3 py-2 text-sm border border-divider rounded-lg focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1.5">Primary Goal</label>
+            <label className="block text-xs font-medium text-ink-2 mb-1.5">Primary Goal</label>
             <input value={form.goal} onChange={e => setForm(f => ({ ...f, goal: e.target.value }))}
               placeholder="e.g. Evaluate enterprise AI monitoring tools"
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400" />
+              className="w-full px-3 py-2 text-sm border border-divider rounded-lg focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1.5">Focus Query Types</label>
+            <label className="block text-xs font-medium text-ink-2 mb-1.5">Focus Query Types</label>
             <input value={form.focusKeywords} onChange={e => setForm(f => ({ ...f, focusKeywords: e.target.value }))}
               placeholder="e.g. comparison_decision, solution_explore"
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400" />
-            <p className="text-[10px] text-gray-400 mt-1">
+              className="w-full px-3 py-2 text-sm border border-divider rounded-lg focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink" />
+            <p className="text-[10px] text-ink-3 mt-1">
               Available: info_cognition, solution_explore, comparison_decision, action_choice
             </p>
           </div>
         </div>
         <div className="flex gap-3 mt-6">
           <button onClick={onClose}
-            className="flex-1 px-4 py-2 border border-gray-200 text-gray-600 text-sm rounded-xl hover:bg-gray-50 transition-colors">
+            className="flex-1 px-4 py-2 border border-divider text-ink-2 text-sm rounded-xl hover:bg-surface-warm transition-colors">
             Cancel
           </button>
           <button onClick={handleSave}
             disabled={!form.name.trim()}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            className="flex-1 px-4 py-2 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium rounded-xl disabled:bg-surface-muted disabled:text-ink-3 disabled:cursor-not-allowed transition-colors">
             {editPersona ? 'Save Changes' : 'Add Persona'}
           </button>
         </div>
@@ -442,11 +442,11 @@ export function PersonasTab() {
   if (!scan) {
     return (
       <div className="text-center py-20">
-        <div className="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <Users className="w-8 h-8 text-purple-300" />
+        <div className="w-16 h-16 bg-surface-warm rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Users className="w-8 h-8 text-ink-3" />
         </div>
-        <h3 className="text-base font-semibold text-gray-700 mb-2">No scan data yet</h3>
-        <p className="text-sm text-gray-400 max-w-sm mx-auto">
+        <h3 className="text-base font-semibold text-ink-2 mb-2">No scan data yet</h3>
+        <p className="text-sm text-ink-3 max-w-sm mx-auto">
           Run a scan first. Personas analyzes your existing scan results through the lens of different user types to show you who can — and who can&apos;t — find your brand in AI.
         </p>
       </div>
@@ -466,16 +466,16 @@ export function PersonasTab() {
       {/* ═══ Header ════════════════════════════════════ */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-            <Users className="w-5 h-5 text-purple-500" />
+          <h3 className="text-base font-bold text-ink flex items-center gap-2">
+            <Users className="w-5 h-5 text-ink-3" />
             Persona Visibility Analysis
           </h3>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-ink-3 mt-0.5">
             How different user types experience your brand in AI responses
           </p>
         </div>
         <button onClick={() => { setEditPersona(undefined); setShowModal(true) }}
-          className="flex items-center gap-1.5 px-3.5 py-2 bg-purple-600 text-white rounded-xl text-sm font-medium hover:bg-purple-700 transition-colors">
+          className="flex items-center gap-1.5 px-3.5 py-2 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-xl text-sm font-medium transition-colors">
           <Plus className="w-4 h-4" />
           Add Persona
         </button>
@@ -484,8 +484,8 @@ export function PersonasTab() {
       {/* ═══ Radar + Persona Cards ══════════════════════ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Radar chart panel */}
-        <div className="lg:col-span-1 bg-white rounded-xl border border-gray-200 p-5">
-          <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
+        <div className="lg:col-span-1 bg-surface rounded-xl border border-divider p-5">
+          <h4 className="text-xs font-semibold text-ink-3 uppercase tracking-wider mb-4">
             Persona Comparison
           </h4>
           <RadarChart scores={personaScores} />
@@ -495,11 +495,11 @@ export function PersonasTab() {
               <button key={ps.persona.id}
                 onClick={() => setSelectedPersonaId(ps.persona.id)}
                 className={`flex items-center gap-2 px-2 py-1 rounded-lg transition-colors text-left ${
-                  selectedPersonaId === ps.persona.id ? 'bg-gray-50' : 'hover:bg-gray-50/50'
+                  selectedPersonaId === ps.persona.id ? 'bg-canvas' : 'hover:bg-surface-warm/50'
                 }`}
               >
                 <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: ps.persona.color }} />
-                <span className="text-xs font-medium text-gray-700">{ps.persona.name}</span>
+                <span className="text-xs font-medium text-ink-2">{ps.persona.name}</span>
                 <span className="ml-auto text-xs font-mono font-bold" style={{ color: ps.persona.color }}>
                   {ps.visibilityScore}
                 </span>
@@ -524,15 +524,15 @@ export function PersonasTab() {
           {customPersonas.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
               {customPersonas.map(p => (
-                <div key={p.id} className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-full text-xs text-gray-600">
+                <div key={p.id} className="flex items-center gap-1.5 px-2.5 py-1 bg-surface-warm rounded-full text-xs text-ink-2">
                   <span>{p.icon}</span>
                   <span>{p.name}</span>
                   <button onClick={() => { setEditPersona(p); setShowModal(true) }}
-                    className="hover:text-blue-600 transition-colors ml-0.5">
+                    className="hover:text-ink transition-colors ml-0.5">
                     <Edit2 className="w-3 h-3" />
                   </button>
                   <button onClick={() => handleDeletePersona(p.id)}
-                    className="hover:text-red-500 transition-colors">
+                    className="hover:text-red-soft transition-colors">
                     <X className="w-3 h-3" />
                   </button>
                 </div>
@@ -544,39 +544,39 @@ export function PersonasTab() {
 
       {/* ═══ Selected Persona Deep Dive ═════════════════ */}
       {selectedScore && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-surface rounded-xl border border-divider p-6">
           <div className="flex items-start gap-4 mb-5">
             <span className="text-3xl">{selectedScore.persona.icon}</span>
             <div className="flex-1">
-              <h4 className="text-base font-bold text-gray-900">{selectedScore.persona.name}</h4>
-              <p className="text-xs text-gray-500">{selectedScore.persona.role}</p>
-              <p className="text-xs text-gray-400 mt-0.5 italic">&ldquo;{selectedScore.persona.goal}&rdquo;</p>
+              <h4 className="text-base font-bold text-ink">{selectedScore.persona.name}</h4>
+              <p className="text-xs text-ink-3">{selectedScore.persona.role}</p>
+              <p className="text-xs text-ink-3 mt-0.5 italic">&ldquo;{selectedScore.persona.goal}&rdquo;</p>
             </div>
             <div className="text-right">
               <div className="text-4xl font-black font-mono" style={{ color: selectedScore.persona.color }}>
                 {selectedScore.visibilityScore}
               </div>
-              <div className="text-xs text-gray-400">Persona Score</div>
+              <div className="text-xs text-ink-3">Persona Score</div>
             </div>
           </div>
 
           {/* 4-metric breakdown */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {[
-              { label: 'Mention Rate', value: selectedScore.mentionRate, icon: <Eye className="w-4 h-4 text-blue-500" />, color: '#3b82f6' },
-              { label: 'Sentiment', value: selectedScore.sentimentScore, icon: <TrendingUp className="w-4 h-4 text-green-500" />, color: '#10b981' },
-              { label: 'Quality', value: selectedScore.qualityScore, icon: <Award className="w-4 h-4 text-amber-500" />, color: '#f59e0b' },
-              { label: 'Positioning', value: selectedScore.positioningScore, icon: <Target className="w-4 h-4 text-purple-500" />, color: '#8b5cf6' },
+              { label: 'Mention Rate', value: selectedScore.mentionRate, icon: <Eye className="w-4 h-4 text-ink-2" />, color: '#4A6FA5' },
+              { label: 'Sentiment', value: selectedScore.sentimentScore, icon: <TrendingUp className="w-4 h-4 text-sage" />, color: '#4A7C59' },
+              { label: 'Quality', value: selectedScore.qualityScore, icon: <Award className="w-4 h-4 text-caution" />, color: '#B8860B' },
+              { label: 'Positioning', value: selectedScore.positioningScore, icon: <Target className="w-4 h-4 text-ink-2" />, color: '#7B5E96' },
             ].map(metric => (
-              <div key={metric.label} className="bg-gray-50 rounded-xl p-4">
+              <div key={metric.label} className="bg-canvas rounded-xl p-4">
                 <div className="flex items-center gap-1.5 mb-2">
                   {metric.icon}
-                  <span className="text-xs font-medium text-gray-600">{metric.label}</span>
+                  <span className="text-xs font-medium text-ink-2">{metric.label}</span>
                 </div>
-                <div className="text-2xl font-bold font-mono text-gray-900 mb-1.5">
+                <div className="text-2xl font-bold font-mono text-ink mb-1.5">
                   {Math.round(metric.value)}
                 </div>
-                <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-surface-warm rounded-full overflow-hidden">
                   <div className="h-full rounded-full transition-all duration-700"
                     style={{ width: `${Math.min(metric.value, 100)}%`, backgroundColor: metric.color }} />
                 </div>
@@ -587,28 +587,28 @@ export function PersonasTab() {
           {/* Insights + Recommendations side by side */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <h5 className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
+              <h5 className="text-xs font-semibold text-ink-2 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <Lightbulb className="w-3.5 h-3.5 text-caution" />
                 Key Insights
               </h5>
               <div className="space-y-2">
                 {selectedScore.topInsights.map((insight, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                    <ChevronRight className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div key={i} className="flex items-start gap-2 text-sm text-ink-2">
+                    <ChevronRight className="w-4 h-4 text-caution flex-shrink-0 mt-0.5" />
                     {insight}
                   </div>
                 ))}
               </div>
             </div>
             <div>
-              <h5 className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 text-blue-500" />
+              <h5 className="text-xs font-semibold text-ink-2 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5 text-ink-3" />
                 Recommendations
               </h5>
               <div className="space-y-2">
                 {selectedScore.recommendations.map((rec, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                    <ChevronRight className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                  <div key={i} className="flex items-start gap-2 text-sm text-ink-2">
+                    <ChevronRight className="w-4 h-4 text-ink-3 flex-shrink-0 mt-0.5" />
                     {rec}
                   </div>
                 ))}
@@ -619,26 +619,26 @@ export function PersonasTab() {
       )}
 
       {/* ═══ All Personas Ranking Table ═════════════════ */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <h4 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-          <BarChart3 className="w-4 h-4 text-gray-500" />
+      <div className="bg-surface rounded-xl border border-divider p-5">
+        <h4 className="text-sm font-semibold text-ink-2 mb-4 flex items-center gap-2">
+          <BarChart3 className="w-4 h-4 text-ink-3" />
           All Personas — Ranked by Visibility Score
         </h4>
         <div className="space-y-3">
           {[...personaScores].sort((a, b) => b.visibilityScore - a.visibilityScore).map((ps, rank) => (
             <button key={ps.persona.id} onClick={() => setSelectedPersonaId(ps.persona.id)}
               className={`w-full flex items-center gap-4 p-3 rounded-xl transition-all ${
-                selectedPersonaId === ps.persona.id ? 'bg-gray-50 ring-1 ring-gray-200' : 'hover:bg-gray-50/50'
+                selectedPersonaId === ps.persona.id ? 'bg-canvas ring-1 ring-divider' : 'hover:bg-surface-warm/50'
               }`}
             >
-              <span className="text-sm font-bold text-gray-400 w-6 text-right">#{rank + 1}</span>
+              <span className="text-sm font-bold text-ink-3 w-6 text-right">#{rank + 1}</span>
               <span className="text-xl">{ps.persona.icon}</span>
               <div className="flex-1 text-left">
-                <div className="text-sm font-medium text-gray-800">{ps.persona.name}</div>
-                <div className="text-xs text-gray-400">{ps.persona.role}</div>
+                <div className="text-sm font-medium text-ink">{ps.persona.name}</div>
+                <div className="text-xs text-ink-3">{ps.persona.role}</div>
               </div>
               <div className="flex-1">
-                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-2 bg-surface-warm rounded-full overflow-hidden">
                   <div className="h-full rounded-full transition-all duration-700"
                     style={{ width: `${ps.visibilityScore}%`, backgroundColor: ps.persona.color }} />
                 </div>
@@ -646,16 +646,16 @@ export function PersonasTab() {
               <div className="w-12 text-right font-mono font-bold text-sm" style={{ color: ps.persona.color }}>
                 {ps.visibilityScore}
               </div>
-              <div className="w-16 text-right text-xs text-gray-400 font-mono">
+              <div className="w-16 text-right text-xs text-ink-3 font-mono">
                 {formatPct(ps.mentionRate)}
               </div>
-              <div className="w-14 text-right text-xs text-gray-400 font-mono">
+              <div className="w-14 text-right text-xs text-ink-3 font-mono">
                 {formatPct(ps.sentimentScore)}
               </div>
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-6 mt-4 pt-3 border-t border-gray-100 text-[10px] text-gray-400">
+        <div className="flex items-center gap-6 mt-4 pt-3 border-t border-divider-light text-[10px] text-ink-3">
           <span className="ml-auto flex items-center gap-4">
             <span>Score = weighted visibility metric</span>
             <span>Mention Rate = % relevant prompts visible</span>

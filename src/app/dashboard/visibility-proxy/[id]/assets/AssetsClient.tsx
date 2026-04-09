@@ -14,13 +14,13 @@ import {
 
 // ── Module metadata ───────────────────────────────────────────────────────────
 const MODULES: { type: ModuleType; label: string; desc: string; icon: React.ElementType; color: string }[] = [
-  { type: 'brand_identity',         label: 'Brand Identity',          desc: 'Core brand info — who you are, what you do', icon: Building2, color: 'text-blue-500 bg-blue-50' },
-  { type: 'products_services',      label: 'Products & Services',     desc: 'Product catalog, features, pricing',         icon: Package,   color: 'text-purple-500 bg-purple-50' },
-  { type: 'faq_knowledge',          label: 'FAQ Knowledge',           desc: 'Q&A pairs for AI to cite',                   icon: HelpCircle, color: 'text-amber-500 bg-amber-50' },
-  { type: 'data_authority',         label: 'Data & Authority',        desc: 'Key metrics, certifications, case studies',  icon: BarChart3,  color: 'text-green-500 bg-green-50' },
-  { type: 'competitive_positioning', label: 'Competitive Positioning', desc: 'Differentiators vs competitors',             icon: Swords,    color: 'text-red-500 bg-red-50' },
-  { type: 'content_summaries',      label: 'Content Summaries',       desc: 'TL;DR for each key page',                    icon: FileText,  color: 'text-indigo-500 bg-indigo-50' },
-  { type: 'html_enhancement',       label: 'HTML Enhancement',        desc: 'Alt-text & content injection rules',         icon: Code2,     color: 'text-orange-500 bg-orange-50' },
+  { type: 'brand_identity',         label: 'Brand Identity',          desc: 'Core brand info — who you are, what you do', icon: Building2, color: 'text-ink-2 bg-surface-warm' },
+  { type: 'products_services',      label: 'Products & Services',     desc: 'Product catalog, features, pricing',         icon: Package,   color: 'text-ink-2 bg-surface-warm' },
+  { type: 'faq_knowledge',          label: 'FAQ Knowledge',           desc: 'Q&A pairs for AI to cite',                   icon: HelpCircle, color: 'text-caution bg-caution-bg' },
+  { type: 'data_authority',         label: 'Data & Authority',        desc: 'Key metrics, certifications, case studies',  icon: BarChart3,  color: 'text-sage bg-sage-bg' },
+  { type: 'competitive_positioning', label: 'Competitive Positioning', desc: 'Differentiators vs competitors',             icon: Swords,    color: 'text-red-soft bg-red-soft-bg' },
+  { type: 'content_summaries',      label: 'Content Summaries',       desc: 'TL;DR for each key page',                    icon: FileText,  color: 'text-ink-2 bg-surface-warm' },
+  { type: 'html_enhancement',       label: 'HTML Enhancement',        desc: 'Alt-text & content injection rules',         icon: Code2,     color: 'text-ink-2 bg-surface-warm' },
 ]
 
 // ── Default content templates ─────────────────────────────────────────────────
@@ -94,9 +94,9 @@ function JsonEditor({
         }}
         rows={12}
         placeholder={placeholder}
-        className="w-full px-4 py-3 bg-gray-950 text-green-300 font-mono text-xs rounded-xl border border-gray-800 focus:outline-none focus:border-gray-600 resize-y"
+        className="w-full px-4 py-3 bg-ink text-green-400 font-mono text-xs rounded-xl border border-white/10 focus:outline-none focus:border-white/30 resize-y"
       />
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      {error && <p className="text-xs text-red-soft mt-1">{error}</p>}
     </div>
   )
 }
@@ -115,10 +115,10 @@ function FaqEditor({ items, onChange }: { items: FaqItem[]; onChange: (items: Fa
   return (
     <div className="space-y-3">
       {items.map((faq, i) => (
-        <div key={i} className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
+        <div key={i} className="bg-surface-warm border border-divider-light rounded-xl p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-gray-500">Q&A #{i + 1}</span>
-            <button onClick={() => remove(i)} className="text-gray-400 hover:text-red-500 transition-colors">
+            <span className="text-xs font-medium text-ink-3">Q&A #{i + 1}</span>
+            <button onClick={() => remove(i)} className="text-ink-3 hover:text-red-soft transition-colors">
               <Trash2 className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -126,20 +126,20 @@ function FaqEditor({ items, onChange }: { items: FaqItem[]; onChange: (items: Fa
             value={faq.question}
             onChange={e => update(i, 'question', e.target.value)}
             placeholder="Question"
-            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:border-red-400"
+            className="w-full px-3 py-2 bg-surface border border-divider-light rounded-lg text-sm text-ink focus:outline-none focus:border-ink"
           />
           <textarea
             value={faq.answer}
             onChange={e => update(i, 'answer', e.target.value)}
             placeholder="Answer"
             rows={3}
-            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:border-red-400 resize-none"
+            className="w-full px-3 py-2 bg-surface border border-divider-light rounded-lg text-sm text-ink focus:outline-none focus:border-ink resize-none"
           />
         </div>
       ))}
       <button
         onClick={add}
-        className="flex items-center gap-2 text-sm text-red-500 hover:text-red-600 font-medium transition-colors"
+        className="flex items-center gap-2 text-sm text-red-soft hover:text-red-soft font-medium transition-colors"
       >
         <Plus className="w-4 h-4" />
         Add Q&A
@@ -177,17 +177,17 @@ function BrandIdentityForm({
         { key: 'brand_voice', label: 'Brand Voice', placeholder: 'Professional, data-driven, approachable' },
       ].map(f => (
         <div key={f.key}>
-          <label className="text-xs font-semibold text-gray-600 mb-1 block">{f.label}</label>
+          <label className="text-xs font-semibold text-ink-2 mb-1 block">{f.label}</label>
           <input
             value={str(f.key)}
             onChange={e => set(f.key, e.target.value)}
             placeholder={f.placeholder}
-            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:border-red-400"
+            className="w-full px-3 py-2 bg-surface-warm border border-divider-light rounded-lg text-sm text-ink focus:outline-none focus:border-ink"
           />
         </div>
       ))}
       <div>
-        <label className="text-xs font-semibold text-gray-600 mb-1 block">
+        <label className="text-xs font-semibold text-ink-2 mb-1 block">
           Short Description
         </label>
         <textarea
@@ -195,19 +195,19 @@ function BrandIdentityForm({
           onChange={e => set('short_description', e.target.value)}
           placeholder="2–3 sentence brand description..."
           rows={3}
-          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:border-red-400 resize-none"
+          className="w-full px-3 py-2 bg-surface-warm border border-divider-light rounded-lg text-sm text-ink focus:outline-none focus:border-ink resize-none"
         />
       </div>
       <div>
-        <label className="text-xs font-semibold text-gray-600 mb-1 block">
-          Key Differentiators <span className="text-gray-400 font-normal">(one per line)</span>
+        <label className="text-xs font-semibold text-ink-2 mb-1 block">
+          Key Differentiators <span className="text-ink-3 font-normal">(one per line)</span>
         </label>
         <textarea
           value={arr('key_differentiators').join('\n')}
           onChange={e => setArr('key_differentiators', e.target.value)}
           placeholder="First-mover GEO platform&#10;Real-time AI visibility tracking&#10;Multi-engine monitoring"
           rows={4}
-          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:border-red-400 resize-none"
+          className="w-full px-3 py-2 bg-surface-warm border border-divider-light rounded-lg text-sm text-ink focus:outline-none focus:border-ink resize-none"
         />
       </div>
     </div>
@@ -239,28 +239,28 @@ function TechnicalConfigForm({
       {toggles.map(t => (
         <div
           key={t.key}
-          className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-xl"
+          className="flex items-center justify-between p-3 bg-surface-warm border border-divider-light rounded-xl"
         >
           <div>
-            <div className="text-sm font-medium text-gray-800">{t.label}</div>
-            <div className="text-xs text-gray-400 mt-0.5">{t.desc}</div>
+            <div className="text-sm font-medium text-ink">{t.label}</div>
+            <div className="text-xs text-ink-3 mt-0.5">{t.desc}</div>
           </div>
           <button
             onClick={() => toggle(t.key)}
-            className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${bool(t.key) ? 'bg-red-500' : 'bg-gray-300'}`}
+            className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${bool(t.key) ? 'bg-ink' : 'bg-surface-muted'}`}
           >
-            <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${bool(t.key) ? 'translate-x-5' : 'translate-x-0.5'}`} />
+            <span className={`absolute top-0.5 w-4 h-4 bg-surface rounded-full shadow transition-transform ${bool(t.key) ? 'translate-x-5' : 'translate-x-0.5'}`} />
           </button>
         </div>
       ))}
       <div>
-        <label className="text-xs font-semibold text-gray-600 mb-1 block">Custom robots.txt Rules</label>
+        <label className="text-xs font-semibold text-ink-2 mb-1 block">Custom robots.txt Rules</label>
         <textarea
           value={String(data.custom_robots_rules ?? '')}
           onChange={e => onChange({ ...data, custom_robots_rules: e.target.value })}
           placeholder="# Additional robots.txt rules&#10;User-agent: *&#10;Disallow: /private/"
           rows={4}
-          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-mono text-gray-800 focus:outline-none focus:border-red-400 resize-none"
+          className="w-full px-3 py-2 bg-surface-warm border border-divider-light rounded-lg text-sm font-mono text-ink focus:outline-none focus:border-ink resize-none"
         />
       </div>
     </div>
@@ -334,30 +334,30 @@ function ModulePanel({
   const useFormEditor = isBrandModule || isFaqModule || isTechModule
 
   return (
-    <div id={type} className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+    <div id={type} className="bg-surface border border-divider-light rounded-2xl overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors text-left"
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-surface-warm transition-colors text-left"
       >
         <div className="flex items-center gap-3">
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${color}`}>
             <Icon className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-sm font-semibold text-gray-800">{label}</div>
-            <div className="text-xs text-gray-400">{desc}</div>
+            <div className="text-sm font-semibold text-ink">{label}</div>
+            <div className="text-xs text-ink-3">{desc}</div>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {initialContent !== null && (
-            <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">Saved</span>
+            <span className="text-xs px-2 py-0.5 bg-sage-bg text-sage rounded-full font-medium">Saved</span>
           )}
-          {open ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
+          {open ? <ChevronDown className="w-4 h-4 text-ink-3" /> : <ChevronRight className="w-4 h-4 text-ink-3" />}
         </div>
       </button>
 
       {open && (
-        <div className="border-t border-gray-100 p-5 space-y-4">
+        <div className="border-t border-divider-light p-5 space-y-4">
           {/* FAQ form editor */}
           {isFaqModule && (
             <FaqEditor
@@ -397,7 +397,7 @@ function ModulePanel({
           {/* Products / summaries — show JSON editor with helper */}
           {(isProductsModule || isSummaryModule) && (
             <div className="space-y-3">
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-ink-3">
                 {isProductsModule
                   ? 'Enter an array of product objects with fields: name, description, key_features[], target_audience, pricing (optional).'
                   : 'Enter an array of page summary objects with fields: page_url, page_type, tldr, key_points[], related_pages[].'}
@@ -414,23 +414,23 @@ function ModulePanel({
           {/* Raw JSON toggle for form-based editors */}
           {useFormEditor && !isTechModule && (
             <details className="text-xs">
-              <summary className="text-gray-400 cursor-pointer hover:text-gray-600">View raw JSON</summary>
-              <pre className="mt-2 p-3 bg-gray-950 text-green-300 rounded-lg overflow-auto text-xs">{jsonText}</pre>
+              <summary className="text-ink-3 cursor-pointer hover:text-ink-2">View raw JSON</summary>
+              <pre className="mt-2 p-3 bg-ink text-green-400 rounded-lg overflow-auto text-xs">{jsonText}</pre>
             </details>
           )}
 
           <div className="flex items-center justify-between pt-2">
             {!jsonValid && (
-              <span className="text-xs text-red-500 flex items-center gap-1">
+              <span className="text-xs text-red-soft flex items-center gap-1">
                 <AlertCircle className="w-3 h-3" /> Invalid JSON
               </span>
             )}
             <div className="ml-auto flex items-center gap-2">
-              {saved && <span className="text-xs text-green-600 flex items-center gap-1"><CheckCircle className="w-3 h-3" />Saved</span>}
+              {saved && <span className="text-xs text-sage flex items-center gap-1"><CheckCircle className="w-3 h-3" />Saved</span>}
               <button
                 onClick={handleSave}
                 disabled={isSaving || !jsonValid}
-                className="flex items-center gap-1.5 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 bg-ink hover:bg-[#2d2d2c] disabled:opacity-50 text-ink-inv text-xs font-semibold rounded-xl transition-colors"
               >
                 {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                 {isSaving ? 'Saving...' : 'Save Module'}
@@ -517,32 +517,32 @@ export default function AssetsClient() {
   }
 
   if (loadingAssets) return (
-    <div className="min-h-screen bg-gray-50/50 flex items-center justify-center">
-      <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+    <div className="min-h-screen bg-canvas flex items-center justify-center">
+      <Loader2 className="w-6 h-6 animate-spin text-ink-3" />
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="min-h-screen bg-canvas">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-8 py-6">
+      <div className="bg-surface border-b border-divider-light px-8 py-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href={`/dashboard/visibility-proxy/${domainId}`} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <Link href={`/dashboard/visibility-proxy/${domainId}`} className="text-ink-3 hover:text-ink-2 transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
-              <Layers className="w-5 h-5 text-red-500" />
+            <div className="w-10 h-10 rounded-xl bg-red-soft-bg flex items-center justify-center">
+              <Layers className="w-5 h-5 text-red-soft" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Brand Data Modules</h1>
-              <p className="text-sm text-gray-400">Edit the 8 modules that AI uses to understand your brand</p>
+              <h1 className="text-xl font-bold text-ink">Brand Data Modules</h1>
+              <p className="text-sm text-ink-3">Edit the 8 modules that AI uses to understand your brand</p>
             </div>
           </div>
           <button
             onClick={syncAll}
             disabled={syncing}
-            className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-ink hover:bg-[#2d2d2c] disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors"
           >
             {syncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
             {syncing ? 'Syncing...' : 'Sync to Edge'}
@@ -552,30 +552,30 @@ export default function AssetsClient() {
 
       <div className="p-6 max-w-3xl mx-auto space-y-4">
         {globalError && (
-          <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-            <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-            <span className="text-sm text-red-700">{globalError}</span>
+          <div className="flex items-center gap-2 bg-red-soft-bg border border-red-soft/20 rounded-xl px-4 py-3">
+            <AlertCircle className="w-4 h-4 text-red-soft flex-shrink-0" />
+            <span className="text-sm text-red-soft">{globalError}</span>
           </div>
         )}
 
         {syncMsg && (
-          <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
-            <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-            <span className="text-sm text-green-700">{syncMsg}</span>
+          <div className="flex items-center gap-2 bg-sage-bg border border-sage/20 rounded-xl px-4 py-3">
+            <CheckCircle className="w-4 h-4 text-sage flex-shrink-0" />
+            <span className="text-sm text-sage">{syncMsg}</span>
           </div>
         )}
 
         {/* Progress bar */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-4">
+        <div className="bg-surface border border-divider-light rounded-2xl p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-gray-500">Modules configured</span>
-            <span className="text-xs font-bold text-gray-700">
+            <span className="text-xs font-semibold text-ink-3">Modules configured</span>
+            <span className="text-xs font-bold text-ink-2">
               {Object.keys(assets).length} / {MODULES.length}
             </span>
           </div>
-          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-2 bg-surface-muted rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-red-500 to-orange-400 rounded-full transition-all"
+              className="h-full bg-ink rounded-full transition-all"
               style={{ width: `${(Object.keys(assets).length / MODULES.length) * 100}%` }}
             />
           </div>
@@ -594,11 +594,11 @@ export default function AssetsClient() {
         ))}
 
         {/* Sync reminder */}
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3">
-          <Globe className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-amber-800">
+        <div className="bg-caution-bg border border-caution/20 rounded-2xl p-4 flex gap-3">
+          <Globe className="w-5 h-5 text-caution flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-caution">
             <div className="font-semibold mb-0.5">Remember to sync after saving</div>
-            <div className="text-amber-700 text-xs">
+            <div className="text-caution text-xs">
               Click <strong>Sync to Edge</strong> to push saved data to the Cloudflare edge network. Changes take effect within ~60 seconds.
             </div>
           </div>
