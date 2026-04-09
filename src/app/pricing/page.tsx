@@ -5,6 +5,7 @@ import { useState, useCallback, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useLanguage } from '@/lib/LanguageContext'
 import LanguageSwitch from '@/components/LanguageSwitch'
+import { LogoFull } from '@/components/Logo'
 import { useAuth } from '@/hooks/useAuth'
 import { api } from '@/lib/api'
 import { gaEvent } from '@/lib/gtag'
@@ -347,52 +348,41 @@ function PricingPageInner() {
   return (
     <div className="min-h-screen bg-canvas">
       {/* Navigation */}
-      <nav className="bg-surface border-b border-divider-light sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+      <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-6 py-3">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-ink rounded-lg flex items-center justify-center">
-                <span className="text-ink-inv font-bold text-sm">A</span>
-              </div>
-              <span className="text-lg font-bold text-ink">Alignment AI</span>
+            <Link href="/" className="flex items-center hover:opacity-90 transition-opacity">
+              <LogoFull width={140} height={45} />
             </Link>
 
-            <div className="hidden md:flex items-center gap-6">
-              <Link href="/" className="text-ink-2 hover:text-ink text-sm font-medium transition-colors">
-                {t.nav.system}
-              </Link>
-              <Link href="/" className="text-ink-2 hover:text-ink text-sm font-medium transition-colors">
-                {t.nav.solutions}
-              </Link>
-              <Link href="/" className="text-ink-2 hover:text-ink text-sm font-medium transition-colors">
-                {t.nav.technology}
-              </Link>
-              <Link href="/pricing/" className="text-ink font-semibold text-sm">
-                {t.nav.pricing}
-              </Link>
-              <Link href="/" className="text-ink-2 hover:text-ink text-sm font-medium transition-colors">
-                {t.nav.docs}
-              </Link>
-              <Link href="/" className="text-ink-2 hover:text-ink text-sm font-medium transition-colors">
-                {t.nav.insights}
-              </Link>
-              <Link href="/" className="text-ink-2 hover:text-ink text-sm font-medium transition-colors">
-                {t.nav.contact}
-              </Link>
-              <Link href="/roi-simulator" className="px-3 py-1.5 text-ink-2 hover:text-ink text-sm font-semibold transition-colors rounded-lg bg-surface-warm hover:bg-surface-muted flex items-center gap-1.5">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                {(t as unknown as Record<string, string>).nav_roi || 'ROI Calculator'}
-              </Link>
+            <div className="hidden lg:flex items-center gap-1">
+              {[
+                { label: t.nav.system,     href: '/system/' },
+                { label: t.nav.technology, href: '/technology/' },
+                { label: t.nav.pricing,    href: '/pricing/' },
+                { label: t.nav.docs,       href: '/docs/' },
+                { label: t.nav.insights,   href: '/insights/' },
+                { label: t.nav.contact,    href: '/contact/' },
+              ].map((item, i) => (
+                <Link
+                  key={i}
+                  href={item.href}
+                  className={`px-3 py-2 text-sm font-medium transition-colors rounded-lg ${
+                    item.href === '/pricing/'
+                      ? 'text-red-soft bg-red-soft-bg'
+                      : 'text-ink-2 hover:text-ink hover:bg-surface-warm'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <LanguageSwitch />
-              <Link href="/login/" className="text-ink-2 hover:text-ink font-medium transition-colors">
-                {t.nav.signIn}
-              </Link>
               <Link
                 href="/login/"
-                className="bg-ink hover:bg-[#2d2d2c] text-ink-inv font-semibold px-6 py-2.5 rounded-xl transition-all"
+                className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-ink-inv bg-ink rounded-lg hover:bg-[#2d2d2c] transition-all shadow-soft hover:shadow-medium btn-shine"
               >
                 {t.nav.getStarted}
               </Link>
@@ -402,7 +392,7 @@ function PricingPageInner() {
       </nav>
 
       {/* Hero */}
-      <section className="py-16 bg-canvas">
+      <section className="pt-32 pb-16 bg-canvas">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-ink mb-4">
             {lang === 'zh' ? '选择适合您的方案' : 'Choose Your Path to AI Visibility'}
