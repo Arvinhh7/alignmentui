@@ -22,10 +22,10 @@ export const translations = {
     },
     // Landing Page - Hero
     hero: {
-      badge: 'Track Your Brand Across 5+ AI Platforms',
+      badge: 'Visible to Global 58 AI Platforms',
       headline: 'Get your brand',
-      headlineHighlight: 'mentioned by AI',
-      subheadline: 'Monitor your brand visibility across ChatGPT, Perplexity, Gemini, and more. Track mentions, analyze citations, and outpace your competitors in AI-powered search.',
+      headlineHighlight: 'seen and cited by AI',
+      subheadline: 'We make your brand visible to Global 58 AI platforms automatically — no code changes needed. See exactly when and how ChatGPT, Gemini, Google AI, Perplexity, Claude, and Grok mention your brand in real time.',
       stats: {
         traffic: 'AI Traffic',
         trafficValue: '8,432',
@@ -586,10 +586,10 @@ export const translations = {
     },
     // Landing Page - Hero
     hero: {
-      badge: '跨5+个AI平台追踪您的品牌',
+      badge: '覆盖全球58个AI平台',
       headline: '让您的品牌',
-      headlineHighlight: '被AI提及',
-      subheadline: '监测您的品牌在ChatGPT、Perplexity、Gemini等平台的可见性。追踪提及、分析引用，在AI搜索中超越竞争对手。',
+      headlineHighlight: '被AI看见并引用',
+      subheadline: '我们让您的品牌自动对全球58个AI平台可见 — 无需任何代码改动。实时查看ChatGPT、Gemini、Google AI、Perplexity、Claude和Grok如何提及您的品牌。',
       stats: {
         traffic: 'AI 流量',
         trafficValue: '8,432',

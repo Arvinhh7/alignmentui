@@ -122,21 +122,38 @@ export default function LandingPage() {
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="pt-28 md:pt-40 pb-16 md:pb-20 px-5 md:px-8 lg:px-12 max-w-marketing mx-auto text-center">
 
-        {/* Badge */}
+        {/* Badge — Global 58 AI Platforms */}
         <div
-          className={`inline-flex items-center gap-2 px-4 py-1.5 border border-divider rounded-full text-[12.5px] text-ink-2 bg-surface mb-7 transition-all duration-500 ${
+          className={`inline-flex items-center gap-2 px-4 py-1.5 border border-divider rounded-full text-[12.5px] text-ink-2 bg-surface mb-4 transition-all duration-500 ${
             mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
           }`}
         >
           <span className="w-1.5 h-1.5 rounded-full bg-sage animate-blink flex-shrink-0" />
           {t.hero.badge}
-          <span className="flex items-center gap-1 ml-1 pl-2 border-l border-divider-light">
-            <PlatformIcon src="/logos/openai.png"     alt="ChatGPT" />
-            <PlatformIcon src="/logos/perplexity.png" alt="Perplexity" />
-            <PlatformIcon src="/logos/gemini.png"     alt="Gemini" />
-            <PlatformIcon src="/logos/grok.png"       alt="Grok" />
-            <PlatformIcon src="/logos/google.png"     alt="Google AI" />
-          </span>
+        </div>
+
+        {/* Platform chips — logo + name */}
+        <div
+          className={`flex flex-wrap items-center justify-center gap-2 mb-7 transition-all duration-500 delay-75 ${
+            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+          }`}
+        >
+          {[
+            { name: 'ChatGPT',    logo: '/logos/openai.png' },
+            { name: 'Gemini',     logo: '/logos/gemini.png' },
+            { name: 'Google AI',  logo: '/logos/google.png' },
+            { name: 'Perplexity', logo: '/logos/perplexity.png' },
+            { name: 'Claude',     logo: '/logos/anthropic.png' },
+            { name: 'Grok',       logo: '/logos/grok.png' },
+          ].map(p => (
+            <span
+              key={p.name}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-surface border border-divider-light rounded-full text-[11.5px] font-medium text-ink-2 shadow-elevation-sm"
+            >
+              <img src={p.logo} alt={p.name} width={14} height={14} className="w-3.5 h-3.5 object-contain rounded-sm" />
+              {p.name}
+            </span>
+          ))}
         </div>
 
         {/* Headline — DM Serif with italic+underline emphasis */}
