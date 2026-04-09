@@ -495,7 +495,7 @@ function PricingPageInner() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-6">
               {platformPlans.map((plan, index) => {
                 const planKey = PLAN_KEY_MAP[plan.name] ?? 'starter'
                 const isThisLoading = checkoutLoading === planKey
@@ -507,7 +507,7 @@ function PricingPageInner() {
                   }`}
                 >
                   {plan.popular && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-sage-bg text-sage text-sm font-semibold px-4 py-1 rounded-full">
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap bg-sage text-ink-inv text-xs font-semibold px-4 py-1.5 rounded-full shadow-sm">
                       {lang === 'zh' ? '最受欢迎' : 'Most Popular'}
                     </div>
                   )}
@@ -616,7 +616,7 @@ function PricingPageInner() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-6">
               {servicePlans.map((plan, index) => (
                 <div
                   key={index}
@@ -625,7 +625,7 @@ function PricingPageInner() {
                   }`}
                 >
                   {plan.popular && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-sage-bg text-sage text-sm font-semibold px-4 py-1 rounded-full">
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap bg-sage text-ink-inv text-xs font-semibold px-4 py-1.5 rounded-full shadow-sm">
                       {lang === 'zh' ? '最受出海企业欢迎' : 'Most Popular'}
                     </div>
                   )}

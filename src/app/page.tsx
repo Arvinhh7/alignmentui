@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
 import LanguageSwitch from '@/components/LanguageSwitch'
-import { LogoIcon } from '@/components/Logo'
+import { LogoFull } from '@/components/Logo'
 import { useEffect, useState } from 'react'
 import {
   ShieldCheck, TrendingUp, PenTool, Globe,
@@ -94,9 +94,8 @@ export default function LandingPage() {
 
       {/* ── Navigation ───────────────────────────────────────────────────── */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-5 md:px-8 lg:px-12 flex items-center justify-between h-16 bg-[rgba(250,247,242,0.88)] backdrop-blur-md border-b border-divider/50">
-        <Link href="/" className="flex items-center gap-2.5">
-          <LogoIcon size={28} />
-          <span className="text-[15px] font-semibold text-ink tracking-tight">Alignment AI</span>
+        <Link href="/" className="flex items-center hover:opacity-90 transition-opacity">
+          <LogoFull width={140} height={45} />
         </Link>
 
         <div className="hidden lg:flex items-center gap-8">
