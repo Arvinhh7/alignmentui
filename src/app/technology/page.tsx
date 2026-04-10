@@ -471,8 +471,15 @@ export default function TechnologyPage() {
                   ))}
                 </div>
                 <div className="mt-4 pt-4 border-t border-divider-light flex items-center gap-2">
-                  <span className="text-xs font-medium text-ink-3 bg-surface-warm px-2 py-1 rounded-full">Google</span>
-                  <span className="text-xs font-medium text-ink-3 bg-surface-warm px-2 py-1 rounded-full">Bing</span>
+                  {[
+                    { name: 'Google', logo: '/logos/google.png' },
+                    { name: 'Bing',   logo: '/logos/bing.png' },
+                  ].map(p => (
+                    <span key={p.name} className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-3 bg-surface-warm px-2 py-1 rounded-full">
+                      <img src={p.logo} alt={p.name} width={12} height={12} className="w-3 h-3 object-contain rounded-sm flex-shrink-0" />
+                      {p.name}
+                    </span>
+                  ))}
                 </div>
               </div>
 
@@ -502,9 +509,16 @@ export default function TechnologyPage() {
                     ))}
                   </div>
                   <div className="mt-4 pt-4 border-t border-white/20 flex items-center gap-2">
-                    <span className="text-xs font-medium text-white/80 bg-white/15 px-2 py-1 rounded-full">ChatGPT</span>
-                    <span className="text-xs font-medium text-white/80 bg-white/15 px-2 py-1 rounded-full">Perplexity</span>
-                    <span className="text-xs font-medium text-white/80 bg-white/15 px-2 py-1 rounded-full">Gemini</span>
+                    {[
+                      { name: 'ChatGPT',   logo: '/logos/openai.png' },
+                      { name: 'Perplexity', logo: '/logos/perplexity.png' },
+                      { name: 'Gemini',     logo: '/logos/gemini.png' },
+                    ].map(p => (
+                      <span key={p.name} className="inline-flex items-center gap-1.5 text-xs font-medium text-white/80 bg-white/15 px-2 py-1 rounded-full">
+                        <img src={p.logo} alt={p.name} width={12} height={12} className="w-3 h-3 object-contain rounded-sm flex-shrink-0" />
+                        {p.name}
+                      </span>
+                    ))}
                   </div>
                 </div>
               </div>

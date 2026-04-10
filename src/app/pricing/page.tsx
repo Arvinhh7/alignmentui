@@ -533,7 +533,20 @@ function PricingPageInner() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         </span>
-                        {feature}
+                        {feature.includes('ChatGPT') ? (
+                          <span className="flex items-center gap-1.5 flex-wrap">
+                            {[
+                              { name: 'ChatGPT',      logo: '/logos/openai.png' },
+                              { name: 'Perplexity',   logo: '/logos/perplexity.png' },
+                              { name: 'AI Overviews', logo: '/logos/google.png' },
+                            ].map(p => (
+                              <span key={p.name} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium ${plan.popular ? 'bg-white/15 text-white/80' : 'bg-surface-warm text-ink-2'}`}>
+                                <img src={p.logo} alt={p.name} width={11} height={11} className="w-[11px] h-[11px] object-contain flex-shrink-0" />
+                                {p.name}
+                              </span>
+                            ))}
+                          </span>
+                        ) : feature}
                       </li>
                     ))}
                   </ul>
@@ -654,7 +667,20 @@ function PricingPageInner() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         </span>
-                        {feature}
+                        {feature.includes('ChatGPT') ? (
+                          <span className="flex items-center gap-1.5 flex-wrap">
+                            {[
+                              { name: 'ChatGPT',      logo: '/logos/openai.png' },
+                              { name: 'Perplexity',   logo: '/logos/perplexity.png' },
+                              { name: 'AI Overviews', logo: '/logos/google.png' },
+                            ].map(p => (
+                              <span key={p.name} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium ${plan.popular ? 'bg-white/15 text-white/80' : 'bg-surface-warm text-ink-2'}`}>
+                                <img src={p.logo} alt={p.name} width={11} height={11} className="w-[11px] h-[11px] object-contain flex-shrink-0" />
+                                {p.name}
+                              </span>
+                            ))}
+                          </span>
+                        ) : feature}
                       </li>
                     ))}
                   </ul>

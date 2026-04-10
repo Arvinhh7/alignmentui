@@ -289,14 +289,27 @@ export default function LandingPage() {
       {/* ── Trust ────────────────────────────────────────────────────────── */}
       <div className="py-16 md:py-20 px-5 md:px-12 text-center">
         <p className="eyebrow">Trusted by forward-thinking brands</p>
-        <div className="flex items-center justify-center gap-6 md:gap-12 mt-8 flex-wrap">
-          {['Shopify', 'WordPress', 'Webflow', 'Wix', 'Custom Sites'].map(name => (
-            <span
+        <div className="flex items-center justify-center gap-6 md:gap-10 mt-8 flex-wrap">
+          {[
+            { name: 'Shopify',      logo: '/logos/shopify.png' },
+            { name: 'WordPress',    logo: '/logos/wordpress.png' },
+            { name: 'Webflow',      logo: '/logos/webflow.png' },
+            { name: 'Wix',          logo: '/logos/wix.png' },
+            { name: 'Custom Sites', logo: null },
+          ].map(({ name, logo }) => (
+            <div
               key={name}
-              className="text-[18px] font-semibold text-ink-3 opacity-50 hover:opacity-80 transition-opacity tracking-tight"
+              className="flex items-center gap-2 opacity-50 hover:opacity-80 transition-opacity"
             >
-              {name}
-            </span>
+              {logo ? (
+                <img src={logo} alt={name} width={22} height={22} className="w-[22px] h-[22px] object-contain rounded-sm flex-shrink-0" />
+              ) : (
+                <svg className="w-[22px] h-[22px] text-ink-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                </svg>
+              )}
+              <span className="text-[17px] font-semibold text-ink-3 tracking-tight">{name}</span>
+            </div>
           ))}
         </div>
       </div>
