@@ -526,7 +526,7 @@ function ContactPageInner() {
                 <LogoFull width={160} height={100} />
               </div>
               <p className="text-ink-3 text-sm leading-relaxed">
-                AI Signal Intake & Path Decision Engine for Generative Engine Optimization.
+                Get your brand seen and cited by AI — automatically.
               </p>
             </div>
 

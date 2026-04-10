@@ -877,7 +877,7 @@ function PricingPageInner() {
               <p className="text-ink-3 text-sm leading-relaxed">
                 {lang === 'zh'
                   ? 'AI 品牌可见度平台——让您的品牌被全球 AI 发现并引用。'
-                  : 'AI Signal Intake & Path Decision Engine for Generative Engine Optimization.'}
+                  : 'Get your brand seen and cited by AI — automatically.'}
               </p>
             </div>
 

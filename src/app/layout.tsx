@@ -27,7 +27,7 @@ const dmSerifDisplay = DM_Serif_Display({
 
 export const metadata: Metadata = {
   title: 'Alignment AI - GEO Platform',
-  description: 'AI Signal Intake & Path Decision Engine',
+  description: 'Make your brand visible and cited across 58 AI platforms — no code changes needed.',
 }
 
 export default function RootLayout({
