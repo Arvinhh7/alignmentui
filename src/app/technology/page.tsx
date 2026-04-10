@@ -123,6 +123,37 @@ const dimensions = [
   },
 ]
 
+const featuredPapers: Paper[] = [
+  {
+    title: 'Introducing SearchGPT: Real-Time Web Search in ChatGPT',
+    summary: 'OpenAI details how ChatGPT selects, ranks, and attributes web sources in real-time search responses — the foundation of modern GEO strategy.',
+    source: 'OpenAI',
+    published_at: '2024-09-01',
+    url: 'https://openai.com/index/searchgpt-prototype/',
+  },
+  {
+    title: 'How AI Overviews in Google Search selects and cites sources',
+    summary: "Google's engineering team explains the grounding and citation logic behind AI Overviews — how content quality, structured data, and authority signals determine what gets surfaced.",
+    source: 'Google AI',
+    published_at: '2024-05-14',
+    url: 'https://blog.google/products/search/ai-overviews-update-may-2024/',
+  },
+  {
+    title: 'Building an Answer Engine That People Can Trust',
+    summary: "Perplexity AI's approach to answer quality: real-time grounding, source diversity, and citation transparency — and what it means for brands that want to appear as cited sources.",
+    source: 'Perplexity',
+    published_at: '2024-04-01',
+    url: 'https://www.perplexity.ai/hub/blog',
+  },
+  {
+    title: "What Is GEO? The Marketer's Guide to AI Search Visibility",
+    summary: "A practitioner's breakdown of why traditional SEO falls short in the age of AI answer engines, and which content structures get cited most often by LLMs.",
+    source: 'Search Engine Journal',
+    published_at: '2024-08-01',
+    url: 'https://www.searchenginejournal.com/generative-engine-optimization/',
+  },
+]
+
 export default function TechnologyPage() {
   const { t } = useLanguage()
   const [mounted, setMounted] = useState(false)
@@ -163,7 +194,8 @@ export default function TechnologyPage() {
     { label: 'Videos', value: stats.youtube_videos ?? 0 },
   ]
 
-  const duplicatedPapers = papers.length > 0 ? [...papers, ...papers] : []
+  const allPapers = [...featuredPapers, ...papers]
+  const duplicatedPapers = allPapers.length > 0 ? [...allPapers, ...allPapers] : []
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -233,6 +265,151 @@ export default function TechnologyPage() {
             className={`text-lg md:text-xl text-ink-2 mb-10 max-w-2xl mx-auto leading-relaxed transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
           >
             {"Alignment's technology is built on cutting-edge research in Generative Engine Optimization — the new discipline of making your brand visible to AI."}
+          </p>
+        </div>
+      </section>
+
+      {/* Two-Layer Technology Architecture */}
+      <section className="py-24 bg-surface-warm relative">
+        <div className="absolute inset-0 bg-dots opacity-20" />
+        <div className="relative max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-ink rounded-full text-ink-inv text-sm font-medium mb-6">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              Platform Architecture
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-ink mb-4">
+              Built on <span className="gradient-text">Two Layers</span>
+            </h2>
+            <p className="text-lg text-ink-2 max-w-2xl mx-auto">
+              Most tools only optimize content. Alignment AI operates at both the infrastructure and content layers — ensuring AI can find, read, and cite your brand.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Layer 1 — Visibility Infrastructure */}
+            <div className="bg-ink rounded-2xl p-8 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/[0.04] rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl pointer-events-none" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-6">
+                  <span className="text-[10px] font-bold text-white/40 font-mono bg-white/10 px-2 py-1 rounded">LAYER 1</span>
+                  <div className="w-px h-4 bg-white/20" />
+                  <span className="text-xs text-white/50">Infrastructure</span>
+                </div>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold text-ink-inv">AI Visibility Infrastructure</h3>
+                </div>
+                <p className="text-white/65 text-sm leading-relaxed mb-8">
+                  A Cloudflare Worker at the network edge that intercepts AI crawler traffic and automatically injects the structured signals that 58 AI platforms need to discover and trust your brand — with zero code changes on your side.
+                </p>
+                <div className="space-y-4">
+                  {[
+                    {
+                      icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" /></svg>,
+                      label: 'AI Bot Detection & Routing',
+                      desc: 'Identifies GPTBot, ClaudeBot, Googlebot-AI and 55+ more AI crawlers',
+                    },
+                    {
+                      icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>,
+                      label: 'JSON-LD Schema Injection',
+                      desc: 'Structured data dynamically injected per AI platform requirements',
+                    },
+                    {
+                      icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
+                      label: 'robots.txt · llms.txt · agent.json',
+                      desc: 'AI-specific crawl directives and brand identity files served automatically',
+                    },
+                    {
+                      icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
+                      label: 'Edge Performance',
+                      desc: '<1ms overhead on Cloudflare\'s 300+ global PoPs',
+                    },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <div className="w-7 h-7 bg-white/10 rounded-lg flex items-center justify-center text-white/70 flex-shrink-0 mt-0.5">
+                        {item.icon}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-ink-inv">{item.label}</p>
+                        <p className="text-xs text-white/50 mt-0.5">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Layer 2 — GEO Platform */}
+            <div className="bg-surface rounded-2xl p-8 border border-divider relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#C84B31]/[0.04] rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl pointer-events-none" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-6">
+                  <span className="text-[10px] font-bold text-ink-3 font-mono bg-surface-warm px-2 py-1 rounded">LAYER 2</span>
+                  <div className="w-px h-4 bg-divider-light" />
+                  <span className="text-xs text-ink-3">GEO Platform</span>
+                </div>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-red-soft-bg rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-red-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold text-ink">Content Intelligence Platform</h3>
+                </div>
+                <p className="text-ink-2 text-sm leading-relaxed mb-8">
+                  A full-stack platform that audits, optimizes, and monitors how AI models represent your brand across every major answer engine. Built on academic GEO research and trained on 58 AI platform behaviors.
+                </p>
+                <div className="space-y-4">
+                  {[
+                    {
+                      icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>,
+                      label: '5-Dimension GEO Audit',
+                      desc: 'Score your content on accessibility, semantics, citability, risk, and reusability',
+                    },
+                    {
+                      icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>,
+                      label: 'AI Content Optimization',
+                      desc: 'Generate GEO-optimized FAQs, schema markup, and structured articles',
+                    },
+                    {
+                      icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>,
+                      label: 'Cross-Platform Brand Monitor',
+                      desc: 'Track mentions in ChatGPT, Gemini, Perplexity, Claude, and Grok in real time',
+                    },
+                    {
+                      icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>,
+                      label: 'Citation Analytics & Alerts',
+                      desc: 'See which content gets cited and get alerted when mention rates change',
+                    },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <div className="w-7 h-7 bg-surface-warm rounded-lg flex items-center justify-center text-ink-2 flex-shrink-0 mt-0.5">
+                        {item.icon}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-ink">{item.label}</p>
+                        <p className="text-xs text-ink-3 mt-0.5">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Connector note */}
+          <p className="text-center text-sm text-ink-3">
+            Layer 1 ensures AI can{' '}
+            <span className="font-semibold text-ink">discover</span> your brand.{' '}
+            Layer 2 ensures AI wants to{' '}
+            <span className="font-semibold text-ink">cite</span> it.
           </p>
         </div>
       </section>
@@ -413,22 +590,28 @@ export default function TechnologyPage() {
               {duplicatedPapers.map((paper, i) => (
                 <div
                   key={`paper-${i}`}
-                  className="w-[400px] flex-shrink-0 bg-surface rounded-2xl border border-divider-light p-8 shadow-soft"
+                  className="w-[400px] flex-shrink-0 bg-surface rounded-2xl border border-divider-light p-7 shadow-soft hover:shadow-medium transition-shadow"
                 >
-                  <svg className="w-8 h-8 text-ink-3 mb-4" fill="currentColor" viewBox="0 0 24 24">
+                  {/* Source header */}
+                  <div className="flex items-center gap-2 mb-5">
+                    <SourceLogo name={paper.source || ''} />
+                    <span className="text-xs font-semibold text-ink-2">{paper.source || 'Research'}</span>
+                    {paper.published_at && (
+                      <span className="ml-auto text-[11px] text-ink-3 bg-surface-warm px-2 py-0.5 rounded-full">
+                        {new Date(paper.published_at).getFullYear()}
+                      </span>
+                    )}
+                  </div>
+                  {/* Quote icon */}
+                  <svg className="w-6 h-6 text-ink-3 mb-3" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10H14.017zM0 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151C7.546 6.068 5.983 8.789 5.983 11h4v10H0z" />
                   </svg>
-                  <p className="text-ink text-lg font-medium italic leading-relaxed mb-6 line-clamp-3">
-                    {`"${paper.title}"`}
+                  <p className="text-ink text-base font-semibold leading-snug mb-3 line-clamp-2">
+                    {paper.title}
                   </p>
                   {paper.summary && (
-                    <p className="text-ink-3 text-sm leading-relaxed mb-4 line-clamp-2">{paper.summary}</p>
+                    <p className="text-ink-3 text-sm leading-relaxed line-clamp-3">{paper.summary}</p>
                   )}
-                  <div className="flex items-center gap-2 text-sm text-ink-3">
-                    <span className="font-medium">—</span>
-                    <span>{paper.source || 'Research Paper'}</span>
-                    {paper.published_at && <span>· {new Date(paper.published_at).getFullYear()}</span>}
-                  </div>
                 </div>
               ))}
             </div>
