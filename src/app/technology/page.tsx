@@ -94,13 +94,13 @@ const dimensions = [
   {
     icon: dimensionIcons.accessibility,
     title: 'AI Accessibility',
-    description: 'How easily AI crawlers can discover, parse, and index your content. Covers robots.txt, sitemap, structured data, and page load performance.',
+    description: 'How easily AI platforms can find and read your site — including load speed, content discoverability, and how your pages are organized.',
     color: 'from-[#C84B31] to-[#A33820]',
   },
   {
     icon: dimensionIcons.semantic,
     title: 'Semantic Structure',
-    description: 'Whether your content uses clear headings, schema markup, and logical hierarchy that LLMs can decompose into citable knowledge graphs.',
+    description: 'Whether your content is organized clearly enough for AI to understand, quote, and reference with confidence.',
     color: 'from-[#C84B31] to-[#A33820]',
   },
   {
@@ -307,7 +307,7 @@ export default function TechnologyPage() {
                   <h3 className="text-2xl font-bold text-ink-inv">AI Visibility Infrastructure</h3>
                 </div>
                 <p className="text-white/65 text-sm leading-relaxed mb-8">
-                  A Cloudflare Worker at the network edge that intercepts AI crawler traffic and automatically injects the structured signals that 58 AI platforms need to discover and trust your brand — with zero code changes on your side.
+                  Works silently behind your existing site — automatically sends the signals that 58 AI platforms need to discover, understand, and cite your brand. No code changes on your side.
                 </p>
                 <div className="space-y-4">
                   {[
@@ -318,18 +318,18 @@ export default function TechnologyPage() {
                     },
                     {
                       icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>,
-                      label: 'JSON-LD Schema Injection',
-                      desc: 'Structured data dynamically injected per AI platform requirements',
+                      label: 'AI-Ready Data Delivery',
+                      desc: 'Sends the structured information each AI platform needs to understand your brand',
                     },
                     {
                       icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
-                      label: 'robots.txt · llms.txt · agent.json',
-                      desc: 'AI-specific crawl directives and brand identity files served automatically',
+                      label: 'AI Platform Instructions',
+                      desc: 'Tells AI platforms exactly how to find, read, and represent your brand',
                     },
                     {
                       icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
-                      label: 'Edge Performance',
-                      desc: '<1ms overhead on Cloudflare\'s 300+ global PoPs',
+                      label: 'Zero Impact on Speed',
+                      desc: 'Adds no noticeable delay to your site — runs on a global network for visitors everywhere',
                     },
                   ].map((item, i) => (
                     <div key={i} className="flex items-start gap-3">
@@ -370,13 +370,13 @@ export default function TechnologyPage() {
                   {[
                     {
                       icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>,
-                      label: '5-Dimension GEO Audit',
-                      desc: 'Score your content on accessibility, semantics, citability, risk, and reusability',
+                      label: 'Complete AI Visibility Audit',
+                      desc: 'Score your brand across 5 dimensions: discoverability, content clarity, citability, accuracy risk, and reach',
                     },
                     {
                       icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>,
                       label: 'AI Content Optimization',
-                      desc: 'Generate GEO-optimized FAQs, schema markup, and structured articles',
+                      desc: 'Generate FAQs, articles, and content formats that AI platforms cite more often',
                     },
                     {
                       icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>,
@@ -499,7 +499,7 @@ export default function TechnologyPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    {['Cited in AI responses', 'Source authority & trust signals', 'Semantic structure & schema markup', 'Cross-model citation consistency'].map((item, i) => (
+                    {['Cited in AI responses', 'Source authority & trust signals', 'Clear content structure', 'Consistent citation across AI platforms'].map((item, i) => (
                       <div key={i} className="flex items-center gap-2 text-sm text-white/90">
                         <svg className="w-4 h-4 text-white/80 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />

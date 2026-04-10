@@ -307,7 +307,7 @@ export default function InsightsPage() {
             <span className="text-ink underline underline-offset-4">Insights</span>
           </h1>
           <p className="text-lg md:text-xl text-ink-2 max-w-2xl mx-auto leading-relaxed">
-            Stay ahead of AI search trends with curated papers, blog posts, and video content from the GEO ecosystem.
+            Stay ahead with curated research on how AI platforms discover, rank, and cite brands like yours.
           </p>
         </div>
       </section>

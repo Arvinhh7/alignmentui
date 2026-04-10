@@ -30,7 +30,7 @@ const faqs = {
     },
     {
       question: 'What are credits and how are they consumed?',
-      answer: 'Credits are the universal unit for all Platform operations. Each AI-powered action costs a specific number of credits — for example, running a GEO Audit costs 10 credits, a Monitor Scan costs 1 credit per prompt, and generating an Intel Report costs 25 credits. Your plan includes a monthly credit allowance (Starter: 300, Growth: 1,000, Enterprise: 5,000). Credits reset each billing month. The 14-day free trial includes 50 credits.',
+      answer: 'Credits power every action on the platform. Each action costs a specific number of credits — for example, running a GEO Audit costs 10 credits, a Monitor Scan costs 1 credit per prompt, and generating an Intel Report costs 25 credits. Your plan includes a monthly credit allowance (Starter: 300, Growth: 1,000, Enterprise: 5,000). Credits reset each billing month. The 14-day free trial includes 50 credits.',
     },
     {
       question: 'Can I switch from Platform to Managed Service?',

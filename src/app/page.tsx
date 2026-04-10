@@ -58,7 +58,7 @@ export default function LandingPage() {
     {
       icon: <Globe className="w-[18px] h-[18px]" />,
       title: 'Visibility Proxy',
-      desc: 'Cloudflare-powered reverse proxy that serves enriched structured data to AI crawlers — zero changes to your site code.',
+      desc: 'Works invisibly in the background — AI platforms get what they need to cite your brand, your visitors see nothing different.',
       bg: 'bg-surface-warm',
     },
     {
@@ -87,7 +87,7 @@ export default function LandingPage() {
     { title: 'Zero-Impact for Humans',  desc: 'Real visitors never notice anything different. No speed loss, no layout shifts, no changes to your website code.', tag: 'Transparent' },
     { title: 'Enhanced for AI',         desc: 'When GPTBot, ClaudeBot, or PerplexityBot visits, they receive your original content plus structured knowledge graph data.', tag: '34+ AI Platforms' },
     { title: 'Referral Tracking',       desc: 'Dual-signal attribution: passive Referer header detection plus active URL parameter planting in llms.txt and agent.json.', tag: 'GA4 Compatible' },
-    { title: 'Edge Deployment',         desc: "Runs on Cloudflare's global edge network. Sub-50ms response times. DNS-level setup — works with any website platform.", tag: 'Cloudflare Workers' },
+    { title: 'Global Performance',       desc: "Lightning-fast and always on. Works with Shopify, WordPress, Webflow, or any custom site — no engineers needed.", tag: 'Global Infrastructure' },
   ]
 
   return (
@@ -269,7 +269,7 @@ export default function LandingPage() {
             The invisible layer between your website and AI
           </h2>
           <p className="text-lead text-[rgba(250,247,242,0.6)] mt-4 max-w-[520px]">
-            Visibility Proxy sits at the edge. Human visitors see your site unchanged. AI crawlers receive an enriched knowledge graph — JSON-LD, llms.txt, agent.json — automatically.
+            Visibility Proxy sits at the edge. Human visitors see your site unchanged. AI platforms automatically receive the signals they need to discover and cite your brand.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-12">
