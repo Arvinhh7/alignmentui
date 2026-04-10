@@ -825,26 +825,40 @@ function PricingPageInner() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-ink">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold text-ink-inv mb-6">
-            {lang === 'zh' ? '准备好提升品牌的 AI 可见度了吗？' : 'Ready to Boost Your AI Visibility?'}
+      <section className="py-24 bg-surface-warm relative">
+        <div className="absolute inset-0 bg-dots opacity-30" />
+        <div className="relative max-w-4xl mx-auto px-6 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-surface border border-divider-light rounded-full text-ink-2 text-sm font-medium mb-6 shadow-soft">
+            <svg className="w-4 h-4 text-red-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            {lang === 'zh' ? '立即开始' : 'Ready to Start'}
+          </div>
+          <h2 className="text-4xl md:text-5xl font-bold text-ink mb-6">
+            {lang === 'zh' ? (
+              <>提升品牌的 <span className="gradient-text">AI 可见度</span></>
+            ) : (
+              <>Boost Your <span className="gradient-text">AI Visibility</span></>
+            )}
           </h2>
-          <p className="text-xl text-ink-inv/60 mb-10">
+          <p className="text-lg text-ink-2 mb-10 max-w-2xl mx-auto">
             {lang === 'zh'
-              ? '无论您选择自助平台还是托管服务，我们都能帮您实现目标。'
-              : 'Whether you choose Platform or Managed Service, we\'ll help you get there.'}
+              ? '无论您选择自助平台还是托管服务，我们都能帮您让品牌被全球 58 个 AI 平台发现并引用。'
+              : "Whether you choose Platform or Managed Service, we'll help your brand get discovered and cited across 58 AI platforms."}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/login/"
-              className="bg-surface hover:bg-surface-muted text-ink font-semibold px-8 py-4 rounded-xl transition-all"
+              className="group inline-flex items-center justify-center gap-2 bg-ink hover:bg-[#2d2d2c] text-ink-inv font-semibold px-8 py-4 rounded-xl transition-all shadow-large hover:shadow-glow btn-shine"
             >
               {lang === 'zh' ? '免费试用 Platform' : 'Try Platform Free'}
+              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
             </Link>
             <Link
               href="/contact/?subject=managed-service"
-              className="bg-white/10 hover:bg-white/20 text-ink-inv font-semibold px-8 py-4 rounded-xl transition-all border border-white/20"
+              className="inline-flex items-center justify-center gap-2 bg-surface border border-divider-light hover:border-divider text-ink-2 font-semibold px-8 py-4 rounded-xl transition-all shadow-soft hover:shadow-medium"
             >
               {lang === 'zh' ? '咨询 Managed Service' : 'Contact for Managed Service'}
             </Link>
@@ -853,26 +867,47 @@ function PricingPageInner() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-surface border-t border-divider-light py-12">
+      <footer className="bg-surface border-t border-divider-light py-16">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center gap-3 mb-6 md:mb-0">
-              <div className="w-10 h-10 bg-ink rounded-xl flex items-center justify-center">
-                <span className="text-ink-inv font-bold text-lg">A</span>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+            <div className="md:col-span-1">
+              <div className="mb-4">
+                <LogoFull width={160} height={100} />
               </div>
-              <span className="text-xl font-bold text-ink">Alignment AI</span>
+              <p className="text-ink-3 text-sm leading-relaxed">
+                {lang === 'zh'
+                  ? 'AI 品牌可见度平台——让您的品牌被全球 AI 发现并引用。'
+                  : 'AI Signal Intake & Path Decision Engine for Generative Engine Optimization.'}
+              </p>
             </div>
-            <div className="flex items-center gap-8 text-sm text-ink-2">
-              <Link href="/features/" className="hover:text-ink">{t.nav.features}</Link>
-              <Link href="/pricing/" className="hover:text-ink">{t.nav.pricing}</Link>
-              <Link href="/roi-simulator" className="hover:text-ink text-sage font-medium">
-                {(t as unknown as Record<string, string>).nav_roi || 'ROI Calculator'}
-              </Link>
-              <Link href="/login/" className="hover:text-ink">{t.nav.signIn}</Link>
+
+            <div>
+              <h4 className="font-semibold text-ink mb-4">{lang === 'zh' ? '产品' : 'Product'}</h4>
+              <ul className="space-y-3 text-sm text-ink-2">
+                <li><Link href="/system/" className="hover:text-ink transition-colors">{t.nav.system}</Link></li>
+                <li><Link href="/technology/" className="hover:text-ink transition-colors">{t.nav.technology}</Link></li>
+                <li><Link href="/pricing/" className="hover:text-ink transition-colors">{t.nav.pricing}</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-ink mb-4">{lang === 'zh' ? '资源' : 'Resources'}</h4>
+              <ul className="space-y-3 text-sm text-ink-2">
+                <li><Link href="/docs/" className="hover:text-ink transition-colors">{t.nav.docs}</Link></li>
+                <li><Link href="/insights/" className="hover:text-ink transition-colors">{t.nav.insights}</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-ink mb-4">{lang === 'zh' ? '联系我们' : 'Contact'}</h4>
+              <ul className="space-y-3 text-sm text-ink-2">
+                <li><a href="mailto:contact@alignmenttech.ai" className="hover:text-ink transition-colors">{lang === 'zh' ? '发送邮件' : 'Send Email'}</a></li>
+              </ul>
             </div>
           </div>
-          <div className="mt-8 pt-8 border-t border-divider-light text-center text-ink-3 text-sm">
-            {t.footer.copyright}
+
+          <div className="mt-12 pt-8 border-t border-divider-light text-center text-ink-3 text-sm">
+            &copy; {new Date().getFullYear()} Alignment AI. All rights reserved.
           </div>
         </div>
       </footer>
