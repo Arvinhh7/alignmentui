@@ -830,6 +830,11 @@ function AnalyticsTab({
 
   // AI Platform Intelligence: merge bots + referrals by canonical platform name
   const platformIntel = buildPlatformIntel(analytics)
+  // "Other" row to reconcile with KPI totals
+  const identifiedCrawls = platformIntel.reduce((s, p) => s + p.crawls, 0)
+  const identifiedReferrals = platformIntel.reduce((s, p) => s + p.referrals, 0)
+  const otherCrawls = (analytics.total_ai_visits ?? 0) - identifiedCrawls
+  const otherReferrals = (analytics.ai_referral_visits ?? 0) - identifiedReferrals
 
   return (
     <div className="flex gap-6 items-start">
@@ -1079,7 +1084,7 @@ function AnalyticsTab({
           <p className="text-xs text-ink-3 mb-4">Which pages AI bots read and where human visitors land after clicking AI recommendations — {rangeLabel.toLowerCase()}.</p>
           <div className="grid grid-cols-2 gap-5">
 
-            {/* Left: AI VISITS — actual pages bots crawled, technical paths excluded */}
+            {/* Left: AI VISITS — actual pages bots crawled */}
             <div>
               <div className="flex items-center gap-1.5 mb-3">
                 <span className="w-2 h-2 rounded-full bg-ink/70 shrink-0" />
@@ -1090,7 +1095,10 @@ function AnalyticsTab({
                 const pages = (analytics.by_path ?? [])
                   .filter(p => isHumanPagePath(p.path))
                   .slice(0, 8)
-                if (pages.length === 0) return (
+                const displayedSum = pages.reduce((s, p) => s + p.visit_count, 0)
+                const totalAiVisits = analytics.total_ai_visits ?? 0
+                const otherCount = totalAiVisits - displayedSum
+                if (pages.length === 0 && otherCount <= 0) return (
                   <p className="text-xs text-ink-3 italic">No page crawl data yet.</p>
                 )
                 return (
@@ -1107,6 +1115,13 @@ function AnalyticsTab({
                         </div>
                       )
                     })}
+                    {otherCount > 0 && (
+                      <div className="flex items-center gap-2 pt-1 border-t border-divider-light">
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 bg-surface-warm text-ink-3">Other</span>
+                        <span className="text-xs text-ink-3 truncate flex-1">Discovery files & other paths</span>
+                        <span className="text-xs font-bold text-ink-3 shrink-0 tabular-nums">{otherCount.toLocaleString()}</span>
+                      </div>
+                    )}
                   </div>
                 )
               })()}
@@ -1119,24 +1134,38 @@ function AnalyticsTab({
                 <span className="text-xs font-bold text-sage uppercase tracking-wide">AI Referrals</span>
                 <span className="text-xs text-ink-3">— humans landed</span>
               </div>
-              {referralLandingPages.length === 0 ? (
-                <p className="text-xs text-ink-3 italic">Appears once AI platforms send visitors.</p>
-              ) : (
-                <div className="space-y-2">
-                  {referralLandingPages.slice(0, 8).map(p => {
-                    const info = pathToPageInfo(p.path)
-                    return (
-                      <div key={p.path} className="flex items-center gap-2">
-                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${PAGE_BADGE_STYLE[info.type]}`}>
-                          {info.badge}
-                        </span>
-                        <span className="text-xs text-ink-2 truncate flex-1" title={info.name}>{info.name}</span>
-                        <span className="text-xs font-bold text-sage shrink-0 tabular-nums">{p.visit_count.toLocaleString()}</span>
+              {(() => {
+                const pages = referralLandingPages.slice(0, 8)
+                const displayedSum = pages.reduce((s, p) => s + p.visit_count, 0)
+                const totalReferrals = analytics.ai_referral_visits ?? 0
+                const otherCount = totalReferrals - displayedSum
+                if (pages.length === 0 && otherCount <= 0) return (
+                  <p className="text-xs text-ink-3 italic">Appears once AI platforms send visitors.</p>
+                )
+                return (
+                  <div className="space-y-2">
+                    {pages.map(p => {
+                      const info = pathToPageInfo(p.path)
+                      return (
+                        <div key={p.path} className="flex items-center gap-2">
+                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${PAGE_BADGE_STYLE[info.type]}`}>
+                            {info.badge}
+                          </span>
+                          <span className="text-xs text-ink-2 truncate flex-1" title={info.name}>{info.name}</span>
+                          <span className="text-xs font-bold text-sage shrink-0 tabular-nums">{p.visit_count.toLocaleString()}</span>
+                        </div>
+                      )
+                    })}
+                    {otherCount > 0 && (
+                      <div className="flex items-center gap-2 pt-1 border-t border-divider-light">
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 bg-surface-warm text-ink-3">Other</span>
+                        <span className="text-xs text-ink-3 truncate flex-1">Other pages</span>
+                        <span className="text-xs font-bold text-ink-3 shrink-0 tabular-nums">{otherCount.toLocaleString()}</span>
                       </div>
-                    )
-                  })}
-                </div>
-              )}
+                    )}
+                  </div>
+                )
+              })()}
             </div>
           </div>
         </div>
@@ -1160,7 +1189,7 @@ function AnalyticsTab({
               {platformIntel.map(p => {
                 const meta = getPlatformMeta(p.name)
                 return (
-                  <div key={p.name} className="grid grid-cols-3 text-xs py-2 border-b border-divider-light last:border-0 items-center">
+                  <div key={p.name} className="grid grid-cols-3 text-xs py-2 border-b border-divider-light items-center">
                     <div className="flex items-center gap-2">
                       <PlatformLogo id={p.name} size={14} />
                       <span className="font-medium text-ink-2 truncate">{meta.name}</span>
@@ -1170,6 +1199,16 @@ function AnalyticsTab({
                   </div>
                 )
               })}
+              {(otherCrawls > 0 || otherReferrals > 0) && (
+                <div className="grid grid-cols-3 text-xs py-2 items-center">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3.5 h-3.5 rounded-full bg-surface-warm border border-divider-light flex items-center justify-center text-[8px] text-ink-3 shrink-0">?</span>
+                    <span className="font-medium text-ink-3 truncate">Other / Unidentified</span>
+                  </div>
+                  <span className="text-center text-ink-3 font-medium">{otherCrawls > 0 ? otherCrawls.toLocaleString() : '—'}</span>
+                  <span className="text-center text-ink-3 font-medium">{otherReferrals > 0 ? otherReferrals.toLocaleString() : '—'}</span>
+                </div>
+              )}
             </div>
           )}
         </div>

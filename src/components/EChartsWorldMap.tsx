@@ -135,9 +135,20 @@ export default function EChartsWorldMap({ geoData }: { geoData: GeoDataItem[] })
   }, [])
 
   // Derive scatter data
-  const { scatterData, maxVal, totalCount, countryCount } = useMemo(() => {
+  const { scatterData, maxVal, totalCount, countryCount, unknownCount } = useMemo(() => {
     let max = 0
-    let total = 0
+    let mapTotal = 0
+    let unknown = 0
+
+    // Count ALL data (including unknown countries) for correct total
+    const allTotal = geoData.reduce((sum, d) => {
+      const effectiveReferral = Math.max(0, d.visit_count - d.bot_count)
+      const val = filter === 'visits' ? d.bot_count
+        : filter === 'referral' ? effectiveReferral
+          : d.visit_count
+      return sum + val
+    }, 0)
+
     const data = geoData
       .filter(d => COUNTRY_COORDS[d.country])
       .map(d => {
@@ -148,7 +159,7 @@ export default function EChartsWorldMap({ geoData }: { geoData: GeoDataItem[] })
             : filter === 'referral' ? effectiveReferral
               : d.visit_count
         if (val > max) max = val
-        total += val
+        mapTotal += val
 
         const hasBots = d.bot_count > 0
         const hasRef = effectiveReferral > 0
@@ -165,7 +176,8 @@ export default function EChartsWorldMap({ geoData }: { geoData: GeoDataItem[] })
       .filter(d => d.value[2] > 0)
       .sort((a, b) => b.value[2] - a.value[2])
 
-    return { scatterData: data, maxVal: max, totalCount: total, countryCount: data.length }
+    unknown = allTotal - mapTotal
+    return { scatterData: data, maxVal: max, totalCount: allTotal, countryCount: data.length, unknownCount: unknown }
   }, [geoData, filter])
 
   // Top countries for the scatter effect (top 3 pulsing)
@@ -319,7 +331,7 @@ export default function EChartsWorldMap({ geoData }: { geoData: GeoDataItem[] })
 
       {/* Stats summary */}
       <p className="text-xs text-ink-3 mb-3">
-        {totalCount.toLocaleString()} total visits from {countryCount} countries
+        {totalCount.toLocaleString()} total visits from {countryCount} countries{unknownCount > 0 ? ` (+${unknownCount.toLocaleString()} unknown)` : ''}
       </p>
 
       {/* Map */}
