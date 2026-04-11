@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { adminApi, DomainCheckResult } from '@/lib/api'
 
@@ -46,14 +46,53 @@ const VERDICT_CONFIG = {
 
 type Verdict = keyof typeof VERDICT_CONFIG
 
-// ── Example domains ────────────────────────────────────────────────────────────
+// ── History ────────────────────────────────────────────────────────────────────
+interface HistoryItem {
+  rawInput:   string   // original URL as user typed
+  domain:     string   // cleaned domain
+  verdict:    Verdict
+  platform:   string
+  checkedAt:  string   // ISO date string
+}
+
+const HISTORY_KEY = 'domain_checker_history'
+const MAX_HISTORY = 20
+
+function loadHistory(): HistoryItem[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const stored = localStorage.getItem(HISTORY_KEY)
+    return stored ? (JSON.parse(stored) as HistoryItem[]) : []
+  } catch { return [] }
+}
+
+function persistHistory(items: HistoryItem[]) {
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(items)) } catch {}
+}
+
+function upsertHistory(items: HistoryItem[], entry: HistoryItem): HistoryItem[] {
+  const filtered = items.filter(i => i.domain !== entry.domain)
+  return [entry, ...filtered].slice(0, MAX_HISTORY)
+}
+
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60_000)
+  if (mins < 1)   return '刚刚'
+  if (mins < 60)  return `${mins} 分钟前`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24)   return `${hrs} 小时前`
+  return `${Math.floor(hrs / 24)} 天前`
+}
+
+// ── Examples ───────────────────────────────────────────────────────────────────
 const EXAMPLES = [
-  { domain: 'myteadrop.com',   label: 'Shopify',     color: 'text-red-500' },
-  { domain: 'techcrunch.com',  label: 'WordPress',   color: 'text-green-600' },
+  { domain: 'myteadrop.com',    label: 'Shopify',    color: 'text-red-500' },
+  { domain: 'techcrunch.com',   label: 'WordPress',  color: 'text-green-600' },
   { domain: 'alignmenttech.ai', label: 'Custom+CF',  color: 'text-amber-600' },
 ]
 
-// ── Loading steps ─────────────────────────────────────────────────────────────
+// ── Loading steps ──────────────────────────────────────────────────────────────
 const LOADING_STEPS = [
   '正在解析域名 DNS 记录...',
   '正在检测平台指纹...',
@@ -62,15 +101,20 @@ const LOADING_STEPS = [
   '正在综合分析检测结果...',
 ]
 
+// ── Page ───────────────────────────────────────────────────────────────────────
 export default function DomainCheckerPage() {
   const { user, role } = useAuth()
 
-  const [domain, setDomain]         = useState('')
-  const [checking, setChecking]     = useState(false)
-  const [loadStep, setLoadStep]     = useState(0)
-  const [result, setResult]         = useState<DomainCheckResult | null>(null)
-  const [error, setError]           = useState<string | null>(null)
+  const [domain,   setDomain]   = useState('')
+  const [checking, setChecking] = useState(false)
+  const [loadStep, setLoadStep] = useState(0)
+  const [result,   setResult]   = useState<DomainCheckResult | null>(null)
+  const [error,    setError]    = useState<string | null>(null)
+  const [history,  setHistory]  = useState<HistoryItem[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Load history from localStorage on mount
+  useEffect(() => { setHistory(loadHistory()) }, [])
 
   // Auth guard — match existing Admin Panel pattern (no redirect)
   if (role !== 'admin') {
@@ -81,9 +125,10 @@ export default function DomainCheckerPage() {
     )
   }
 
-  const handleCheck = async (overrideDomain?: string) => {
-    const target = (overrideDomain ?? domain).trim().toLowerCase()
-      .replace(/^https?:\/\//, '').split('/')[0].replace(/^www\./, '')
+  const handleCheck = async (overrideRaw?: string) => {
+    const raw    = overrideRaw ?? domain
+    const target = raw.trim().toLowerCase()
+      .replace(/^https?:\/\//, '').split('/')[0].split('?')[0].replace(/^www\./, '')
 
     if (!target || !target.includes('.')) {
       setError('请输入有效的域名，例如：myteadrop.com')
@@ -95,16 +140,30 @@ export default function DomainCheckerPage() {
     setChecking(true)
     setLoadStep(0)
 
-    // Animate loading steps
     const stepInterval = setInterval(() => {
       setLoadStep(prev => Math.min(prev + 1, LOADING_STEPS.length - 1))
     }, 600)
 
     try {
-      const res = await adminApi.checkDomain(target, user!.id)
+      const res = await adminApi.checkDomain(raw, user!.id)
       setResult(res)
-    } catch (e: any) {
-      setError(e?.message ?? '检测失败，请稍后重试')
+
+      // ── Save to history ──────────────────────────────────────────────────
+      const entry: HistoryItem = {
+        rawInput:  raw,
+        domain:    res.domain,
+        verdict:   res.verdict as Verdict,
+        platform:  res.platform.platform,
+        checkedAt: new Date().toISOString(),
+      }
+      setHistory(prev => {
+        const next = upsertHistory(prev, entry)
+        persistHistory(next)
+        return next
+      })
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '检测失败，请稍后重试'
+      setError(msg)
     } finally {
       clearInterval(stepInterval)
       setChecking(false)
@@ -115,6 +174,26 @@ export default function DomainCheckerPage() {
     if (e.key === 'Enter') handleCheck()
   }
 
+  const handleHistoryClick = (item: HistoryItem) => {
+    setDomain(item.rawInput)
+    handleCheck(item.rawInput)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const clearHistory = () => {
+    setHistory([])
+    try { localStorage.removeItem(HISTORY_KEY) } catch {}
+  }
+
+  const removeHistoryItem = (domain: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setHistory(prev => {
+      const next = prev.filter(i => i.domain !== domain)
+      persistHistory(next)
+      return next
+    })
+  }
+
   const verdict = result ? (result.verdict as Verdict) : null
   const vc      = verdict ? VERDICT_CONFIG[verdict] : null
 
@@ -122,7 +201,7 @@ export default function DomainCheckerPage() {
     <div className="min-h-screen bg-canvas p-6 md:p-8">
       <div className="max-w-3xl mx-auto">
 
-        {/* ── Header ──────────────────────────────────────────────────── */}
+        {/* ── Header ──────────────────────────────────────────────────────── */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-9 h-9 rounded-xl bg-caution-bg flex items-center justify-center flex-shrink-0">
@@ -135,7 +214,7 @@ export default function DomainCheckerPage() {
           </p>
         </div>
 
-        {/* ── Input card ──────────────────────────────────────────────── */}
+        {/* ── Input card ──────────────────────────────────────────────────── */}
         <div className="bg-surface rounded-2xl border border-divider-light p-5 shadow-soft mb-5">
           <label className="block text-xs font-semibold text-ink-2 mb-2 uppercase tracking-wider">
             客户域名
@@ -151,11 +230,10 @@ export default function DomainCheckerPage() {
                 value={domain}
                 onChange={e => { setDomain(e.target.value); setError(null) }}
                 onKeyDown={handleKeyDown}
-                placeholder="myteadrop.com"
+                placeholder="myteadrop.com 或粘贴完整 URL"
                 disabled={checking}
                 className={`w-full pl-9 pr-4 py-2.5 rounded-xl border text-sm text-ink bg-canvas
-                  placeholder-ink-3 focus:outline-none focus:ring-2 transition-all
-                  disabled:opacity-50
+                  placeholder-ink-3 focus:outline-none focus:ring-2 transition-all disabled:opacity-50
                   ${error
                     ? 'border-red-300 focus:ring-red-200'
                     : 'border-divider focus:border-ink-2 focus:ring-[rgba(25,25,24,0.08)]'
@@ -210,7 +288,96 @@ export default function DomainCheckerPage() {
           </div>
         </div>
 
-        {/* ── Loading state ─────────────────────────────────────────────── */}
+        {/* ── History ─────────────────────────────────────────────────────── */}
+        {history.length > 0 && (
+          <div className="bg-surface rounded-2xl border border-divider-light shadow-soft mb-5 overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-divider-light">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">🕐</span>
+                <span className="text-xs font-bold text-ink-2 uppercase tracking-wider">
+                  检测记录
+                </span>
+                <span className="text-[11px] text-ink-3 bg-surface-warm border border-divider-light
+                  px-1.5 py-0.5 rounded-full font-medium">
+                  {history.length}
+                </span>
+              </div>
+              <button
+                onClick={clearHistory}
+                className="text-[11px] text-ink-3 hover:text-red-500 transition-colors"
+              >
+                清空全部
+              </button>
+            </div>
+
+            {/* History list */}
+            <div className="divide-y divide-divider-light max-h-[320px] overflow-y-auto">
+              {history.map((item, idx) => {
+                const vc = VERDICT_CONFIG[item.verdict]
+                const isRawDifferent = item.rawInput.toLowerCase() !== item.domain &&
+                  !item.rawInput.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').startsWith(item.domain)
+                return (
+                  <button
+                    key={`${item.domain}-${idx}`}
+                    onClick={() => handleHistoryClick(item)}
+                    disabled={checking}
+                    className="w-full flex items-center gap-3 px-5 py-3 hover:bg-surface-warm
+                      transition-colors text-left group disabled:opacity-50"
+                  >
+                    {/* Verdict emoji */}
+                    <span className="text-base flex-shrink-0 w-6 text-center">{vc.emoji}</span>
+
+                    {/* Domain + raw input */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[13px] font-semibold text-ink truncate">
+                          {item.domain}
+                        </span>
+                        {/* Platform badge */}
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0
+                          ${vc.badgeBg} ${vc.badgeText}`}>
+                          {item.platform !== 'unknown' ? item.platform.toUpperCase() : 'CUSTOM'}
+                        </span>
+                        {/* Verdict label */}
+                        <span className={`text-[10px] font-medium flex-shrink-0 ${vc.titleColor}`}>
+                          {vc.label}
+                        </span>
+                      </div>
+                      {/* Show raw URL if meaningfully different */}
+                      {isRawDifferent && (
+                        <p className="text-[10px] text-ink-3 truncate mt-0.5 font-mono">
+                          {item.rawInput}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Time + actions */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="text-[11px] text-ink-3">{timeAgo(item.checkedAt)}</span>
+                      {/* Delete button — visible on hover */}
+                      <button
+                        onClick={e => removeHistoryItem(item.domain, e)}
+                        className="opacity-0 group-hover:opacity-100 w-5 h-5 rounded-full
+                          flex items-center justify-center text-ink-3 hover:text-red-500
+                          hover:bg-red-50 transition-all text-[11px]"
+                        title="删除"
+                      >
+                        ×
+                      </button>
+                      {/* Re-run arrow */}
+                      <span className="text-[11px] text-ink-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        ↗
+                      </span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── Loading state ────────────────────────────────────────────────── */}
         {checking && (
           <div className="bg-surface rounded-2xl border border-divider-light p-6 shadow-soft mb-5">
             <div className="flex items-center gap-3 mb-5">
@@ -221,7 +388,9 @@ export default function DomainCheckerPage() {
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-semibold text-ink">正在检测 {domain}</p>
+                <p className="text-sm font-semibold text-ink">
+                  正在检测 {domain.replace(/^https?:\/\//, '').split('/')[0]}
+                </p>
                 <p className="text-xs text-ink-3">5 项并发检测，预计 10–15 秒</p>
               </div>
             </div>
@@ -244,7 +413,7 @@ export default function DomainCheckerPage() {
           </div>
         )}
 
-        {/* ── Result card ───────────────────────────────────────────────── */}
+        {/* ── Result card ──────────────────────────────────────────────────── */}
         {result && vc && (
           <div className="space-y-4">
 
@@ -294,7 +463,7 @@ export default function DomainCheckerPage() {
 
               {/* Origin URL guess */}
               {result.origin_url_guess && (
-                <div className="mt-3 pt-3 border-t border-current/10 flex items-center gap-2">
+                <div className="mt-3 pt-3 border-t border-current/10 flex items-center gap-2 flex-wrap">
                   <span className={`text-[11px] font-bold uppercase tracking-wider ${vc.titleColor} opacity-60`}>
                     推测原站 URL：
                   </span>
@@ -325,13 +494,11 @@ export default function DomainCheckerPage() {
               </div>
             )}
 
-            {/* Technical details grid */}
+            {/* Technical details */}
             <div className="bg-surface rounded-2xl border border-divider-light p-5 shadow-soft">
               <h3 className="text-xs font-bold text-ink-2 uppercase tracking-wider mb-4 flex items-center gap-2">
                 <span>🔬</span> 详细检测报告
               </h3>
-
-              {/* Check items */}
               <div className="space-y-2.5 mb-5">
                 {result.checks_detail.map((c, i) => (
                   <div key={i} className="flex items-start gap-3">
@@ -346,8 +513,6 @@ export default function DomainCheckerPage() {
                   </div>
                 ))}
               </div>
-
-              {/* DNS info */}
               <div className="pt-4 border-t border-divider-light">
                 <p className="text-[11px] font-bold text-ink-2 uppercase tracking-wider mb-3">DNS 基础设施</p>
                 <div className="grid grid-cols-2 gap-3">
@@ -370,7 +535,7 @@ export default function DomainCheckerPage() {
               </div>
             </div>
 
-            {/* Re-check button */}
+            {/* Re-check */}
             <div className="flex justify-center pt-2">
               <button
                 onClick={() => handleCheck()}
@@ -387,18 +552,10 @@ export default function DomainCheckerPage() {
   )
 }
 
-// ── Small helper component ─────────────────────────────────────────────────────
-function InfoItem({
-  label,
-  value,
-  fullWidth,
-}: {
-  label: string
-  value: string
-  fullWidth?: boolean
-}) {
+// ── Helper ─────────────────────────────────────────────────────────────────────
+function InfoItem({ label, value, fullWidth }: { label: string; value: string; fullWidth?: boolean }) {
   return (
-    <div className={`${fullWidth ? 'col-span-2' : ''}`}>
+    <div className={fullWidth ? 'col-span-2' : ''}>
       <p className="text-[10px] text-ink-3 font-medium uppercase tracking-wider mb-0.5">{label}</p>
       <p className="text-[12px] text-ink font-mono truncate">{value}</p>
     </div>
