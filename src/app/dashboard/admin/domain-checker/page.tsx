@@ -2,7 +2,6 @@
 
 import { useState, useRef } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { useRouter } from 'next/navigation'
 import { adminApi, DomainCheckResult } from '@/lib/api'
 
 // ── Verdict config ─────────────────────────────────────────────────────────────
@@ -64,8 +63,7 @@ const LOADING_STEPS = [
 ]
 
 export default function DomainCheckerPage() {
-  const { user, role, isLoading } = useAuth()
-  const router = useRouter()
+  const { user, role } = useAuth()
 
   const [domain, setDomain]         = useState('')
   const [checking, setChecking]     = useState(false)
@@ -74,10 +72,13 @@ export default function DomainCheckerPage() {
   const [error, setError]           = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Auth guard
-  if (!isLoading && role !== 'admin') {
-    router.replace('/dashboard/overview')
-    return null
+  // Auth guard — match existing Admin Panel pattern (no redirect)
+  if (role !== 'admin') {
+    return (
+      <div className="flex items-center justify-center h-full min-h-[60vh]">
+        <p className="text-ink-3 text-lg">Admin access required.</p>
+      </div>
+    )
   }
 
   const handleCheck = async (overrideDomain?: string) => {
