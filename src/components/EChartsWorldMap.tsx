@@ -141,15 +141,17 @@ export default function EChartsWorldMap({ geoData }: { geoData: GeoDataItem[] })
     const data = geoData
       .filter(d => COUNTRY_COORDS[d.country])
       .map(d => {
+        // AI Referral = non-bot AI traffic (visit_count - bot_count)
+        const effectiveReferral = Math.max(0, d.visit_count - d.bot_count)
         const val =
           filter === 'visits' ? d.bot_count
-            : filter === 'referral' ? d.referral_count
+            : filter === 'referral' ? effectiveReferral
               : d.visit_count
         if (val > max) max = val
         total += val
 
         const hasBots = d.bot_count > 0
-        const hasRef = d.referral_count > 0
+        const hasRef = effectiveReferral > 0
         const color = (hasBots && hasRef) ? WARM.both : hasBots ? WARM.bot : WARM.referral
         const name = ISO_TO_NAME[d.country] || d.country
 
@@ -157,7 +159,7 @@ export default function EChartsWorldMap({ geoData }: { geoData: GeoDataItem[] })
           name,
           value: [...COUNTRY_COORDS[d.country], val] as [number, number, number],
           itemStyle: { color },
-          raw: d,
+          raw: { ...d, effectiveReferral },
         }
       })
       .filter(d => d.value[2] > 0)
@@ -180,7 +182,7 @@ export default function EChartsWorldMap({ geoData }: { geoData: GeoDataItem[] })
       padding: [10, 14],
       textStyle: { color: WARM.canvas, fontSize: 12, fontFamily: 'system-ui, sans-serif' },
       formatter: (params: any) => {
-        const d = params.data?.raw as GeoDataItem | undefined
+        const d = params.data?.raw as (GeoDataItem & { effectiveReferral: number }) | undefined
         if (!d) return ''
         const flag = flagEmoji(d.country)
         const name = ISO_TO_NAME[d.country] || d.country
@@ -188,7 +190,7 @@ export default function EChartsWorldMap({ geoData }: { geoData: GeoDataItem[] })
           <div style="font-weight:600;font-size:13px;margin-bottom:6px">${flag} ${name}</div>
           <div style="display:flex;gap:16px;font-size:11px;opacity:0.8">
             <span style="color:${WARM.bot}">Bot ${d.bot_count}</span>
-            <span style="color:${WARM.referral}">Referral ${d.referral_count}</span>
+            <span style="color:${WARM.referral}">Referral ${d.effectiveReferral}</span>
             <span>Total ${d.visit_count}</span>
           </div>
         `
