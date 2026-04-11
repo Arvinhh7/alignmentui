@@ -2855,9 +2855,9 @@ export const proxyApi = {
     return r.json()
   },
 
-  verifyDomain: async (domainId: string, userId: string): Promise<ProxyVerifyResult> => {
+  verifyDomain: async (domainId: string, userId: string, quick = false): Promise<ProxyVerifyResult> => {
     const r = await fetch(
-      `${API_BASE_URL}/api/proxy/domains/${domainId}/verify?user_id=${encodeURIComponent(userId)}`,
+      `${API_BASE_URL}/api/proxy/domains/${domainId}/verify?user_id=${encodeURIComponent(userId)}&quick=${quick}`,
     )
     if (!r.ok) {
       const err = await r.json().catch(() => ({ detail: 'Verification failed' }))
@@ -2880,6 +2880,7 @@ export interface ProxyVerifyResult {
   passed: number
   total: number
   all_passed: boolean
+  quick: boolean
 }
 
 // ─────────────────────────────────────────────────────────────
