@@ -4,13 +4,14 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
-import { proxyApi, ProxyDomain, ProxyDomainStatus, ProxyAnalytics } from '@/lib/api'
+import { proxyApi, ProxyDomain, ProxyDomainStatus, ProxyAnalytics, ProxyVerifyResult } from '@/lib/api'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import {
   Globe, ArrowLeft, CheckCircle, Clock, RefreshCw, XCircle,
   Pause, AlertCircle, Loader2, ExternalLink, Copy, CheckCheck,
   BarChart3, Layers, Settings, Zap, Bot,
   TrendingUp, Activity, Download, FileText, Save, Wrench, ChevronRight,
+  ShieldCheck,
 } from 'lucide-react'
 
 import BrandDataTab from './BrandDataTab'
@@ -242,6 +243,98 @@ function TechnicalConfigSection({
   )
 }
 
+// ── Verify Section ────────────────────────────────────────────────────────────
+function VerifySection({ domainId, userId }: { domainId: string; userId: string }) {
+  const [result,   setResult]   = useState<ProxyVerifyResult | null>(null)
+  const [loading,  setLoading]  = useState(false)
+  const [error,    setError]    = useState<string | null>(null)
+
+  const run = async () => {
+    setLoading(true)
+    setError(null)
+    setResult(null)
+    try {
+      const r = await proxyApi.verifyDomain(domainId, userId)
+      setResult(r)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Verification failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="bg-surface border border-divider-light rounded-2xl p-5">
+      <div className="flex items-start justify-between">
+        <div>
+          <h3 className="text-sm font-semibold text-ink-2 flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4" />
+            End-to-End Verification
+          </h3>
+          <p className="text-xs text-ink-3 mt-0.5">一键验证 5 项代理功能是否全部正常</p>
+        </div>
+        <button
+          onClick={run}
+          disabled={loading}
+          className="flex items-center gap-2 px-4 py-2 bg-ink hover:bg-[#2d2d2c] disabled:opacity-50 text-ink-inv text-xs font-semibold rounded-xl transition-colors flex-shrink-0"
+        >
+          {loading
+            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            : <ShieldCheck className="w-3.5 h-3.5" />}
+          {loading ? '检测中…' : result ? '重新验证' : '开始验证'}
+        </button>
+      </div>
+
+      {error && (
+        <div className="mt-3 text-xs text-red-soft bg-red-soft-bg border border-red-soft/20 rounded-lg px-3 py-2">
+          {error}
+        </div>
+      )}
+
+      {result && (
+        <div className="mt-4 space-y-2">
+          {/* Summary badge */}
+          <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold ${
+            result.all_passed
+              ? 'bg-sage-bg border border-sage/20 text-sage'
+              : 'bg-caution-bg border border-caution/20 text-caution'
+          }`}>
+            {result.all_passed
+              ? <CheckCircle className="w-3.5 h-3.5" />
+              : <AlertCircle className="w-3.5 h-3.5" />}
+            {result.passed}/{result.total} 项通过
+            {result.all_passed ? ' — 全部正常 ✓' : ' — 部分异常，请检查详情'}
+          </div>
+
+          {/* Per-check rows */}
+          {result.checks.map((c, i) => (
+            <div key={i} className="flex items-start gap-3">
+              <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold ${
+                c.passed ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'
+              }`}>
+                {c.passed ? '✓' : '!'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[12px] font-semibold text-ink">{c.name}</div>
+                <p className="text-[11px] text-ink-3 mt-0.5">{c.detail}</p>
+              </div>
+              <a
+                href={c.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-ink-3 hover:text-ink-2 flex-shrink-0 mt-0.5"
+                title="Open URL"
+              >
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Overview Tab ──────────────────────────────────────────────────────────────
 function OverviewTab({
   domain,
@@ -384,6 +477,11 @@ function OverviewTab({
             ))}
           </div>
         </div>
+      )}
+
+      {/* End-to-end Verification (active domains only) */}
+      {domain.status === 'active' && (
+        <VerifySection domainId={domain.id} userId={userId} />
       )}
 
       {/* Technical Config */}
