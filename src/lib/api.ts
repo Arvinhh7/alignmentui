@@ -2839,6 +2839,10 @@ export const proxyApi = {
     return r.json()
   },
 
+  exportAnalyticsCSV: (domainId: string, userId: string, days = 30, eventFilter = 'all'): string => {
+    return `${API_BASE_URL}/api/proxy/domains/${domainId}/analytics/export?user_id=${encodeURIComponent(userId)}&days=${days}&event_filter=${eventFilter}`
+  },
+
   autoFill: async (domainId: string, userId: string): Promise<ProxyAutoFillResult> => {
     const r = await fetch(
       `${API_BASE_URL}/api/proxy/domains/${domainId}/auto-fill?user_id=${encodeURIComponent(userId)}`,

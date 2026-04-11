@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
@@ -729,15 +729,28 @@ function buildSummaryText(analytics: ProxyAnalytics, rangeLabel: string): string
 
 
 function AnalyticsTab({
-  analytics, loading, days, onDaysChange, domain,
+  analytics, loading, days, onDaysChange, domain, domainId, userId,
 }: {
   analytics: ProxyAnalytics | null
   loading: boolean
   days: number
   onDaysChange: (d: number) => void
   domain: ProxyDomain | null
+  domainId: string
+  userId: string
 }) {
   const [copied, setCopied] = useState(false)
+  const [showExportMenu, setShowExportMenu] = useState(false)
+  const exportMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!showExportMenu) return
+    const handler = (e: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) setShowExportMenu(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showExportMenu])
 
   const rangeLabel = (() => {
     if (days === 1) return 'Last 24h'
@@ -851,13 +864,45 @@ function AnalyticsTab({
               {copied ? <CheckCheck className="w-3.5 h-3.5 text-sage" /> : <FileText className="w-3.5 h-3.5" />}
               {copied ? 'Copied!' : 'Copy Summary'}
             </button>
-            <button
-              onClick={() => exportCSV(analytics, rangeLabel)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-divider-light rounded-lg text-xs font-medium text-ink-2 hover:bg-surface-warm transition-all"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Export CSV
-            </button>
+            <div className="relative" ref={exportMenuRef}>
+              <button
+                onClick={() => setShowExportMenu(v => !v)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-divider-light rounded-lg text-xs font-medium text-ink-2 hover:bg-surface-warm transition-all"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Export
+                <ChevronRight className={`w-3 h-3 transition-transform ${showExportMenu ? 'rotate-90' : ''}`} />
+              </button>
+              {showExportMenu && (
+                <div className="absolute right-0 top-full mt-1 w-56 bg-surface border border-divider-light rounded-xl shadow-lg z-50 py-1">
+                  <button
+                    onClick={() => { exportCSV(analytics, rangeLabel); setShowExportMenu(false) }}
+                    className="w-full text-left px-3 py-2 text-xs text-ink-2 hover:bg-surface-warm flex items-center gap-2"
+                  >
+                    <FileText className="w-3.5 h-3.5 text-ink-3" />
+                    Summary Report (.csv)
+                  </button>
+                  <div className="border-t border-divider-light my-1" />
+                  <div className="px-3 py-1 text-[10px] text-ink-3 font-semibold uppercase tracking-wider">Raw Data Export</div>
+                  {[
+                    { label: 'All AI Traffic', filter: 'all' },
+                    { label: 'AI Visits Only', filter: 'ai_visit' },
+                    { label: 'AI Referrals Only', filter: 'ai_referral' },
+                  ].map(opt => (
+                    <a
+                      key={opt.filter}
+                      href={proxyApi.exportAnalyticsCSV(domainId, userId, days, opt.filter)}
+                      download
+                      onClick={() => setShowExportMenu(false)}
+                      className="w-full text-left px-3 py-2 text-xs text-ink-2 hover:bg-surface-warm flex items-center gap-2"
+                    >
+                      <Download className="w-3.5 h-3.5 text-ink-3" />
+                      {opt.label}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -1346,6 +1391,8 @@ export default function DomainDetailClient() {
             days={analyticsDays}
             onDaysChange={setAnalyticsDays}
             domain={domain}
+            domainId={domainId}
+            userId={user?.id ?? ''}
           />
         )}
       </div>
