@@ -63,7 +63,7 @@ export default function AddDomainPage() {
     const cleanedDomain = cleanDomain(domain)
     if (!user?.id || !cleanedDomain || !originUrl.trim()) return
     if (!cleanedDomain.includes('.')) {
-      setError('请输入有效域名，例如 acme.com 或 shop.acme.com')
+      setError('Please enter a valid domain, e.g. acme.com or shop.acme.com')
       return
     }
 
@@ -135,7 +135,7 @@ export default function AddDomainPage() {
         {step === 'form' && (
           <div className="bg-surface border border-divider rounded-2xl p-6 space-y-5">
             <div>
-              <label className="text-sm font-semibold text-ink-2 mb-1.5 block">客户域名</label>
+              <label className="text-sm font-semibold text-ink-2 mb-1.5 block">Your Domain</label>
               <input
                 type="text"
                 value={domain}
@@ -144,13 +144,13 @@ export default function AddDomainPage() {
                 className="w-full px-4 py-2.5 bg-canvas border border-divider rounded-xl text-sm text-ink placeholder-ink-3 focus:outline-none focus:border-ink focus:bg-surface transition-colors"
               />
               <p className="text-xs text-ink-3 mt-1.5">
-                填入客户官网域名，支持粘贴完整 URL（自动提取域名）—
-                例如 <code className="bg-surface-warm px-1 rounded">acme.com</code> 或 <code className="bg-surface-warm px-1 rounded">shop.acme.com</code>
+                The domain to proxy — paste any URL and the hostname is extracted automatically.
+                e.g. <code className="bg-surface-warm px-1 rounded">acme.com</code> or <code className="bg-surface-warm px-1 rounded">shop.acme.com</code>
               </p>
             </div>
 
             <div>
-              <label className="text-sm font-semibold text-ink-2 mb-1.5 block">Origin URL <span className="text-xs font-normal text-ink-3">（原站地址）</span></label>
+              <label className="text-sm font-semibold text-ink-2 mb-1.5 block">Origin URL</label>
               <input
                 type="text"
                 value={originUrl}
@@ -159,7 +159,7 @@ export default function AddDomainPage() {
                 className="w-full px-4 py-2.5 bg-canvas border border-divider rounded-xl text-sm text-ink placeholder-ink-3 focus:outline-none focus:border-ink focus:bg-surface transition-colors"
               />
               <p className="text-xs text-ink-3 mt-1.5">
-                代理将流量转发到此地址 — 通常与上方域名相同（如 <code className="bg-surface-warm px-1 rounded">https://acme.com</code>）
+                Where our proxy forwards traffic to — usually the same as your domain above (e.g. <code className="bg-surface-warm px-1 rounded">https://acme.com</code>)
               </p>
             </div>
 
@@ -185,9 +185,9 @@ export default function AddDomainPage() {
         {step === 'dns' && (
           <div className="space-y-4">
             <div className="bg-surface border border-divider rounded-2xl p-6">
-              <h2 className="text-base font-semibold text-ink mb-1">在 DNS 后台添加 CNAME 记录</h2>
+              <h2 className="text-base font-semibold text-ink mb-1">Add this CNAME record to your DNS</h2>
               <p className="text-sm text-ink-3 mb-5">
-                登录客户的 DNS 管理后台（Cloudflare、GoDaddy、阿里云等），添加以下记录：
+                Log in to your DNS provider (Cloudflare, GoDaddy, Route 53, etc.) and add the following record:
               </p>
 
               <div className="bg-ink rounded-xl overflow-hidden">
@@ -221,16 +221,15 @@ export default function AddDomainPage() {
             <div className="bg-caution-bg border border-caution/30 rounded-2xl p-4 flex gap-3">
               <AlertCircle className="w-5 h-5 text-caution flex-shrink-0 mt-0.5" />
               <div className="text-sm text-ink">
-                <div className="font-semibold mb-0.5">如果客户域名已在 Cloudflare</div>
-                <div className="text-ink-2">将 CNAME 的代理状态设为 <strong>DNS only</strong>（灰色云朵，非橙色），否则会产生代理循环。</div>
+                <div className="font-semibold mb-0.5">If your domain is already on Cloudflare</div>
+                <div className="text-ink-2">Set the CNAME to <strong>DNS only</strong> (grey cloud, not orange) to avoid a proxy loop.</div>
               </div>
             </div>
 
             <div className="bg-surface border border-divider rounded-2xl p-6">
               <h3 className="text-sm font-semibold text-ink-2 mb-3">DNS Propagation</h3>
               <p className="text-sm text-ink-3 mb-4">
-                添加 CNAME 后，DNS 通常在 <strong>1–5 分钟</strong>内生效（极少数情况下最长 48 小时）。
-                生效后系统自动检测并激活代理。
+                After adding the CNAME, DNS changes typically propagate within <strong>1–5 minutes</strong> (up to 48 hours in rare cases). Once the CNAME is live, our system automatically detects and activates your domain.
               </p>
               <div className="flex gap-3">
                 <button
@@ -238,14 +237,14 @@ export default function AddDomainPage() {
                   className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-semibold rounded-xl transition-colors"
                 >
                   <CheckCircle className="w-4 h-4" />
-                  已添加 CNAME
+                  I've Added the CNAME
                 </button>
                 <Link
                   href={`/dashboard/visibility-proxy/${createdId}`}
                   className="flex items-center gap-2 px-4 py-2.5 bg-surface-warm hover:bg-surface-muted text-ink-2 text-sm font-medium rounded-xl transition-colors"
                 >
                   <ExternalLink className="w-4 h-4" />
-                  查看域名
+                  View Domain
                 </Link>
               </div>
             </div>
@@ -258,10 +257,9 @@ export default function AddDomainPage() {
             <div className="w-14 h-14 rounded-2xl bg-sage-bg flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="w-7 h-7 text-sage" />
             </div>
-            <h2 className="text-xl font-bold text-ink mb-2">域名已添加</h2>
+            <h2 className="text-xl font-bold text-ink mb-2">Domain Added!</h2>
             <p className="text-sm text-ink-3 mb-6 max-w-sm mx-auto">
-              <strong>{cleanedDomain}</strong> 已注册。DNS 生效后代理自动激活，
-              现在可以先上传品牌数据。
+              <strong>{cleanedDomain}</strong> is now registered. Once DNS propagates, the proxy activates automatically. You can upload your brand data now.
             </p>
             <div className="flex gap-3 justify-center">
               <Link
