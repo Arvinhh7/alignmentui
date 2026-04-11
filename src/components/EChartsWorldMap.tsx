@@ -314,21 +314,6 @@ export default function EChartsWorldMap({ geoData }: { geoData: GeoDataItem[] })
             ))}
           </div>
 
-          {/* Legend */}
-          <div className="hidden sm:flex items-center gap-3 text-[11px] text-ink-3">
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full" style={{ background: WARM.bot }} />
-              Bot
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full" style={{ background: WARM.referral }} />
-              Referral
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full" style={{ background: WARM.both }} />
-              Both
-            </span>
-          </div>
         </div>
       </div>
 
