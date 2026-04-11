@@ -198,11 +198,12 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
   ]
 
   const adminItems: NavItem[] = role === 'admin' ? [
-    { href: '/dashboard/geo-optimization', icon: Zap,       labelKey: 'geoOptimizationNav' },
-    { href: '/dashboard/geo-distribution', icon: Share2,    labelKey: 'geoDistributionNav' },
-    { href: '/dashboard/ga4-attribution',  icon: LineChart, labelKey: 'GA4 Attribution' as never },
-    { href: '/dashboard/ops',              icon: Activity,  labelKey: 'Managed Service' as never, matchPrefix: true },
-    { href: '/dashboard/admin',            icon: Wrench,    labelKey: 'Admin Panel' as never },
+    { href: '/dashboard/geo-optimization',        icon: Zap,       labelKey: 'geoOptimizationNav' },
+    { href: '/dashboard/geo-distribution',        icon: Share2,    labelKey: 'geoDistributionNav' },
+    { href: '/dashboard/ga4-attribution',         icon: LineChart, labelKey: 'GA4 Attribution' as never },
+    { href: '/dashboard/ops',                     icon: Activity,  labelKey: 'Managed Service' as never, matchPrefix: true },
+    { href: '/dashboard/admin',                   icon: Wrench,    labelKey: 'Admin Panel' as never },
+    { href: '/dashboard/admin/domain-checker',    icon: Search,    labelKey: 'Domain Checker' as never },
   ] : []
 
   // ── Credits display ────────────────────────────────────────────────────

@@ -2855,3 +2855,60 @@ export const proxyApi = {
     return r.json()
   },
 }
+
+// ─────────────────────────────────────────────────────────────
+// Domain Compatibility Checker — Types & API Client (Admin only)
+// ─────────────────────────────────────────────────────────────
+
+export interface DomainCheckPlatform {
+  platform: string     // "shopify" | "wix" | "squarespace" | "wordpress" | "unknown"
+  confidence: number   // 0.0 – 1.0
+  signals: string[]
+}
+
+export interface DomainCheckDns {
+  provider: string
+  is_behind_cloudflare: boolean
+  a_records: string[]
+  cname_records: string[]
+  ns_records: string[]
+}
+
+export interface DomainCheckDetail {
+  name: string
+  passed: boolean
+  detail: string
+}
+
+export interface DomainCheckResult {
+  domain: string
+  verdict: 'compatible' | 'caution' | 'blocked'
+  verdict_reason: string
+  platform: DomainCheckPlatform
+  dns: DomainCheckDns
+  https_ok: boolean
+  reachable: boolean
+  waf_detected: boolean
+  is_behind_cloudflare: boolean
+  origin_url_guess: string | null
+  recommendations: string[]
+  checks_detail: DomainCheckDetail[]
+}
+
+export const adminApi = {
+  checkDomain: async (domain: string, userId: string): Promise<DomainCheckResult> => {
+    const r = await fetch(
+      `${API_BASE_URL}/api/domain-check?user_id=${encodeURIComponent(userId)}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain }),
+      },
+    )
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({ detail: '检测请求失败' }))
+      throw new Error(err.detail ?? '检测请求失败')
+    }
+    return r.json()
+  },
+}
