@@ -1120,7 +1120,7 @@ function AnalyticsTab({
                         <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 bg-surface-warm text-ink-3">Discovery</span>
                         <span
                           className="text-xs text-ink-3 truncate flex-1 cursor-help underline decoration-dotted decoration-ink-3/50"
-                          title="AI bots read your discovery files (robots.txt, llms.txt, sitemap.xml, agent.json). This is your Alignment GEO optimization working — AI platforms have found your optimization artifacts."
+                          title="AI bots read your discovery files. This is your Alignment GEO optimization working — AI platforms have found your optimization artifacts."
                         >
                           AI Discovery Files
                         </span>
