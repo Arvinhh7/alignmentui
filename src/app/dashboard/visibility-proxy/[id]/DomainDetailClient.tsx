@@ -1117,8 +1117,13 @@ function AnalyticsTab({
                     })}
                     {otherCount > 0 && (
                       <div className="flex items-center gap-2 pt-1 border-t border-divider-light">
-                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 bg-surface-warm text-ink-3">Other</span>
-                        <span className="text-xs text-ink-3 truncate flex-1">Discovery files & other paths</span>
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 bg-surface-warm text-ink-3">Discovery</span>
+                        <span
+                          className="text-xs text-ink-3 truncate flex-1 cursor-help underline decoration-dotted decoration-ink-3/50"
+                          title="AI bots read your discovery files (robots.txt, llms.txt, sitemap.xml, agent.json). This is normal — it means AI platforms found your optimization artifacts."
+                        >
+                          AI Discovery Files
+                        </span>
                         <span className="text-xs font-bold text-ink-3 shrink-0 tabular-nums">{otherCount.toLocaleString()}</span>
                       </div>
                     )}
@@ -1203,7 +1208,7 @@ function AnalyticsTab({
                 <div className="grid grid-cols-3 text-xs py-2 items-center">
                   <div className="flex items-center gap-2">
                     <span className="w-3.5 h-3.5 rounded-full bg-surface-warm border border-divider-light flex items-center justify-center text-[8px] text-ink-3 shrink-0">?</span>
-                    <span className="font-medium text-ink-3 truncate">Other / Unidentified</span>
+                    <span className="font-medium text-ink-3 truncate">Other</span>
                   </div>
                   <span className="text-center text-ink-3 font-medium">{otherCrawls > 0 ? otherCrawls.toLocaleString() : '—'}</span>
                   <span className="text-center text-ink-3 font-medium">{otherReferrals > 0 ? otherReferrals.toLocaleString() : '—'}</span>
