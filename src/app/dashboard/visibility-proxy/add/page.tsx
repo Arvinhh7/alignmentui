@@ -289,20 +289,72 @@ export default function AddDomainPage() {
 
         {/* ── Step 3: Done ─────────────────────────────────────────── */}
         {step === 'done' && (
-          <div className="bg-surface border border-divider rounded-2xl p-8 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-sage-bg flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-7 h-7 text-sage" />
+          <div className="space-y-4">
+            {/* Success header */}
+            <div className="bg-surface border border-divider rounded-2xl p-8 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-sage-bg flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-7 h-7 text-sage" />
+              </div>
+              <h2 className="text-xl font-bold text-ink mb-2">Domain Added!</h2>
+              <p className="text-sm text-ink-3 max-w-sm mx-auto">
+                <strong>{cleanedDomain}</strong> is registered. Once you add the CNAME and DNS propagates, the proxy activates automatically.
+              </p>
             </div>
-            <h2 className="text-xl font-bold text-ink mb-2">Domain Added!</h2>
-            <p className="text-sm text-ink-3 mb-6 max-w-sm mx-auto">
-              <strong>{cleanedDomain}</strong> is now registered. Once DNS propagates, the proxy activates automatically. You can upload your brand data now.
-            </p>
-            <div className="flex gap-3 justify-center">
+
+            {/* Auto-fill status — persists from Step 2, shows live progress */}
+            <div className={`border rounded-2xl p-4 flex items-start gap-3 ${
+              fillStatus === 'done'  ? 'bg-sage-bg border-sage/20' :
+              fillStatus === 'error' ? 'bg-red-soft-bg border-red-soft/20' :
+              'bg-surface border-divider-light'
+            }`}>
+              {fillStatus === 'running' && <Loader2 className="w-4 h-4 text-ink-3 animate-spin flex-shrink-0 mt-0.5" />}
+              {fillStatus === 'done'    && <CheckCircle className="w-4 h-4 text-sage flex-shrink-0 mt-0.5" />}
+              {fillStatus === 'error'   && <AlertCircle className="w-4 h-4 text-red-soft flex-shrink-0 mt-0.5" />}
+              {fillStatus === 'idle'    && <AlertCircle className="w-4 h-4 text-ink-3 flex-shrink-0 mt-0.5" />}
+              <div>
+                <div className={`text-sm font-semibold ${
+                  fillStatus === 'done' ? 'text-sage' : fillStatus === 'error' ? 'text-red-soft' : 'text-ink-2'
+                }`}>
+                  {fillStatus === 'running' && 'Auto-filling brand data…'}
+                  {fillStatus === 'done'    && 'Brand data ready — synced to edge network ✓'}
+                  {fillStatus === 'error'   && 'Auto-fill failed — retry from Brand Data tab'}
+                  {fillStatus === 'idle'    && 'Brand data fill pending…'}
+                </div>
+                <div className="text-xs text-ink-3 mt-0.5">
+                  {fillStatus === 'running' && 'Still crawling origin URL — this takes ~1 minute. Go to View Domain to monitor DNS status.'}
+                  {fillStatus === 'done'    && 'Once DNS goes active, run End-to-End Verification to confirm all 5 checks pass.'}
+                  {fillStatus === 'error'   && `Could not crawl ${originUrl}. Go to Brand Data tab and click Auto-fill to retry.`}
+                  {fillStatus === 'idle'    && 'Will crawl origin URL and fill brand data automatically.'}
+                </div>
+              </div>
+            </div>
+
+            {/* What's next */}
+            <div className="bg-surface border border-divider-light rounded-2xl p-5">
+              <h3 className="text-sm font-semibold text-ink-2 mb-3">What's next</h3>
+              <ol className="space-y-2 text-sm text-ink-3">
+                <li className="flex items-start gap-2">
+                  <span className="w-5 h-5 rounded-full bg-surface-muted flex items-center justify-center text-[10px] font-bold text-ink-3 flex-shrink-0 mt-0.5">1</span>
+                  Go back and add the CNAME record to your DNS provider if you haven't yet
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-5 h-5 rounded-full bg-surface-muted flex items-center justify-center text-[10px] font-bold text-ink-3 flex-shrink-0 mt-0.5">2</span>
+                  The domain status auto-updates every 30s — it will switch to <strong className="text-ink">Active</strong> once DNS propagates
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-5 h-5 rounded-full bg-surface-muted flex items-center justify-center text-[10px] font-bold text-ink-3 flex-shrink-0 mt-0.5">3</span>
+                  Once Active, run <strong className="text-ink">End-to-End Verification</strong> — all 5 must pass before notifying the customer
+                </li>
+              </ol>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
               <Link
-                href={`/dashboard/visibility-proxy/${createdId}/assets`}
-                className="flex items-center gap-2 px-5 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-semibold rounded-xl transition-colors"
+                href={`/dashboard/visibility-proxy/${createdId}`}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-semibold rounded-xl transition-colors"
               >
-                Upload Brand Data
+                View Domain
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
