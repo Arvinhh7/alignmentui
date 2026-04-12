@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
@@ -54,6 +54,31 @@ export default function AddDomainPage() {
   const [error,          setError]          = useState<string | null>(null)
   const [createdId,      setCreatedId]      = useState<string | null>(null)
   const [fillStatus,     setFillStatus]     = useState<'idle' | 'running' | 'done' | 'error'>('idle')
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Clean up polling on unmount
+  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
+
+  /** Poll /assets every 8s until brand_identity content appears or 3-min timeout */
+  const startFillPolling = (domainId: string, userId: string) => {
+    if (pollRef.current) clearInterval(pollRef.current)
+    const deadline = Date.now() + 3 * 60 * 1000
+    pollRef.current = setInterval(async () => {
+      if (Date.now() > deadline) {
+        clearInterval(pollRef.current!)
+        setFillStatus('error')
+        return
+      }
+      try {
+        const assets = await proxyApi.getAssets(domainId, userId)
+        const bi = assets.assets['brand_identity']
+        if (bi && typeof bi === 'object' && !Array.isArray(bi) && Object.keys(bi).length > 0) {
+          clearInterval(pollRef.current!)
+          setFillStatus('done')
+        }
+      } catch { /* ignore transient errors */ }
+    }, 8000)
+  }
 
   const handleDomainChange = (raw: string) => {
     // Auto-strip protocol and path so the field always shows a clean hostname
@@ -83,11 +108,11 @@ export default function AddDomainPage() {
       setDomain(cleanedDomain) // ensure state matches cleaned version
       setStep('dns')
 
-      // Fire auto-fill immediately — runs in parallel while CS configures DNS.
-      // origin_url is crawled directly; DNS does not need to be active.
+      // Fire auto-fill immediately — backend returns at once (BackgroundTasks),
+      // then we poll /assets every 8s to detect when brand data is actually ready.
       setFillStatus('running')
       proxyApi.autoFill(created.id, user.id)
-        .then(() => setFillStatus('done'))
+        .then(() => startFillPolling(created.id, user.id!))
         .catch(() => setFillStatus('error'))
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to create domain')
@@ -276,7 +301,7 @@ export default function AddDomainPage() {
                   I've Added the CNAME
                 </button>
                 <Link
-                  href={`/dashboard/visibility-proxy/${createdId}`}
+                  href={`/dashboard/visibility-proxy/${createdId}?domain=${encodeURIComponent(cleanedDomain)}&origin=${encodeURIComponent(originUrl.trim().replace(/\/$/, ''))}&status=pending&fresh=1`}
                   className="flex items-center gap-2 px-4 py-2.5 bg-surface-warm hover:bg-surface-muted text-ink-2 text-sm font-medium rounded-xl transition-colors"
                 >
                   <ExternalLink className="w-4 h-4" />
@@ -351,7 +376,7 @@ export default function AddDomainPage() {
             {/* Actions */}
             <div className="flex gap-3">
               <Link
-                href={`/dashboard/visibility-proxy/${createdId}`}
+                href={`/dashboard/visibility-proxy/${createdId}?domain=${encodeURIComponent(cleanedDomain)}&origin=${encodeURIComponent(originUrl.trim().replace(/\/$/, ''))}&status=pending&fresh=1`}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-semibold rounded-xl transition-colors"
               >
                 View Domain

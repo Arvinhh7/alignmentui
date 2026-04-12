@@ -1413,10 +1413,35 @@ export default function DomainDetailClient() {
     return match ? match[0] : rawId
   })()
 
-  const [domain, setDomain] = useState<ProxyDomain | null>(null)
+  // Read prefill params injected by add/page.tsx "View Domain" link (?domain=&origin=&status=&fresh=1).
+  // When present, render the page immediately without a spinner and fetch real data silently in background.
+  const prefillDomain = (() => {
+    if (typeof window === 'undefined') return null
+    const sp = new URLSearchParams(window.location.search)
+    const d = sp.get('domain')
+    if (!d || !sp.get('fresh')) return null
+    return {
+      id: domainId,
+      user_id: '',
+      domain: d,
+      origin_url: sp.get('origin') ?? `https://${d}`,
+      status: (sp.get('status') ?? 'pending') as ProxyDomainStatus['status'],
+      strip_noindex: true,
+      bypass_paywall: false,
+      inject_canonical: true,
+      prerender_csr: false,
+      robots_allow_all_ai: true,
+      custom_robots_rules: '',
+      date_modified_auto: true,
+      created_at: new Date().toISOString(),
+    } as ProxyDomain
+  })()
+
+  const [domain, setDomain] = useState<ProxyDomain | null>(prefillDomain)
   const [status, setStatus] = useState<ProxyDomainStatus | null>(null)
   const [analytics, setAnalytics] = useState<ProxyAnalytics | null>(null)
-  const [loading, setLoading] = useState(true)
+  // Skip the full-page spinner when prefill is available — real data loads silently in background
+  const [loading, setLoading] = useState(prefillDomain === null)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<Tab>('overview')
   const [refreshingStatus, setRefreshingStatus] = useState(false)
@@ -1433,9 +1458,9 @@ export default function DomainDetailClient() {
     if (stored) setLastSynced(stored)
   }, [domainId])
 
-  const loadDomain = useCallback(async () => {
+  const loadDomain = useCallback(async (silent = false) => {
     if (!user?.id) return
-    setLoading(true)
+    if (!silent) setLoading(true)
     setError(null)
     try {
       const [d, s] = await Promise.all([
@@ -1445,9 +1470,10 @@ export default function DomainDetailClient() {
       setDomain(d)
       setStatus(s)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load domain')
+      // Surface errors only on hard loads; ignore transient failures during silent refresh
+      if (!silent) setError(e instanceof Error ? e.message : 'Failed to load domain')
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }, [domainId, user?.id])
 
@@ -1461,7 +1487,9 @@ export default function DomainDetailClient() {
     finally { setAnalyticsLoading(false) }
   }, [domainId, user?.id, analyticsDays])
 
-  useEffect(() => { loadDomain() }, [loadDomain])
+  // If prefill is present, load real data silently in background (no spinner).
+  // Otherwise do a normal load with spinner.
+  useEffect(() => { loadDomain(prefillDomain !== null) }, [loadDomain])
 
   useEffect(() => {
     if (activeTab === 'analytics') loadAnalytics()
