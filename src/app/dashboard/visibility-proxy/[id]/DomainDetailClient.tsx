@@ -1532,7 +1532,9 @@ export default function DomainDetailClient() {
     }
   }
 
-  if (loading) return (
+  // Auth must be ready before rendering (user!.id is used in child components).
+  // This guard is very brief (~100ms from localStorage) even on the prefill fast-path.
+  if (loading || !user) return (
     <div className="min-h-screen bg-canvas flex items-center justify-center">
       <Loader2 className="w-6 h-6 animate-spin text-ink-3" />
     </div>
