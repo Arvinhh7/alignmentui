@@ -340,12 +340,12 @@ function VerifyCard({
   )
 }
 
-// Step 3 — Infrastructure Check (3 items, no brand data required)
+// Proxy routing debug check — 3 infra items, no brand data required
 function InfraCheckSection({ domainId, userId }: { domainId: string; userId: string }) {
   return (
     <VerifyCard
-      title="Step 3 — Infrastructure Check"
-      subtitle="Confirm proxy routing is live (3 checks, no brand data required)"
+      title="Proxy Routing Check"
+      subtitle="Quick 3-item debug: HTTPS routing, robots.txt, agent.json (no brand data required)"
       quick={true}
       domainId={domainId}
       userId={userId}
@@ -353,12 +353,12 @@ function InfraCheckSection({ domainId, userId }: { domainId: string; userId: str
   )
 }
 
-// Step 5 — Full Delivery Verification (5 items, run after brand data sync)
+// Full delivery verification — 5 items, run once DNS is active and brand data is synced
 function FullVerifySection({ domainId, userId }: { domainId: string; userId: string }) {
   return (
     <VerifyCard
-      title="Step 5 — Delivery Verification"
-      subtitle="Run after brand data sync — all 5 must pass before notifying customer"
+      title="End-to-End Verification"
+      subtitle="All 5 checks must pass before notifying the customer"
       quick={false}
       domainId={domainId}
       userId={userId}
@@ -533,12 +533,12 @@ function OverviewTab({
         </div>
       )}
 
-      {/* Step 3 — Infrastructure Check (active domains only, before brand data) */}
+      {/* Proxy routing debug check — only shown when active, useful for troubleshooting */}
       {isActive && (
         <InfraCheckSection domainId={domain.id} userId={userId} />
       )}
 
-      {/* Step 5 — Full Delivery Verification (active domains only, after brand data sync) */}
+      {/* End-to-End Verification — brand data auto-filled at domain creation; run once DNS is active */}
       {isActive && (
         <FullVerifySection domainId={domain.id} userId={userId} />
       )}

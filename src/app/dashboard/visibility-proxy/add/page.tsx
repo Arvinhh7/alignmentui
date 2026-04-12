@@ -47,12 +47,13 @@ export default function AddDomainPage() {
   const router = useRouter()
   const { user } = useAuth()
 
-  const [step,      setStep]      = useState<Step>('form')
-  const [domain,    setDomain]    = useState('')
-  const [originUrl, setOriginUrl] = useState('')
-  const [loading,   setLoading]   = useState(false)
-  const [error,     setError]     = useState<string | null>(null)
-  const [createdId, setCreatedId] = useState<string | null>(null)
+  const [step,           setStep]           = useState<Step>('form')
+  const [domain,         setDomain]         = useState('')
+  const [originUrl,      setOriginUrl]      = useState('')
+  const [loading,        setLoading]        = useState(false)
+  const [error,          setError]          = useState<string | null>(null)
+  const [createdId,      setCreatedId]      = useState<string | null>(null)
+  const [fillStatus,     setFillStatus]     = useState<'idle' | 'running' | 'done' | 'error'>('idle')
 
   const handleDomainChange = (raw: string) => {
     // Auto-strip protocol and path so the field always shows a clean hostname
@@ -81,6 +82,13 @@ export default function AddDomainPage() {
       setCreatedId(created.id)
       setDomain(cleanedDomain) // ensure state matches cleaned version
       setStep('dns')
+
+      // Fire auto-fill immediately — runs in parallel while CS configures DNS.
+      // origin_url is crawled directly; DNS does not need to be active.
+      setFillStatus('running')
+      proxyApi.autoFill(created.id, user.id)
+        .then(() => setFillStatus('done'))
+        .catch(() => setFillStatus('error'))
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to create domain')
     } finally {
@@ -223,6 +231,34 @@ export default function AddDomainPage() {
               <div className="text-sm text-ink">
                 <div className="font-semibold mb-0.5">If your domain is already on Cloudflare</div>
                 <div className="text-ink-2">Set the CNAME to <strong>DNS only</strong> (grey cloud, not orange) to avoid a proxy loop.</div>
+              </div>
+            </div>
+
+            {/* Auto-fill status — runs in parallel while DNS propagates */}
+            <div className={`border rounded-2xl p-4 flex items-start gap-3 ${
+              fillStatus === 'done'  ? 'bg-sage-bg border-sage/20' :
+              fillStatus === 'error' ? 'bg-red-soft-bg border-red-soft/20' :
+              'bg-surface border-divider-light'
+            }`}>
+              {fillStatus === 'running' && <Loader2 className="w-4 h-4 text-ink-3 animate-spin flex-shrink-0 mt-0.5" />}
+              {fillStatus === 'done'    && <CheckCircle className="w-4 h-4 text-sage flex-shrink-0 mt-0.5" />}
+              {fillStatus === 'error'   && <AlertCircle className="w-4 h-4 text-red-soft flex-shrink-0 mt-0.5" />}
+              {fillStatus === 'idle'    && <AlertCircle className="w-4 h-4 text-ink-3 flex-shrink-0 mt-0.5" />}
+              <div>
+                <div className={`text-sm font-semibold ${
+                  fillStatus === 'done' ? 'text-sage' : fillStatus === 'error' ? 'text-red-soft' : 'text-ink-2'
+                }`}>
+                  {fillStatus === 'running' && 'Auto-filling brand data…'}
+                  {fillStatus === 'done'    && 'Brand data ready — synced to edge network ✓'}
+                  {fillStatus === 'error'   && 'Auto-fill failed — you can retry from Brand Data tab'}
+                  {fillStatus === 'idle'    && 'Brand data fill pending…'}
+                </div>
+                <div className="text-xs text-ink-3 mt-0.5">
+                  {fillStatus === 'running' && `Crawling ${originUrl} and extracting brand signals — takes ~1 minute`}
+                  {fillStatus === 'done'    && 'Once DNS goes active, run End-to-End Verification to confirm everything works'}
+                  {fillStatus === 'error'   && `Could not crawl ${originUrl} — check the origin URL and retry`}
+                  {fillStatus === 'idle'    && 'Will crawl origin URL and fill brand data automatically'}
+                </div>
               </div>
             </div>
 
