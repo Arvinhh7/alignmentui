@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
 import LanguageSwitch from '@/components/LanguageSwitch'
 import { LogoFull } from '@/components/Logo'
+import Footer from '@/components/Footer'
 import { useEffect, useState, useCallback } from 'react'
 
 const API_BASE = 'https://alignment-data-collection-production.up.railway.app'
@@ -459,47 +460,7 @@ export default function InsightsPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-surface border-t border-divider-light py-16">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-            <div className="md:col-span-1">
-              <div className="mb-4">
-                <LogoFull width={160} height={100} />
-              </div>
-              <p className="text-ink-3 text-sm leading-relaxed">
-                The complete GEO platform for AI search visibility.
-              </p>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-ink mb-4">Resources</h4>
-              <ul className="space-y-3 text-sm text-ink-2">
-                <li><Link href="/docs/" className="hover:text-ink transition-colors">Documentation</Link></li>
-                <li><Link href="/insights/" className="hover:text-ink transition-colors">Insights</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-ink mb-4">Ecosystem</h4>
-              <ul className="space-y-3 text-sm text-ink-2">
-                <li><Link href="#" className="hover:text-ink transition-colors">Partners</Link></li>
-                <li><Link href="#" className="hover:text-ink transition-colors">Integrations</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-ink mb-4">Contact</h4>
-              <ul className="space-y-3 text-sm text-ink-2">
-                <li><a href="mailto:contact@alignmenttech.ai" className="hover:text-ink transition-colors">Send Email</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-12 pt-8 border-t border-divider-light text-center text-ink-3 text-sm">
-            © {new Date().getFullYear()} Alignment AI. All rights reserved.
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

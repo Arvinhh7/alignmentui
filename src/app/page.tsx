@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
 import LanguageSwitch from '@/components/LanguageSwitch'
 import { LogoFull } from '@/components/Logo'
+import Footer from '@/components/Footer'
 import { useEffect, useState } from 'react'
 import {
   ShieldCheck, TrendingUp, PenTool, Globe,
@@ -331,27 +332,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ───────────────────────────────────────────────────────── */}
-      <footer className="border-t border-divider">
-        <div className="max-w-marketing mx-auto px-5 md:px-12 py-8 md:py-10 flex flex-col sm:flex-row items-center sm:justify-between gap-4 sm:gap-0">
-          <span className="text-[12px] text-ink-3">© 2026 Alignment AI. All rights reserved.</span>
-          <div className="flex items-center gap-6">
-            {[
-              { label: 'Privacy', href: '/privacy' },
-              { label: 'Terms',   href: '/terms' },
-              { label: 'Docs',    href: '/docs' },
-              { label: 'Contact', href: '/contact' },
-            ].map(link => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-[12px] text-ink-3 hover:text-ink transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
     </div>
   )

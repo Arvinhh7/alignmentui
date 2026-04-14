@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { useLanguage } from '@/lib/LanguageContext'
 import LanguageSwitch from '@/components/LanguageSwitch'
 import { LogoFull } from '@/components/Logo'
+import Footer from '@/components/Footer'
 import { useAuth } from '@/hooks/useAuth'
 import { api } from '@/lib/api'
 import { gaEvent } from '@/lib/gtag'
@@ -867,50 +868,7 @@ function PricingPageInner() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-surface border-t border-divider-light py-16">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-            <div className="md:col-span-1">
-              <div className="mb-4">
-                <LogoFull width={160} height={100} />
-              </div>
-              <p className="text-ink-3 text-sm leading-relaxed">
-                {lang === 'zh'
-                  ? 'AI 品牌可见度平台——让您的品牌被全球 AI 发现并引用。'
-                  : 'Get your brand seen and cited by AI — automatically.'}
-              </p>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-ink mb-4">{lang === 'zh' ? '产品' : 'Product'}</h4>
-              <ul className="space-y-3 text-sm text-ink-2">
-                <li><Link href="/system/" className="hover:text-ink transition-colors">{t.nav.system}</Link></li>
-                <li><Link href="/technology/" className="hover:text-ink transition-colors">{t.nav.technology}</Link></li>
-                <li><Link href="/pricing/" className="hover:text-ink transition-colors">{t.nav.pricing}</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-ink mb-4">{lang === 'zh' ? '资源' : 'Resources'}</h4>
-              <ul className="space-y-3 text-sm text-ink-2">
-                <li><Link href="/docs/" className="hover:text-ink transition-colors">{t.nav.docs}</Link></li>
-                <li><Link href="/insights/" className="hover:text-ink transition-colors">{t.nav.insights}</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-ink mb-4">{lang === 'zh' ? '联系我们' : 'Contact'}</h4>
-              <ul className="space-y-3 text-sm text-ink-2">
-                <li><a href="mailto:contact@alignmenttech.ai" className="hover:text-ink transition-colors">{lang === 'zh' ? '发送邮件' : 'Send Email'}</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-12 pt-8 border-t border-divider-light text-center text-ink-3 text-sm">
-            &copy; {new Date().getFullYear()} Alignment AI. All rights reserved.
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
