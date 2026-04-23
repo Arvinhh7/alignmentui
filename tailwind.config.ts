@@ -12,65 +12,65 @@ const config: Config = {
         // ── Legacy aliases → mapped to Anthropic-Warm palette ────────────
         // Kept as safety net for any orphaned references; all map to warm tokens.
         primary: {
-          DEFAULT: '#191918',  // → ink
-          50:  '#F3EDE4',      // → surface-warm
-          100: '#EDE8E0',      // → surface-muted / divider-light
-          200: '#E0DBD2',      // → divider
+          DEFAULT: '#000000',  // → ink (Option D: pure black)
+          50:  '#EDE3D0',      // → surface-warm
+          100: '#DDD6C8',      // → surface-muted
+          200: '#9E9484',      // → divider
           300: '#C4BFB5',
-          400: '#9C978E',      // → ink-3
-          500: '#6B6860',      // → ink-2
-          600: '#3F3D38',
-          700: '#2D2D2C',
-          800: '#1F1F1E',
-          900: '#191918',      // → ink
+          400: '#2D2B27',      // → ink-3
+          500: '#0A0A0A',      // → ink-2
+          600: '#1A1A18',
+          700: '#111111',
+          800: '#0A0A0A',
+          900: '#000000',      // → ink
         },
         accent: {
           DEFAULT: '#C84B31',  // warm terracotta
-          light:   '#F3EDE4',
+          light:   '#EDE3D0',
           dark:    '#A33820',
         },
         success: '#4A7C59',    // → sage
         warning: '#B8860B',    // → caution
         danger:  '#B5453A',    // → red-soft
-        muted:   '#9C978E',    // → ink-3
+        muted:   '#2D2B27',    // → ink-3
 
-        // ── DESIGN.md Anthropic-Warm tokens ──────────────────────────────
+        // ── DESIGN.md Anthropic-Warm tokens — Option D ───────────────────
         // Page backgrounds
-        canvas: '#FAF7F2',          // --bg  : warm cream page background
+        canvas: '#FAF5EC',          // --bg  : warm cream (Option D: brighter warm)
 
         // Ink (text + dark emphasis)
         ink: {
-          DEFAULT: '#191918',       // --bg-dark / --text : primary dark
-          2: '#6B6860',             // --text-2 : body copy
-          3: '#9C978E',             // --text-3 : captions, timestamps
-          inv: '#FAF7F2',           // --text-inv : text on dark surfaces
+          DEFAULT: '#000000',       // --text : pure black (max contrast)
+          2: '#0A0A0A',             // --text-2 : near-black body copy
+          3: '#2D2B27',             // --text-3 : dark captions
+          inv: '#FAF5EC',           // --text-inv : text on dark surfaces
         },
 
         // Surfaces
         surface: {
-          DEFAULT: '#FFFFFF',       // --surface : card / panel
-          warm: '#F3EDE4',          // --surface-warm : nested items, hover fills
-          muted: '#EDE8E0',         // --surface-muted : deeper warm gray
+          DEFAULT: '#FFFFFF',       // --surface : card / panel (pure white pops on warm canvas)
+          warm: '#EDE3D0',          // --surface-warm : nested items, hover fills
+          muted: '#DDD6C8',         // --surface-muted : deeper warm gray
         },
 
         // Borders / dividers
         divider: {
-          DEFAULT: '#E0DBD2',       // --border : primary borders
-          light: '#EDE8E0',         // --border-light : subtle card borders
+          DEFAULT: '#9E9484',       // --border : strong taupe borders
+          light: '#C8BFB0',         // --border-light : card borders
         },
 
         // Semantic colors
         sage: {
           DEFAULT: '#4A7C59',       // success, positive delta
-          bg: 'rgba(74,124,89,0.08)',
+          bg: 'rgba(74,124,89,0.14)',
         },
         caution: {
           DEFAULT: '#B8860B',       // warning
-          bg: 'rgba(184,134,11,0.08)',
+          bg: 'rgba(184,134,11,0.14)',
         },
         'red-soft': {
           DEFAULT: '#B5453A',       // error, negative delta
-          bg: 'rgba(181,69,58,0.08)',
+          bg: 'rgba(181,69,58,0.14)',
         },
       },
 
@@ -95,25 +95,24 @@ const config: Config = {
       },
 
       boxShadow: {
-        // DESIGN.md elevation system (warm-tinted black, no colored shadows)
-        'elevation-sm': '0 1px 3px rgba(25,25,24,0.04)',
-        'elevation-md': '0 4px 16px rgba(25,25,24,0.06)',
-        'elevation-lg': '0 12px 40px rgba(25,25,24,0.08)',
-        // Legacy aliases (updated to warm black)
-        'soft':         '0 2px 8px rgba(25,25,24,0.06)',
-        'medium':       '0 4px 16px rgba(25,25,24,0.08)',
-        'large':        '0 12px 32px rgba(25,25,24,0.10)',
-        'glow':         '0 0 40px rgba(25,25,24,0.10)',
-        'glow-strong':  '0 0 60px rgba(25,25,24,0.15)',
-        'inner-glow':   'inset 0 1px 0 rgba(250,247,242,0.10)',
+        // Option D elevation system — boosted contrast
+        'elevation-sm': '0 2px 6px rgba(0,0,0,0.08)',
+        'elevation-md': '0 4px 14px rgba(0,0,0,0.12)',
+        'elevation-lg': '0 20px 50px rgba(0,0,0,0.18)',
+        // Legacy aliases
+        'soft':         '0 2px 8px rgba(0,0,0,0.10)',
+        'medium':       '0 4px 16px rgba(0,0,0,0.14)',
+        'large':        '0 16px 40px rgba(0,0,0,0.20)',
+        'glow':         '0 0 40px rgba(0,0,0,0.18)',
+        'glow-strong':  '0 0 60px rgba(0,0,0,0.26)',
+        'inner-glow':   'inset 0 1px 0 rgba(250,245,236,0.10)',
       },
 
       backgroundImage: {
         'gradient-radial':  'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic':   'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-        // Warm neutral hero glow (replaces red)
-        'stripe-gradient':  'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(25,25,24,0.05), transparent)',
-        'hero-glow':        'radial-gradient(ellipse 50% 50% at 50% 50%, rgba(25,25,24,0.04), transparent)',
+        'stripe-gradient':  'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0,0,0,0.06), transparent)',
+        'hero-glow':        'radial-gradient(ellipse 50% 50% at 50% 50%, rgba(0,0,0,0.05), transparent)',
       },
 
       animation: {
