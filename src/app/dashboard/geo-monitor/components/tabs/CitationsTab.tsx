@@ -29,7 +29,7 @@ export function CitationsTab() {
       .map(([type, count]) => ({
         label: DOMAIN_TYPE_LABELS[type]?.label || type,
         value: count,
-        color: DOMAIN_TYPE_LABELS[type]?.chartColor || '#9C978E',
+        color: DOMAIN_TYPE_LABELS[type]?.chartColor || '#2D2B27',
       }))
   }, [scanResult])
 

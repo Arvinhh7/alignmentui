@@ -1135,8 +1135,8 @@ function AnalyticsTab({
             <ResponsiveContainer width="100%" height={180}>
               <LineChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9C978E' }} tickFormatter={(v: string) => v.slice(5)} />
-                <YAxis tick={{ fontSize: 10, fill: '#9C978E' }} />
+                <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#2D2B27' }} tickFormatter={(v: string) => v.slice(5)} />
+                <YAxis tick={{ fontSize: 10, fill: '#2D2B27' }} />
                 <Tooltip
                   contentStyle={{ fontSize: 12, borderRadius: 8 }}
                   labelFormatter={(l: string) => `Date: ${l}`}
@@ -1150,8 +1150,8 @@ function AnalyticsTab({
                     return [`${value.toLocaleString()}${dailyStr}`, name]
                   }}
                 />
-                <Line type="monotone" dataKey="total" stroke="#E0DBD2" strokeWidth={1.5} dot={false} name="Total" />
-                <Line type="monotone" dataKey="ai_visits" stroke="#191918" strokeWidth={2} dot={false} name="AI Bots" />
+                <Line type="monotone" dataKey="total" stroke="#9E9484" strokeWidth={1.5} dot={false} name="Total" />
+                <Line type="monotone" dataKey="ai_visits" stroke="#000000" strokeWidth={2} dot={false} name="AI Bots" />
                 <Line type="monotone" dataKey="ai_referrals" stroke="#4A7B5C" strokeWidth={2} dot={false} name="AI Referrals" />
               </LineChart>
             </ResponsiveContainer>

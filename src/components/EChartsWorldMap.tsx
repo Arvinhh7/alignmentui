@@ -91,14 +91,14 @@ const COUNTRY_COORDS: Record<string, [number, number]> = {
 
 /* ── Warm Design Tokens ──────────────────────────────────────────── */
 const WARM = {
-  canvas:       '#FAF7F2',
+  canvas:       '#FAF5EC',
   surface:      '#FFFFFF',
-  surfaceWarm:  '#F3EDE4',
-  divider:      '#E0DBD2',
-  dividerLight: '#EDE8E0',
-  ink:          '#191918',
-  ink2:         '#6B6860',
-  ink3:         '#9C978E',
+  surfaceWarm:  '#EDE3D0',
+  divider:      '#9E9484',
+  dividerLight: '#C8BFB0',
+  ink:          '#000000',
+  ink2:         '#0A0A0A',
+  ink3:         '#2D2B27',
   bot:          '#00C8E8',
   referral:     '#9B30E8',
   both:         '#FF5520',
@@ -188,8 +188,8 @@ export default function EChartsWorldMap({ geoData }: { geoData: GeoDataItem[] })
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'item',
-      backgroundColor: 'rgba(25,25,24,0.92)',
-      borderColor: 'rgba(250,247,242,0.12)',
+      backgroundColor: 'rgba(0,0,0,0.92)',
+      borderColor: 'rgba(250,245,236,0.12)',
       borderWidth: 1,
       padding: [10, 14],
       textStyle: { color: WARM.canvas, fontSize: 12, fontFamily: 'system-ui, sans-serif' },
@@ -239,11 +239,11 @@ export default function EChartsWorldMap({ geoData }: { geoData: GeoDataItem[] })
         },
         itemStyle: {
           shadowBlur: 8,
-          shadowColor: 'rgba(25,25,24,0.15)',
+          shadowColor: 'rgba(0,0,0,0.15)',
         },
         emphasis: {
           scale: 1.4,
-          itemStyle: { shadowBlur: 14, shadowColor: 'rgba(25,25,24,0.25)' },
+          itemStyle: { shadowBlur: 14, shadowColor: 'rgba(0,0,0,0.25)' },
         },
       },
       // Pulsing effect on top countries
@@ -261,7 +261,7 @@ export default function EChartsWorldMap({ geoData }: { geoData: GeoDataItem[] })
           scale: 3,
           period: 4,
         },
-        itemStyle: { shadowBlur: 6, shadowColor: 'rgba(25,25,24,0.12)' },
+        itemStyle: { shadowBlur: 6, shadowColor: 'rgba(0,0,0,0.12)' },
       },
     ],
   }), [scatterData, topData, maxVal])

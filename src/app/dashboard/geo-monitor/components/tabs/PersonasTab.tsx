@@ -79,7 +79,7 @@ const PRESET_PERSONAS: Persona[] = [
   },
 ]
 
-const PERSONA_COLORS = ['#191918', '#B8860B', '#4A7C59', '#4A6FA5', '#B5453A']
+const PERSONA_COLORS = ['#000000', '#B8860B', '#4A7C59', '#4A6FA5', '#B5453A']
 const LOCAL_KEY = 'alignment_custom_personas'
 
 // ─── Scoring Engine ───────────────────────────────────
@@ -207,9 +207,9 @@ function RadarChart({ scores }: { scores: PersonaScore[] }) {
         const labelPt = toPoint(angle, R + 18)
         return (
           <g key={label}>
-            <line x1={CX} y1={CY} x2={tip.x} y2={tip.y} stroke="#EDE8E0" strokeWidth="0.8" />
+            <line x1={CX} y1={CY} x2={tip.x} y2={tip.y} stroke="#C8BFB0" strokeWidth="0.8" />
             <text x={labelPt.x} y={labelPt.y} textAnchor="middle" dominantBaseline="middle"
-              fontSize="8" fill="#9C978E" fontFamily="system-ui, sans-serif">{label}</text>
+              fontSize="8" fill="#2D2B27" fontFamily="system-ui, sans-serif">{label}</text>
           </g>
         )
       })}
@@ -232,7 +232,7 @@ function RadarChart({ scores }: { scores: PersonaScore[] }) {
         )
       })}
       {/* Center dot */}
-      <circle cx={CX} cy={CY} r="2" fill="#EDE8E0" />
+      <circle cx={CX} cy={CY} r="2" fill="#C8BFB0" />
     </svg>
   )
 }

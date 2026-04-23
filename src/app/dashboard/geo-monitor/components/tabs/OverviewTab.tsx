@@ -53,8 +53,8 @@ export function OverviewTab() {
           label: name,
           value: Math.round(value * 10) / 10,
           color: name === ctx.brandConfig.brand_name
-            ? '#191918'
-            : ['#4A6FA5', '#4A7C59', '#B8860B', '#7B5E96', '#5E8B7E', '#6B6860', '#B5453A'][i % 7],
+            ? '#000000'
+            : ['#4A6FA5', '#4A7C59', '#B8860B', '#7B5E96', '#5E8B7E', '#0A0A0A', '#B5453A'][i % 7],
         }))
       : [],
     [ctx.scanResult, ctx.brandConfig.brand_name]

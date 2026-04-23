@@ -149,7 +149,7 @@ function ScoreRing({ score, size = 180, strokeWidth = 12, animate = true }: {
 
   const getColor = (s: number) => {
     if (s >= 85) return { stroke: '#4A7C59', text: 'text-sage', glow: 'shadow-sage/20' }
-    if (s >= 65) return { stroke: '#191918', text: 'text-ink', glow: 'shadow-ink/10' }
+    if (s >= 65) return { stroke: '#000000', text: 'text-ink', glow: 'shadow-ink/10' }
     if (s >= 45) return { stroke: '#B8860B', text: 'text-caution', glow: 'shadow-caution/20' }
     return { stroke: '#B5453A', text: 'text-red-soft', glow: 'shadow-red-soft/20' }
   }
@@ -163,7 +163,7 @@ function ScoreRing({ score, size = 180, strokeWidth = 12, animate = true }: {
         <svg className="w-full h-full transform -rotate-90">
           <circle
             cx={size / 2} cy={size / 2} r={radius}
-            stroke="#EDE8E0" strokeWidth={strokeWidth} fill="none"
+            stroke="#C8BFB0" strokeWidth={strokeWidth} fill="none"
           />
           <circle
             cx={size / 2} cy={size / 2} r={radius}
@@ -221,7 +221,7 @@ function RadarChart({ scores, size = 220 }: { scores: number[]; size?: number })
 
   const getScoreColor = (s: number) => {
     if (s >= 85) return '#4A7C59'
-    if (s >= 65) return '#191918'
+    if (s >= 65) return '#000000'
     if (s >= 45) return '#B8860B'
     return '#B5453A'
   }
@@ -234,7 +234,7 @@ function RadarChart({ scores, size = 220 }: { scores: number[]; size?: number })
           key={level}
           points={getPolygon(level)}
           fill="none"
-          stroke="#EDE8E0"
+          stroke="#C8BFB0"
           strokeWidth="1"
           opacity={0.6}
         />
@@ -243,14 +243,14 @@ function RadarChart({ scores, size = 220 }: { scores: number[]; size?: number })
       {/* Axis lines */}
       {Array.from({ length: 5 }, (_, i) => {
         const p = getPoint(i, 100)
-        return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="#EDE8E0" strokeWidth="1" opacity={0.5} />
+        return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="#C8BFB0" strokeWidth="1" opacity={0.5} />
       })}
 
       {/* Data polygon */}
       <polygon
         points={dataPolygon}
         fill="rgba(25, 25, 24, 0.08)"
-        stroke="#191918"
+        stroke="#000000"
         strokeWidth="2"
         className="transition-all duration-1000"
       />
@@ -906,7 +906,7 @@ function FixPanel({
                   type="checkbox"
                   checked={approved}
                   onChange={e => setApproved(e.target.checked)}
-                  className="mt-0.5 w-3.5 h-3.5 accent-[#191918]"
+                  className="mt-0.5 w-3.5 h-3.5 accent-[#000000]"
                 />
                 <span className="text-[11px] text-caution leading-relaxed">
                   I have reviewed this draft and confirm it is accurate and appropriate for my website.

@@ -20,8 +20,8 @@ const SIDEBAR_KEY = 'sidebar_expanded'
 // DESIGN.md: admin → amber (caution), demo → muted, user → muted
 const ROLE_CONFIG: Record<UserRole, { label: string; color: string }> = {
   admin: { label: 'ADMIN', color: 'bg-[rgba(184,134,11,0.12)] text-caution border-[rgba(184,134,11,0.25)]' },
-  demo:  { label: 'DEMO',  color: 'bg-[rgba(250,247,242,0.08)] text-[rgba(250,247,242,0.45)] border-[rgba(250,247,242,0.12)]' },
-  user:  { label: 'USER',  color: 'bg-[rgba(250,247,242,0.08)] text-[rgba(250,247,242,0.35)] border-[rgba(250,247,242,0.10)]' },
+  demo:  { label: 'DEMO',  color: 'bg-[rgba(250,245,236,0.08)] text-[rgba(250,245,236,0.45)] border-[rgba(250,245,236,0.12)]' },
+  user:  { label: 'USER',  color: 'bg-[rgba(250,245,236,0.08)] text-[rgba(250,245,236,0.35)] border-[rgba(250,245,236,0.10)]' },
 }
 
 const PLAN_DISPLAY: Record<string, string> = {
@@ -246,16 +246,16 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
       />
     )}
     <aside
-      className={`fixed left-0 top-0 h-screen bg-ink border-r border-[rgba(250,247,242,0.08)] flex flex-col z-50 transition-all duration-300 ease-in-out ${
+      className={`fixed left-0 top-0 h-screen bg-ink border-r border-[rgba(250,245,236,0.08)] flex flex-col z-50 transition-all duration-300 ease-in-out ${
         mobileOpen ? 'translate-x-0 w-[240px]' : '-translate-x-full md:translate-x-0'
       } ${
         !mobileOpen ? (expanded ? 'md:w-[240px]' : 'md:w-[68px]') : ''
       }`}
     >
       {/* ── Header: Logo + Toggle ─────────────────────────────────────────── */}
-      <div className={`flex items-center h-14 border-b border-[rgba(250,247,242,0.08)] ${mobileOpen ? 'px-4' : expanded ? 'px-4' : 'justify-center px-2'}`}>
+      <div className={`flex items-center h-14 border-b border-[rgba(250,245,236,0.08)] ${mobileOpen ? 'px-4' : expanded ? 'px-4' : 'justify-center px-2'}`}>
         <Link href="/" onClick={handleNavClick} className="hover:opacity-80 transition-opacity flex items-center gap-2.5 overflow-hidden flex-1 min-w-0">
-          <div className="w-8 h-8 rounded-lg bg-[rgba(250,247,242,0.08)] p-1 flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-[rgba(250,245,236,0.08)] p-1 flex items-center justify-center flex-shrink-0">
             <Image src="/logo-icon.png" alt="Alignment AI" width={28} height={28} className="object-contain" priority />
           </div>
           {(expanded || mobileOpen) && (
@@ -266,7 +266,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         {mobileOpen ? (
           <button
             onClick={onMobileClose}
-            className="w-7 h-7 flex items-center justify-center rounded-md text-[rgba(250,247,242,0.35)] hover:bg-[rgba(250,247,242,0.06)] hover:text-[rgba(250,247,242,0.7)] transition-all flex-shrink-0 md:hidden"
+            className="w-7 h-7 flex items-center justify-center rounded-md text-[rgba(250,245,236,0.35)] hover:bg-[rgba(250,245,236,0.06)] hover:text-[rgba(250,245,236,0.7)] transition-all flex-shrink-0 md:hidden"
             aria-label="Close menu"
           >
             <X className="w-4 h-4" strokeWidth={1.8} />
@@ -275,12 +275,12 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
           <div className="relative group">
             <button
               onClick={toggleExpanded}
-              className="w-7 h-7 flex items-center justify-center rounded-md text-[rgba(250,247,242,0.35)] hover:bg-[rgba(250,247,242,0.06)] hover:text-[rgba(250,247,242,0.7)] transition-all flex-shrink-0"
+              className="w-7 h-7 flex items-center justify-center rounded-md text-[rgba(250,245,236,0.35)] hover:bg-[rgba(250,245,236,0.06)] hover:text-[rgba(250,245,236,0.7)] transition-all flex-shrink-0"
               aria-label={expanded ? 'Close sidebar' : 'Open sidebar'}
             >
               {expanded ? <PanelLeftClose className="w-4 h-4" strokeWidth={1.8} /> : <PanelLeft className="w-4 h-4" strokeWidth={1.8} />}
             </button>
-            <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2.5 py-1 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,247,242,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+            <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2.5 py-1 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,245,236,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
               {expanded ? 'Close sidebar' : 'Open sidebar'}
             </span>
           </div>
@@ -291,22 +291,22 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
       <div className={`mt-3 ${(expanded || mobileOpen) ? 'px-3' : 'px-2 flex justify-center'}`} ref={searchRef}>
         {(expanded || mobileOpen) ? (
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[rgba(250,247,242,0.3)]" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[rgba(250,245,236,0.3)]" />
             <input
               ref={searchInputRef}
               value={searchQuery}
               onChange={e => { setSearchQuery(e.target.value); setShowSearch(true) }}
               onFocus={() => setShowSearch(true)}
               placeholder={t.dashboard.searchPlaceholder}
-              className="w-full bg-[rgba(250,247,242,0.04)] border border-[rgba(250,247,242,0.08)] rounded-lg pl-8 pr-3 py-1.5 text-[12px] text-[rgba(250,247,242,0.7)] placeholder-[rgba(250,247,242,0.25)] focus:outline-none focus:border-[rgba(250,247,242,0.2)] transition-colors"
+              className="w-full bg-[rgba(250,245,236,0.04)] border border-[rgba(250,245,236,0.08)] rounded-lg pl-8 pr-3 py-1.5 text-[12px] text-[rgba(250,245,236,0.7)] placeholder-[rgba(250,245,236,0.25)] focus:outline-none focus:border-[rgba(250,245,236,0.2)] transition-colors"
             />
             {searchQuery && (
               <button onClick={() => { setSearchQuery(''); setShowSearch(false) }} className="absolute right-2.5 top-1/2 -translate-y-1/2">
-                <X className="w-3 h-3 text-[rgba(250,247,242,0.3)]" />
+                <X className="w-3 h-3 text-[rgba(250,245,236,0.3)]" />
               </button>
             )}
             {showSearch && searchQuery && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-ink border border-[rgba(250,247,242,0.08)] rounded-xl shadow-elevation-lg z-[80] overflow-hidden">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-ink border border-[rgba(250,245,236,0.08)] rounded-xl shadow-elevation-lg z-[80] overflow-hidden">
                 {searchResults.length > 0 ? searchResults.map(item => {
                   const Icon = item.icon
                   return (
@@ -315,14 +315,14 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                       href={item.href}
                       scroll={false}
                       onClick={() => { setShowSearch(false); setSearchQuery('') }}
-                      className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-[rgba(250,247,242,0.06)] transition-colors"
+                      className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-[rgba(250,245,236,0.06)] transition-colors"
                     >
-                      <Icon className="w-4 h-4 text-[rgba(250,247,242,0.4)] flex-shrink-0" strokeWidth={1.8} />
-                      <span className="text-[12px] text-[rgba(250,247,242,0.7)]">{getLabel(item.labelKey)}</span>
+                      <Icon className="w-4 h-4 text-[rgba(250,245,236,0.4)] flex-shrink-0" strokeWidth={1.8} />
+                      <span className="text-[12px] text-[rgba(250,245,236,0.7)]">{getLabel(item.labelKey)}</span>
                     </Link>
                   )
                 }) : (
-                  <div className="px-3 py-3 text-[12px] text-[rgba(250,247,242,0.3)] text-center">No results</div>
+                  <div className="px-3 py-3 text-[12px] text-[rgba(250,245,236,0.3)] text-center">No results</div>
                 )}
               </div>
             )}
@@ -331,11 +331,11 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
           <div className="relative group">
             <button
               onClick={() => { setExpandedPref(true); try { localStorage.setItem(SIDEBAR_KEY, 'true') } catch {} }}
-              className="w-11 h-8 flex items-center justify-center rounded-lg text-[rgba(250,247,242,0.3)] hover:bg-[rgba(250,247,242,0.06)] hover:text-[rgba(250,247,242,0.6)] transition-all"
+              className="w-11 h-8 flex items-center justify-center rounded-lg text-[rgba(250,245,236,0.3)] hover:bg-[rgba(250,245,236,0.06)] hover:text-[rgba(250,245,236,0.6)] transition-all"
             >
               <Search className="w-4 h-4" strokeWidth={1.8} />
             </button>
-            <span className="absolute left-full ml-3 px-3 py-1.5 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,247,242,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+            <span className="absolute left-full ml-3 px-3 py-1.5 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,245,236,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
               Search
             </span>
           </div>
@@ -344,14 +344,14 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
 
       {/* ── Getting Started Progress ────────────────────────────────────────── */}
       {(expanded || mobileOpen) && (
-        <div className="mx-3 mt-3 p-2.5 bg-[rgba(250,247,242,0.03)] border border-[rgba(250,247,242,0.06)] rounded-xl">
+        <div className="mx-3 mt-3 p-2.5 bg-[rgba(250,245,236,0.03)] border border-[rgba(250,245,236,0.06)] rounded-xl">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-semibold text-[rgba(250,247,242,0.3)] uppercase tracking-wider">{t.dashboard.gettingStarted}</span>
-            <span className="text-[10px] font-bold text-[rgba(250,247,242,0.45)]">{Math.min(completedSteps, TOTAL_STEPS)}/{TOTAL_STEPS}</span>
+            <span className="text-[10px] font-semibold text-[rgba(250,245,236,0.3)] uppercase tracking-wider">{t.dashboard.gettingStarted}</span>
+            <span className="text-[10px] font-bold text-[rgba(250,245,236,0.45)]">{Math.min(completedSteps, TOTAL_STEPS)}/{TOTAL_STEPS}</span>
           </div>
-          <div className="h-1 bg-[rgba(250,247,242,0.08)] rounded-full overflow-hidden">
+          <div className="h-1 bg-[rgba(250,245,236,0.08)] rounded-full overflow-hidden">
             <div
-              className="h-full bg-[rgba(250,247,242,0.3)] rounded-full transition-all duration-500"
+              className="h-full bg-[rgba(250,245,236,0.3)] rounded-full transition-all duration-500"
               style={{ width: `${Math.min(100, (completedSteps / TOTAL_STEPS) * 100)}%` }}
             />
           </div>
@@ -365,12 +365,12 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
           <div key={group.labelKey} className="mb-1">
             {(expanded || mobileOpen) && (
               <div className="px-1 mb-1">
-                <span className="text-[9px] font-bold text-[rgba(250,247,242,0.25)] uppercase tracking-widest">
+                <span className="text-[9px] font-bold text-[rgba(250,245,236,0.25)] uppercase tracking-widest">
                   {getLabel(group.labelKey)}
                 </span>
               </div>
             )}
-            {!expanded && !mobileOpen && <div className="w-full h-px bg-[rgba(250,247,242,0.06)] my-2" />}
+            {!expanded && !mobileOpen && <div className="w-full h-px bg-[rgba(250,245,236,0.06)] my-2" />}
 
             {group.items.map((item) => {
               const isActive = isItemActive(item)
@@ -387,12 +387,12 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                     mobileOpen ? 'px-3 py-2' : expanded ? 'px-3 py-2' : 'w-11 h-10 justify-center'
                   } ${
                     isActive
-                      ? 'bg-[rgba(250,247,242,0.08)] text-ink-inv'
-                      : 'text-[rgba(250,247,242,0.45)] hover:bg-[rgba(250,247,242,0.06)] hover:text-[rgba(250,247,242,0.75)]'
+                      ? 'bg-[rgba(250,245,236,0.08)] text-ink-inv'
+                      : 'text-[rgba(250,245,236,0.45)] hover:bg-[rgba(250,245,236,0.06)] hover:text-[rgba(250,245,236,0.75)]'
                   }`}
                 >
                   {isActive && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-[rgba(250,247,242,0.5)] rounded-r-full" />
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-[rgba(250,245,236,0.5)] rounded-r-full" />
                   )}
                   <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={isActive ? 2.2 : 1.8} />
                   {(expanded || mobileOpen) && (
@@ -406,15 +406,15 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                     </span>
                   )}
                   {(expanded || mobileOpen) && item.badge && !item.isNew && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 bg-[rgba(250,247,242,0.08)] text-[rgba(250,247,242,0.45)] rounded-full flex-shrink-0 min-w-[18px] text-center">
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 bg-[rgba(250,245,236,0.08)] text-[rgba(250,245,236,0.45)] rounded-full flex-shrink-0 min-w-[18px] text-center">
                       {item.badge}
                     </span>
                   )}
                   {/* Collapsed tooltip */}
                   {!expanded && !mobileOpen && (
-                    <span className="absolute left-full ml-3 px-3 py-1.5 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,247,242,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                    <span className="absolute left-full ml-3 px-3 py-1.5 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,245,236,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
                       {label}
-                      {item.badge && !item.isNew && <span className="ml-1.5 text-[9px] text-[rgba(250,247,242,0.4)]">({item.badge})</span>}
+                      {item.badge && !item.isNew && <span className="ml-1.5 text-[9px] text-[rgba(250,245,236,0.4)]">({item.badge})</span>}
                       {item.isNew && <span className="ml-1.5 text-[8px] text-caution">NEW</span>}
                       <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-ink" />
                     </span>
@@ -430,10 +430,10 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
           <div className="mt-1">
             {(expanded || mobileOpen) && (
               <div className="px-1 mb-1">
-                <span className="text-[9px] font-bold text-[rgba(250,247,242,0.25)] uppercase tracking-widest">Admin</span>
+                <span className="text-[9px] font-bold text-[rgba(250,245,236,0.25)] uppercase tracking-widest">Admin</span>
               </div>
             )}
-            {!expanded && !mobileOpen && <div className="w-full h-px bg-[rgba(250,247,242,0.06)] my-2" />}
+            {!expanded && !mobileOpen && <div className="w-full h-px bg-[rgba(250,245,236,0.06)] my-2" />}
             {adminItems.map((item) => {
               const isActive = item.matchPrefix
                 ? pathname === item.href || pathname.startsWith(item.href + '/')
@@ -451,13 +451,13 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                   } ${
                     isActive
                       ? 'bg-caution-bg text-caution'
-                      : 'text-[rgba(250,247,242,0.35)] hover:bg-[rgba(250,247,242,0.06)] hover:text-[rgba(250,247,242,0.6)]'
+                      : 'text-[rgba(250,245,236,0.35)] hover:bg-[rgba(250,245,236,0.06)] hover:text-[rgba(250,245,236,0.6)]'
                   }`}
                 >
                   <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.8} />
                   {(expanded || mobileOpen) && <span className="text-[12px] whitespace-nowrap font-medium">{label}</span>}
                   {!expanded && !mobileOpen && (
-                    <span className="absolute left-full ml-3 px-3 py-1.5 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,247,242,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[60]">
+                    <span className="absolute left-full ml-3 px-3 py-1.5 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,245,236,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[60]">
                       {label}
                       <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-ink" />
                     </span>
@@ -470,43 +470,43 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
       </nav>
 
       {/* ── Bottom: User Card ──────────────────────────────────────────────── */}
-      <div className={`mt-auto border-t border-[rgba(250,247,242,0.08)] py-3 ${expanded ? 'px-2.5' : 'px-2'}`}>
+      <div className={`mt-auto border-t border-[rgba(250,245,236,0.08)] py-3 ${expanded ? 'px-2.5' : 'px-2'}`}>
         <div ref={userMenuRef} className="relative">
           <button
             onClick={() => setShowUserMenu(prev => !prev)}
-            className={`flex items-center gap-3 rounded-lg hover:bg-[rgba(250,247,242,0.06)] transition-all duration-200 ${
+            className={`flex items-center gap-3 rounded-lg hover:bg-[rgba(250,245,236,0.06)] transition-all duration-200 ${
               expanded ? 'w-full px-3 py-2' : 'w-11 h-11 justify-center mx-auto'
             }`}
           >
-            <div className="relative w-8 h-8 rounded-full bg-[rgba(250,247,242,0.10)] flex items-center justify-center flex-shrink-0">
+            <div className="relative w-8 h-8 rounded-full bg-[rgba(250,245,236,0.10)] flex items-center justify-center flex-shrink-0">
               <span className="text-[12px] font-bold text-ink-inv">{initial}</span>
               {!expanded && role && role !== 'user' && (
                 <span className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-ink ${
-                  role === 'admin' ? 'bg-caution' : 'bg-[rgba(250,247,242,0.4)]'
+                  role === 'admin' ? 'bg-caution' : 'bg-[rgba(250,245,236,0.4)]'
                 }`} />
               )}
             </div>
             {expanded && (
               <div className="flex flex-col items-start overflow-hidden flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 w-full">
-                  <span className="text-[13px] font-medium text-[rgba(250,247,242,0.8)] truncate">{displayName}</span>
+                  <span className="text-[13px] font-medium text-[rgba(250,245,236,0.8)] truncate">{displayName}</span>
                   {role && (
                     <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded border flex-shrink-0 ${roleCfg.color}`}>
                       {roleCfg.label}
                     </span>
                   )}
                 </div>
-                <span className="text-[10px] text-[rgba(250,247,242,0.3)] truncate w-full">{userEmail || 'Not logged in'}</span>
+                <span className="text-[10px] text-[rgba(250,245,236,0.3)] truncate w-full">{userEmail || 'Not logged in'}</span>
               </div>
             )}
-            {expanded && <ChevronRight className="w-3.5 h-3.5 text-[rgba(250,247,242,0.25)] flex-shrink-0" strokeWidth={1.8} />}
+            {expanded && <ChevronRight className="w-3.5 h-3.5 text-[rgba(250,245,236,0.25)] flex-shrink-0" strokeWidth={1.8} />}
           </button>
 
           {/* ── User Profile Popup ─────────────────────────────────────── */}
           {showUserMenu && (
-            <div className="absolute bottom-full mb-2 bg-ink border border-[rgba(250,247,242,0.08)] rounded-2xl shadow-elevation-lg overflow-hidden z-[70] w-[240px] left-0">
-              <div className="flex items-center gap-3 p-4 border-b border-[rgba(250,247,242,0.08)]">
-                <div className="w-10 h-10 rounded-full bg-[rgba(250,247,242,0.10)] flex items-center justify-center flex-shrink-0">
+            <div className="absolute bottom-full mb-2 bg-ink border border-[rgba(250,245,236,0.08)] rounded-2xl shadow-elevation-lg overflow-hidden z-[70] w-[240px] left-0">
+              <div className="flex items-center gap-3 p-4 border-b border-[rgba(250,245,236,0.08)]">
+                <div className="w-10 h-10 rounded-full bg-[rgba(250,245,236,0.10)] flex items-center justify-center flex-shrink-0">
                   <span className="text-[14px] font-bold text-ink-inv">{initial}</span>
                 </div>
                 <div className="flex-1 min-w-0">
@@ -518,13 +518,13 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                       </span>
                     )}
                   </div>
-                  <span className="text-[11px] text-[rgba(250,247,242,0.35)] truncate block">{userEmail}</span>
+                  <span className="text-[11px] text-[rgba(250,245,236,0.35)] truncate block">{userEmail}</span>
                 </div>
               </div>
 
               {/* Credits card */}
               {credits && creditsTotal > 0 && (
-                <div className="m-3 p-3 bg-[rgba(250,247,242,0.04)] rounded-xl border border-[rgba(250,247,242,0.06)]">
+                <div className="m-3 p-3 bg-[rgba(250,245,236,0.04)] rounded-xl border border-[rgba(250,245,236,0.06)]">
                   <div className="flex items-center justify-between mb-2.5">
                     <span className="text-[12px] font-semibold text-ink-inv">{planLabel} Plan</span>
                     {credits.plan !== 'enterprise' && (
@@ -539,13 +539,13 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                   </div>
                   <div className="flex items-center gap-1.5 mb-1.5">
                     <Sparkles className={`w-3 h-3 flex-shrink-0 ${creditLow ? 'text-red-soft' : 'text-caution'}`} />
-                    <span className="text-[11px] text-[rgba(250,247,242,0.4)]">Credits</span>
+                    <span className="text-[11px] text-[rgba(250,245,236,0.4)]">Credits</span>
                     <span className={`text-[11px] font-semibold ml-auto ${creditLow ? 'text-red-soft' : 'text-ink-inv'}`}>
                       {creditsRemaining.toLocaleString()}
-                      <span className="text-[rgba(250,247,242,0.3)] font-normal"> / {creditsTotal.toLocaleString()}</span>
+                      <span className="text-[rgba(250,245,236,0.3)] font-normal"> / {creditsTotal.toLocaleString()}</span>
                     </span>
                   </div>
-                  <div className="h-1 bg-[rgba(250,247,242,0.08)] rounded-full overflow-hidden">
+                  <div className="h-1 bg-[rgba(250,245,236,0.08)] rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${
                         creditPct >= 90 ? 'bg-red-soft' : creditPct >= 70 ? 'bg-caution' : 'bg-sage'
@@ -561,43 +561,43 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
               <div className="py-1.5">
                 <button
                   onClick={() => { setShowUserMenu(false); router.push('/dashboard/settings') }}
-                  className="w-full flex items-center gap-2.5 px-4 py-2 text-[13px] text-[rgba(250,247,242,0.5)] hover:bg-[rgba(250,247,242,0.06)] hover:text-ink-inv transition-colors text-left"
+                  className="w-full flex items-center gap-2.5 px-4 py-2 text-[13px] text-[rgba(250,245,236,0.5)] hover:bg-[rgba(250,245,236,0.06)] hover:text-ink-inv transition-colors text-left"
                 >
                   <CreditCard className="w-3.5 h-3.5 flex-shrink-0" />
                   Account
                 </button>
                 <button
                   onClick={() => { setShowUserMenu(false); router.push('/dashboard/settings') }}
-                  className="w-full flex items-center gap-2.5 px-4 py-2 text-[13px] text-[rgba(250,247,242,0.5)] hover:bg-[rgba(250,247,242,0.06)] hover:text-ink-inv transition-colors text-left"
+                  className="w-full flex items-center gap-2.5 px-4 py-2 text-[13px] text-[rgba(250,245,236,0.5)] hover:bg-[rgba(250,245,236,0.06)] hover:text-ink-inv transition-colors text-left"
                 >
                   <Settings className="w-3.5 h-3.5 flex-shrink-0" />
                   Settings
                 </button>
-                <div className="h-px bg-[rgba(250,247,242,0.08)] mx-3 my-1" />
+                <div className="h-px bg-[rgba(250,245,236,0.08)] mx-3 my-1" />
                 <a
                   href="https://alignmenttech.ai"
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setShowUserMenu(false)}
-                  className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-[rgba(250,247,242,0.5)] hover:bg-[rgba(250,247,242,0.06)] hover:text-ink-inv transition-colors"
+                  className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-[rgba(250,245,236,0.5)] hover:bg-[rgba(250,245,236,0.06)] hover:text-ink-inv transition-colors"
                 >
                   <Home className="w-3.5 h-3.5 flex-shrink-0" />
                   <span className="flex-1">Homepage</span>
-                  <ExternalLink className="w-3 h-3 text-[rgba(250,247,242,0.25)]" />
+                  <ExternalLink className="w-3 h-3 text-[rgba(250,245,236,0.25)]" />
                 </a>
                 <a
                   href="mailto:contact@alignmenttech.ai"
                   onClick={() => setShowUserMenu(false)}
-                  className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-[rgba(250,247,242,0.5)] hover:bg-[rgba(250,247,242,0.06)] hover:text-ink-inv transition-colors"
+                  className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-[rgba(250,245,236,0.5)] hover:bg-[rgba(250,245,236,0.06)] hover:text-ink-inv transition-colors"
                 >
                   <HelpCircle className="w-3.5 h-3.5 flex-shrink-0" />
                   <span className="flex-1">Get help</span>
-                  <ExternalLink className="w-3 h-3 text-[rgba(250,247,242,0.25)]" />
+                  <ExternalLink className="w-3 h-3 text-[rgba(250,245,236,0.25)]" />
                 </a>
-                <div className="h-px bg-[rgba(250,247,242,0.08)] mx-3 my-1" />
+                <div className="h-px bg-[rgba(250,245,236,0.08)] mx-3 my-1" />
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2.5 px-4 py-2 text-[13px] text-red-soft hover:bg-[rgba(250,247,242,0.06)] hover:text-[#c9564b] transition-colors text-left"
+                  className="w-full flex items-center gap-2.5 px-4 py-2 text-[13px] text-red-soft hover:bg-[rgba(250,245,236,0.06)] hover:text-[#c9564b] transition-colors text-left"
                 >
                   <LogOut className="w-3.5 h-3.5 flex-shrink-0" />
                   Sign out

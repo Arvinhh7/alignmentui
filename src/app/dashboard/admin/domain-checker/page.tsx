@@ -236,7 +236,7 @@ export default function DomainCheckerPage() {
                   placeholder-ink-3 focus:outline-none focus:ring-2 transition-all disabled:opacity-50
                   ${error
                     ? 'border-red-300 focus:ring-red-200'
-                    : 'border-divider focus:border-ink-2 focus:ring-[rgba(25,25,24,0.08)]'
+                    : 'border-divider focus:border-ink-2 focus:ring-[rgba(0,0,0,0.08)]'
                   }`}
               />
             </div>

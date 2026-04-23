@@ -95,7 +95,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-canvas">
 
       {/* ── Navigation ───────────────────────────────────────────────────── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-5 md:px-8 lg:px-12 flex items-center justify-between h-16 bg-[rgba(250,247,242,0.88)] backdrop-blur-md border-b border-divider/50">
+      <nav className="fixed top-0 left-0 right-0 z-50 px-5 md:px-8 lg:px-12 flex items-center justify-between h-16 bg-[rgba(250,245,236,0.88)] backdrop-blur-md border-b border-divider/50">
         <Link href="/" className="flex items-center hover:opacity-90 transition-opacity">
           <LogoFull width={140} height={45} />
         </Link>
@@ -265,20 +265,20 @@ export default function LandingPage() {
       {/* ── Dark Section — Visibility Proxy ──────────────────────────────── */}
       <section className="px-5 md:px-8 lg:px-12 pb-10 max-w-marketing mx-auto">
         <div className="card-dark">
-          <p className="eyebrow text-[rgba(250,247,242,0.4)]">Technology</p>
+          <p className="eyebrow text-[rgba(250,245,236,0.4)]">Technology</p>
           <h2 className="heading-section text-ink-inv mt-3 max-w-[480px]">
             The invisible layer between your website and AI
           </h2>
-          <p className="text-lead text-[rgba(250,247,242,0.6)] mt-4 max-w-[520px]">
+          <p className="text-lead text-[rgba(250,245,236,0.6)] mt-4 max-w-[520px]">
             Visibility Proxy sits at the edge. Human visitors see your site unchanged. AI platforms automatically receive the signals they need to discover and cite your brand.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-12">
             {proxyFeatures.map((item, i) => (
-              <div key={i} className="card-dark-inner hover:bg-[rgba(250,247,242,0.06)] hover:border-[rgba(250,247,242,0.12)] transition-all duration-200">
+              <div key={i} className="card-dark-inner hover:bg-[rgba(250,245,236,0.06)] hover:border-[rgba(250,245,236,0.12)] transition-all duration-200">
                 <h4 className="text-[15px] font-semibold text-ink-inv mb-1.5">{item.title}</h4>
-                <p className="text-[13px] text-[rgba(250,247,242,0.5)] leading-relaxed">{item.desc}</p>
-                <span className="inline-block mt-2.5 text-[10px] px-2.5 py-1 rounded-md bg-[rgba(250,247,242,0.08)] text-[rgba(250,247,242,0.55)] font-medium uppercase tracking-wider">
+                <p className="text-[13px] text-[rgba(250,245,236,0.5)] leading-relaxed">{item.desc}</p>
+                <span className="inline-block mt-2.5 text-[10px] px-2.5 py-1 rounded-md bg-[rgba(250,245,236,0.08)] text-[rgba(250,245,236,0.55)] font-medium uppercase tracking-wider">
                   {item.tag}
                 </span>
               </div>

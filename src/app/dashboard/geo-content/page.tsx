@@ -318,7 +318,7 @@ function GEOContentPageInner() {
                       className={`flex items-start gap-2.5 p-3 rounded-lg cursor-pointer border transition-all ${selectedChannel === ch.key ? 'border-divider bg-surface-warm' : 'border-transparent hover:bg-surface-warm'}`}
                       onClick={() => setSelectedChannel(ch.key)}>
                       <input type="radio" name="channel" checked={selectedChannel === ch.key} readOnly
-                        className="mt-0.5 accent-[#191918]" />
+                        className="mt-0.5 accent-[#000000]" />
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-ink leading-tight">{ch.label}</p>
                         <p className="text-[10px] text-ink-3 leading-snug mt-0.5">{ch.desc}</p>
@@ -357,7 +357,7 @@ function GEOContentPageInner() {
                       className={`flex items-start gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer border transition-all ${selectedType === ct.key ? 'border-divider bg-surface-warm' : 'border-transparent hover:bg-surface-warm'}`}
                       onClick={() => setSelectedType(ct.key)}>
                       <input type="radio" name="contentType" checked={selectedType === ct.key} readOnly
-                        className="mt-0.5 accent-[#191918]" />
+                        className="mt-0.5 accent-[#000000]" />
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-ink leading-tight">{ct.label}</p>
                         <p className="text-[10px] text-ink-3 leading-snug mt-0.5">{ct.desc}</p>
@@ -785,7 +785,7 @@ function GEOContentPageInner() {
                   <thead>
                     <tr className="border-b border-divider bg-canvas">
                       <th className="px-4 py-3 w-10">
-                        <input type="checkbox" className="accent-[#191918] rounded"
+                        <input type="checkbox" className="accent-[#000000] rounded"
                           checked={histSelectedIds.size === filteredHistory.length && filteredHistory.length > 0}
                           onChange={toggleAllHistory} />
                       </th>
@@ -804,7 +804,7 @@ function GEOContentPageInner() {
                       return (
                         <tr key={item.id} className="hover:bg-surface-warm transition-colors">
                           <td className="px-4 py-4">
-                            <input type="checkbox" className="accent-[#191918] rounded"
+                            <input type="checkbox" className="accent-[#000000] rounded"
                               checked={histSelectedIds.has(item.id)}
                               onChange={() => toggleHistorySelect(item.id)} />
                           </td>

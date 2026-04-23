@@ -480,7 +480,7 @@ export default function PromptsPage() {
                       if (days < 30) return `${days}d ago`
                       return `${Math.floor(days / 30)} mo. ago`
                     })()
-                    const AVATAR_COLORS = ['#4A6FA5','#4A7C59','#B8860B','#7B5E96','#6B6860','#5E8B7E']
+                    const AVATAR_COLORS = ['#4A6FA5','#4A7C59','#B8860B','#7B5E96','#0A0A0A','#5E8B7E']
 
                     return (
                       <tr

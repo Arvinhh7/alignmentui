@@ -49,11 +49,11 @@ export function VisibilityTab() {
   // ── SoV donut segments ─────────────────────────────
   const sovSegments = useMemo(() => {
     if (!ctx.scanResult?.share_of_voice) return []
-    const colors = ['#191918', '#4A6FA5', '#4A7C59', '#B8860B', '#7B5E96', '#6B6860']
+    const colors = ['#000000', '#4A6FA5', '#4A7C59', '#B8860B', '#7B5E96', '#0A0A0A']
     return Object.entries(ctx.scanResult.share_of_voice).map(([name, pct], i) => ({
       label: name,
       value: Math.round(pct * 10) / 10,
-      color: name === ctx.brandConfig.brand_name ? '#191918' : colors[(i + 1) % colors.length],
+      color: name === ctx.brandConfig.brand_name ? '#000000' : colors[(i + 1) % colors.length],
     }))
   }, [ctx.scanResult, ctx.brandConfig.brand_name])
 

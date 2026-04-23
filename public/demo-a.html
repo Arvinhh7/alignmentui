@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Direction A — Precision Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f8f9fc;--surface:#fff;--surface-2:#f1f3f9;
+  --text:#0f172a;--text-2:#475569;--text-3:#94a3b8;
+  --border:#e2e8f0;--border-light:#f1f5f9;
+  --accent:#6366f1;--accent-light:#818cf8;--accent-dark:#4f46e5;
+  --accent-bg:rgba(99,102,241,0.08);--accent-bg-2:rgba(99,102,241,0.04);
+  --gradient:linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#a78bfa 100%);
+  --gradient-subtle:linear-gradient(135deg,rgba(99,102,241,0.12) 0%,rgba(139,92,246,0.06) 100%);
+  --shadow-sm:0 1px 2px rgba(15,23,42,0.04);
+  --shadow-md:0 4px 12px rgba(15,23,42,0.06),0 1px 3px rgba(15,23,42,0.04);
+  --shadow-lg:0 12px 32px rgba(15,23,42,0.08),0 4px 8px rgba(15,23,42,0.04);
+  --shadow-accent:0 4px 16px rgba(99,102,241,0.24);
+  --radius:12px;--radius-lg:16px;--radius-xl:20px;
+}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;font-weight:400}
+.mono{font-family:'JetBrains Mono',monospace}
+.light{font-weight:300}.medium{font-weight:500}.semi{font-weight:600}.bold{font-weight:700}
+
+/* Layout */
+.shell{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:240px;background:#0f172a;color:#e2e8f0;padding:20px 12px;display:flex;flex-direction:column;gap:4px;flex-shrink:0}
+.sidebar .logo{display:flex;align-items:center;gap:10px;padding:8px 12px;margin-bottom:16px}
+.sidebar .logo-icon{width:32px;height:32px;border-radius:8px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14px}
+.sidebar .logo-text{font-size:14px;font-weight:600;color:#f8fafc;letter-spacing:-0.02em}
+.sidebar .nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;font-size:13px;color:#94a3b8;cursor:pointer;transition:all 0.15s}
+.sidebar .nav-item:hover{background:rgba(255,255,255,0.06);color:#cbd5e1}
+.sidebar .nav-item.active{background:var(--accent-bg);color:#a5b4fc;font-weight:500}
+.sidebar .nav-item.active::before{content:'';width:3px;height:16px;background:var(--accent);border-radius:0 3px 3px 0;position:absolute;left:0}
+.sidebar .nav-label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#475569;padding:16px 12px 6px;font-weight:600}
+.main{flex:1;overflow-y:auto;padding:32px 40px}
+
+/* Header */
+.page-header{margin-bottom:32px}
+.page-header h1{font-size:24px;font-weight:600;letter-spacing:-0.03em;color:var(--text)}
+.page-header p{font-size:14px;color:var(--text-3);margin-top:4px;font-weight:300}
+
+/* Stats Grid */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 24px;transition:all 0.2s}
+.stat-card:hover{box-shadow:var(--shadow-md);border-color:rgba(99,102,241,0.2)}
+.stat-label{font-size:12px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:0.04em}
+.stat-value{font-size:28px;font-weight:300;letter-spacing:-0.04em;margin-top:6px;color:var(--text)}
+.stat-value .unit{font-size:14px;font-weight:400;color:var(--text-3);margin-left:2px}
+.stat-change{display:inline-flex;align-items:center;gap:3px;font-size:12px;margin-top:8px;padding:2px 8px;border-radius:20px;font-weight:500}
+.stat-change.up{background:rgba(34,197,94,0.1);color:#16a34a}
+.stat-change.down{background:rgba(239,68,68,0.1);color:#dc2626}
+
+/* Chart Card */
+.chart-section{display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:28px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:24px;transition:all 0.2s}
+.card:hover{box-shadow:var(--shadow-md)}
+.card-header{display:flex;justify-content:between;align-items:center;margin-bottom:20px}
+.card-header h3{font-size:14px;font-weight:600;letter-spacing:-0.01em}
+.card-header .badge{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--accent-bg);color:var(--accent);font-weight:500}
+
+/* Fake Chart */
+.chart-area{height:200px;position:relative;display:flex;align-items:flex-end;gap:6px;padding-top:20px}
+.chart-bar{flex:1;border-radius:6px 6px 0 0;transition:all 0.3s;position:relative;cursor:pointer;min-width:0}
+.chart-bar:hover{opacity:1!important;filter:brightness(1.05)}
+.chart-bar .tip{position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;font-size:10px;padding:4px 8px;border-radius:6px;white-space:nowrap;opacity:0;transition:opacity 0.15s;font-family:'JetBrains Mono',monospace}
+.chart-bar:hover .tip{opacity:1}
+
+/* Platform List */
+.platform-list{display:flex;flex-direction:column;gap:10px}
+.platform-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--radius);border:1px solid var(--border-light);transition:all 0.15s}
+.platform-item:hover{background:var(--accent-bg-2);border-color:rgba(99,102,241,0.15)}
+.platform-dot{width:8px;height:8px;border-radius:50%}
+.platform-name{font-size:13px;font-weight:500;flex:1}
+.platform-val{font-size:13px;font-weight:500;font-family:'JetBrains Mono',monospace;color:var(--text-2)}
+.platform-bar{height:4px;border-radius:2px;background:var(--gradient-subtle);overflow:hidden}
+.platform-bar-fill{height:100%;border-radius:2px;background:var(--gradient)}
+
+/* Table */
+.table-card{margin-bottom:28px}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-3);text-align:left;padding:10px 16px;border-bottom:1px solid var(--border)}
+td{font-size:13px;padding:12px 16px;border-bottom:1px solid var(--border-light);color:var(--text-2)}
+tr:hover td{background:var(--accent-bg-2)}
+.status-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:6px}
+.status-dot.active{background:#22c55e}.status-dot.pending{background:#f59e0b}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:10px;font-size:13px;font-weight:500;border:none;cursor:pointer;transition:all 0.2s}
+.btn-primary{background:var(--gradient);color:#fff;box-shadow:var(--shadow-accent)}
+.btn-primary:hover{box-shadow:0 6px 24px rgba(99,102,241,0.32);transform:translateY(-1px)}
+.btn-secondary{background:var(--surface);color:var(--text-2);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn-ghost{background:transparent;color:var(--text-3)}
+.btn-ghost:hover{color:var(--accent);background:var(--accent-bg)}
+
+/* Pill Tabs */
+.tabs{display:flex;gap:2px;background:var(--surface-2);padding:3px;border-radius:10px;margin-bottom:24px;width:fit-content}
+.tab{padding:7px 16px;border-radius:8px;font-size:12px;font-weight:500;color:var(--text-3);cursor:pointer;transition:all 0.15s}
+.tab.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow-sm)}
+.tab:hover:not(.active){color:var(--text-2)}
+
+/* Tag line */
+.tagline{display:flex;align-items:center;gap:8px;padding:6px 14px;background:var(--gradient-subtle);border:1px solid rgba(99,102,241,0.15);border-radius:20px;font-size:12px;color:var(--accent);width:fit-content;margin-bottom:12px;font-weight:500}
+.tagline::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* Footer label */
+.design-label{position:fixed;bottom:16px;right:24px;font-size:11px;color:var(--text-3);background:var(--surface);padding:6px 14px;border-radius:20px;border:1px solid var(--border);font-weight:500;letter-spacing:-0.01em}
+</style>
+</head>
+<body>
+<div class="shell">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">A</div>
+      <span class="logo-text">Alignment</span>
+    </div>
+    <div class="nav-label">Analytics</div>
+    <div class="nav-item active"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>Dashboard</div>
+    <div class="nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/></svg>GEO Monitor</div>
+    <div class="nav-label">Action</div>
+    <div class="nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h8M2 12h10"/></svg>GEO Audit</div>
+    <div class="nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 2v12l4-3 4 3V2z"/></svg>GEO Content</div>
+    <div class="nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M2 8h12"/><path d="M8 2c2 2 3 4 3 6s-1 4-3 6M8 2c-2 2-3 4-3 6s1 4 3 6"/></svg>Visibility Proxy</div>
+    <div class="nav-label">Context</div>
+    <div class="nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2l6 3v6l-6 3-6-3V5z"/></svg>Brand Data</div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="tagline">Precision Intelligence Engine</div>
+    <div class="page-header">
+      <h1>AI Visibility Dashboard</h1>
+      <p class="light">Real-time visibility metrics across 34 AI platforms</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active">Overview</div>
+      <div class="tab">Platforms</div>
+      <div class="tab">Geography</div>
+      <div class="tab">Trends</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">AI Visibility Score</div>
+        <div class="stat-value light">87<span class="unit">/100</span></div>
+        <div class="stat-change up">+12 vs last month</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total AI Visits</div>
+        <div class="stat-value light mono">14,283</div>
+        <div class="stat-change up">+23.4%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">AI Referrals</div>
+        <div class="stat-value light mono">1,847</div>
+        <div class="stat-change up">+8.7%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Platform Coverage</div>
+        <div class="stat-value light">28<span class="unit">/ 34</span></div>
+        <div class="stat-change up">+3 new</div>
+      </div>
+    </div>
+
+    <!-- Chart + Platform -->
+    <div class="chart-section">
+      <div class="card">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+          <h3>AI Traffic — Last 30 Days</h3>
+          <span class="badge">Live</span>
+        </div>
+        <div class="chart-area">
+          <div class="chart-bar" style="height:35%;background:linear-gradient(180deg,#6366f1 0%,rgba(99,102,241,0.3) 100%);opacity:0.7"><div class="tip">Mar 10: 312</div></div>
+          <div class="chart-bar" style="height:42%;background:linear-gradient(180deg,#6366f1 0%,rgba(99,102,241,0.3) 100%);opacity:0.7"><div class="tip">Mar 11: 378</div></div>
+          <div class="chart-bar" style="height:38%;background:linear-gradient(180deg,#6366f1 0%,rgba(99,102,241,0.3) 100%);opacity:0.7"><div class="tip">Mar 12: 340</div></div>
+          <div class="chart-bar" style="height:55%;background:linear-gradient(180deg,#6366f1 0%,rgba(99,102,241,0.3) 100%);opacity:0.75"><div class="tip">Mar 13: 492</div></div>
+          <div class="chart-bar" style="height:48%;background:linear-gradient(180deg,#6366f1 0%,rgba(99,102,241,0.3) 100%);opacity:0.75"><div class="tip">Mar 14: 434</div></div>
+          <div class="chart-bar" style="height:52%;background:linear-gradient(180deg,#6366f1 0%,rgba(99,102,241,0.3) 100%);opacity:0.75"><div class="tip">Mar 15: 465</div></div>
+          <div class="chart-bar" style="height:60%;background:linear-gradient(180deg,#6366f1 0%,rgba(99,102,241,0.3) 100%);opacity:0.8"><div class="tip">Mar 16: 538</div></div>
+          <div class="chart-bar" style="height:45%;background:linear-gradient(180deg,#6366f1 0%,rgba(99,102,241,0.3) 100%);opacity:0.7"><div class="tip">Mar 17: 405</div></div>
+          <div class="chart-bar" style="height:58%;background:linear-gradient(180deg,#6366f1 0%,rgba(99,102,241,0.3) 100%);opacity:0.8"><div class="tip">Mar 18: 519</div></div>
+          <div class="chart-bar" style="height:65%;background:linear-gradient(180deg,#6366f1 0%,rgba(99,102,241,0.3) 100%);opacity:0.8"><div class="tip">Mar 19: 582</div></div>
+          <div class="chart-bar" style="height:72%;background:linear-gradient(180deg,#6366f1 0%,rgba(99,102,241,0.3) 100%);opacity:0.85"><div class="tip">Mar 20: 645</div></div>
+          <div class="chart-bar" style="height:68%;background:linear-gradient(180deg,#6366f1 0%,rgba(99,102,241,0.3) 100%);opacity:0.85"><div class="tip">Mar 21: 610</div></div>
+          <div class="chart-bar" style="height:78%;background:linear-gradient(180deg,#6366f1 0%,rgba(99,102,241,0.3) 100%);opacity:0.9"><div class="tip">Mar 22: 698</div></div>
+          <div class="chart-bar" style="height:70%;background:linear-gradient(180deg,#6366f1 0%,rgba(99,102,241,0.3) 100%);opacity:0.85"><div class="tip">Mar 23: 627</div></div>
+          <div class="chart-bar" style="height:82%;background:linear-gradient(180deg,#6366f1 0%,rgba(99,102,241,0.3) 100%);opacity:0.9"><div class="tip">Mar 24: 735</div></div>
+          <div class="chart-bar" style="height:75%;background:linear-gradient(180deg,#6366f1 0%,rgba(99,102,241,0.3) 100%);opacity:0.88"><div class="tip">Mar 25: 672</div></div>
+          <div class="chart-bar" style="height:88%;background:linear-gradient(180deg,#6366f1 0%,rgba(99,102,241,0.3) 100%);opacity:0.92"><div class="tip">Mar 26: 789</div></div>
+          <div class="chart-bar" style="height:80%;background:linear-gradient(180deg,#6366f1 0%,rgba(99,102,241,0.3) 100%);opacity:0.9"><div class="tip">Mar 27: 716</div></div>
+          <div class="chart-bar" style="height:92%;background:linear-gradient(180deg,#6366f1 0%,rgba(99,102,241,0.3) 100%);opacity:0.95"><div class="tip">Mar 28: 823</div></div>
+          <div class="chart-bar" style="height:100%;background:var(--gradient);opacity:1"><div class="tip">Mar 29: 896</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Top AI Platforms</h3></div>
+        <div class="platform-list">
+          <div class="platform-item">
+            <div class="platform-dot" style="background:#6366f1"></div>
+            <span class="platform-name">ChatGPT</span>
+            <span class="platform-val">4,218</span>
+          </div>
+          <div class="platform-item">
+            <div class="platform-dot" style="background:#8b5cf6"></div>
+            <span class="platform-name">Perplexity</span>
+            <span class="platform-val">3,102</span>
+          </div>
+          <div class="platform-item">
+            <div class="platform-dot" style="background:#a78bfa"></div>
+            <span class="platform-name">Claude</span>
+            <span class="platform-val">2,847</span>
+          </div>
+          <div class="platform-item">
+            <div class="platform-dot" style="background:#c4b5fd"></div>
+            <span class="platform-name">Gemini</span>
+            <span class="platform-val">1,923</span>
+          </div>
+          <div class="platform-item">
+            <div class="platform-dot" style="background:#ddd6fe"></div>
+            <span class="platform-name">Copilot</span>
+            <span class="platform-val">1,205</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card table-card">
+      <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+        <h3>Recent AI Crawl Events</h3>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" style="font-size:12px">Export</button>
+          <button class="btn btn-primary" style="font-size:12px">View All</button>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Platform</th><th>Path</th><th>Status</th><th>Response</th><th>Time</th></tr></thead>
+        <tbody>
+          <tr><td class="semi" style="color:var(--text)">GPTBot</td><td class="mono" style="font-size:12px;color:var(--text-3)">/products/geo-optimizer</td><td><span class="status-dot active"></span>Served</td><td class="mono" style="font-size:12px">200 + JSON-LD</td><td style="color:var(--text-3)">2m ago</td></tr>
+          <tr><td class="semi" style="color:var(--text)">PerplexityBot</td><td class="mono" style="font-size:12px;color:var(--text-3)">/llms.txt</td><td><span class="status-dot active"></span>Served</td><td class="mono" style="font-size:12px">200</td><td style="color:var(--text-3)">5m ago</td></tr>
+          <tr><td class="semi" style="color:var(--text)">ClaudeBot</td><td class="mono" style="font-size:12px;color:var(--text-3)">/agent.json</td><td><span class="status-dot active"></span>Served</td><td class="mono" style="font-size:12px">200</td><td style="color:var(--text-3)">12m ago</td></tr>
+          <tr><td class="semi" style="color:var(--text)">Googlebot</td><td class="mono" style="font-size:12px;color:var(--text-3)">/about</td><td><span class="status-dot pending"></span>Pending</td><td class="mono" style="font-size:12px">—</td><td style="color:var(--text-3)">18m ago</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+<div class="design-label">Direction A — Precision Intelligence (Linear x Stripe)</div>
+</body>
+</html>

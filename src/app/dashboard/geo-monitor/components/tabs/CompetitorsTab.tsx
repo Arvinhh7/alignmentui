@@ -34,11 +34,11 @@ export function CompetitorsTab() {
   // ── SOV donut segments ─────────────────────────────────
   const sovSegments = useMemo(() => {
     if (!scanResult?.share_of_voice) return []
-    const colors = ['#191918', '#4A6FA5', '#4A7C59', '#B8860B', '#7B5E96', '#6B6860']
+    const colors = ['#000000', '#4A6FA5', '#4A7C59', '#B8860B', '#7B5E96', '#0A0A0A']
     return Object.entries(scanResult.share_of_voice).map(([name, pct], i) => ({
       label: name,
       value: pct,
-      color: name === brandConfig.brand_name ? '#191918' : colors[(i + 1) % colors.length],
+      color: name === brandConfig.brand_name ? '#000000' : colors[(i + 1) % colors.length],
     }))
   }, [scanResult?.share_of_voice, brandConfig.brand_name])
 

@@ -40,7 +40,7 @@ export function SentimentTab() {
     if (!scanSentiment || totalScanSentiment === 0) return []
     return [
       { label: 'Positive', value: scanSentiment.positive, color: '#4A7C59' },
-      { label: 'Neutral', value: scanSentiment.neutral, color: '#9C978E' },
+      { label: 'Neutral', value: scanSentiment.neutral, color: '#2D2B27' },
       { label: 'Negative', value: scanSentiment.negative, color: '#B5453A' },
     ]
   }, [scanSentiment, totalScanSentiment])

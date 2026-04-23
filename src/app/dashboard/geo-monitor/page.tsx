@@ -76,7 +76,7 @@ function DashboardContent() {
               {tab.label}
               {tab.badge && (
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                  ctx.activeTab === tab.key ? 'bg-[rgba(250,247,242,0.2)] text-ink-inv' : 'bg-surface-muted text-ink-3'
+                  ctx.activeTab === tab.key ? 'bg-[rgba(250,245,236,0.2)] text-ink-inv' : 'bg-surface-muted text-ink-3'
                 }`}>{tab.badge}</span>
               )}
             </button>

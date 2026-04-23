@@ -16,7 +16,7 @@ export const METRIC_COLORS = {
   position: { color: 'text-red-soft', bgColor: 'bg-red-soft-bg' },
 }
 
-export const CHART_COLORS = ['#191918', '#4A6FA5', '#4A7C59', '#B8860B', '#7B5E96', '#5E8B7E', '#6B6860', '#B5453A']
+export const CHART_COLORS = ['#000000', '#4A6FA5', '#4A7C59', '#B8860B', '#7B5E96', '#5E8B7E', '#0A0A0A', '#B5453A']
 
 export const CATEGORY_COLORS: Record<string, string> = {
   info_cognition: 'bg-surface-warm text-ink-2',
@@ -44,8 +44,8 @@ export const DOMAIN_TYPE_LABELS: Record<string, { label: string; color: string; 
   ugc: { label: 'UGC', color: 'bg-caution-bg text-caution', chartColor: '#B8860B' },
   competitor: { label: 'Competitor', color: 'bg-red-soft-bg text-red-soft', chartColor: '#B5453A' },
   reference: { label: 'Reference', color: 'bg-surface-warm text-ink-2', chartColor: '#7B5E96' },
-  institutional: { label: 'Institutional', color: 'bg-surface-warm text-ink-2', chartColor: '#6B6860' },
-  other: { label: 'Other', color: 'bg-surface-muted text-ink-3', chartColor: '#9C978E' },
+  institutional: { label: 'Institutional', color: 'bg-surface-warm text-ink-2', chartColor: '#0A0A0A' },
+  other: { label: 'Other', color: 'bg-surface-muted text-ink-3', chartColor: '#2D2B27' },
 }
 
 export const SUB_TYPE_LABELS: Record<string, { label: string; icon: string; color: string; chartColor: string }> = {
@@ -53,9 +53,9 @@ export const SUB_TYPE_LABELS: Record<string, { label: string; icon: string; colo
   alternative_option: { label: 'Alternative Option', icon: '', color: 'bg-surface-warm text-ink-2', chartColor: '#4A6FA5' },
   feature_highlight: { label: 'Feature Highlight', icon: '', color: 'bg-caution-bg text-caution', chartColor: '#B8860B' },
   use_case: { label: 'Use Case', icon: '', color: 'bg-surface-warm text-ink-2', chartColor: '#7B5E96' },
-  industry_context: { label: 'Industry Context', icon: '', color: 'bg-surface-warm text-ink-2', chartColor: '#6B6860' },
+  industry_context: { label: 'Industry Context', icon: '', color: 'bg-surface-warm text-ink-2', chartColor: '#0A0A0A' },
   warning_caution: { label: 'Warning / Caution', icon: '', color: 'bg-red-soft-bg text-red-soft', chartColor: '#B5453A' },
-  historical: { label: 'Historical', icon: '', color: 'bg-surface-muted text-ink-3', chartColor: '#9C978E' },
+  historical: { label: 'Historical', icon: '', color: 'bg-surface-muted text-ink-3', chartColor: '#2D2B27' },
   passing_reference: { label: 'Passing Reference', icon: '', color: 'bg-caution-bg text-caution', chartColor: '#B8860B' },
   not_mentioned: { label: 'Not Mentioned', icon: '', color: 'bg-red-soft-bg text-red-soft', chartColor: '#B5453A' },
 }

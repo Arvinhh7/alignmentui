@@ -105,7 +105,7 @@ const INTENT_COLORS: Record<string, string> = {
 }
 
 // ─── Share of Voice Bar ────────────────────────────────────────────────────────
-const BRAND_COLORS = ['#191918','#4A7C59','#B8860B','#6B6860','#9C978E','#5C5C5C','#3A6648','#8A7060']
+const BRAND_COLORS = ['#000000','#4A7C59','#B8860B','#0A0A0A','#2D2B27','#5C5C5C','#3A6648','#8A7060']
 
 interface SovEntry { name: string; pct: number; isYou: boolean; color: string }
 
@@ -291,7 +291,7 @@ function ActionCard({
 }
 
 // ─── Mini Trend Line (SVG) ────────────────────────────────────────────────────
-function TrendLine({ data, color = '#191918' }: { data: number[]; color?: string }) {
+function TrendLine({ data, color = '#000000' }: { data: number[]; color?: string }) {
   if (data.length < 2) return null
   const W = 260, H = 64, PAD = 4
   const min = Math.min(...data), max = Math.max(...data)
@@ -506,11 +506,11 @@ export default function OverviewPage() {
 
           {/* Hero empty state */}
           <div className="bg-ink rounded-3xl p-10 text-center mb-8">
-            <div className="w-16 h-16 bg-[rgba(250,247,242,0.08)] rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <div className="w-16 h-16 bg-[rgba(250,245,236,0.08)] rounded-2xl flex items-center justify-center mx-auto mb-5">
               <Sparkles className="w-8 h-8 text-ink-inv" />
             </div>
             <h2 className="font-serif text-xl font-normal text-ink-inv mb-2" style={{ fontFamily: 'var(--font-serif), DM Serif Display, Georgia, serif' }}>Welcome to Alignment AI</h2>
-            <p className="text-[rgba(250,247,242,0.6)] text-sm max-w-md mx-auto leading-relaxed">
+            <p className="text-[rgba(250,245,236,0.6)] text-sm max-w-md mx-auto leading-relaxed">
               Track how AI engines like ChatGPT, Perplexity, and Google AI mention your brand.
               Follow the 3 steps below to get started.
             </p>
@@ -652,8 +652,8 @@ export default function OverviewPage() {
                     >
                       <defs>
                         <linearGradient id="trendGradHero" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#191918" stopOpacity="0.12" />
-                          <stop offset="100%" stopColor="#191918" stopOpacity="0" />
+                          <stop offset="0%" stopColor="#000000" stopOpacity="0.12" />
+                          <stop offset="100%" stopColor="#000000" stopOpacity="0" />
                         </linearGradient>
                       </defs>
                       {(() => {
@@ -672,8 +672,8 @@ export default function OverviewPage() {
                         return (
                           <>
                             <path d={areaD} fill="url(#trendGradHero)" />
-                            <path d={pathD} stroke="#191918" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                            <circle cx={parseFloat(lastPt[0])} cy={parseFloat(lastPt[1])} r="4" fill="#191918" />
+                            <path d={pathD} stroke="#000000" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                            <circle cx={parseFloat(lastPt[0])} cy={parseFloat(lastPt[1])} r="4" fill="#000000" />
                           </>
                         )
                       })()}

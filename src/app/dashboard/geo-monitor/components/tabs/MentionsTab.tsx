@@ -67,7 +67,7 @@ export function MentionsTab() {
       .map(([type, count]) => ({
         label: SUB_TYPE_LABELS[type]?.label || type,
         value: count,
-        color: SUB_TYPE_LABELS[type]?.chartColor || '#9C978E',
+        color: SUB_TYPE_LABELS[type]?.chartColor || '#2D2B27',
       }))
   }, [scanResult])
 

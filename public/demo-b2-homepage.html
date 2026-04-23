@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alignment AI — Homepage Demo (Direction B2: Anthropic-Warm)</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#FAF7F2;--bg-dark:#191918;
+  --surface:#FFFFFF;--surface-warm:#F3EDE4;--surface-muted:#EDE8E0;
+  --text:#191918;--text-2:#6B6860;--text-3:#9C978E;--text-inv:#FAF7F2;
+  --border:#E0DBD2;--border-light:#EDE8E0;
+  --accent:#C4501A;--accent-hover:#A8420F;
+  --sage:#4A7C59;--sage-bg:rgba(74,124,89,0.08);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;font-weight:400;line-height:1.6}
+.serif{font-family:'DM Serif Display',Georgia,'Times New Roman',serif}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* ── Nav ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 48px;display:flex;align-items:center;justify-content:space-between;background:rgba(250,247,242,0.85);backdrop-filter:blur(16px);border-bottom:1px solid rgba(224,219,210,0.5)}
+.nav-logo{display:flex;align-items:center;gap:10px}
+.nav-logo svg{width:28px;height:28px}
+.nav-logo span{font-size:15px;font-weight:600;letter-spacing:-0.02em;color:var(--text)}
+.nav-links{display:flex;align-items:center;gap:32px}
+.nav-links a{font-size:13.5px;color:var(--text-2);text-decoration:none;font-weight:400;transition:color 0.15s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{display:inline-flex;align-items:center;gap:6px;padding:9px 22px;background:var(--bg-dark);color:var(--text-inv);font-size:13px;font-weight:500;border-radius:8px;text-decoration:none;transition:all 0.2s;border:none;cursor:pointer}
+.nav-cta:hover{background:#2d2d2c}
+
+/* ── Hero ── */
+.hero{padding:160px 48px 80px;max-width:1200px;margin:0 auto;text-align:center}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border:1px solid var(--border);border-radius:24px;font-size:12.5px;color:var(--text-2);margin-bottom:28px;background:var(--surface)}
+.hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--sage);animation:pulse 2.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.hero-badge .platforms{display:flex;gap:4px;margin-left:6px}
+.hero-badge .platforms span{font-size:14px}
+.hero h1{font-size:clamp(42px,5.5vw,72px);line-height:1.08;letter-spacing:-0.035em;max-width:800px;margin:0 auto 24px;font-weight:400}
+.hero h1 em{font-style:italic;text-decoration:underline;text-underline-offset:6px;text-decoration-thickness:2px;text-decoration-color:var(--text)}
+.hero .sub{font-size:17px;color:var(--text-2);max-width:560px;margin:0 auto 40px;line-height:1.65;font-weight:300}
+.hero-actions{display:flex;gap:14px;justify-content:center;align-items:center}
+.btn-dark{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;background:var(--bg-dark);color:var(--text-inv);font-size:15px;font-weight:500;border-radius:10px;text-decoration:none;transition:all 0.2s;border:none;cursor:pointer}
+.btn-dark:hover{background:#2d2d2c;transform:translateY(-1px);box-shadow:0 6px 20px rgba(25,25,24,0.15)}
+.btn-outline{display:inline-flex;align-items:center;gap:6px;padding:14px 28px;background:transparent;color:var(--text);font-size:15px;font-weight:500;border-radius:10px;text-decoration:none;border:1px solid var(--border);transition:all 0.2s;cursor:pointer}
+.btn-outline:hover{border-color:var(--text);background:rgba(25,25,24,0.03)}
+
+/* ── Stats ── */
+.stats-row{display:flex;gap:1px;max-width:720px;margin:64px auto 0;background:var(--border);border-radius:16px;overflow:hidden}
+.stat-item{flex:1;padding:28px 24px;background:var(--surface);text-align:center}
+.stat-item:first-child{border-radius:16px 0 0 16px}
+.stat-item:last-child{border-radius:0 16px 16px 0}
+.stat-number{font-size:32px;font-weight:300;letter-spacing:-0.04em;font-family:'DM Serif Display',serif}
+.stat-label{font-size:12px;color:var(--text-3);margin-top:4px;font-weight:400}
+.stat-change{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--sage);margin-top:6px;font-weight:500}
+
+/* ── Section ── */
+section{padding:100px 48px;max-width:1200px;margin:0 auto}
+.section-eyebrow{font-size:11.5px;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-3);font-weight:600;margin-bottom:12px}
+.section-title{font-size:clamp(30px,3.5vw,44px);line-height:1.15;letter-spacing:-0.03em;max-width:640px;font-weight:400}
+.section-desc{font-size:16px;color:var(--text-2);max-width:520px;margin-top:16px;line-height:1.65;font-weight:300}
+
+/* ── Feature Grid ── */
+.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:56px}
+.feature-card{padding:32px 28px;border:1px solid var(--border-light);border-radius:16px;background:var(--surface);transition:all 0.25s}
+.feature-card:hover{border-color:var(--border);box-shadow:0 4px 20px rgba(25,25,24,0.05);transform:translateY(-3px)}
+.feature-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:22px}
+.feature-card h3{font-size:17px;font-weight:600;letter-spacing:-0.02em;margin-bottom:8px}
+.feature-card p{font-size:13.5px;color:var(--text-2);line-height:1.6}
+
+/* ── Dark Section (Product Showcase) ── */
+.dark-section{background:var(--bg-dark);border-radius:24px;padding:72px 64px;margin:0 auto;max-width:1200px;color:var(--text-inv);position:relative;overflow:hidden}
+.dark-section .section-eyebrow{color:rgba(250,247,242,0.4)}
+.dark-section .section-title{color:var(--text-inv)}
+.dark-section .section-desc{color:rgba(250,247,242,0.6)}
+.dark-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:48px;align-items:start}
+.dark-feature{padding:24px;border:1px solid rgba(250,247,242,0.08);border-radius:14px;background:rgba(250,247,242,0.03);transition:all 0.2s}
+.dark-feature:hover{background:rgba(250,247,242,0.06);border-color:rgba(250,247,242,0.12)}
+.dark-feature h4{font-size:15px;font-weight:600;margin-bottom:6px}
+.dark-feature p{font-size:13px;color:rgba(250,247,242,0.5);line-height:1.6}
+.dark-feature .tag{display:inline-block;font-size:10px;padding:3px 10px;border-radius:6px;background:rgba(250,247,242,0.08);color:rgba(250,247,242,0.6);font-weight:500;margin-top:10px;text-transform:uppercase;letter-spacing:0.04em}
+
+/* ── How It Works ── */
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-top:56px;counter-reset:step}
+.step{position:relative;padding:28px 20px;border-radius:14px;border:1px solid var(--border-light);background:var(--surface);text-align:center;transition:all 0.25s}
+.step:hover{border-color:var(--border);box-shadow:0 4px 16px rgba(25,25,24,0.04)}
+.step::before{counter-increment:step;content:counter(step);display:block;width:28px;height:28px;border-radius:50%;background:var(--bg-dark);color:var(--text-inv);font-size:12px;font-weight:600;line-height:28px;text-align:center;margin:0 auto 14px}
+.step h4{font-size:14px;font-weight:600;margin-bottom:4px;letter-spacing:-0.01em}
+.step p{font-size:12px;color:var(--text-3);line-height:1.5}
+.step-connector{position:absolute;top:42px;right:-12px;width:24px;height:1px;background:var(--border)}
+.step:last-child .step-connector{display:none}
+
+/* ── Trusted By ── */
+.trust-section{text-align:center;padding:80px 48px}
+.trust-logos{display:flex;gap:48px;justify-content:center;align-items:center;margin-top:32px;flex-wrap:wrap}
+.trust-logo{font-size:18px;font-weight:600;color:var(--text-3);letter-spacing:-0.02em;opacity:0.5;transition:opacity 0.2s}
+.trust-logo:hover{opacity:0.8}
+
+/* ── CTA ── */
+.cta-section{text-align:center;padding:80px 48px 120px;max-width:720px;margin:0 auto}
+.cta-section h2{font-size:clamp(28px,3vw,40px);line-height:1.15;letter-spacing:-0.03em;font-weight:400;margin-bottom:16px}
+.cta-section p{font-size:15px;color:var(--text-2);margin-bottom:36px;font-weight:300;line-height:1.65}
+
+/* ── Footer ── */
+footer{border-top:1px solid var(--border);padding:40px 48px;display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:0 auto}
+footer .left{font-size:12px;color:var(--text-3)}
+footer .right{display:flex;gap:24px}
+footer .right a{font-size:12px;color:var(--text-3);text-decoration:none}
+footer .right a:hover{color:var(--text)}
+
+/* Label */
+.design-label{position:fixed;bottom:16px;right:24px;font-size:11px;color:var(--text-3);background:var(--surface);padding:6px 14px;border-radius:20px;border:1px solid var(--border);font-weight:500;z-index:200}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-logo">
+    <svg viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="7" fill="#191918"/><path d="M8 18V10l6 4-6 4z" fill="#FAF7F2"/><path d="M14 18V10l6 4-6 4z" fill="#FAF7F2" opacity="0.5"/></svg>
+    <span>Alignment AI</span>
+  </div>
+  <div class="nav-links">
+    <a href="#">System</a>
+    <a href="#">Technology</a>
+    <a href="#">Pricing</a>
+    <a href="#">Docs</a>
+    <a href="#">Insights</a>
+    <a class="nav-cta" href="#">Get Started</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">
+    <span class="dot"></span>
+    Track Your Brand Across 5+ AI Platforms
+    <span class="platforms">
+      <span title="ChatGPT">&#x1f4ac;</span>
+      <span title="Perplexity">&#x1f50d;</span>
+      <span title="Claude">&#x1f9e0;</span>
+      <span title="Gemini">&#x2728;</span>
+    </span>
+  </div>
+  <h1 class="serif">Get your brand <em>mentioned</em> by AI</h1>
+  <p class="sub">Monitor your visibility across ChatGPT, Perplexity, Gemini, and more. Track mentions, analyze citations, and outpace your competitors in AI-powered search.</p>
+  <div class="hero-actions">
+    <a class="btn-dark" href="#">Get Started <span>&rarr;</span></a>
+    <a class="btn-outline" href="#">See How It Works</a>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-item">
+      <div class="stat-number">1,247</div>
+      <div class="stat-label">Brand Mentions</div>
+      <div class="stat-change">&#x2191; +12%</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">87.3</div>
+      <div class="stat-label">AIGVR Score</div>
+      <div class="stat-change">&#x2191; +5.2</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">342</div>
+      <div class="stat-label">Citations</div>
+      <div class="stat-change">&#x2191; +18%</div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works (5-step journey) -->
+<section>
+  <div class="section-eyebrow">How it works</div>
+  <div class="section-title serif">Five steps to AI visibility</div>
+  <div class="section-desc">A systematic approach to making your brand discoverable, citable, and recommended by every major AI platform.</div>
+  <div class="steps">
+    <div class="step">
+      <h4>Audit</h4>
+      <p>Scan how AI platforms currently perceive your brand</p>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step">
+      <h4>Optimize</h4>
+      <p>Fix gaps in structured data and knowledge graph</p>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step">
+      <h4>Content</h4>
+      <p>Generate AI-optimized FAQ, stories, and product data</p>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step">
+      <h4>Distribute</h4>
+      <p>Push structured content to AI crawl endpoints</p>
+      <div class="step-connector"></div>
+    </div>
+    <div class="step">
+      <h4>Monitor</h4>
+      <p>Track mentions, citations, and visibility scores</p>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section>
+  <div class="section-eyebrow">Platform</div>
+  <div class="section-title serif">Everything you need for AI visibility</div>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(25,25,24,0.05)">&#x1f50d;</div>
+      <h3>GEO Audit</h3>
+      <p>Deep analysis of how AI platforms perceive your brand, products, and content. Identify gaps before your competitors do.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(74,124,89,0.08)">&#x1f4ca;</div>
+      <h3>GEO Monitor</h3>
+      <p>Real-time tracking of brand mentions, citations, and sentiment across ChatGPT, Perplexity, Claude, Gemini, and 30+ platforms.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(25,25,24,0.05)">&#x270d;&#xfe0f;</div>
+      <h3>GEO Content</h3>
+      <p>AI-generated FAQ pairs, brand stories, and product descriptions optimized for machine comprehension and citation.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(25,25,24,0.05)">&#x1f310;</div>
+      <h3>Visibility Proxy</h3>
+      <p>Cloudflare-powered reverse proxy that serves enhanced structured data to AI crawlers — zero changes to your website code.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(25,25,24,0.05)">&#x1f4c8;</div>
+      <h3>ROI Tracking</h3>
+      <p>Measure the revenue impact of AI-driven traffic with GA4 attribution, referral tracking, and conversion analysis.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(25,25,24,0.05)">&#x1f6e1;&#xfe0f;</div>
+      <h3>Competitor Intel</h3>
+      <p>See how competitors rank in AI recommendations. Benchmark your visibility score and find opportunities to overtake them.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Dark Section — Visibility Proxy Showcase -->
+<section style="padding-bottom:40px">
+  <div class="dark-section">
+    <div class="section-eyebrow">Technology</div>
+    <div class="section-title serif" style="max-width:480px">The invisible layer between your website and AI</div>
+    <div class="section-desc">Visibility Proxy sits at the edge. Human visitors see your site unchanged. AI crawlers receive an enriched knowledge graph — JSON-LD, llms.txt, agent.json — automatically.</div>
+    <div class="dark-grid">
+      <div class="dark-feature">
+        <h4>Zero-Impact for Humans</h4>
+        <p>Real visitors never notice anything different. No speed loss, no layout shifts, no changes to your website code.</p>
+        <span class="tag">Transparent</span>
+      </div>
+      <div class="dark-feature">
+        <h4>Enhanced for AI</h4>
+        <p>When GPTBot, ClaudeBot, or PerplexityBot visits, they receive your original content plus structured knowledge graph data.</p>
+        <span class="tag">34+ AI Platforms</span>
+      </div>
+      <div class="dark-feature">
+        <h4>Referral Tracking</h4>
+        <p>Dual-signal attribution: passive Referer header detection plus active URL parameter planting in llms.txt and agent.json.</p>
+        <span class="tag">GA4 Compatible</span>
+      </div>
+      <div class="dark-feature">
+        <h4>Edge Deployment</h4>
+        <p>Runs on Cloudflare's global edge network. Sub-50ms response times. DNS-level setup — works with any website platform.</p>
+        <span class="tag">Cloudflare Workers</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Trust Section -->
+<div class="trust-section">
+  <div class="section-eyebrow" style="text-align:center">Trusted by forward-thinking brands</div>
+  <div class="trust-logos">
+    <span class="trust-logo">Shopify</span>
+    <span class="trust-logo">WordPress</span>
+    <span class="trust-logo">Webflow</span>
+    <span class="trust-logo">Wix</span>
+    <span class="trust-logo">Custom Sites</span>
+  </div>
+</div>
+
+<!-- Final CTA -->
+<section class="cta-section">
+  <h2 class="serif">Start getting mentioned by AI today</h2>
+  <p>Join the brands that are already optimizing their visibility across ChatGPT, Perplexity, Claude, and every major AI platform.</p>
+  <div class="hero-actions" style="justify-content:center">
+    <a class="btn-dark" href="#">Get Started — Free <span>&rarr;</span></a>
+    <a class="btn-outline" href="#">Book a Demo</a>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="left">&copy; 2026 Alignment AI. All rights reserved.</div>
+  <div class="right">
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Docs</a>
+    <a href="#">Contact</a>
+  </div>
+</footer>
+
+<div class="design-label">Direction B2 — Anthropic-Warm Homepage</div>
+</body>
+</html>
