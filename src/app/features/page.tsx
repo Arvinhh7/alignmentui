@@ -18,7 +18,7 @@ const capabilities = {
     {
       category: 'GEO Audit',
       items: [
-        'AI Accessibility Check',
+        'AI Discovery Check',
         'Semantic Structure Analysis',
         'Content Citability Evaluation',
         'Risk Boundary Detection',
@@ -57,7 +57,7 @@ const capabilities = {
     {
       category: 'GEO 诊断',
       items: [
-        'AI 可访问性检查',
+        'AI 可发现性检查',
         '语义结构分析',
         '内容可引用性评估',
         '风险边界检测',

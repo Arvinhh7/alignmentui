@@ -305,7 +305,7 @@ function RadarChart({ scores, size = 220 }: { scores: number[]; size?: number })
 
 // ─── Scanning Progress Panel ────────────────────────────
 const SCAN_STEPS = [
-  { icon: Shield, label: 'AI Accessibility', desc: 'Checking crawlability & robots.txt...' },
+  { icon: Shield, label: 'AI Discovery', desc: 'Checking llms.txt, agent.json & AI access...' },
   { icon: Layers, label: 'Semantic Structure', desc: 'Analyzing headings, paragraphs & sections...' },
   { icon: FileText, label: 'Content Citability', desc: 'Evaluating fact units & objectivity...' },
   { icon: AlertOctagon, label: 'Risk Boundary', desc: 'Reviewing claims & safety signals...' },
@@ -452,7 +452,7 @@ function ScanProgressPanel({ url }: { url: string }) {
 // ─── Quick Insight Card ──────────────────────────────────
 function InsightCards({ result }: { result: AuditResult }) {
   const dimEntries: { key: string; label: string; icon: React.ReactNode; score: number }[] = [
-    { key: 'ai_accessibility', label: 'AI Accessibility', icon: <Shield className="w-5 h-5" />, score: result.ai_accessibility.score },
+    { key: 'ai_accessibility', label: 'AI Discovery', icon: <Shield className="w-5 h-5" />, score: result.ai_accessibility.score },
     { key: 'semantic_structure', label: 'Semantic Structure', icon: <Layers className="w-5 h-5" />, score: result.semantic_structure.score },
     { key: 'content_citability', label: 'Content Citability', icon: <FileText className="w-5 h-5" />, score: result.content_citability.score },
     { key: 'risk_boundary', label: 'Risk Boundary', icon: <AlertOctagon className="w-5 h-5" />, score: result.risk_boundary.score },
@@ -1576,7 +1576,7 @@ function ZoneBreakdownSection({
 const DIMENSION_MAP = [
   {
     key: 'ai_accessibility' as const, prefix: 'D1',
-    Icon: Shield, label: 'AI Accessibility',
+    Icon: Shield, label: 'AI Discovery',
     colorSet: {
       iconBg: 'bg-surface-warm', iconText: 'text-ink-2',
       bar: 'bg-ink-2', badge: 'bg-surface-warm text-ink-2',
@@ -2361,7 +2361,7 @@ export default function GEOAuditPage() {
               <h4 className="text-sm font-medium text-ink-3 uppercase tracking-wider mb-6 text-center">What We Analyze</h4>
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
                 {[
-                  { icon: <Shield className="w-6 h-6" />, label: 'AI Accessibility', desc: 'Can AI bots crawl and read your content?', color: 'from-surface-warm to-surface-warm text-ink-2 border-divider' },
+                  { icon: <Shield className="w-6 h-6" />, label: 'AI Discovery', desc: 'Do AI agents find your llms.txt, agent.json & access rules?', color: 'from-surface-warm to-surface-warm text-ink-2 border-divider' },
                   { icon: <Layers className="w-6 h-6" />, label: 'Semantic Structure', desc: 'Is your content self-organized for AI comprehension?', color: 'from-surface-warm to-surface-warm text-ink-2 border-divider' },
                   { icon: <FileText className="w-6 h-6" />, label: 'Content Citability', desc: 'Does your content have quotable fact units?', color: 'from-surface-warm to-surface-warm text-ink-2 border-divider' },
                   { icon: <AlertOctagon className="w-6 h-6" />, label: 'Risk Boundary', desc: 'Is your content safe for AI to reference?', color: 'from-red-soft-bg to-red-soft-bg text-red-soft border-red-soft/30' },

@@ -94,8 +94,8 @@ const dimensionIcons = {
 const dimensions = [
   {
     icon: dimensionIcons.accessibility,
-    title: 'AI Accessibility',
-    description: 'How easily AI platforms can find and read your site — including load speed, content discoverability, and how your pages are organized.',
+    title: 'AI Discovery',
+    description: 'Whether AI agents can discover and index your brand — including llms.txt, agent.json, and explicit AI bot access rules in robots.txt.',
     color: 'from-[#C84B31] to-[#A33820]',
   },
   {
