@@ -162,7 +162,7 @@ export default function DocsPage() {
     { label: t.nav.system, href: '/system/' },
     { label: t.nav.technology, href: '/technology/' },
     { label: t.nav.pricing, href: '/pricing/' },
-    { label: t.nav.docs, href: '/docs/' },
+    { label: t.nav.docs, href: '/blog/' },
     { label: t.nav.insights, href: '/insights/' },
     { label: t.nav.contact, href: '/contact/' },
   ]

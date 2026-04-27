@@ -67,7 +67,7 @@ function ContactPageInner() {
     { label: t.nav.system, href: '/system/' },
     { label: t.nav.technology, href: '/technology/' },
     { label: t.nav.pricing, href: '/pricing/' },
-    { label: t.nav.docs, href: '/docs/' },
+    { label: t.nav.docs, href: '/blog/' },
     { label: t.nav.insights, href: '/insights/' },
     { label: t.nav.contact, href: '/contact/' },
   ]
@@ -509,10 +509,10 @@ function ContactPageInner() {
               </svg>
             </Link>
             <Link
-              href="/docs/"
+              href="/blog/"
               className="inline-flex items-center justify-center gap-2 bg-ink-inv/10 hover:bg-ink-inv/20 text-white font-semibold px-8 py-4 rounded-xl transition-all border border-white/20"
             >
-              Read the Docs
+              Read the Blog
             </Link>
           </div>
         </div>
