@@ -63,7 +63,7 @@ function normalizeDomain(raw: string): string {
 
 function ScoreRing({ score, level }: { score: number; level: string }) {
   const color = levelRingColor(level)
-  const pct = Math.min((score / 45) * 100, 100)
+  // score is 0-100 (percentage-based from API)
   return (
     <div className="relative w-36 h-36 mx-auto">
       <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
@@ -72,13 +72,13 @@ function ScoreRing({ score, level }: { score: number; level: string }) {
           cx="18" cy="18" r="15.9" fill="none"
           stroke={color} strokeWidth="2.8"
           strokeLinecap="round"
-          strokeDasharray={`${pct} 100`}
+          strokeDasharray={`${score} 100`}
           className="transition-all duration-700 ease-out"
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-4xl font-bold text-ink leading-none">{score}</span>
-        <span className="text-xs text-ink-3 mt-0.5">/ 45</span>
+        <span className="text-xs text-ink-3 mt-0.5">/ 100</span>
       </div>
     </div>
   )
@@ -362,13 +362,13 @@ function ResultSection({
             <p className="text-xs font-semibold text-ink-3 uppercase tracking-wider mb-4">AI Visibility Score</p>
             <ScoreRing score={result.overall_score} level={result.level} />
             <p className={`text-sm font-semibold mt-4 ${levelTextClass(result.level)}`}>{result.level}</p>
-            <p className="text-xs text-ink-3 mt-1">out of 45 checks</p>
+            <p className="text-xs text-ink-3 mt-1">AI Visibility Score</p>
           </div>
 
           {/* 5D dimensions */}
           <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
             {result.dimensions.map(dim => {
-              const pct = Math.round((dim.score / 10) * 100)
+              const pct = dim.score  // already 0-100
               return (
                 <div key={dim.id} className="bg-surface rounded-xl border border-divider-light p-4 shadow-sm">
                   <div className="flex items-center justify-between mb-2">
