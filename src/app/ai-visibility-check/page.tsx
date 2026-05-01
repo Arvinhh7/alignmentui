@@ -101,7 +101,7 @@ function RateLimitBanner({ countdown }: { countdown: string }) {
           Need to audit <strong>right now</strong>? Get unlimited access instantly.
         </p>
         <a
-          href="mailto:contact@alignmenttech.ai?subject=Unlimited%20AI%20Audit%20Access&body=Hi%2C%20I%20reached%20the%20daily%20audit%20limit%20and%20need%20immediate%20access."
+          href="/contact/"
           className="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-ink text-ink-inv text-sm font-bold rounded-xl hover:bg-[#2d2d2c] transition-all shadow-sm ring-2 ring-ink/10 hover:ring-ink/20"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
