@@ -59,6 +59,64 @@ function normalizeDomain(raw: string): string {
   return raw.trim().replace(/^https?:\/\//, '').split('/')[0].split('?')[0]
 }
 
+function isValidDomain(raw: string): boolean {
+  const trimmed = raw.trim()
+  if (!trimmed || trimmed.includes('@')) return false
+  const cleaned = normalizeDomain(trimmed)
+  if (!cleaned) return false
+  try {
+    const { hostname } = new URL(`https://${cleaned}`)
+    return /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/.test(hostname)
+  } catch {
+    return false
+  }
+}
+
+// ── Rate-limit countdown UI ───────────────────────────────────────────────────
+
+function RateLimitBanner({ countdown }: { countdown: string }) {
+  return (
+    <div className="mt-4 w-full max-w-xl mx-auto rounded-2xl border border-caution/30 bg-caution-bg overflow-hidden">
+      {/* Top row — quota info + countdown */}
+      <div className="flex items-center justify-between px-5 py-4">
+        <div className="flex items-center gap-2.5">
+          <svg className="w-4 h-4 text-caution flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="text-sm font-medium text-caution">
+            Today&#39;s limit of <strong>10 free audits</strong> reached
+          </span>
+        </div>
+        <span className="font-mono text-sm font-bold text-caution tabular-nums">
+          {countdown}
+        </span>
+      </div>
+
+      {/* Divider */}
+      <div className="h-px bg-caution/20" />
+
+      {/* CTA row — marketing hook */}
+      <div className="px-5 py-4 flex items-center justify-between gap-4">
+        <p className="text-sm text-ink-2 leading-snug">
+          Need to audit <strong>right now</strong>? Get unlimited access instantly.
+        </p>
+        <a
+          href="mailto:contact@alignmenttech.ai?subject=Unlimited%20AI%20Audit%20Access&body=Hi%2C%20I%20reached%20the%20daily%20audit%20limit%20and%20need%20immediate%20access."
+          className="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-ink text-ink-inv text-sm font-bold rounded-xl hover:bg-[#2d2d2c] transition-all shadow-sm ring-2 ring-ink/10 hover:ring-ink/20"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          contact@alignmenttech.ai
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  )
+}
+
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function ScoreRing({ score, level }: { score: number; level: string }) {
@@ -169,12 +227,13 @@ function CheckAccordion({ dimId, checks }: { dimId: string; checks: AuditCheck[]
 // ── Page phases ───────────────────────────────────────────────────────────────
 
 function InputSection({
-  domain, setDomain, onSubmit, error,
+  domain, setDomain, onSubmit, error, rateLimitCountdown,
 }: {
   domain: string
   setDomain: (v: string) => void
   onSubmit: (e: React.FormEvent) => void
   error: string | null
+  rateLimitCountdown: string | null
 }) {
   return (
     <>
@@ -231,14 +290,16 @@ function InputSection({
             </button>
           </form>
 
-          {error && (
+          {rateLimitCountdown ? (
+            <RateLimitBanner countdown={rateLimitCountdown} />
+          ) : error ? (
             <div className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 bg-red-soft-bg border border-red-soft/20 rounded-lg text-sm text-red-soft">
               <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
               </svg>
               {error}
             </div>
-          )}
+          ) : null}
 
           <p className="mt-5 text-xs text-ink-3 flex items-center justify-center gap-3">
             <span className="flex items-center gap-1">
@@ -581,6 +642,8 @@ function ResultSection({
 
 // ── Page entry ────────────────────────────────────────────────────────────────
 
+const RL_KEY = 'audit_rate_limit_reset'
+
 export default function AIVisibilityCheckPage() {
   const [phase, setPhase] = useState<'input' | 'loading' | 'l1' | 'l2'>('input')
   const [domain, setDomain]               = useState('')
@@ -590,7 +653,45 @@ export default function AIVisibilityCheckPage() {
   const [email, setEmail]                 = useState('')
   const [emailError, setEmailError]       = useState<string | null>(null)
   const [submittingEmail, setSubmittingEmail] = useState(false)
+  const [rateLimitReset, setRateLimitReset] = useState<number | null>(null)
+  const [countdown, setCountdown]           = useState('')
   const stepTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Restore rate-limit state from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(RL_KEY)
+    if (stored) {
+      const resetAt = Number(stored)
+      if (resetAt > Date.now()) {
+        setRateLimitReset(resetAt)
+      } else {
+        localStorage.removeItem(RL_KEY)
+      }
+    }
+  }, [])
+
+  // Live countdown ticker
+  useEffect(() => {
+    if (!rateLimitReset) return
+    const tick = () => {
+      const remaining = rateLimitReset - Date.now()
+      if (remaining <= 0) {
+        setRateLimitReset(null)
+        setCountdown('')
+        localStorage.removeItem(RL_KEY)
+        return
+      }
+      const h = Math.floor(remaining / 3_600_000)
+      const m = Math.floor((remaining % 3_600_000) / 60_000)
+      const s = Math.floor((remaining % 60_000) / 1_000)
+      setCountdown(
+        `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+      )
+    }
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [rateLimitReset])
 
   useEffect(() => {
     if (phase === 'loading') {
@@ -604,9 +705,14 @@ export default function AIVisibilityCheckPage() {
 
   async function runAudit(e: React.FormEvent) {
     e.preventDefault()
-    const raw = normalizeDomain(domain)
-    if (!raw) return
 
+    // Cat.1 — client-side URL validation (no API call)
+    if (!isValidDomain(domain)) {
+      setError('Please enter a valid website URL — like apple.com or yourstore.myshopify.com')
+      return
+    }
+
+    const raw = normalizeDomain(domain)
     setError(null)
     setPhase('loading')
 
@@ -618,15 +724,22 @@ export default function AIVisibilityCheckPage() {
       })
 
       if (!resp.ok) {
-        const body = await resp.json().catch(() => ({}))
-        if (resp.status === 429) {
-          setError('Daily limit reached. Please try again tomorrow.')
-        } else if (resp.status === 422) {
-          setError('Invalid domain. Please enter a valid domain like example.com')
-        } else {
-          setError((body as { detail?: string }).detail ?? 'Audit failed. Please try again.')
-        }
+        const body = await resp.json().catch(() => ({})) as Record<string, unknown>
         setPhase('input')
+
+        if (resp.status === 429) {
+          // Cat.2 — rate limit: parse retry_after and start countdown
+          const retryAfter = (body.detail as Record<string, unknown>)?.retry_after
+          const seconds = typeof retryAfter === 'number' ? retryAfter : 86400
+          const resetAt = Date.now() + seconds * 1000
+          localStorage.setItem(RL_KEY, String(resetAt))
+          setRateLimitReset(resetAt)
+        } else {
+          // Cat.3 — server-side error (422, 5xx, anything else)
+          setError(
+            'Our servers ran into an issue. Please try again in a moment — or contact contact@alignmenttech.ai if this keeps happening.'
+          )
+        }
         return
       }
 
@@ -635,6 +748,7 @@ export default function AIVisibilityCheckPage() {
       if (stepTimerRef.current) clearInterval(stepTimerRef.current)
       setPhase('l1')
     } catch {
+      // Cat.4 — network error (fetch failed entirely)
       setError('Network error — please check your connection and try again.')
       setPhase('input')
     }
@@ -670,6 +784,7 @@ export default function AIVisibilityCheckPage() {
     setError(null)
     setEmailError(null)
     setPhase('input')
+    // preserve rate-limit state across resets — intentional
   }
 
   return (
@@ -704,6 +819,7 @@ export default function AIVisibilityCheckPage() {
             setDomain={setDomain}
             onSubmit={runAudit}
             error={error}
+            rateLimitCountdown={rateLimitReset ? countdown : null}
           />
         )}
 
