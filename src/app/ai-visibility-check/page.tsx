@@ -712,6 +712,9 @@ export default function AIVisibilityCheckPage() {
       return
     }
 
+    // Cat.2 — already rate limited (localStorage countdown still active)
+    if (rateLimitReset && rateLimitReset > Date.now()) return
+
     const raw = normalizeDomain(domain)
     setError(null)
     setPhase('loading')
