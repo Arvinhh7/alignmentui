@@ -391,13 +391,9 @@ function LoginPageInner() {
       <div className="hidden lg:flex lg:w-[480px] xl:w-[520px] relative flex-col justify-between p-10 overflow-hidden bg-ink text-ink-inv">
 
         <div className="relative z-10">
-          <Link href="/" className="inline-flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-            {/* Icon wrapped in subtle pill — same pattern as Sidebar */}
-            <div className="w-9 h-9 rounded-xl bg-[rgba(250,245,236,0.10)] flex items-center justify-center flex-shrink-0">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo-icon.png" alt="" width={26} height={26} className="object-contain" />
-            </div>
-            <span className="text-lg font-bold text-ink-inv tracking-tight">Alignment AI</span>
+          <Link href="/" className="inline-flex items-center hover:opacity-80 transition-opacity">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-white.svg" alt="Alignment AI" width={160} height={53} className="object-contain" />
           </Link>
         </div>
 
