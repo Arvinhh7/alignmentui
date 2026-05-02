@@ -15,7 +15,8 @@ import { getSupabase } from '@/lib/supabase';
 import { setAuthFromSession } from '@/lib/api';
 import type { User, Session } from '@supabase/supabase-js';
 
-export type UserRole = 'admin' | 'demo' | 'user';
+export type UserRole = 'admin' | 'demo' | 'user' | 'staff';
+export type PermissionsMap = Record<string, boolean>;
 
 interface AuthState {
   user: User | null;
@@ -23,33 +24,49 @@ interface AuthState {
   isLoading: boolean;
   isAuthenticated: boolean;
   role: UserRole | null;
+  permissions: PermissionsMap;
 }
 
-async function fetchUserRole(userId: string): Promise<UserRole> {
+/**
+ * Fetch both role and permissions in a single profile query.
+ * Falls back to RPC for role if the direct query fails.
+ */
+async function fetchUserProfile(userId: string): Promise<{ role: UserRole; permissions: PermissionsMap }> {
   const supabase = getSupabase();
-  if (!supabase) return 'user';
+  const defaultResult = { role: 'user' as UserRole, permissions: {} as PermissionsMap };
+  if (!supabase) return defaultResult;
 
   const withTimeout = <T>(p: Promise<T>, ms = 5000): Promise<T | null> =>
     Promise.race([p, new Promise<null>((res) => setTimeout(() => res(null), ms))]);
 
-  // 1. SECURITY DEFINER RPC (bypasses RLS)
-  // Wrap in Promise.resolve() so TypeScript sees a plain Promise, not PostgrestBuilder
+  const VALID_ROLES: UserRole[] = ['admin', 'demo', 'user', 'staff'];
+
+  // 1. SECURITY DEFINER RPC (bypasses RLS) — fast role fetch
+  let rpcRole: UserRole | null = null;
   try {
     const result = await withTimeout(Promise.resolve(supabase.rpc('get_my_role')));
     const r = (result as any)?.data as string | undefined;
-    if (r === 'admin' || r === 'demo' || r === 'user') return r;
+    if (r && VALID_ROLES.includes(r as UserRole)) rpcRole = r as UserRole;
   } catch { /* fall through */ }
 
-  // 2. Direct table query (owner can read own row via RLS)
+  // 2. Direct table query — gets both role AND permissions
   try {
     const result = await withTimeout(
-      Promise.resolve(supabase.from('profiles').select('role').eq('id', userId).single())
+      Promise.resolve(
+        supabase.from('profiles').select('role, permissions').eq('id', userId).single()
+      )
     );
-    const r = (result as any)?.data?.role as string | undefined;
-    if (r === 'admin' || r === 'demo' || r === 'user') return r;
+    const data = (result as any)?.data;
+    if (data) {
+      const r = data.role as string | undefined;
+      const role = (r && VALID_ROLES.includes(r as UserRole)) ? (r as UserRole) : (rpcRole ?? 'user');
+      const permissions = (data.permissions ?? {}) as PermissionsMap;
+      return { role, permissions };
+    }
   } catch { /* fall through */ }
 
-  return 'user';
+  // Fallback: use RPC role with empty permissions
+  return { role: rpcRole ?? 'user', permissions: {} };
 }
 
 const REMEMBER_KEY = 'alignment_remember_session';
@@ -61,13 +78,14 @@ export function useAuth() {
     isLoading: true,
     isAuthenticated: false,
     role: null,
+    permissions: {},
   });
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = getSupabase();
     if (!supabase) {
-      setAuthState({ user: null, session: null, isLoading: false, isAuthenticated: false, role: null });
+      setAuthState({ user: null, session: null, isLoading: false, isAuthenticated: false, role: null, permissions: {} });
       return;
     }
 
@@ -81,7 +99,7 @@ export function useAuth() {
       if (!mounted) return;
 
       if (!session) {
-        setAuthState({ user: null, session: null, isLoading: false, isAuthenticated: false, role: null });
+        setAuthState({ user: null, session: null, isLoading: false, isAuthenticated: false, role: null, permissions: {} });
         setAuthFromSession(null);
         return;
       }
@@ -106,16 +124,16 @@ export function useAuth() {
         session,
         isLoading: false,
         isAuthenticated: true,
-        role: prev.role,  // preserve existing role — updated below
+        role: prev.role,           // preserve existing role — updated below
+        permissions: prev.permissions, // preserve existing permissions — updated below
       }));
       setAuthFromSession(session);
 
-      // Fetch role (up to 5s per query, 10s total max).
-      // Runs on every auth event so role stays fresh, but the UI never
-      // sees role=null once it has been set for the first time.
-      const role = await fetchUserRole(session.user.id);
+      // Fetch role + permissions.  Runs on every auth event so they stay fresh,
+      // but the UI never sees role=null once it has been set for the first time.
+      const { role, permissions } = await fetchUserProfile(session.user.id);
       if (mounted) {
-        setAuthState((prev) => ({ ...prev, role }));
+        setAuthState((prev) => ({ ...prev, role, permissions }));
       }
     };
 
@@ -138,7 +156,7 @@ export function useAuth() {
     // as-is (it's been set by processSession if the session was found).
     const safety = setTimeout(() => {
       if (mounted) {
-        setAuthState((prev) => prev.isLoading ? { ...prev, isLoading: false } : prev);
+        setAuthState((prev) => prev.isLoading ? { ...prev, isLoading: false, permissions: prev.permissions } : prev);
       }
     }, 15000);
 

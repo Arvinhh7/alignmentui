@@ -82,7 +82,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // Admin/demo users skip onboarding check entirely
   useEffect(() => {
     if (isLoading || !isAuthenticated || role === null) return
-    if (role === 'admin' || role === 'demo') { setOnboardingChecked(true); return }
+    if (role === 'admin' || role === 'demo' || role === 'staff') { setOnboardingChecked(true); return }
     if (!user?.id) return
 
     const checkOnboarding = async () => {

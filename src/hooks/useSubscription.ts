@@ -50,8 +50,8 @@ export function useSubscription(
       return
     }
 
-    // admin/demo always have access — no need to check subscription
-    if (role === 'admin' || role === 'demo') {
+    // admin/demo/staff always have access — no need to check subscription
+    if (role === 'admin' || role === 'demo' || role === 'staff') {
       setState({ hasAccess: true, isLoading: false, plan: null, status: null })
       return
     }

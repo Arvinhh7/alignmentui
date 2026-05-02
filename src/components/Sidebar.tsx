@@ -5,23 +5,24 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useLanguage } from '@/lib/LanguageContext'
-import { useAuth, type UserRole } from '@/hooks/useAuth'
+import { useAuth, type UserRole, type PermissionsMap } from '@/hooks/useAuth'
 import { api, CreditBalance } from '@/lib/api'
 import {
   ShieldCheck, Zap, PenTool, Share2, BarChart3, Activity,
   LogOut, Settings, Wrench, PanelLeftClose, PanelLeft,
   Sparkles, ExternalLink, HelpCircle, Home, ChevronRight, CreditCard,
   LineChart, LayoutDashboard, Bot, Search, MessageSquare,
-  BookOpen, TrendingUp, Database, X, Globe,
+  BookOpen, TrendingUp, Database, X, Globe, Users,
 } from 'lucide-react'
 
 const SIDEBAR_KEY = 'sidebar_expanded'
 
-// DESIGN.md: admin → amber (caution), demo → muted, user → muted
+// DESIGN.md: admin → amber (caution), staff → blue, demo/user → muted
 const ROLE_CONFIG: Record<UserRole, { label: string; color: string }> = {
-  admin: { label: 'ADMIN', color: 'bg-[rgba(184,134,11,0.12)] text-caution border-[rgba(184,134,11,0.25)]' },
-  demo:  { label: 'DEMO',  color: 'bg-[rgba(250,245,236,0.08)] text-[rgba(250,245,236,0.45)] border-[rgba(250,245,236,0.12)]' },
-  user:  { label: 'USER',  color: 'bg-[rgba(250,245,236,0.08)] text-[rgba(250,245,236,0.35)] border-[rgba(250,245,236,0.10)]' },
+  admin:  { label: 'ADMIN',  color: 'bg-[rgba(184,134,11,0.12)] text-caution border-[rgba(184,134,11,0.25)]' },
+  staff:  { label: 'STAFF',  color: 'bg-[rgba(100,180,255,0.12)] text-[rgba(100,180,255,0.85)] border-[rgba(100,180,255,0.25)]' },
+  demo:   { label: 'DEMO',   color: 'bg-[rgba(250,245,236,0.08)] text-[rgba(250,245,236,0.45)] border-[rgba(250,245,236,0.12)]' },
+  user:   { label: 'USER',   color: 'bg-[rgba(250,245,236,0.08)] text-[rgba(250,245,236,0.35)] border-[rgba(250,245,236,0.10)]' },
 }
 
 const PLAN_DISPLAY: Record<string, string> = {
@@ -47,6 +48,8 @@ interface NavItem {
   matchPrefix?: boolean
   badge?: string
   isNew?: boolean
+  /** Permission key used to filter items for staff accounts */
+  permissionKey?: string
 }
 
 interface NavGroup {
@@ -63,7 +66,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
   const { t } = useLanguage()
   const pathname = usePathname()
   const router = useRouter()
-  const { user, role, signOut } = useAuth()
+  const { user, role, signOut, permissions } = useAuth()
   const [expandedPref, setExpandedPref] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showSearch, setShowSearch] = useState(false)
@@ -170,41 +173,66 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
     {
       labelKey: 'navGroupAnalytics',
       items: [
-        { href: '/dashboard/overview',      icon: LayoutDashboard, labelKey: 'overviewNav' },
-        { href: '/dashboard/geo-monitor',   icon: TrendingUp,      labelKey: 'answerEngineNav' },
+        { href: '/dashboard/overview',    icon: LayoutDashboard, labelKey: 'overviewNav',    permissionKey: 'overview' },
+        { href: '/dashboard/geo-monitor', icon: TrendingUp,      labelKey: 'answerEngineNav', permissionKey: 'geo-monitor' },
       ],
     },
     {
       labelKey: 'navGroupAction',
       items: [
-        { href: '/dashboard/agents',        icon: Bot,         labelKey: 'agentsNav', isNew: true },
-        { href: '/dashboard/geo-audit',     icon: ShieldCheck, labelKey: 'geoAuditNav' },
-        { href: '/dashboard/geo-content',   icon: PenTool,     labelKey: 'geoContentNav' },
+        { href: '/dashboard/agents',      icon: Bot,         labelKey: 'agentsNav',    isNew: true, permissionKey: 'agents' },
+        { href: '/dashboard/geo-audit',   icon: ShieldCheck, labelKey: 'geoAuditNav',             permissionKey: 'geo-audit' },
+        { href: '/dashboard/geo-content', icon: PenTool,     labelKey: 'geoContentNav',           permissionKey: 'geo-content' },
       ],
     },
     {
       labelKey: 'navGroupContext',
       items: [
-        { href: '/dashboard/prompts',   icon: MessageSquare, labelKey: 'promptsNav', badge: promptCount > 0 ? String(promptCount) : undefined },
-        { href: '/dashboard/brand-hub', icon: Database,      labelKey: 'brandNav' },
+        { href: '/dashboard/prompts',   icon: MessageSquare, labelKey: 'promptsNav', badge: promptCount > 0 ? String(promptCount) : undefined, permissionKey: 'prompts' },
+        { href: '/dashboard/brand-hub', icon: Database,      labelKey: 'brandNav',                                                             permissionKey: 'brand-hub' },
       ],
     },
     {
       labelKey: 'navGroupProxy',
       items: [
-        { href: '/dashboard/visibility-proxy', icon: Globe, labelKey: 'visibilityProxyNav', matchPrefix: true, isNew: true },
+        { href: '/dashboard/visibility-proxy', icon: Globe, labelKey: 'visibilityProxyNav', matchPrefix: true, isNew: true, permissionKey: 'visibility-proxy' },
       ],
     },
   ]
 
-  const adminItems: NavItem[] = role === 'admin' ? [
-    { href: '/dashboard/geo-optimization',        icon: Zap,       labelKey: 'geoOptimizationNav' },
-    { href: '/dashboard/geo-distribution',        icon: Share2,    labelKey: 'geoDistributionNav' },
-    { href: '/dashboard/ga4-attribution',         icon: LineChart, labelKey: 'GA4 Attribution' as never },
-    { href: '/dashboard/ops',                     icon: Activity,  labelKey: 'Managed Service' as never, matchPrefix: true },
-    { href: '/dashboard/admin',                   icon: Wrench,    labelKey: 'Admin Panel' as never },
-    { href: '/dashboard/admin/domain-checker',    icon: Search,    labelKey: 'Domain Checker' as never },
-  ] : []
+  // Advanced features — admin sees all; staff sees permitted ones only
+  const advancedFeatureItems: NavItem[] = [
+    { href: '/dashboard/geo-optimization', icon: Zap,       labelKey: 'geoOptimizationNav',              permissionKey: 'geo-optimization' },
+    { href: '/dashboard/geo-distribution', icon: Share2,    labelKey: 'geoDistributionNav',              permissionKey: 'geo-distribution' },
+    { href: '/dashboard/ga4-attribution',  icon: LineChart, labelKey: 'GA4 Attribution' as never,        permissionKey: 'ga4-attribution' },
+    { href: '/dashboard/ops',              icon: Activity,  labelKey: 'Managed Service' as never, matchPrefix: true, permissionKey: 'ops' },
+  ]
+
+  // Admin-only items (never shown to staff)
+  const adminOnlyItems: NavItem[] = [
+    { href: '/dashboard/admin',                icon: Wrench, labelKey: 'Admin Panel' as never },
+    { href: '/dashboard/admin/domain-checker', icon: Search, labelKey: 'Domain Checker' as never },
+    { href: '/dashboard/admin/team',           icon: Users,  labelKey: 'Team Management' as never },
+  ]
+
+  // Combine for the "Admin" section (amber-styled, admin only)
+  const adminItems: NavItem[] = role === 'admin'
+    ? [...advancedFeatureItems, ...adminOnlyItems]
+    : []
+
+  // For staff: filter nav groups + advanced features by permissions
+  const displayNavGroups = role === 'staff'
+    ? navGroups
+        .map(g => ({
+          ...g,
+          items: g.items.filter(item => !item.permissionKey || !!permissions[item.permissionKey]),
+        }))
+        .filter(g => g.items.length > 0)
+    : navGroups
+
+  const staffAdvancedItems: NavItem[] = role === 'staff'
+    ? advancedFeatureItems.filter(item => item.permissionKey && !!permissions[item.permissionKey])
+    : []
 
   // ── Credits display ────────────────────────────────────────────────────
   const creditsRemaining = credits?.credits_remaining ?? 0
@@ -214,7 +242,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
   const planLabel        = PLAN_DISPLAY[credits?.plan ?? ''] ?? (credits?.plan ?? 'Free')
 
   // ── Search results ─────────────────────────────────────────────────────
-  const allNavItems = navGroups.flatMap(g => g.items)
+  const allNavItems = displayNavGroups.flatMap(g => g.items)
   const searchResults = searchQuery.trim()
     ? allNavItems.filter(item => {
         const val = (t.dashboard as unknown as Record<string, unknown>)[item.labelKey]
@@ -361,7 +389,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
       {/* ── Navigation ────────────────────────────────────────────────────── */}
       <nav className={`flex flex-col gap-0.5 flex-1 mt-3 overflow-y-auto scrollbar-none ${(expanded || mobileOpen) ? 'px-2.5' : 'px-2 items-center'}`}>
 
-        {navGroups.map((group) => (
+        {displayNavGroups.map((group) => (
           <div key={group.labelKey} className="mb-1">
             {(expanded || mobileOpen) && (
               <div className="px-1 mb-1">
@@ -425,6 +453,56 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
           </div>
         ))}
 
+        {/* Staff advanced items — shown only when role=staff and permissions granted */}
+        {staffAdvancedItems.length > 0 && (
+          <div className="mt-1">
+            {(expanded || mobileOpen) && (
+              <div className="px-1 mb-1">
+                <span className="text-[9px] font-bold text-[rgba(250,245,236,0.25)] uppercase tracking-widest">Advanced</span>
+              </div>
+            )}
+            {!expanded && !mobileOpen && <div className="w-full h-px bg-[rgba(250,245,236,0.06)] my-2" />}
+            {staffAdvancedItems.map((item) => {
+              const isActive = item.matchPrefix
+                ? pathname === item.href || pathname.startsWith(item.href + '/')
+                : pathname === item.href
+              const Icon = item.icon
+              const label = getLabel(item.labelKey)
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  scroll={false}
+                  onClick={handleNavClick}
+                  className={`relative flex items-center gap-3 rounded-lg transition-all duration-200 group mb-0.5 ${
+                    mobileOpen || expanded ? 'px-3 py-2' : 'w-11 h-10 justify-center'
+                  } ${
+                    isActive
+                      ? 'bg-[rgba(250,245,236,0.08)] text-ink-inv'
+                      : 'text-[rgba(250,245,236,0.45)] hover:bg-[rgba(250,245,236,0.06)] hover:text-[rgba(250,245,236,0.75)]'
+                  }`}
+                >
+                  {isActive && (
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-[rgba(250,245,236,0.5)] rounded-r-full" />
+                  )}
+                  <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={isActive ? 2.2 : 1.8} />
+                  {(expanded || mobileOpen) && (
+                    <span className={`text-[12.5px] whitespace-nowrap transition-opacity duration-200 flex-1 ${isActive ? 'font-semibold' : 'font-medium'}`}>
+                      {label}
+                    </span>
+                  )}
+                  {!expanded && !mobileOpen && (
+                    <span className="absolute left-full ml-3 px-3 py-1.5 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,245,236,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[60]">
+                      {label}
+                      <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-ink" />
+                    </span>
+                  )}
+                </Link>
+              )
+            })}
+          </div>
+        )}
+
         {/* Admin items */}
         {adminItems.length > 0 && (
           <div className="mt-1">
@@ -482,7 +560,9 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
               <span className="text-[12px] font-bold text-ink-inv">{initial}</span>
               {!expanded && role && role !== 'user' && (
                 <span className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-ink ${
-                  role === 'admin' ? 'bg-caution' : 'bg-[rgba(250,245,236,0.4)]'
+                  role === 'admin' ? 'bg-caution' :
+                  role === 'staff' ? 'bg-[rgba(100,180,255,0.85)]' :
+                  'bg-[rgba(250,245,236,0.4)]'
                 }`} />
               )}
             </div>
