@@ -2,9 +2,9 @@
 
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
-import LanguageSwitch from '@/components/LanguageSwitch'
 import { LogoFull } from '@/components/Logo'
 import Footer from '@/components/Footer'
+import PublicNavbar from '@/components/PublicNavbar'
 import { useEffect, useState, useCallback } from 'react'
 
 const API_BASE = 'https://alignment-data-collection-production.up.railway.app'
@@ -220,74 +220,7 @@ export default function InsightsPage() {
   return (
     <div className="min-h-screen bg-canvas">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-6 py-3">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center group hover:opacity-90 transition-opacity">
-              <LogoFull width={140} height={45} />
-            </Link>
-
-            <div className="hidden lg:flex items-center gap-1">
-              {[
-                { label: t.nav.system, href: '/system/' },
-                { label: t.nav.technology, href: '/technology/' },
-                { label: t.nav.pricing, href: '/pricing/' },
-                { label: t.nav.docs, href: '/blog/' },
-                { label: t.nav.insights, href: '/insights/' },
-                { label: t.nav.contact, href: '/contact/' },
-              ].map((item, i) => (
-                <Link
-                  key={i}
-                  href={item.href}
-                  className={`px-3 py-2 text-sm font-medium transition-colors rounded-lg flex items-center gap-1 ${
-                    item.href === '/insights/'
-                      ? 'text-ink bg-surface-muted'
-                      : 'text-ink-2 hover:text-ink hover:bg-surface-warm'
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-              {/* Solutions Dropdown */}
-              <div className="relative group">
-                <button className="px-3 py-2 text-ink-2 hover:text-ink text-sm font-medium transition-colors rounded-lg hover:bg-surface-warm flex items-center gap-1">
-                  {t.nav.solutions}
-                  <svg className="w-3.5 h-3.5 opacity-50 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                <div className="absolute top-full left-0 mt-1 w-64 bg-surface rounded-xl shadow-xl border border-divider-light py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                  {[
-                    { label: 'GEO Audit', href: '/dashboard/geo-audit' },
-                    { label: 'GEO Optimization', href: '/dashboard/geo-optimization' },
-                    { label: 'GEO Content', href: '/dashboard/geo-content' },
-                    { label: 'GEO Distribution', href: '/dashboard/geo-distribution' },
-                    { label: 'GEO Monitor', href: '/dashboard/geo-monitor' },
-                  ].map((item, i) => (
-                    <Link key={i} href={item.href} className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-2 hover:bg-surface-warm hover:text-ink transition-colors">
-                      <span className="font-medium">{item.label}</span>
-                    </Link>
-                  ))}
-                  <div className="border-t border-divider-light my-1" />
-                  <Link href="/roi-simulator" className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-2 hover:bg-surface-warm transition-colors">
-                    <span className="font-semibold">ROI Calculator <span className="text-[10px] bg-surface-muted text-ink-2 px-1.5 py-0.5 rounded-full ml-1">Free</span></span>
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <LanguageSwitch />
-              <Link
-                href="/login/"
-                className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-sm font-medium bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-lg transition-all shadow-soft hover:shadow-medium btn-shine"
-              >
-                Get Started
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <PublicNavbar activeHref="/insights/" />
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-16 overflow-hidden">

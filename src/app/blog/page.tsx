@@ -2,9 +2,9 @@
 
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
-import LanguageSwitch from '@/components/LanguageSwitch'
 import { LogoFull } from '@/components/Logo'
 import Footer from '@/components/Footer'
+import PublicNavbar from '@/components/PublicNavbar'
 import { BookOpen, ExternalLink } from 'lucide-react'
 
 // ── Shopify App Store URL ─────────────────────────────────────────────────────
@@ -66,52 +66,12 @@ export default function BlogPage() {
   const { t, lang } = useLanguage()
   const isZh = lang === 'zh'
 
-  const navLinks = [
-    { label: t.nav.system,     href: '/system/' },
-    { label: t.nav.technology, href: '/technology/' },
-    { label: t.nav.pricing,    href: '/pricing/' },
-    { label: t.nav.docs,       href: '/blog/' },
-    { label: t.nav.insights,   href: '/insights/' },
-    { label: t.nav.contact,    href: '/contact/' },
-  ]
 
   return (
     <div className="min-h-screen bg-canvas">
 
-      {/* ── Nav — matches insights/pricing pattern ─────────────────── */}
-      <nav className="sticky top-0 z-50 bg-canvas/80 backdrop-blur-md border-b border-divider-light">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center hover:opacity-90 transition-opacity">
-            <LogoFull width={130} height={43} />
-          </Link>
-
-          <div className="hidden lg:flex items-center gap-1">
-            {navLinks.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`px-3 py-2 text-sm font-medium transition-colors rounded-lg ${
-                  item.href === '/blog/'
-                    ? 'text-ink bg-surface-muted'
-                    : 'text-ink-2 hover:text-ink hover:bg-surface-warm'
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-3">
-            <LanguageSwitch />
-            <Link
-              href="/login/"
-              className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-sm font-medium bg-ink text-ink-inv rounded-lg transition-all shadow-soft hover:shadow-medium btn-shine"
-            >
-              {t.nav.getStarted}
-            </Link>
-          </div>
-        </div>
-      </nav>
+      {/* ── Nav ─────────────────────────────────────────────────────── */}
+      <PublicNavbar activeHref="/blog/" />
 
       {/* ── Hero ─────────────────────────────────────────────────────── */}
       <section className="relative pt-24 pb-14 overflow-hidden">

@@ -2,9 +2,9 @@
 
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
-import LanguageSwitch from '@/components/LanguageSwitch'
 import { LogoFull } from '@/components/Logo'
 import Footer from '@/components/Footer'
+import PublicNavbar from '@/components/PublicNavbar'
 import { useEffect, useState } from 'react'
 import {
   ShieldCheck, TrendingUp, PenTool, Globe,
@@ -21,14 +21,6 @@ export default function LandingPage() {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
-
-  const navLinks = [
-    { label: t.nav.system,     href: '/system' },
-    { label: t.nav.technology, href: '/technology' },
-    { label: t.nav.pricing,    href: '/pricing' },
-    { label: t.nav.docs,       href: '/blog' },
-    { label: t.nav.insights,   href: '/insights' },
-  ]
 
   const stats = [
     { value: t.hero.stats.trafficValue,   label: t.hero.stats.traffic,   change: t.hero.stats.trafficChange },
@@ -95,30 +87,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-canvas">
 
       {/* ── Navigation ───────────────────────────────────────────────────── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-5 md:px-8 lg:px-12 flex items-center justify-between h-16 bg-[rgba(250,245,236,0.88)] backdrop-blur-md border-b border-divider/50">
-        <Link href="/" className="flex items-center hover:opacity-90 transition-opacity">
-          <LogoFull width={140} height={45} />
-        </Link>
-
-        <div className="hidden lg:flex items-center gap-8">
-          {navLinks.map(link => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="text-[13.5px] text-ink-2 hover:text-ink transition-colors duration-150"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-3">
-          <LanguageSwitch />
-          <Link href="/login" className="btn-primary btn-primary-sm">
-            {t.nav.getStarted}
-          </Link>
-        </div>
-      </nav>
+      <PublicNavbar />
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="pt-28 md:pt-40 pb-16 md:pb-20 px-5 md:px-8 lg:px-12 max-w-marketing mx-auto text-center">
