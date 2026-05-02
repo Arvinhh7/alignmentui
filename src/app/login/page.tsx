@@ -391,8 +391,9 @@ function LoginPageInner() {
       <div className="hidden lg:flex lg:w-[480px] xl:w-[520px] relative flex-col justify-between p-10 overflow-hidden bg-ink text-ink-inv">
 
         <div className="relative z-10">
-          <Link href="/" className="inline-block hover:opacity-80 transition-opacity">
-            <Image src="/logo-white.svg" alt="Alignment AI" width={160} height={53} className="object-contain" priority />
+          <Link href="/" className="inline-flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+            <Image src="/logo-icon.png" alt="Alignment AI" width={32} height={32} className="object-contain brightness-0 invert" priority />
+            <span className="text-lg font-bold text-ink-inv tracking-tight">Alignment AI</span>
           </Link>
         </div>
 
