@@ -49,12 +49,15 @@ function LoginPageInner() {
     isAuthenticated, isLoading: authLoading, error: authError,
   } = useAuth()
 
-  const fromROI = searchParams.get('from') === 'roi'
-  const planParam = searchParams.get('plan')
-  const intervalParam = searchParams.get('interval')
-  const verifiedParam = searchParams.get('verified') === 'true'
-  const emailParam = searchParams.get('email') || ''
-  const forgotParam = searchParams.get('forgot') === 'true'
+  const fromROI    = searchParams.get('from') === 'roi'
+  const fromAudit  = searchParams.get('from') === 'audit'
+  const planParam  = searchParams.get('plan')
+  const intervalParam  = searchParams.get('interval')
+  const verifiedParam  = searchParams.get('verified') === 'true'
+  const emailParam     = searchParams.get('email') || ''
+  const domainParam    = searchParams.get('domain') || ''
+  const signupParam    = searchParams.get('signup') === 'true'
+  const forgotParam    = searchParams.get('forgot') === 'true'
 
   const [isSignUp, setIsSignUp] = useState(false)
   const [isForgotPassword, setIsForgotPassword] = useState(forgotParam)
@@ -89,6 +92,17 @@ function LoginPageInner() {
   }, [verifiedParam, emailParam])
 
   useEffect(() => { if (fromROI) setIsSignUp(true) }, [fromROI])
+
+  // Auto-fill email + switch to signup when arriving from the audit tool or any signup link
+  useEffect(() => {
+    if ((fromAudit || signupParam) && !verifiedParam) {
+      setIsSignUp(true)
+      if (emailParam) {
+        setEmail(decodeURIComponent(emailParam))
+        setShowEmailForm(true)
+      }
+    }
+  }, [fromAudit, signupParam, verifiedParam, emailParam])
 
   useEffect(() => {
     if (authError) { setError(authError); setIsSubmitting(false) }
@@ -133,23 +147,34 @@ function LoginPageInner() {
       return
     }
 
-    // After email verification, send new users to pricing (they have no subscription yet)
+    // After email verification:
+    // — audit users go to dashboard to see their report
+    // — everyone else goes to pricing to choose a plan
     if (verifiedParam) {
-      window.location.href = '/pricing'
+      window.location.href = fromAudit ? '/dashboard/geo-audit' : '/pricing'
       return
     }
 
     window.location.href = '/dashboard/geo-audit'
-  }, [authLoading, isAuthenticated, user, planParam, intervalParam, verifiedParam])
+  }, [authLoading, isAuthenticated, user, planParam, intervalParam, verifiedParam, fromAudit])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null); setSuccessMessage(null); setAlreadyRegisteredMsg(false); setIsSubmitting(true)
     try {
       if (isSignUp) {
-        const redirectTo = typeof window !== 'undefined'
-          ? `${window.location.origin}/login?verified=true&email=${encodeURIComponent(email)}`
-          : undefined
+        // Build the verification-email callback URL, preserving any flow context
+        let redirectTo: string | undefined
+        if (typeof window !== 'undefined') {
+          const cbParams = new URLSearchParams({ verified: 'true', email })
+          if (fromAudit) cbParams.set('from', 'audit')
+          else if (fromROI) cbParams.set('from', 'roi')
+          if (planParam) {
+            cbParams.set('plan', planParam)
+            if (intervalParam) cbParams.set('interval', intervalParam)
+          }
+          redirectTo = `${window.location.origin}/login?${cbParams.toString()}`
+        }
         const result = await signUp(email, password, { company_name: companyName, full_name: fullName }, redirectTo)
 
         if (result === 'already_registered') {
@@ -171,7 +196,9 @@ function LoginPageInner() {
           if (rememberMe) localStorage.setItem(REMEMBER_KEY, 'true')
           else sessionStorage.setItem(REMEMBER_KEY, 'true')
           gaEvent('sign_up', { method: 'email' })
-          if (fromROI) {
+          if (fromAudit) {
+            window.location.href = '/dashboard/geo-audit'
+          } else if (fromROI) {
             window.location.href = '/roi-simulator?unlock=true'
           } else if (planParam && planParam !== 'enterprise') {
             setIsSubmitting(false)
@@ -252,7 +279,9 @@ function LoginPageInner() {
     setError(null); setOauthLoading(provider)
     try {
       let redirectTo: string
-      if (fromROI) {
+      if (fromAudit) {
+        redirectTo = `${window.location.origin}/dashboard/geo-audit`
+      } else if (fromROI) {
         redirectTo = `${window.location.origin}/roi-simulator?unlock=true`
       } else if (planParam) {
         const params = new URLSearchParams({ plan: planParam })
@@ -316,7 +345,8 @@ function LoginPageInner() {
 
           <div className="bg-caution-bg border border-caution-bg rounded-xl p-4 mb-6 text-left">
             <p className="text-caution text-xs leading-relaxed">
-              <strong>Next step:</strong> Click the link in your email to verify your account. After verification, you&apos;ll be redirected to sign in and choose your plan.
+              <strong>Next step:</strong> Click the link in your email to verify your account. After verification, you&apos;ll be redirected to sign in and{' '}
+              {fromAudit ? 'access your full audit report in the dashboard.' : 'choose your plan.'}
             </p>
           </div>
 
@@ -437,6 +467,7 @@ function LoginPageInner() {
               </h1>
               <p className="text-ink-3 text-sm">
                 {isForgotPassword ? "Enter your email and we'll send you a reset link"
+                  : fromAudit ? 'Create a free account to unlock your full audit report'
                   : fromROI ? 'Sign up for free to unlock your ROI results'
                   : isSignUp ? 'Start your 14-day free trial — no credit card required'
                   : t.login.signInTo}
@@ -449,8 +480,27 @@ function LoginPageInner() {
                 <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium">Email verified!</p>
-                  <p className="text-xs text-sage mt-0.5">Sign in below to choose your plan and get started.</p>
+                  <p className="text-xs text-sage mt-0.5">
+                    {fromAudit
+                      ? 'Sign in below to access your full audit report in the dashboard.'
+                      : 'Sign in below to choose your plan and get started.'}
+                  </p>
                 </div>
+              </div>
+            )}
+
+            {fromAudit && !isForgotPassword && (
+              <div className="mb-6 flex items-center gap-3 px-4 py-3 bg-surface-warm border border-divider-light rounded-xl">
+                <div className="flex-shrink-0 w-8 h-8 bg-ink rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-ink-inv" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <p className="text-sm text-ink-2">
+                  Your AI Visibility audit is ready!
+                  {domainParam && <span className="font-medium"> ({domainParam})</span>}
+                  {' '}Create a free account to unlock the full report in your dashboard.
+                </p>
               </div>
             )}
 

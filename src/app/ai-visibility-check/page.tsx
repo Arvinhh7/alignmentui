@@ -766,18 +766,22 @@ export default function AIVisibilityCheckPage() {
     setEmailError(null)
     setSubmittingEmail(true)
 
-    try {
-      await fetch(LEAD_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, domain: result?.domain ?? '' }),
-      })
-    } catch {
-      // non-fatal — proceed to L2 regardless
-    }
+    // Fire-and-forget lead capture — don't block the redirect
+    fetch(LEAD_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, domain: result?.domain ?? '' }),
+    }).catch(() => {})
 
-    setSubmittingEmail(false)
-    setPhase('l2')
+    // Redirect to sign-up — user gets a real account and can access the full
+    // dashboard report at /dashboard/geo-audit after registration.
+    const params = new URLSearchParams({
+      signup: 'true',
+      email: email,
+      from: 'audit',
+    })
+    if (result?.domain) params.set('domain', result.domain)
+    window.location.href = `/login?${params.toString()}`
   }
 
   function reset() {
