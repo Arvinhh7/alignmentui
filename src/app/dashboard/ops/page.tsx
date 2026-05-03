@@ -303,13 +303,13 @@ function OpsListView({ role, router }: { role: string | null; router: ReturnType
 
   useEffect(() => { load() }, [load])
 
-  // Guard: admin only
-  if (role && role !== 'admin') {
+  // Guard: admin or staff (staff sidebar filtering already gates by permission)
+  if (role && role !== 'admin' && role !== 'staff') {
     return (
       <div className="min-h-screen bg-canvas flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="w-12 h-12 text-red-soft mx-auto mb-3" />
-          <p className="text-ink-2">Admin access required</p>
+          <p className="text-ink-2">Internal access required</p>
         </div>
       </div>
     )

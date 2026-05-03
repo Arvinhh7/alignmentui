@@ -1319,10 +1319,10 @@ export default function ProjectDetailPage({ projectId: projectIdProp }: { projec
 
   useEffect(() => { load() }, [load])
 
-  if (role && role !== 'admin') {
+  if (role && role !== 'admin' && role !== 'staff') {
     return (
       <div className="min-h-screen bg-canvas flex items-center justify-center">
-        <p className="text-ink-3">Admin access required</p>
+        <p className="text-ink-3">Internal access required</p>
       </div>
     )
   }

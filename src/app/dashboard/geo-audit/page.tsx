@@ -1371,7 +1371,7 @@ function Layer1CTA({ breakdown, isAdmin, auditUrl }: { breakdown: ZoneBreakdown;
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-sage" />
-            <span className="text-sm font-semibold text-sage">Admin Mode — Full Access</span>
+            <span className="text-sm font-semibold text-sage">Internal — Full Access</span>
           </div>
           {totalFail > 0 && (
             <button
@@ -1415,7 +1415,7 @@ function Layer1CTA({ breakdown, isAdmin, auditUrl }: { breakdown: ZoneBreakdown;
           <Building2 className="w-5 h-5 text-caution" />
           <span className="text-xs font-bold text-caution uppercase tracking-wider">Layer 1 · AI Visibility Infrastructure</span>
         </div>
-        <h3 className="text-xl font-bold text-white">一次性改造，长期受益</h3>
+        <h3 className="text-xl font-bold text-white">One-time fix, long-term gain</h3>
         <p className="text-sm text-white/60 mt-1">
           Your site has {totalFail} issues across {breakdown.green_fail} green, {breakdown.yellow_fail} yellow, and {breakdown.red_fail} red zone checks.
         </p>
@@ -1426,7 +1426,7 @@ function Layer1CTA({ breakdown, isAdmin, auditUrl }: { breakdown: ZoneBreakdown;
         <div className="bg-white/5 rounded-xl p-4 text-center">
           <div className="flex items-center justify-center gap-1.5 mb-1">
             <Timer className="w-4 h-4 text-white/60" />
-            <p className="text-xs text-white/60 font-medium">DIY 修复估算</p>
+            <p className="text-xs text-white/60 font-medium">DIY Fix Estimate</p>
           </div>
           <p className="text-2xl font-bold text-white">{hoursLow}–{hoursHigh}h</p>
           <p className="text-xs text-white/40 mt-1">≈ {weeksLow}–{weeksHigh} weeks solo</p>
@@ -1434,18 +1434,18 @@ function Layer1CTA({ breakdown, isAdmin, auditUrl }: { breakdown: ZoneBreakdown;
         <div className="bg-white/5 rounded-xl p-4 text-center">
           <div className="flex items-center justify-center gap-1.5 mb-1">
             <Zap className="w-4 h-4 text-caution" />
-            <p className="text-xs text-white/60 font-medium">Alignment 专家</p>
+            <p className="text-xs text-white/60 font-medium">Alignment Experts</p>
           </div>
           <p className="text-2xl font-bold text-caution">6–8 weeks</p>
-          <p className="text-xs text-white/40 mt-1">全栈交付 · 验收保障</p>
+          <p className="text-xs text-white/40 mt-1">Full-stack delivery · QA included</p>
         </div>
         <div className="bg-white/5 rounded-xl p-4 text-center">
           <div className="flex items-center justify-center gap-1.5 mb-1">
             <Bot className="w-4 h-4 text-white/60" />
-            <p className="text-xs text-white/60 font-medium">Red Zone 操作</p>
+            <p className="text-xs text-white/60 font-medium">Red Zone Issues</p>
           </div>
           <p className="text-2xl font-bold text-red-soft">{breakdown.red_fail}</p>
-          <p className="text-xs text-white/40 mt-1">需专家介入，不能自行操作</p>
+          <p className="text-xs text-white/40 mt-1">Expert required — cannot DIY</p>
         </div>
       </div>
 
@@ -1453,17 +1453,17 @@ function Layer1CTA({ breakdown, isAdmin, auditUrl }: { breakdown: ZoneBreakdown;
       <div className="px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <p className="text-sm text-white/80">
-            黄区和红区修复需要 GEO 专业知识。错误修改可能导致 <span className="text-red-soft font-semibold">Google 惩罚或网站崩溃</span>。
+            Yellow and Red zones require GEO expertise. Wrong fixes may trigger <span className="text-red-soft font-semibold">Google penalties or site crashes</span>.
           </p>
           <div className="flex items-center gap-3 mt-2 flex-wrap">
             {breakdown.yellow_fail > 0 && (
               <span className="flex items-center gap-1 text-xs text-caution">
-                <Wrench className="w-3 h-3" />{breakdown.yellow_fail} Yellow需工程师
+                <Wrench className="w-3 h-3" />{breakdown.yellow_fail} Yellow need engineer
               </span>
             )}
             {breakdown.red_fail > 0 && (
               <span className="flex items-center gap-1 text-xs text-red-soft">
-                <AlertOctagon className="w-3 h-3" />{breakdown.red_fail} Red需人工
+                <AlertOctagon className="w-3 h-3" />{breakdown.red_fail} Red need manual fix
               </span>
             )}
           </div>
@@ -1482,9 +1482,9 @@ function Layer1CTA({ breakdown, isAdmin, auditUrl }: { breakdown: ZoneBreakdown;
             href="/pricing"
             className="px-6 py-3 bg-surface hover:bg-surface-muted text-ink font-bold rounded-xl transition-all text-sm whitespace-nowrap text-center shadow-sm border border-divider"
           >
-            查看 Layer 1 服务 — 从 $2,999 起
+            View Layer 1 Service — from $2,999
           </a>
-          <p className="text-[10px] text-white/40 text-center">一次性 · 6–8 周交付 · 30天效果追踪</p>
+          <p className="text-[10px] text-white/40 text-center">One-time · 6–8 week delivery · 30-day tracking</p>
         </div>
       </div>
     </div>
@@ -1901,7 +1901,10 @@ export default function GEOAuditPage() {
   const { t } = useLanguage()
   const { user, role } = useAuth()
   const { plan } = useSubscription(user?.id, role)
-  const isAdmin = role === 'admin'
+  // Both admin and staff are internal users with full audit access.
+  // Sidebar filtering ensures staff only reach pages they have permission for;
+  // once here, their experience is identical to admin (no upsells, no locks).
+  const isAdmin = role === 'admin' || role === 'staff'
   const [url, setUrl] = useState('')
   const [isAuditing, setIsAuditing] = useState(false)
   const [auditResult, setAuditResult] = useState<AuditResult | null>(null)
