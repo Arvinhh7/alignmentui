@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react'
 import Header from '@/components/Header'
 import { useAuth } from '@/hooks/useAuth'
 import { useLanguage } from '@/lib/LanguageContext'
+import FeatureLink from '@/components/FeatureLink'
 import {
   api,
   notifyCreditUsed,
@@ -1430,9 +1431,9 @@ export default function GEODistributionPage() {
                         </p>
                       )}
                     </div>
-                    <a href="/dashboard/geo-monitor" className="text-xs px-2.5 py-1 bg-sage-bg text-sage rounded-full font-medium flex items-center gap-1 hover:bg-surface-warm transition-colors">
+                    <FeatureLink feature="geo-monitor" className="text-xs px-2.5 py-1 bg-sage-bg text-sage rounded-full font-medium flex items-center gap-1 hover:bg-surface-warm transition-colors">
                       <CircleDot className="w-3 h-3" /> View in Monitor &rarr;
-                    </a>
+                    </FeatureLink>
                   </div>
                 )}
 
@@ -1455,16 +1456,16 @@ export default function GEODistributionPage() {
 
                 {/* Cross-Module CTAs */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <a href="/dashboard/geo-content"
+                  <FeatureLink feature="geo-content"
                     className="flex items-center gap-3 px-4 py-3 bg-surface hover:bg-surface-warm border border-divider-light rounded-xl transition-colors">
                     <div className="w-8 h-8 rounded-lg bg-surface-warm flex items-center justify-center text-ink-2"><FileText className="w-4 h-4" /></div>
                     <div><p className="text-sm font-medium text-ink">Create Content</p><p className="text-[10px] text-ink-3">Generate articles in GEO Content</p></div>
-                  </a>
-                  <a href="/dashboard/geo-monitor"
+                  </FeatureLink>
+                  <FeatureLink feature="geo-monitor"
                     className="flex items-center gap-3 px-4 py-3 bg-surface hover:bg-surface-warm border border-divider-light rounded-xl transition-colors">
                     <div className="w-8 h-8 rounded-lg bg-surface-warm flex items-center justify-center text-ink-2"><BarChart3 className="w-4 h-4" /></div>
                     <div><p className="text-sm font-medium text-ink">Track in Monitor</p><p className="text-[10px] text-ink-3">Verify AI visibility improvements</p></div>
-                  </a>
+                  </FeatureLink>
                 </div>
 
                 {/* Channel Recommendations */}

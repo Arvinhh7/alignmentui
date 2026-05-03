@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useSubscription } from '@/hooks/useSubscription'
 import SubscriptionBanner from '@/components/SubscriptionBanner'
 import { ToastProvider } from '@/components/Toast'
+import FeatureGate from '@/components/FeatureGate'
 import { useLanguage } from '@/lib/LanguageContext'
 import { getSupabase } from '@/lib/supabase'
 import { useScrollRestoration } from '@/hooks/useScrollRestoration'
@@ -157,7 +158,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           style={{ '--sidebar-w': `${sidebarW}px` } as React.CSSProperties}
         >
           <SubscriptionBanner lang={lang} />
-          {children}
+          <FeatureGate>{children}</FeatureGate>
         </main>
       </div>
     </ToastProvider>

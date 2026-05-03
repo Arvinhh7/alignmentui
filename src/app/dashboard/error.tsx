@@ -66,7 +66,7 @@ export default function DashboardError({
               Try Again
             </button>
             <button
-              onClick={() => { window.location.href = '/dashboard/geo-monitor' }}
+              onClick={() => { window.location.href = '/dashboard' }}
               className="flex-1 px-4 py-2.5 border border-divider text-ink-2 text-sm font-medium rounded-xl hover:bg-surface-warm transition-colors"
             >
               Back to Dashboard

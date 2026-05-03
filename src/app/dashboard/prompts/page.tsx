@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import Link from 'next/link'
+import FeatureLink from '@/components/FeatureLink'
 import { useAuth } from '@/hooks/useAuth'
 import { api, MonitorPrompt, CreditBalance } from '@/lib/api'
 import { useToast } from '@/components/Toast'
@@ -648,13 +648,13 @@ export default function PromptsPage() {
             <p className="text-[12px] text-ink-3 mb-4 leading-relaxed">
               {activeCount} active prompt{activeCount !== 1 ? 's' : ''} are ready. Run a scan to populate visibility, sentiment, and competitor data.
             </p>
-            <Link
-              href="/dashboard/geo-monitor"
+            <FeatureLink
+              feature="geo-monitor"
               className="flex items-center gap-2 bg-ink-inv hover:bg-surface-warm text-ink font-semibold text-[13px] px-4 py-2 rounded-xl transition-colors w-fit"
             >
               <ArrowRight className="w-3.5 h-3.5" />
               Go to Monitor →
-            </Link>
+            </FeatureLink>
           </div>
         </div>
       </div>

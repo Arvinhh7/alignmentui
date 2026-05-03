@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import FeatureLink from '@/components/FeatureLink'
+import type { FeatureKey } from '@/lib/featurePermissions'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useAuth } from '@/hooks/useAuth'
 import {
@@ -117,9 +119,9 @@ function SovBarUI({ entries }: { entries: SovEntry[] }) {
           <h2 className="text-[15px] font-semibold text-ink">Share of Voice</h2>
           <p className="text-[11px] text-ink-3 mt-0.5">AI mentions compared to competitors</p>
         </div>
-        <Link href="/dashboard/geo-monitor" className="flex items-center gap-1 text-[12px] text-ink-2 font-semibold hover:text-ink transition-colors">
+        <FeatureLink feature="geo-monitor" className="flex items-center gap-1 text-[12px] text-ink-2 font-semibold hover:text-ink transition-colors">
           Full analysis <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
+        </FeatureLink>
       </div>
       {/* Stacked bar */}
       <div className="flex h-8 rounded-xl overflow-hidden mb-4 gap-px">
@@ -259,18 +261,19 @@ function KpiCard({
 
 // ─── Quick Action CTA ─────────────────────────────────────────────────────────
 function ActionCard({
-  icon: Icon, iconColor, label, description, href, badge,
+  icon: Icon, iconColor, label, description, feature, badge,
 }: {
   icon: React.ElementType
   iconColor: string
   label: string
   description?: string
-  href: string
+  /** Destination feature's permission key (also resolves the path). */
+  feature: FeatureKey
   badge?: string
 }) {
   return (
-    <Link
-      href={href}
+    <FeatureLink
+      feature={feature}
       className="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-warm transition-colors group border border-transparent hover:border-divider-light"
     >
       <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${iconColor}`}>
@@ -286,7 +289,7 @@ function ActionCard({
         {description && <p className="text-[11px] text-ink-3 truncate">{description}</p>}
       </div>
       <ChevronRight className="w-4 h-4 text-ink-3 group-hover:text-ink transition-colors flex-shrink-0" />
-    </Link>
+    </FeatureLink>
   )
 }
 
@@ -553,9 +556,9 @@ export default function OverviewPage() {
                 <p className="text-[12px] text-ink-2 leading-relaxed mb-3">
                   Analyze your website's AI-readiness score without running a scan. Identify structured data gaps and citation opportunities.
                 </p>
-                <Link href="/dashboard/geo-audit" className="text-[12px] font-semibold text-ink hover:text-ink-2 flex items-center gap-1">
+                <FeatureLink feature="geo-audit" className="text-[12px] font-semibold text-ink hover:text-ink-2 flex items-center gap-1">
                   Run GEO Audit <ArrowRight className="w-3 h-3" />
-                </Link>
+                </FeatureLink>
               </div>
             </div>
             <div className="bg-surface-warm border border-divider-light rounded-2xl p-5 flex items-start gap-3">
@@ -565,9 +568,9 @@ export default function OverviewPage() {
                 <p className="text-[12px] text-ink-2 leading-relaxed mb-3">
                   Automate GEO analysis, generate AI-cited content, and monitor competitor visibility — all from preset agent templates.
                 </p>
-                <Link href="/dashboard/agents" className="text-[12px] font-semibold text-ink hover:text-ink-2 flex items-center gap-1">
+                <FeatureLink feature="agents" className="text-[12px] font-semibold text-ink hover:text-ink-2 flex items-center gap-1">
                   Browse Agents <ArrowRight className="w-3 h-3" />
-                </Link>
+                </FeatureLink>
               </div>
             </div>
           </div>
@@ -602,13 +605,13 @@ export default function OverviewPage() {
                 <span>Last scan: {lastScannedLabel}</span>
               </div>
             )}
-            <Link
-              href="/dashboard/geo-monitor"
+            <FeatureLink
+              feature="geo-monitor"
               className="flex items-center gap-1.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-[13px] font-semibold px-3.5 py-2 rounded-xl transition-colors"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               New Scan
-            </Link>
+            </FeatureLink>
           </div>
         </div>
 
@@ -709,7 +712,7 @@ export default function OverviewPage() {
                     <AlertTriangle className="w-3.5 h-3.5 text-caution flex-shrink-0" />
                     <span className="text-[11px] text-ink-2">
                       No audit yet —{' '}
-                      <Link href="/dashboard/geo-audit" className="font-semibold text-ink hover:text-ink-2">run GEO Audit</Link>
+                      <FeatureLink feature="geo-audit" className="font-semibold text-ink hover:text-ink-2">run GEO Audit</FeatureLink>
                     </span>
                   </div>
                 )}
@@ -728,19 +731,19 @@ export default function OverviewPage() {
                   iconColor="bg-red-soft-bg text-red-soft"
                   label={t.dashboard.fixIssues}
                   description={weakestDim ? weakestDim.name : 'AI-readiness score'}
-                  href="/dashboard/geo-audit"
+                  feature="geo-audit"
                 />
                 <ActionCard
                   icon={PenTool}
                   iconColor="bg-surface-muted text-ink-2"
                   label={t.dashboard.createContent}
-                  href="/dashboard/geo-content"
+                  feature="geo-content"
                 />
                 <ActionCard
                   icon={Bot}
                   iconColor="bg-surface-muted text-ink-2"
                   label={t.dashboard.runAgent}
-                  href="/dashboard/agents"
+                  feature="agents"
                   badge="NEW"
                 />
                 <ActionCard
@@ -748,7 +751,7 @@ export default function OverviewPage() {
                   iconColor="bg-surface-warm text-ink-2"
                   label={t.dashboard.managePrompts}
                   description={promptsUsed > 0 ? `${promptsUsed} prompts configured` : 'Add prompts'}
-                  href="/dashboard/prompts"
+                  feature="prompts"
                 />
               </div>
             </div>
@@ -801,13 +804,13 @@ export default function OverviewPage() {
                 <h2 className="text-[15px] font-bold text-ink">{t.dashboard.topicPerformance}</h2>
                 <p className="text-[11px] text-ink-3 mt-0.5">Top brands and citation sources by topic</p>
               </div>
-              <Link
-                href="/dashboard/geo-monitor"
+              <FeatureLink
+                feature="geo-monitor"
                 className="flex items-center gap-1 text-[12px] text-ink-2 font-semibold hover:text-ink transition-colors"
               >
                 {t.dashboard.viewAllTopics}
                 <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+              </FeatureLink>
             </div>
 
             {topicRows.length > 0 ? (
@@ -864,12 +867,12 @@ export default function OverviewPage() {
               <div className="flex flex-col items-center justify-center py-12 text-center px-6">
                 <BarChart3 className="w-10 h-10 text-ink-3 mb-3" />
                 <p className="text-[13px] text-ink-3 mb-4">No topic data yet. Run a scan to see performance by topic.</p>
-                <Link
-                  href="/dashboard/geo-monitor"
+                <FeatureLink
+                  feature="geo-monitor"
                   className="text-[12px] font-semibold text-ink-2 hover:text-ink flex items-center gap-1"
                 >
                   Go to Monitor <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
+                </FeatureLink>
               </div>
             )}
           </div>
@@ -949,12 +952,12 @@ export default function OverviewPage() {
                     <p className="text-[18px] font-bold text-ink stat-value">{scanResult.mentions_found}</p>
                   </div>
                 </div>
-                <Link
-                  href="/dashboard/geo-monitor"
+                <FeatureLink
+                  feature="geo-monitor"
                   className="mt-3 flex items-center justify-center gap-1.5 w-full py-2 bg-surface-warm hover:bg-surface-muted text-[12px] font-semibold text-ink-2 rounded-xl transition-colors"
                 >
                   View full report <TrendingUp className="w-3.5 h-3.5" />
-                </Link>
+                </FeatureLink>
               </div>
             )}
           </div>

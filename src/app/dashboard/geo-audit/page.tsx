@@ -5,7 +5,8 @@ import Header from '@/components/Header'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useAuth } from '@/hooks/useAuth'
 import { useSubscription } from '@/hooks/useSubscription'
-import { useToast } from '@/components/Toast'
+import { useFeatureNav } from '@/hooks/useFeatureNav'
+import type { FeatureKey } from '@/lib/featurePermissions'
 import {
   api, AuditResult, DimensionScore, ZoneCheck, ZoneBreakdown, notifyCreditUsed,
   fixApi, FixPlan, FixResult, FixZone, GenerateFixRequest, RollbackResult,
@@ -1354,7 +1355,7 @@ function ZonePanel({
 }
 
 // ─── Fix Effort Estimator + Layer 1 CTA ────────────────
-type NavToFeatureFn = (permKey: string, featureName: string, href: string, preFn?: () => void) => void
+type NavToFeatureFn = (key: FeatureKey, href?: string, preFn?: () => void) => void
 
 function Layer1CTA({ breakdown, isAdmin, auditUrl, onNavToFeature }: {
   breakdown: ZoneBreakdown
@@ -1369,7 +1370,7 @@ function Layer1CTA({ breakdown, isAdmin, auditUrl, onNavToFeature }: {
   const weeksHigh = Math.max(1, Math.ceil(hoursHigh / 40))
 
   const handleFixClick = () => {
-    onNavToFeature('geo-optimization', 'GEO Optimize', buildOptUrl(auditUrl), () => {
+    onNavToFeature('geo-optimization', buildOptUrl(auditUrl), () => {
       storeAuditContext(auditUrl, breakdown)
     })
   }
@@ -1908,31 +1909,15 @@ function getDimensionConfig(t: ReturnType<typeof useLanguage>['t']) {
 // ─── Main Page ─────────────────────────────────────────
 export default function GEOAuditPage() {
   const { t } = useLanguage()
-  const { user, role, permissions } = useAuth()
-  const { toast } = useToast()
+  const { user, role } = useAuth()
   const { plan } = useSubscription(user?.id, role)
   // Both admin and staff are internal users with full audit access.
   // Sidebar filtering ensures staff only reach pages they have permission for;
   // once here, their experience is identical to admin (no upsells, no locks).
   const isAdmin = role === 'admin' || role === 'staff'
 
-  /**
-   * Permission-guarded cross-page navigation.
-   * For staff: checks that the destination feature is enabled by admin.
-   * If not → shows a toast and stays on the current page.
-   * For all other roles: navigates unconditionally.
-   */
-  const navToFeature: NavToFeatureFn = (permKey, featureName, href, preFn) => {
-    if (role === 'staff' && !permissions[permKey]) {
-      toast.warning(
-        'Additional permission required',
-        `Access to ${featureName} is not enabled for your account. Please contact your administrator.`
-      )
-      return
-    }
-    preFn?.()
-    window.location.href = href
-  }
+  // Permission-guarded cross-feature navigation (for staff sub-page CTAs).
+  const { navTo: navToFeature } = useFeatureNav()
   const [url, setUrl] = useState('')
   const [isAuditing, setIsAuditing] = useState(false)
   const [auditResult, setAuditResult] = useState<AuditResult | null>(null)
@@ -2330,7 +2315,7 @@ export default function GEOAuditPage() {
                 {/* Optimize Now → geo-optimization */}
                 <button
                   onClick={() => navToFeature(
-                    'geo-optimization', 'GEO Optimize',
+                    'geo-optimization',
                     buildOptUrl(auditResult.url),
                     () => { if (auditResult.zone_breakdown) storeAuditContext(auditResult.url, auditResult.zone_breakdown) }
                   )}
@@ -2349,7 +2334,7 @@ export default function GEOAuditPage() {
                 </button>
                 {/* Create Content → geo-content */}
                 <button
-                  onClick={() => navToFeature('geo-content', 'GEO Content', '/dashboard/geo-content')}
+                  onClick={() => navToFeature('geo-content')}
                   className="flex items-center gap-3 px-4 py-3.5 bg-surface hover:bg-surface-warm border border-divider-light rounded-xl transition-colors group text-left w-full">
                   <div className="w-9 h-9 rounded-lg bg-surface-warm flex items-center justify-center text-ink-2 group-hover:bg-surface-muted transition-colors">
                     <FileText className="w-5 h-5" />
@@ -2361,7 +2346,7 @@ export default function GEOAuditPage() {
                 </button>
                 {/* Monitor Visibility → geo-monitor */}
                 <button
-                  onClick={() => navToFeature('geo-monitor', 'Answer Engine Insights', '/dashboard/geo-monitor')}
+                  onClick={() => navToFeature('geo-monitor')}
                   className="flex items-center gap-3 px-4 py-3.5 bg-surface hover:bg-surface-warm border border-divider-light rounded-xl transition-colors group text-left w-full">
                   <div className="w-9 h-9 rounded-lg bg-surface-warm flex items-center justify-center text-ink-2 group-hover:bg-surface-muted transition-colors">
                     <BarChart3 className="w-5 h-5" />

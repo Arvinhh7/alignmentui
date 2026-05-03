@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Header from '@/components/Header'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useAuth } from '@/hooks/useAuth'
+import FeatureLink from '@/components/FeatureLink'
 import { api, ContentGenerateResult, ContentValidateResult, ContentTemplate, notifyCreditUsed } from '@/lib/api'
 import {
   FileText, Sparkles, Copy, Download, RefreshCw,
@@ -834,10 +835,11 @@ function GEOContentPageInner() {
                               className="block ml-auto px-3 py-1.5 bg-surface border border-divider-light rounded-lg text-xs font-medium text-ink-2 hover:bg-surface-warm transition-colors w-[120px]">
                               Reuse Structure
                             </button>
-                            <a href="/dashboard/geo-distribution"
+                            <FeatureLink
+                              feature="geo-distribution"
                               className="block ml-auto px-3 py-1.5 bg-sage-bg border border-sage/30 rounded-lg text-xs font-medium text-sage hover:bg-sage-bg transition-colors w-[120px] text-center">
                               Add to Queue
-                            </a>
+                            </FeatureLink>
                           </td>
                         </tr>
                       )

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import FeatureLink from '@/components/FeatureLink'
 import {
   Bot, Plus, Calendar, Search,
   Sparkles, FileText, BarChart3, MessageSquare,
@@ -224,13 +225,13 @@ function AgentComingSoonModal({ agentId, onClose }: { agentId: string; onClose: 
           >
             Close
           </button>
-          <Link
-            href="/dashboard/geo-monitor"
+          <FeatureLink
+            feature="geo-monitor"
             className="flex-1 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv font-semibold text-sm rounded-xl transition-colors text-center"
-            onClick={onClose}
+            onPreNav={onClose}
           >
             Run a Scan First →
-          </Link>
+          </FeatureLink>
         </div>
       </div>
     </div>
