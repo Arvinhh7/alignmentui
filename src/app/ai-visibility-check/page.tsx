@@ -16,11 +16,11 @@ const AUDIT_API_KEY =
   'pk_plugin_alignment_v1_c0ebd21b5cc99b1e44fdd498bc3e2d09'
 
 const DIM_LABELS: Record<string, string> = {
-  d1: 'AI Discovery',
+  d1: 'AI Discoverability',
   d2: 'Semantic Structure',
   d3: 'Content Citability',
-  d4: 'Risk Boundary',
-  d5: 'Reusability',
+  d4: 'Risk Boundary & Trust',
+  d5: 'Reusability & Memory',
 }
 
 const LOADING_STEPS = [

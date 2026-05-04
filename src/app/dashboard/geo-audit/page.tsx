@@ -307,11 +307,11 @@ function RadarChart({ scores, size = 220 }: { scores: number[]; size?: number })
 
 // ─── Scanning Progress Panel ────────────────────────────
 const SCAN_STEPS = [
-  { icon: Shield, label: 'AI Discovery', desc: 'Checking llms.txt, agent.json & AI access...' },
+  { icon: Shield, label: 'AI Discoverability', desc: 'Checking llms.txt, agent.json & AI access...' },
   { icon: Layers, label: 'Semantic Structure', desc: 'Analyzing headings, paragraphs & sections...' },
   { icon: FileText, label: 'Content Citability', desc: 'Evaluating fact units & objectivity...' },
-  { icon: AlertOctagon, label: 'Risk Boundary', desc: 'Reviewing claims & safety signals...' },
-  { icon: Brain, label: 'Reusability', desc: 'Assessing FAQ, definitions & memory signals...' },
+  { icon: AlertOctagon, label: 'Risk Boundary & Trust', desc: 'Reviewing claims & safety signals...' },
+  { icon: Brain, label: 'Reusability & Memory', desc: 'Assessing FAQ, definitions & memory signals...' },
 ]
 
 function ScanProgressPanel({ url }: { url: string }) {
@@ -454,11 +454,11 @@ function ScanProgressPanel({ url }: { url: string }) {
 // ─── Quick Insight Card ──────────────────────────────────
 function InsightCards({ result }: { result: AuditResult }) {
   const dimEntries: { key: string; label: string; icon: React.ReactNode; score: number }[] = [
-    { key: 'ai_accessibility', label: 'AI Discovery', icon: <Shield className="w-5 h-5" />, score: result.ai_accessibility.score },
+    { key: 'ai_accessibility', label: 'AI Discoverability', icon: <Shield className="w-5 h-5" />, score: result.ai_accessibility.score },
     { key: 'semantic_structure', label: 'Semantic Structure', icon: <Layers className="w-5 h-5" />, score: result.semantic_structure.score },
     { key: 'content_citability', label: 'Content Citability', icon: <FileText className="w-5 h-5" />, score: result.content_citability.score },
-    { key: 'risk_boundary', label: 'Risk Boundary', icon: <AlertOctagon className="w-5 h-5" />, score: result.risk_boundary.score },
-    { key: 'reusability', label: 'Reusability', icon: <Brain className="w-5 h-5" />, score: result.reusability.score },
+    { key: 'risk_boundary', label: 'Risk Boundary & Trust', icon: <AlertOctagon className="w-5 h-5" />, score: result.risk_boundary.score },
+    { key: 'reusability', label: 'Reusability & Memory', icon: <Brain className="w-5 h-5" />, score: result.reusability.score },
   ]
 
   const sorted = [...dimEntries].sort((a, b) => b.score - a.score)
@@ -1586,7 +1586,7 @@ function ZoneBreakdownSection({
 const DIMENSION_MAP = [
   {
     key: 'ai_accessibility' as const, prefix: 'D1',
-    Icon: Shield, label: 'AI Discovery',
+    Icon: Shield, label: 'AI Discoverability',
     colorSet: {
       iconBg: 'bg-surface-warm', iconText: 'text-ink-2',
       bar: 'bg-ink-2', badge: 'bg-surface-warm text-ink-2',
@@ -1613,7 +1613,7 @@ const DIMENSION_MAP = [
   },
   {
     key: 'risk_boundary' as const, prefix: 'D4',
-    Icon: AlertOctagon, label: 'Risk Boundary',
+    Icon: AlertOctagon, label: 'Risk Boundary & Trust',
     colorSet: {
       iconBg: 'bg-red-soft-bg', iconText: 'text-red-soft',
       bar: 'bg-red-soft', badge: 'bg-red-soft-bg text-red-soft',
@@ -1622,7 +1622,7 @@ const DIMENSION_MAP = [
   },
   {
     key: 'reusability' as const, prefix: 'D5',
-    Icon: Brain, label: 'Reusability',
+    Icon: Brain, label: 'Reusability & Memory',
     colorSet: {
       iconBg: 'bg-sage-bg', iconText: 'text-sage',
       bar: 'bg-sage', badge: 'bg-sage-bg text-sage',
@@ -2384,11 +2384,11 @@ export default function GEOAuditPage() {
               <h4 className="text-sm font-medium text-ink-3 uppercase tracking-wider mb-6 text-center">What We Analyze</h4>
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
                 {[
-                  { icon: <Shield className="w-6 h-6" />, label: 'AI Discovery', desc: 'Do AI agents find your llms.txt, agent.json & access rules?', color: 'from-surface-warm to-surface-warm text-ink-2 border-divider' },
+                  { icon: <Shield className="w-6 h-6" />, label: 'AI Discoverability', desc: 'Do AI agents find your llms.txt, agent.json & access rules?', color: 'from-surface-warm to-surface-warm text-ink-2 border-divider' },
                   { icon: <Layers className="w-6 h-6" />, label: 'Semantic Structure', desc: 'Is your content self-organized for AI comprehension?', color: 'from-surface-warm to-surface-warm text-ink-2 border-divider' },
                   { icon: <FileText className="w-6 h-6" />, label: 'Content Citability', desc: 'Does your content have quotable fact units?', color: 'from-surface-warm to-surface-warm text-ink-2 border-divider' },
-                  { icon: <AlertOctagon className="w-6 h-6" />, label: 'Risk Boundary', desc: 'Is your content safe for AI to reference?', color: 'from-red-soft-bg to-red-soft-bg text-red-soft border-red-soft/30' },
-                  { icon: <Brain className="w-6 h-6" />, label: 'Reusability', desc: 'Will AI reuse your content across answers?', color: 'from-sage-bg to-sage-bg text-sage border-sage/30' },
+                  { icon: <AlertOctagon className="w-6 h-6" />, label: 'Risk Boundary & Trust', desc: 'Is your content safe for AI to reference?', color: 'from-red-soft-bg to-red-soft-bg text-red-soft border-red-soft/30' },
+                  { icon: <Brain className="w-6 h-6" />, label: 'Reusability & Memory', desc: 'Will AI reuse your content across answers?', color: 'from-sage-bg to-sage-bg text-sage border-sage/30' },
                 ].map((dim, i) => (
                   <div key={i} className={`flex flex-col items-center gap-3 p-5 bg-gradient-to-br ${dim.color} rounded-xl border text-center`}>
                     <div className="w-12 h-12 bg-white/60 rounded-xl flex items-center justify-center shadow-sm">

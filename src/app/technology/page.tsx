@@ -94,7 +94,7 @@ const dimensionIcons = {
 const dimensions = [
   {
     icon: dimensionIcons.accessibility,
-    title: 'AI Discovery',
+    title: 'AI Discoverability',
     description: 'Whether AI agents can discover and index your brand — including llms.txt, agent.json, and explicit AI bot access rules in robots.txt.',
     color: 'from-[#C84B31] to-[#A33820]',
   },
@@ -112,13 +112,13 @@ const dimensions = [
   },
   {
     icon: dimensionIcons.risk,
-    title: 'Risk Boundary',
+    title: 'Risk Boundary & Trust',
     description: 'Identifying content that could trigger AI safety filters or hallucination — ensuring your brand appears reliably and accurately.',
     color: 'from-[#4A6FA5] to-[#3D5E8C]',
   },
   {
     icon: dimensionIcons.reusability,
-    title: 'Reusability',
+    title: 'Reusability & Memory',
     description: 'How well your content survives across different AI platforms and query contexts. Measures format adaptability and cross-model performance.',
     color: 'from-[#4A7B5C] to-[#386248]',
   },
