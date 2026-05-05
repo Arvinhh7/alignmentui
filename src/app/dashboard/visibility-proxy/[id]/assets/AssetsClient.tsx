@@ -71,6 +71,9 @@ const DEFAULTS: Record<ModuleType, unknown> = {
     alt_text_mappings: {},
     inject_lists: [],
   },
+  // Phase 1 V2 defaults (optional — auto-derived when empty)
+  agent_skills: [],
+  mcp_capabilities: { tools: [], resources: [], prompts: [] },
 }
 
 // ── JSON editor helper ────────────────────────────────────────────────────────

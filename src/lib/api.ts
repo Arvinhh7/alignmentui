@@ -2635,6 +2635,8 @@ export type ModuleType =
   | 'ai_discovery_files'
   | 'technical_config'
   | 'html_enhancement'
+  | 'agent_skills'       // D1-09: V2 structured agent skills (optional, auto-derived when empty)
+  | 'mcp_capabilities'   // D1-08: MCP server tools/resources/prompts (optional, auto-derived when empty)
 
 export interface ProxyDomain {
   id: string
@@ -2642,6 +2644,7 @@ export interface ProxyDomain {
   domain: string
   origin_url: string
   status: DomainStatus
+  proxy_mode?: 'full' | 'sidecar'
   cf_custom_hostname_id?: string
   ssl_status?: string
   dns_verified_at?: string
@@ -2653,6 +2656,8 @@ export interface ProxyDomain {
   robots_allow_all_ai: boolean
   custom_robots_rules: string
   date_modified_auto: boolean
+  // Phase 1 V2: D1-10 Content-Signal (hardcoded default on backend when not set)
+  content_signal?: string
   created_at: string
   updated_at?: string
 }

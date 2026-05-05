@@ -215,6 +215,20 @@ function TechnicalConfigSection({
             />
           </div>
 
+          {/* D1-10: Content-Signal — read-only preview */}
+          <div className="mt-4 p-3 bg-surface-warm border border-divider-light rounded-xl">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-semibold text-ink-2">Content-Signal (D1-10)</span>
+              <span className="text-[10px] px-1.5 py-0.5 bg-sage-bg text-sage rounded-full font-medium">Auto-injected</span>
+            </div>
+            <p className="text-[11px] text-ink-3 mb-1.5">
+              Cloudflare Agent Readiness standard (April 2026). Appended to robots.txt to declare AI data usage policy.
+            </p>
+            <code className="text-[11px] font-mono text-ink bg-surface px-2 py-1 rounded-lg block">
+              # Content-Signal: {domain.content_signal ?? 'train-genai=n, search=y, ai-input=y'}
+            </code>
+          </div>
+
           {saveError && (
             <div className="mt-3 text-xs text-red-soft bg-red-soft-bg border border-red-soft/20 rounded-lg px-3 py-2">
               {saveError}
@@ -340,12 +354,12 @@ function VerifyCard({
   )
 }
 
-// Proxy routing debug check — 3 infra items, no brand data required
+// Proxy routing debug check — 5 infra items, no brand data required
 function InfraCheckSection({ domainId, userId }: { domainId: string; userId: string }) {
   return (
     <VerifyCard
       title="Proxy Routing Check"
-      subtitle="Quick 3-item debug: HTTPS routing, robots.txt, agent.json (no brand data required)"
+      subtitle="5 protocol checks: HTTPS routing, robots.txt, agent.json, api-catalog, mcp-server (no brand data required)"
       quick={true}
       domainId={domainId}
       userId={userId}
@@ -353,12 +367,12 @@ function InfraCheckSection({ domainId, userId }: { domainId: string; userId: str
   )
 }
 
-// Full delivery verification — 5 items, run once DNS is active and brand data is synced
+// Full delivery verification — 10 items, run once DNS is active and brand data is synced
 function FullVerifySection({ domainId, userId }: { domainId: string; userId: string }) {
   return (
     <VerifyCard
       title="End-to-End Verification"
-      subtitle="All 5 checks must pass before notifying the customer"
+      subtitle="All 10 V2 protocol checks must pass — includes Link Headers, Content-Signal, agent skills (D1-06 to D1-10)"
       quick={false}
       domainId={domainId}
       userId={userId}
@@ -511,9 +525,11 @@ function OverviewTab({
           <h3 className="text-sm font-semibold text-ink-2 mb-3">AI Discovery Files</h3>
           <div className="space-y-2">
             {[
-              { path: '/llms.txt', label: 'llms.txt', desc: 'AI language model discovery file' },
-              { path: '/.well-known/agent.json', label: 'agent.json', desc: 'AI Agent Discovery Protocol' },
-              { path: '/robots.txt', label: 'robots.txt', desc: 'AI-friendly bot access rules' },
+              { path: '/llms.txt',                  label: 'llms.txt',      desc: 'AI language model discovery file' },
+              { path: '/.well-known/agent.json',    label: 'agent.json',    desc: 'AI Agent Discovery Protocol (V2 skills)' },
+              { path: '/robots.txt',                label: 'robots.txt',    desc: 'AI-friendly bot access rules + Content-Signal' },
+              { path: '/.well-known/api-catalog',   label: 'api-catalog',   desc: 'RFC 9727 — Machine-readable API index (D1-07)' },
+              { path: '/.well-known/mcp-server',    label: 'mcp-server',    desc: 'MCP Server Card — agent tool & resource access (D1-08)' },
             ].map(f => (
               <a
                 key={f.path}
