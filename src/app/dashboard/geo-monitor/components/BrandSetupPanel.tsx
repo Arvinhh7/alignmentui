@@ -8,6 +8,8 @@ import { TagInput } from './shared/ChartComponents'
 export function BrandSetupPanel() {
   const ctx = useUnified()
   const [showRecentDropdown, setShowRecentDropdown] = useState(false)
+  const [keywordInput, setKeywordInput] = useState('')
+  const [competitorInput, setCompetitorInput] = useState('')
 
   if (!ctx.showConfig) return null
 
@@ -75,13 +77,25 @@ export function BrandSetupPanel() {
         {/* Keywords */}
         <div>
           <label className="block text-xs font-medium text-ink-2 mb-1.5">Keywords</label>
-          <TagInput value={ctx.brandConfig.keywords} onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, keywords: v })} placeholder="Add keyword..." />
+          <TagInput
+            value={ctx.brandConfig.keywords}
+            onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, keywords: v })}
+            placeholder="Add keyword..."
+            inputValue={keywordInput}
+            onInputChange={setKeywordInput}
+          />
         </div>
 
         {/* Competitors */}
         <div>
           <label className="block text-xs font-medium text-ink-2 mb-1.5">Competitors</label>
-          <TagInput value={ctx.brandConfig.competitors} onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, competitors: v })} placeholder="Add competitor..." />
+          <TagInput
+            value={ctx.brandConfig.competitors}
+            onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, competitors: v })}
+            placeholder="Add competitor..."
+            inputValue={competitorInput}
+            onInputChange={setCompetitorInput}
+          />
         </div>
 
         {/* One-liner */}
@@ -129,7 +143,12 @@ export function BrandSetupPanel() {
 
         {/* Buttons */}
         <div className="flex items-center gap-3 pt-2">
-          <button onClick={ctx.handleSaveConfig}
+          <button
+            onClick={() => {
+              ctx.handleSaveConfig(keywordInput, competitorInput)
+              setKeywordInput('')
+              setCompetitorInput('')
+            }}
             className="flex items-center gap-2 px-5 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-xl text-sm font-medium transition-colors">
             <Save className="w-4 h-4" /> Save
           </button>

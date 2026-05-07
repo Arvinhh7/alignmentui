@@ -208,10 +208,17 @@ export function HorizontalBar({ label, value, max, color, icon }: {
 
 // ─── TagInput ────────────────────────────────────────
 
-export function TagInput({ value, onChange, placeholder }: {
-  value: string[]; onChange: (v: string[]) => void; placeholder: string
+export function TagInput({ value, onChange, placeholder, inputValue, onInputChange }: {
+  value: string[]
+  onChange: (v: string[]) => void
+  placeholder: string
+  inputValue?: string        // controlled mode: parent owns the input text
+  onInputChange?: (v: string) => void
 }) {
-  const [input, setInput] = useState('')
+  const [internalInput, setInternalInput] = useState('')
+  const input = inputValue !== undefined ? inputValue : internalInput
+  const setInput = onInputChange ?? setInternalInput
+
   const addTag = () => {
     const t = input.trim()
     if (t && !value.includes(t)) { onChange([...value, t]); setInput('') }

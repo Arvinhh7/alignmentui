@@ -50,7 +50,7 @@ interface UnifiedState {
   recentBrands: RecentBrandRecord[]
   loadRecentBrand: (r: RecentBrandRecord) => void
   clearRecentBrands: () => void
-  handleSaveConfig: () => void
+  handleSaveConfig: (pendingKeyword?: string, pendingCompetitor?: string) => void
   handleClearConfig: () => void
 
   // Date / filter
@@ -352,12 +352,30 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
 
   const clearRecentBrands = () => { localStorage.removeItem(RECENT_BRANDS_KEY); setRecentBrands([]) }
 
-  const handleSaveConfig = () => {
-    if (!brandConfig.brand_name.trim()) { setConfigError('Brand name is required'); return }
+  const handleSaveConfig = (pendingKeyword = '', pendingCompetitor = '') => {
+    // Merge any still-typed (unsubmitted) text from TagInputs
+    const kw = pendingKeyword.trim()
+    const comp = pendingCompetitor.trim()
+    const mergedKeywords = kw && !brandConfig.keywords.includes(kw)
+      ? [...brandConfig.keywords, kw] : brandConfig.keywords
+    const mergedCompetitors = comp && !brandConfig.competitors.includes(comp)
+      ? [...brandConfig.competitors, comp] : brandConfig.competitors
+    const merged = { ...brandConfig, keywords: mergedKeywords, competitors: mergedCompetitors }
+
+    if (!merged.brand_name.trim()) { setConfigError('Brand name is required'); return }
     setConfigError('')
-    localStorage.setItem(BRAND_CONFIG_KEY, JSON.stringify(brandConfig))
+    if (kw || comp) setBrandConfig(merged)
+    localStorage.setItem(BRAND_CONFIG_KEY, JSON.stringify(merged))
     setIsConfigured(true); setShowConfig(false)
-    saveRecentBrand()
+
+    // Save to recent brands with merged config (avoids stale closure in saveRecentBrand)
+    const entry: RecentBrandRecord = { brand_name: merged.brand_name.trim(), domain: merged.domain.trim(), keywords: merged.keywords, competitors: merged.competitors, one_liner: merged.one_liner, target_audience: merged.target_audience, target_market: merged.target_market, differentiation: merged.differentiation, usedAt: new Date().toISOString() }
+    setRecentBrands(prev => {
+      const filtered = prev.filter(r => !(r.brand_name === entry.brand_name && r.domain === entry.domain))
+      const updated = [entry, ...filtered].slice(0, 10)
+      localStorage.setItem(RECENT_BRANDS_KEY, JSON.stringify(updated))
+      return updated
+    })
   }
 
   const handleClearConfig = () => {
