@@ -228,15 +228,12 @@ export function TagInput({ value, onChange, placeholder }: {
           </span>
         ))}
       </div>
-      <div className="flex gap-2">
-        <input
-          type="text" value={input} onChange={e => setInput(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }}
-          placeholder={placeholder}
-          className="flex-1 px-3 py-2 border border-divider rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
-        />
-        <button onClick={addTag} className="px-3 py-2 bg-surface-warm hover:bg-surface-muted rounded-lg text-sm text-ink-2 transition-colors">Add</button>
-      </div>
+      <input
+        type="text" value={input} onChange={e => setInput(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }}
+        placeholder={placeholder}
+        className="w-full px-3 py-2 border border-divider rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
+      />
     </div>
   )
 }
