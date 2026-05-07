@@ -1422,11 +1422,16 @@ class APIClient {
       keywords?: string[];
       competitors?: string[];
       engines?: string[];
+      deep?: boolean;
     },
     signal?: AbortSignal,
     userId?: string,
+    role?: string,
   ) {
-    const qs = userId ? `?user_id=${userId}` : '';
+    const params = new URLSearchParams();
+    if (userId) params.set('user_id', userId);
+    if (role) params.set('role', role);
+    const qs = params.toString() ? `?${params.toString()}` : '';
     return this.request<DiscoverResult>(`/api/monitor/discover${qs}`, {
       method: 'POST',
       body: JSON.stringify(payload),

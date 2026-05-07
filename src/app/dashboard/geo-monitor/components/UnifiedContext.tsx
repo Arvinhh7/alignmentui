@@ -101,11 +101,14 @@ interface UnifiedState {
   // Discover
   discoverResult: DiscoverResult | null
   isRunningDiscover: boolean
+  isRunningDeepDiscover: boolean
   discoverError: string
   discoverEngine: string
   setDiscoverEngine: (engine: string) => void
   availableEngines: string[]
+  userRole: string | null
   handleRunDiscover: () => void
+  handleRunDeepDiscover: () => void
   handleStopDiscover: () => void
 
   // AEO
@@ -171,7 +174,7 @@ export function useUnified() {
 // ─── Provider ────────────────────────────────────────
 
 export function UnifiedProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth()
+  const { user, role: userRole } = useAuth()
 
   // ── Tab ─────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<TabKey>('visibility')
@@ -246,6 +249,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   // ── Discover ─────────────────────────────────────
   const [discoverResult, setDiscoverResult] = useState<DiscoverResult | null>(null)
   const [isRunningDiscover, setIsRunningDiscover] = useState(false)
+  const [isRunningDeepDiscover, setIsRunningDeepDiscover] = useState(false)
   const [discoverError, setDiscoverError] = useState('')
   const [discoverEngine, setDiscoverEngine] = useState('chatgpt')
   const [availableEngines, setAvailableEngines] = useState<string[]>(['chatgpt'])
@@ -588,7 +592,8 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
         keywords: brandConfig.keywords,
         competitors: brandConfig.competitors,
         engines: [discoverEngine],
-      }, ctrl.signal, user?.id)
+        deep: false,
+      }, ctrl.signal, user?.id, userRole ?? undefined)
       if (res.error === '__ABORTED__') { setIsRunningDiscover(false); return }
       if (res.error) { setDiscoverError(res.error) } else if (res.data) {
         setDiscoverResult(res.data)
@@ -597,7 +602,41 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     } catch (e: any) { if (e.name !== 'AbortError') setDiscoverError(e.message || 'Discovery failed') }
     discoverAbortRef.current = null; setIsRunningDiscover(false)
   }
-  const handleStopDiscover = () => { discoverAbortRef.current?.abort(); discoverAbortRef.current = null; setIsRunningDiscover(false) }
+
+  const handleRunDeepDiscover = async () => {
+    if (!brandConfig.brand_name) return
+    discoverAbortRef.current?.abort()
+    const ctrl = new AbortController()
+    discoverAbortRef.current = ctrl
+    setIsRunningDeepDiscover(true); setDiscoverError('')
+    try {
+      const res = await api.runDiscover({
+        brand_name: brandConfig.brand_name,
+        domain: brandConfig.domain,
+        one_liner: brandConfig.one_liner,
+        target_audience: brandConfig.target_audience,
+        target_market: brandConfig.target_market,
+        differentiation: brandConfig.differentiation,
+        keywords: brandConfig.keywords,
+        competitors: brandConfig.competitors,
+        engines: [discoverEngine],
+        deep: true,
+      }, ctrl.signal, user?.id, userRole ?? undefined)
+      if (res.error === '__ABORTED__') { setIsRunningDeepDiscover(false); return }
+      if (res.error) { setDiscoverError(res.error) } else if (res.data) {
+        setDiscoverResult(res.data)
+        notifyCreditUsed()
+      }
+    } catch (e: any) { if (e.name !== 'AbortError') setDiscoverError(e.message || 'Deep scan failed') }
+    discoverAbortRef.current = null; setIsRunningDeepDiscover(false)
+  }
+
+  const handleStopDiscover = () => {
+    discoverAbortRef.current?.abort()
+    discoverAbortRef.current = null
+    setIsRunningDiscover(false)
+    setIsRunningDeepDiscover(false)
+  }
 
   // ═══ Context value ═══════════════════════════════
 
@@ -612,7 +651,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     advancedMentions, isRunningAdvMentions, advMentionsError, handleRunAdvancedMentions, handleStopAdvMentions,
     intelReport, isGeneratingReport, reportError, handleGenerateReport, handleStopReport,
     multiBrandTrends, isLoadingTrends,
-    discoverResult, isRunningDiscover, discoverError, discoverEngine, setDiscoverEngine, availableEngines, handleRunDiscover, handleStopDiscover,
+    discoverResult, isRunningDiscover, isRunningDeepDiscover, discoverError, discoverEngine, setDiscoverEngine, availableEngines, userRole, handleRunDiscover, handleRunDeepDiscover, handleStopDiscover,
     aeoUrl, setAeoUrl, aeoResult, aeoHistory, isRunningAeo, aeoError, handleRunAeo,
     prompts, isLoadingPrompts, loadPrompts, showAddPrompt, setShowAddPrompt,
     newPromptForm, setNewPromptForm, editingPrompt, setEditingPrompt,

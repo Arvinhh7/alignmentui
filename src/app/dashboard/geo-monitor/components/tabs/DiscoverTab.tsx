@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Compass, Globe, Play, Square, ExternalLink, ArrowRight, Loader2 } from 'lucide-react'
+import { Compass, Globe, Play, Square, ExternalLink, ArrowRight, Loader2, ScanSearch } from 'lucide-react'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useUnified } from '../UnifiedContext'
@@ -141,6 +141,8 @@ export function DiscoverTab() {
   const ctx = useUnified()
   const d = t.dashboard.discover
   const result = ctx.discoverResult
+  const isAnyRunning = ctx.isRunningDiscover || ctx.isRunningDeepDiscover
+  const isAdminOrStaff = ctx.userRole === 'admin' || ctx.userRole === 'staff'
 
   const coreItems = useMemo(() => {
     if (!result) return []
@@ -167,7 +169,7 @@ export function DiscoverTab() {
               : d.subtitle}
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
           {/* Phase 6: Engine selector */}
           <div className="flex items-center gap-1 p-1 bg-surface-warm rounded-lg border border-divider-light">
             {ENGINES.map(eng => {
@@ -193,8 +195,8 @@ export function DiscoverTab() {
             })}
           </div>
 
-          {/* Run / Stop */}
-          {ctx.isRunningDiscover ? (
+          {/* Stop (shown when either is running) */}
+          {isAnyRunning ? (
             <button
               onClick={ctx.handleStopDiscover}
               className="flex items-center gap-2 px-4 py-2 bg-red-soft-bg hover:bg-red-soft/10 text-red-soft border border-red-soft/20 rounded-xl text-sm font-medium transition-colors"
@@ -203,38 +205,55 @@ export function DiscoverTab() {
               {d.stopButton}
             </button>
           ) : (
-            <button
-              onClick={ctx.handleRunDiscover}
-              disabled={!ctx.isConfigured}
-              className="flex items-center gap-2 px-4 py-2 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-xl text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <Play className="w-3.5 h-3.5" />
-              {d.runButton}
-            </button>
+            <>
+              {/* Quick Map */}
+              <button
+                onClick={ctx.handleRunDiscover}
+                disabled={!ctx.isConfigured}
+                className="flex items-center gap-2 px-4 py-2 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-xl text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Play className="w-3.5 h-3.5" />
+                {d.runButton}
+              </button>
+              {/* Deep Scan */}
+              <button
+                onClick={ctx.handleRunDeepDiscover}
+                disabled={!ctx.isConfigured}
+                title={d.deepScanDesc}
+                className="flex items-center gap-2 px-4 py-2 bg-surface hover:bg-surface-warm text-ink-2 border border-divider rounded-xl text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <ScanSearch className="w-3.5 h-3.5" />
+                {isAdminOrStaff ? d.deepScanButtonAdmin : d.deepScanButton}
+              </button>
+            </>
           )}
         </div>
       </div>
 
       {/* ── Running state ────────────────────────── */}
-      {ctx.isRunningDiscover && (
+      {isAnyRunning && (
         <div className="flex flex-col items-center justify-center py-16 gap-4">
           <Loader2 className="w-8 h-8 animate-spin text-ink-3" />
           <div className="text-center">
-            <p className="text-sm font-medium text-ink-2">{d.running}</p>
-            <p className="text-xs text-ink-3 mt-1">{d.runningNote}</p>
+            <p className="text-sm font-medium text-ink-2">
+              {ctx.isRunningDeepDiscover ? d.runningDeep : d.running}
+            </p>
+            <p className="text-xs text-ink-3 mt-1">
+              {ctx.isRunningDeepDiscover ? d.runningNoteDeep : d.runningNote}
+            </p>
           </div>
         </div>
       )}
 
       {/* ── Error ───────────────────────────────── */}
-      {ctx.discoverError && !ctx.isRunningDiscover && (
+      {ctx.discoverError && !isAnyRunning && (
         <div className="bg-red-soft-bg border border-red-soft/30 rounded-xl p-4">
           <p className="text-sm text-red-soft">{ctx.discoverError}</p>
         </div>
       )}
 
       {/* ── Empty state ─────────────────────────── */}
-      {!result && !ctx.isRunningDiscover && !ctx.discoverError && (
+      {!result && !isAnyRunning && !ctx.discoverError && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <Compass className="w-10 h-10 mb-3 text-ink-3 opacity-40" />
           <p className="text-sm font-medium text-ink-2">{d.noData}</p>
@@ -246,7 +265,7 @@ export function DiscoverTab() {
       )}
 
       {/* ── Results ─────────────────────────────── */}
-      {result && !ctx.isRunningDiscover && (
+      {result && !isAnyRunning && (
         <>
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-3">
