@@ -24,6 +24,7 @@ import {
   GAP_RESULTS_KEY,
   ADV_MENTIONS_KEY,
   RECENT_BRANDS_KEY,
+  DISCOVER_RESULT_KEY,
   autoClassify,
   type BrandConfig,
   type ScanHistoryEntry,
@@ -323,6 +324,8 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       if (savedGap) setGapResult(JSON.parse(savedGap))
       const savedAdvMentions = localStorage.getItem(ADV_MENTIONS_KEY)
       if (savedAdvMentions) setAdvancedMentions(JSON.parse(savedAdvMentions))
+      const savedDiscover = localStorage.getItem(DISCOVER_RESULT_KEY)
+      if (savedDiscover) setDiscoverResult(JSON.parse(savedDiscover))
       const savedRecent = localStorage.getItem(RECENT_BRANDS_KEY)
       if (savedRecent) setRecentBrands(JSON.parse(savedRecent))
       const params = new URLSearchParams(window.location.search)
@@ -381,9 +384,10 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const handleClearConfig = () => {
     localStorage.removeItem(BRAND_CONFIG_KEY); localStorage.removeItem(SCAN_RESULTS_KEY)
     localStorage.removeItem(SCAN_HISTORY_KEY); localStorage.removeItem(GAP_RESULTS_KEY); localStorage.removeItem(ADV_MENTIONS_KEY)
+    localStorage.removeItem(DISCOVER_RESULT_KEY)
     setBrandConfig({ brand_name: '', domain: '', keywords: [], competitors: [], one_liner: '', target_audience: '', target_market: '', differentiation: '' })
     setIsConfigured(false); setShowConfig(true)
-    setScanResult(null); setScanHistory([]); setGapResult(null); setAdvancedMentions(null); setIntelReport(null)
+    setScanResult(null); setScanHistory([]); setGapResult(null); setAdvancedMentions(null); setIntelReport(null); setDiscoverResult(null)
   }
 
   // ═══ Scan handlers ═══════════════════════════════
@@ -615,6 +619,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       if (res.error === '__ABORTED__') { setIsRunningDiscover(false); return }
       if (res.error) { setDiscoverError(res.error) } else if (res.data) {
         setDiscoverResult(res.data)
+        localStorage.setItem(DISCOVER_RESULT_KEY, JSON.stringify(res.data))
         notifyCreditUsed()
       }
     } catch (e: any) { if (e.name !== 'AbortError') setDiscoverError(e.message || 'Discovery failed') }
@@ -643,6 +648,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       if (res.error === '__ABORTED__') { setIsRunningDeepDiscover(false); return }
       if (res.error) { setDiscoverError(res.error) } else if (res.data) {
         setDiscoverResult(res.data)
+        localStorage.setItem(DISCOVER_RESULT_KEY, JSON.stringify(res.data))
         notifyCreditUsed()
       }
     } catch (e: any) { if (e.name !== 'AbortError') setDiscoverError(e.message || 'Deep scan failed') }
