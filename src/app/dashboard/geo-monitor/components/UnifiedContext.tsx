@@ -187,7 +187,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const [recentBrands, setRecentBrands] = useState<RecentBrandRecord[]>([])
 
   // ── Date / Filter ───────────────────────────────
-  const [datePreset, setDatePreset] = useState<'7d' | '30d' | '90d' | 'custom'>('90d')
+  const [datePreset, setDatePreset] = useState<'7d' | '30d' | '90d' | 'custom'>('30d')
   const [startDate, setStartDate] = useState(() => formatDate(new Date(Date.now() - 90 * 86400000)))
   const [endDate, setEndDate] = useState(() => formatDate(new Date()))
   const [filterTimeRange, setFilterTimeRange] = useState<'7d' | '30d' | '90d' | 'all'>('all')
