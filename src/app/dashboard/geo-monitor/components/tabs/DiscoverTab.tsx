@@ -1,11 +1,13 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Compass, Globe, Play, Square, ExternalLink, ArrowRight, Loader2, ScanSearch } from 'lucide-react'
+import { Compass, Globe, Play, Square, ExternalLink, ArrowRight, Loader2, ScanSearch, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useUnified } from '../UnifiedContext'
 import { DOMAIN_TYPE_LABELS } from '../shared/constants'
+import { GeneratePromptsModal } from './GeneratePromptsModal'
+import { CitationTruthMap } from './CitationTruthMap'
 import type { DiscoverSourceItem } from '@/lib/api'
 
 // ── Phase 4: Action CTA routing per domain type ──────
@@ -319,7 +321,32 @@ export function DiscoverTab() {
               </div>
             </div>
           )}
+          {/* ── P1: Generate Prompts CTA ──────────── */}
+          <div className="bg-canvas border border-divider rounded-xl p-5">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="min-w-0">
+                <h4 className="text-sm font-semibold text-ink">{d.generatePrompts.ctaTitle}</h4>
+                <p className="text-xs text-ink-3 mt-0.5">{d.generatePrompts.ctaDesc}</p>
+              </div>
+              <button
+                onClick={() => ctx.setShowGeneratePromptsModal(true)}
+                disabled={!ctx.isConfigured}
+                className="flex items-center gap-2 px-4 py-2 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-xl text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                {d.generatePrompts.ctaButton}
+              </button>
+            </div>
+          </div>
+
+          {/* ── P2+P3: Citation Truth Map ─────────── */}
+          <CitationTruthMap discoverResult={result} scanResult={ctx.scanResult} />
         </>
+      )}
+
+      {/* Modal (P1) */}
+      {ctx.showGeneratePromptsModal && (
+        <GeneratePromptsModal onClose={() => ctx.setShowGeneratePromptsModal(false)} />
       )}
     </div>
   )
