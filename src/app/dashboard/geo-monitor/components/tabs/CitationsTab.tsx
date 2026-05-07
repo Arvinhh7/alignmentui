@@ -1,22 +1,52 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Globe, Link2 } from 'lucide-react'
+import { Globe, Link2, Check, Zap, ArrowRight, Minus, AlertCircle } from 'lucide-react'
 import { useUnified } from '../UnifiedContext'
 import { DonutChart, DataTable, formatNum, formatPct } from '../shared/ChartComponents'
 import { DOMAIN_TYPE_LABELS, SOURCE_TYPE_LABELS } from '../shared/constants'
+
+// ── Action signal per domain type ─────────────────────
+const ACTION_SIGNALS: Record<string, {
+  icon: React.ElementType
+  label: string
+  className: string
+}> = {
+  you:           { icon: Check,        label: 'Your Source',      className: 'text-sage' },
+  corporate:     { icon: Check,        label: 'Your Source',      className: 'text-sage' },
+  competitor:    { icon: Zap,          label: 'Compete Here',     className: 'text-caution' },
+  editorial:     { icon: ArrowRight,   label: 'Invest Here',      className: 'text-ink-2' },
+  reference:     { icon: ArrowRight,   label: 'Invest Here',      className: 'text-ink-2' },
+  institutional: { icon: ArrowRight,   label: 'Invest Here',      className: 'text-ink-2' },
+  ugc:           { icon: AlertCircle,  label: 'Community Signal', className: 'text-ink-3' },
+  coupon:        { icon: Minus,        label: 'Discount Coverage',className: 'text-ink-3' },
+  other:         { icon: Minus,        label: 'Monitor',          className: 'text-ink-3' },
+}
+
+// ── Favicon with Globe fallback ───────────────────────
+function DomainFavicon({ domain }: { domain: string }) {
+  return (
+    <div className="relative w-4 h-4 flex-shrink-0">
+      <img
+        src={`https://www.google.com/s2/favicons?domain=${domain}&sz=32`}
+        onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+        className="w-4 h-4 rounded-sm object-contain"
+        alt=""
+      />
+      <Globe className="absolute inset-0 w-4 h-4 text-ink-3 hidden peer-[.loaded]:hidden" />
+    </div>
+  )
+}
 
 export function CitationsTab() {
   const ctx = useUnified()
   const scanResult = ctx.scanResult
 
-  // ── Sub-tab buttons ──────────────────────────────────
   const subTabs: { key: typeof ctx.citationsSubTab; label: string }[] = [
     { key: 'sources_overview', label: 'Sources Overview' },
     { key: 'url_detail', label: 'URL Detail' },
   ]
 
-  // ── Source Type Distribution (donut) ─────────────────
   const sourceTypeSegments = useMemo(() => {
     if (!scanResult?.source_domains) return []
     const counts: Record<string, number> = {}
@@ -33,7 +63,6 @@ export function CitationsTab() {
       }))
   }, [scanResult])
 
-  // ── URL Detail table rows ───────────────────────────
   const domainDetailRows = useMemo(() => {
     if (!scanResult?.source_domains) return []
     return scanResult.source_domains
@@ -41,6 +70,7 @@ export function CitationsTab() {
       .sort((a, b) => b.url_count - a.url_count)
       .map(d => ({
         domain: d.domain,
+        domain_type: d.domain_type,
         type: DOMAIN_TYPE_LABELS[d.domain_type]?.label || d.domain_type,
         urls: d.url_count,
         citation_share: d.citation_share ?? d.frequency_pct,
@@ -50,7 +80,7 @@ export function CitationsTab() {
 
   return (
     <div className="space-y-6">
-      {/* ── Sub-tab selector ─────────────────────────────── */}
+      {/* ── Sub-tab selector ───────────────────────── */}
       <div className="flex gap-1 p-1 bg-surface-warm rounded-lg w-fit">
         {subTabs.map(tab => (
           <button
@@ -67,17 +97,16 @@ export function CitationsTab() {
         ))}
       </div>
 
-      {/* ═══ Sources Overview sub-tab ═════════════════════ */}
+      {/* ═══ Sources Overview ══════════════════════ */}
       {ctx.citationsSubTab === 'sources_overview' && (
         <>
           {!scanResult ? (
             <div className="flex flex-col items-center justify-center py-20 text-ink-3">
-              <Globe className="w-10 h-10 mb-3 text-ink-3 opacity-50" />
+              <Globe className="w-10 h-10 mb-3 opacity-50" />
               <p className="text-sm font-medium">Run a scan to see citation data</p>
             </div>
           ) : (
             <>
-              {/* Source Domain Cards */}
               <div>
                 <h4 className="text-sm font-semibold text-ink-2 mb-3">Source Domains</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -86,19 +115,44 @@ export function CitationsTab() {
                     .sort((a, b) => b.url_count - a.url_count)
                     .map((d, i) => {
                       const typeInfo = DOMAIN_TYPE_LABELS[d.domain_type]
+                      const signal = ACTION_SIGNALS[d.domain_type] ?? ACTION_SIGNALS.other
+                      const SignalIcon = signal.icon
+                      const isYou = d.domain_type === 'you' || d.domain_type === 'corporate'
+
                       return (
-                        <div key={i} className="bg-surface rounded-xl border border-divider p-5 hover:shadow-md transition-shadow">
+                        <div
+                          key={i}
+                          className="relative bg-surface rounded-xl border border-divider p-5 hover:shadow-md transition-shadow overflow-hidden"
+                        >
+                          {/* Left accent bar for your domains only */}
+                          {isYou && (
+                            <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#4A7C59] rounded-l-xl" />
+                          )}
+
+                          {/* Header: favicon + domain + type badge */}
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex items-center gap-2 min-w-0">
-                              <Globe className="w-4 h-4 text-ink-3 flex-shrink-0" />
+                              <img
+                                src={`https://www.google.com/s2/favicons?domain=${d.domain}&sz=32`}
+                                onError={e => {
+                                  const img = e.target as HTMLImageElement
+                                  img.style.display = 'none'
+                                  img.nextElementSibling?.classList.remove('hidden')
+                                }}
+                                className="w-4 h-4 flex-shrink-0 rounded-sm object-contain"
+                                alt=""
+                              />
+                              <Globe className="w-4 h-4 text-ink-3 flex-shrink-0 hidden" />
                               <span className="text-sm font-medium text-ink truncate">{d.domain}</span>
                             </div>
                             {typeInfo && (
-                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${typeInfo.color}`}>
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ml-2 ${typeInfo.color}`}>
                                 {typeInfo.label}
                               </span>
                             )}
                           </div>
+
+                          {/* Stats row */}
                           <div className="flex items-end justify-between">
                             <div>
                               <p className="text-2xl font-bold font-mono text-ink">{d.url_count}</p>
@@ -118,13 +172,18 @@ export function CitationsTab() {
                               )}
                             </div>
                           </div>
+
+                          {/* Action signal footer */}
+                          <div className="mt-3 pt-3 border-t border-divider-light flex items-center gap-1.5">
+                            <SignalIcon className={`w-3 h-3 flex-shrink-0 ${signal.className}`} />
+                            <span className={`text-xs font-medium ${signal.className}`}>{signal.label}</span>
+                          </div>
                         </div>
                       )
                     })}
                 </div>
               </div>
 
-              {/* Source Type Distribution Donut */}
               {sourceTypeSegments.length > 0 && (
                 <div className="bg-surface rounded-xl border border-divider p-5">
                   <h4 className="text-sm font-semibold text-ink-2 mb-4">Source Type Distribution</h4>
@@ -142,12 +201,12 @@ export function CitationsTab() {
         </>
       )}
 
-      {/* ═══ URL Detail sub-tab ══════════════════════════ */}
+      {/* ═══ URL Detail ════════════════════════════ */}
       {ctx.citationsSubTab === 'url_detail' && (
         <>
           {!scanResult ? (
             <div className="flex flex-col items-center justify-center py-20 text-ink-3">
-              <Link2 className="w-10 h-10 mb-3 text-ink-3 opacity-50" />
+              <Link2 className="w-10 h-10 mb-3 opacity-50" />
               <p className="text-sm font-medium">Run a scan to see citation data</p>
             </div>
           ) : (
@@ -155,10 +214,65 @@ export function CitationsTab() {
               <h4 className="text-sm font-semibold text-ink-2 mb-3">URL Citation Details</h4>
               <DataTable
                 columns={[
-                  { key: 'domain', label: 'Domain' },
-                  { key: 'type', label: 'Type' },
-                  { key: 'urls', label: 'AI-Mentioned URLs', align: 'right', format: v => formatNum(v as number, 0) },
-                  { key: 'citation_share', label: 'Citation Share', align: 'right', format: v => `${(v as number).toFixed(1)}%` },
+                  {
+                    key: 'domain',
+                    label: 'Domain',
+                    format: (_v, row) => (
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={`https://www.google.com/s2/favicons?domain=${row.domain}&sz=32`}
+                          onError={e => {
+                            const img = e.target as HTMLImageElement
+                            img.style.display = 'none'
+                            img.nextElementSibling?.classList.remove('hidden')
+                          }}
+                          className="w-4 h-4 flex-shrink-0 rounded-sm object-contain"
+                          alt=""
+                        />
+                        <Globe className="w-4 h-4 text-ink-3 flex-shrink-0 hidden" />
+                        <span className="text-ink font-medium">{String(row.domain)}</span>
+                      </div>
+                    ),
+                  },
+                  {
+                    key: 'type',
+                    label: 'Type',
+                    format: (_v, row) => {
+                      const typeInfo = DOMAIN_TYPE_LABELS[String(row.domain_type)]
+                      if (!typeInfo) return <span className="text-ink-3">{String(_v)}</span>
+                      return (
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${typeInfo.color}`}>
+                          {typeInfo.label}
+                        </span>
+                      )
+                    },
+                  },
+                  {
+                    key: 'urls',
+                    label: 'AI-Mentioned URLs',
+                    align: 'right',
+                    format: v => formatNum(v as number, 0),
+                  },
+                  {
+                    key: 'citation_share',
+                    label: 'Citation Share',
+                    align: 'right',
+                    format: v => `${(v as number).toFixed(1)}%`,
+                  },
+                  {
+                    key: 'domain_type',
+                    label: 'Action',
+                    format: (_v) => {
+                      const signal = ACTION_SIGNALS[String(_v)] ?? ACTION_SIGNALS.other
+                      const SignalIcon = signal.icon
+                      return (
+                        <div className={`flex items-center gap-1 ${signal.className}`}>
+                          <SignalIcon className="w-3 h-3 flex-shrink-0" />
+                          <span className="text-xs font-medium">{signal.label}</span>
+                        </div>
+                      )
+                    },
+                  },
                 ]}
                 rows={domainDetailRows}
                 emptyText="No citation data available"
@@ -167,7 +281,6 @@ export function CitationsTab() {
           )}
         </>
       )}
-
     </div>
   )
 }

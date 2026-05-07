@@ -500,7 +500,7 @@ export function UnifiedTrendChart({ data, brandName, scanHistory }: {
 // ─── DataTable ───────────────────────────────────────
 
 export function DataTable({ columns, rows, emptyText = 'No data' }: {
-  columns: { key: string; label: string; align?: 'left' | 'right'; format?: (v: unknown) => string }[]
+  columns: { key: string; label: string; align?: 'left' | 'right'; format?: (v: unknown, row: Record<string, unknown>) => React.ReactNode }[]
   rows: Record<string, unknown>[]
   emptyText?: string
 }) {
@@ -522,7 +522,7 @@ export function DataTable({ columns, rows, emptyText = 'No data' }: {
             <tr key={i} className="hover:bg-surface-warm transition-colors">
               {columns.map(col => (
                 <td key={col.key} className={`px-4 py-3 text-sm ${col.align === 'right' ? 'text-right font-mono' : ''}`}>
-                  {col.format ? col.format(row[col.key]) : String(row[col.key] ?? '—')}
+                  {col.format ? col.format(row[col.key], row) : String(row[col.key] ?? '—')}
                 </td>
               ))}
             </tr>
