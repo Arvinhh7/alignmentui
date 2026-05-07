@@ -373,6 +373,27 @@ export interface AEOContentScore {
   recommendations: string[];
 }
 
+// Source-first GEO Discovery
+export interface DiscoverSourceItem {
+  domain: string;
+  domain_type: string;
+  url_count: number;
+  prompt_count: number;
+  intent_coverage: number;
+  citation_share: number;
+  frequency_pct: number;
+}
+
+export interface DiscoverResult {
+  run_id: string;
+  total_prompts: number;
+  total_grounded_urls: number;
+  unique_domains: number;
+  hallucination_rate: number;
+  engine_used: string;
+  source_domains: DiscoverSourceItem[];
+}
+
 export interface MonitorScanResult {
   scan_id: string;
   brand_name: string;
@@ -1388,6 +1409,33 @@ class APIClient {
       body: JSON.stringify({ brand_name: brandName, domain, keywords, competitors }),
       signal,
     });
+  }
+
+  async runDiscover(
+    payload: {
+      brand_name: string;
+      domain?: string;
+      one_liner?: string;
+      target_audience?: string;
+      target_market?: string;
+      differentiation?: string;
+      keywords?: string[];
+      competitors?: string[];
+      engines?: string[];
+    },
+    signal?: AbortSignal,
+    userId?: string,
+  ) {
+    const qs = userId ? `?user_id=${userId}` : '';
+    return this.request<DiscoverResult>(`/api/monitor/discover${qs}`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      signal,
+    });
+  }
+
+  async getAvailableEngines() {
+    return this.request<{ engines: string[] }>('/api/monitor/engines');
   }
 
   // ─── Phase 4.4: Export endpoints ─────────────────────

@@ -84,6 +84,46 @@ export function BrandSetupPanel() {
           <TagInput value={ctx.brandConfig.competitors} onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, competitors: v })} placeholder="Add competitor..." />
         </div>
 
+        {/* One-liner */}
+        <div>
+          <label className="block text-xs font-medium text-ink-2 mb-1.5">Brand One-liner</label>
+          <input type="text" placeholder="e.g. Dissolvable tea drops, no steeping required"
+            value={ctx.brandConfig.one_liner ?? ''}
+            onChange={e => ctx.setBrandConfig({ ...ctx.brandConfig, one_liner: e.target.value })}
+            className="w-full px-3 py-2 border border-divider rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
+          />
+        </div>
+
+        {/* Target Audience */}
+        <div>
+          <label className="block text-xs font-medium text-ink-2 mb-1.5">Target Audience</label>
+          <input type="text" placeholder="e.g. health-conscious US consumers aged 25-45"
+            value={ctx.brandConfig.target_audience ?? ''}
+            onChange={e => ctx.setBrandConfig({ ...ctx.brandConfig, target_audience: e.target.value })}
+            className="w-full px-3 py-2 border border-divider rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
+          />
+        </div>
+
+        {/* Target Market */}
+        <div>
+          <label className="block text-xs font-medium text-ink-2 mb-1.5">Target Market</label>
+          <input type="text" placeholder="e.g. United States"
+            value={ctx.brandConfig.target_market ?? ''}
+            onChange={e => ctx.setBrandConfig({ ...ctx.brandConfig, target_market: e.target.value })}
+            className="w-full px-3 py-2 border border-divider rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
+          />
+        </div>
+
+        {/* Differentiation */}
+        <div>
+          <label className="block text-xs font-medium text-ink-2 mb-1.5">Brand Differentiation</label>
+          <input type="text" placeholder="e.g. sugar-free, zero waste, single-serve format"
+            value={ctx.brandConfig.differentiation ?? ''}
+            onChange={e => ctx.setBrandConfig({ ...ctx.brandConfig, differentiation: e.target.value })}
+            className="w-full px-3 py-2 border border-divider rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
+          />
+        </div>
+
         {/* Error */}
         {ctx.configError && <p className="text-xs text-red-soft">{ctx.configError}</p>}
 

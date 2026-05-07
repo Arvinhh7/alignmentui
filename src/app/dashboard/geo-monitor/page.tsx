@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
-import { Loader2, BarChart3, Eye, MessageSquare, Link2, ThumbsUp, Users, Target, Tag, ShoppingCart, UserCircle2 } from 'lucide-react'
+import { Loader2, BarChart3, Eye, MessageSquare, Link2, ThumbsUp, Users, Target, Tag, ShoppingCart, UserCircle2, Compass } from 'lucide-react'
 import { useLanguage } from '@/lib/LanguageContext'
 import { UnifiedProvider, useUnified, type TabKey } from './components/UnifiedContext'
 import { ControlBar } from './components/ControlBar'
@@ -11,6 +11,7 @@ import { VisibilityTab } from './components/tabs/VisibilityTab'
 
 const TabLoader = () => <div className="flex items-center justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-ink-3" /></div>
 
+const DiscoverTab = dynamic(() => import('./components/tabs/DiscoverTab').then(m => ({ default: m.DiscoverTab })), { loading: TabLoader })
 const MentionsTab = dynamic(() => import('./components/tabs/MentionsTab').then(m => ({ default: m.MentionsTab })), { loading: TabLoader })
 const CitationsTab = dynamic(() => import('./components/tabs/CitationsTab').then(m => ({ default: m.CitationsTab })), { loading: TabLoader })
 const SentimentTab = dynamic(() => import('./components/tabs/SentimentTab').then(m => ({ default: m.SentimentTab })), { loading: TabLoader })
@@ -26,6 +27,7 @@ function DashboardContent() {
 
   const tabs: { key: TabKey; label: string; icon: React.ReactNode; badge?: string }[] = [
     { key: 'visibility', label: 'Visibility', icon: <Eye className="w-4 h-4" /> },
+    { key: 'discover',   label: 'Discover',   icon: <Compass className="w-4 h-4" />, badge: ctx.discoverResult ? `${ctx.discoverResult.unique_domains}` : undefined },
     { key: 'prompts', label: 'Prompts', icon: <Tag className="w-4 h-4" />, badge: ctx.prompts.length ? `${ctx.prompts.filter(p => p.is_active).length}` : undefined },
     { key: 'mentions', label: 'Mentions', icon: <MessageSquare className="w-4 h-4" /> },
     { key: 'citations', label: 'Citations', icon: <Link2 className="w-4 h-4" /> },
@@ -85,6 +87,7 @@ function DashboardContent() {
 
         {/* Tab Content */}
         {ctx.activeTab === 'visibility' && <VisibilityTab />}
+        {ctx.activeTab === 'discover' && <DiscoverTab />}
         {ctx.activeTab === 'prompts' && <PromptsTab />}
         {ctx.activeTab === 'mentions' && <MentionsTab />}
         {ctx.activeTab === 'citations' && <CitationsTab />}

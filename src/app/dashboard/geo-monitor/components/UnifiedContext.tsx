@@ -15,6 +15,7 @@ import {
   CompetitiveIntelReport,
   MultiBrandTrendData,
   AEOContentScore,
+  DiscoverResult,
 } from '@/lib/api'
 import {
   BRAND_CONFIG_KEY,
@@ -33,7 +34,7 @@ import { formatDate } from './shared/ChartComponents'
 // ─── Tab type ────────────────────────────────────────
 
 export type TabKey =
-  | 'visibility' | 'prompts' | 'mentions' | 'citations' | 'sentiment'
+  | 'visibility' | 'discover' | 'prompts' | 'mentions' | 'citations' | 'sentiment'
   | 'competitors' | 'gap_analysis' | 'shopping' | 'personas'
 
 // ─── Context shape ───────────────────────────────────
@@ -96,6 +97,16 @@ interface UnifiedState {
 
   multiBrandTrends: MultiBrandTrendData | null
   isLoadingTrends: boolean
+
+  // Discover
+  discoverResult: DiscoverResult | null
+  isRunningDiscover: boolean
+  discoverError: string
+  discoverEngine: string
+  setDiscoverEngine: (engine: string) => void
+  availableEngines: string[]
+  handleRunDiscover: () => void
+  handleStopDiscover: () => void
 
   // AEO
   aeoUrl: string
@@ -169,7 +180,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const [coMentionRoleFilter, setCoMentionRoleFilter] = useState<'all' | 'competitor' | 'complementary'>('all')
 
   // ── Brand config ────────────────────────────────
-  const [brandConfig, setBrandConfig] = useState<BrandConfig>({ brand_name: '', domain: '', keywords: [], competitors: [] })
+  const [brandConfig, setBrandConfig] = useState<BrandConfig>({ brand_name: '', domain: '', keywords: [], competitors: [], one_liner: '', target_audience: '', target_market: '', differentiation: '' })
   const [isConfigured, setIsConfigured] = useState(false)
   const [showConfig, setShowConfig] = useState(true)
   const [configError, setConfigError] = useState('')
@@ -232,12 +243,20 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const [isBatchDeleting, setIsBatchDeleting] = useState(false)
   const [batchConfirmStep, setBatchConfirmStep] = useState(false)
 
+  // ── Discover ─────────────────────────────────────
+  const [discoverResult, setDiscoverResult] = useState<DiscoverResult | null>(null)
+  const [isRunningDiscover, setIsRunningDiscover] = useState(false)
+  const [discoverError, setDiscoverError] = useState('')
+  const [discoverEngine, setDiscoverEngine] = useState('chatgpt')
+  const [availableEngines, setAvailableEngines] = useState<string[]>(['chatgpt'])
+
   // ── Abort controllers ───────────────────────────
   const scanAbortRef = useRef<AbortController | null>(null)
   const scanTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const gapAbortRef = useRef<AbortController | null>(null)
   const advMentionsAbortRef = useRef<AbortController | null>(null)
   const reportAbortRef = useRef<AbortController | null>(null)
+  const discoverAbortRef = useRef<AbortController | null>(null)
   const autoScanTriggered = useRef(false)
 
   // ── Filtered prompts ────────────────────────────
@@ -314,7 +333,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
 
   const saveRecentBrand = useCallback(() => {
     if (!brandConfig.brand_name.trim()) return
-    const entry: RecentBrandRecord = { brand_name: brandConfig.brand_name.trim(), domain: brandConfig.domain.trim(), keywords: brandConfig.keywords, competitors: brandConfig.competitors, usedAt: new Date().toISOString() }
+    const entry: RecentBrandRecord = { brand_name: brandConfig.brand_name.trim(), domain: brandConfig.domain.trim(), keywords: brandConfig.keywords, competitors: brandConfig.competitors, one_liner: brandConfig.one_liner, target_audience: brandConfig.target_audience, target_market: brandConfig.target_market, differentiation: brandConfig.differentiation, usedAt: new Date().toISOString() }
     setRecentBrands(prev => {
       const filtered = prev.filter(r => !(r.brand_name === entry.brand_name && r.domain === entry.domain))
       const updated = [entry, ...filtered].slice(0, 10)
@@ -324,7 +343,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   }, [brandConfig])
 
   const loadRecentBrand = (rec: RecentBrandRecord) => {
-    setBrandConfig({ brand_name: rec.brand_name, domain: rec.domain, keywords: rec.keywords, competitors: rec.competitors })
+    setBrandConfig({ brand_name: rec.brand_name, domain: rec.domain, keywords: rec.keywords, competitors: rec.competitors, one_liner: rec.one_liner ?? '', target_audience: rec.target_audience ?? '', target_market: rec.target_market ?? '', differentiation: rec.differentiation ?? '' })
   }
 
   const clearRecentBrands = () => { localStorage.removeItem(RECENT_BRANDS_KEY); setRecentBrands([]) }
@@ -340,7 +359,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const handleClearConfig = () => {
     localStorage.removeItem(BRAND_CONFIG_KEY); localStorage.removeItem(SCAN_RESULTS_KEY)
     localStorage.removeItem(SCAN_HISTORY_KEY); localStorage.removeItem(GAP_RESULTS_KEY); localStorage.removeItem(ADV_MENTIONS_KEY)
-    setBrandConfig({ brand_name: '', domain: '', keywords: [], competitors: [] })
+    setBrandConfig({ brand_name: '', domain: '', keywords: [], competitors: [], one_liner: '', target_audience: '', target_market: '', differentiation: '' })
     setIsConfigured(false); setShowConfig(true)
     setScanResult(null); setScanHistory([]); setGapResult(null); setAdvancedMentions(null); setIntelReport(null)
   }
@@ -354,6 +373,12 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => { loadPrompts() }, [loadPrompts])
+
+  useEffect(() => {
+    api.getAvailableEngines().then(res => {
+      if (res.data?.engines?.length) setAvailableEngines(res.data.engines)
+    }).catch(() => { /* keep default */ })
+  }, [])
 
   const autoTriggerAdvancedMentions = async () => {
     advMentionsAbortRef.current?.abort()
@@ -544,6 +569,36 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   }
   const cancelBatchDelete = () => { setBatchConfirmStep(false) }
 
+  // ═══ Discover ════════════════════════════════════
+
+  const handleRunDiscover = async () => {
+    if (!brandConfig.brand_name) return
+    discoverAbortRef.current?.abort()
+    const ctrl = new AbortController()
+    discoverAbortRef.current = ctrl
+    setIsRunningDiscover(true); setDiscoverError('')
+    try {
+      const res = await api.runDiscover({
+        brand_name: brandConfig.brand_name,
+        domain: brandConfig.domain,
+        one_liner: brandConfig.one_liner,
+        target_audience: brandConfig.target_audience,
+        target_market: brandConfig.target_market,
+        differentiation: brandConfig.differentiation,
+        keywords: brandConfig.keywords,
+        competitors: brandConfig.competitors,
+        engines: [discoverEngine],
+      }, ctrl.signal, user?.id)
+      if (res.error === '__ABORTED__') { setIsRunningDiscover(false); return }
+      if (res.error) { setDiscoverError(res.error) } else if (res.data) {
+        setDiscoverResult(res.data)
+        notifyCreditUsed()
+      }
+    } catch (e: any) { if (e.name !== 'AbortError') setDiscoverError(e.message || 'Discovery failed') }
+    discoverAbortRef.current = null; setIsRunningDiscover(false)
+  }
+  const handleStopDiscover = () => { discoverAbortRef.current?.abort(); discoverAbortRef.current = null; setIsRunningDiscover(false) }
+
   // ═══ Context value ═══════════════════════════════
 
   const value: UnifiedState = {
@@ -557,6 +612,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     advancedMentions, isRunningAdvMentions, advMentionsError, handleRunAdvancedMentions, handleStopAdvMentions,
     intelReport, isGeneratingReport, reportError, handleGenerateReport, handleStopReport,
     multiBrandTrends, isLoadingTrends,
+    discoverResult, isRunningDiscover, discoverError, discoverEngine, setDiscoverEngine, availableEngines, handleRunDiscover, handleStopDiscover,
     aeoUrl, setAeoUrl, aeoResult, aeoHistory, isRunningAeo, aeoError, handleRunAeo,
     prompts, isLoadingPrompts, loadPrompts, showAddPrompt, setShowAddPrompt,
     newPromptForm, setNewPromptForm, editingPrompt, setEditingPrompt,

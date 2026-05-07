@@ -205,6 +205,10 @@ export interface BrandConfig {
   domain: string
   keywords: string[]
   competitors: string[]
+  one_liner?: string
+  target_audience?: string
+  target_market?: string
+  differentiation?: string
 }
 
 export interface ScanHistoryEntry {
@@ -227,5 +231,9 @@ export interface RecentBrandRecord {
   domain: string
   keywords: string[]
   competitors: string[]
+  one_liner?: string
+  target_audience?: string
+  target_market?: string
+  differentiation?: string
   usedAt: string
 }
