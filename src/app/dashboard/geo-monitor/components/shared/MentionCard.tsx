@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, Link2, ExternalLink, FileText } from 'lucide-react'
+import { ChevronDown, ChevronUp, Link2, ExternalLink, FileText, Target, Quote, Layers } from 'lucide-react'
 import { ScanMention } from '@/lib/api'
 import {
   SUB_TYPE_LABELS,
@@ -10,7 +10,7 @@ import {
   INTENT_CONTENT_MAP,
   autoClassify,
 } from './constants'
-import { highlightBrand, displayPrompt } from './ChartComponents'
+import { highlightBrand, displayPrompt, stripMarkdown } from './ChartComponents'
 
 export function MentionCard({ mention, brandName, index }: {
   mention: ScanMention; brandName: string; index: number
@@ -61,7 +61,11 @@ export function MentionCard({ mention, brandName, index }: {
             <>
               {mention.mention_context && (
                 <div className="mt-3 bg-caution-bg rounded-lg p-3 border border-caution/30">
-                  <p className="text-xs font-medium text-caution mb-1">Brand Context:</p>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Quote className="w-3 h-3 text-caution" />
+                    <p className="text-xs font-semibold text-caution">How AI describes you</p>
+                    <span className="text-[10px] text-ink-3">— the moment your brand appears</span>
+                  </div>
                   <p className="text-sm text-ink-2 leading-relaxed">{highlightBrand(mention.mention_context, brandName)}</p>
                 </div>
               )}
@@ -102,7 +106,11 @@ export function MentionCard({ mention, brandName, index }: {
                 </div>
               )}
               <div className="mt-3 bg-canvas rounded-lg p-4">
-                <p className="text-xs font-medium text-ink-3 mb-2">Full Response:</p>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Layers className="w-3 h-3 text-ink-3" />
+                  <p className="text-xs font-semibold text-ink-2">Full ranking context</p>
+                  <span className="text-[10px] text-ink-3">— competitive landscape AI presented</span>
+                </div>
                 <p className="text-sm text-ink-2 whitespace-pre-wrap leading-relaxed">{highlightBrand(mention.response_text, brandName)}</p>
               </div>
               <div className="mt-3 grid grid-cols-3 gap-3">
@@ -134,12 +142,79 @@ export function MentionCard({ mention, brandName, index }: {
             <>
               <div className="mt-3 bg-red-soft-bg rounded-lg p-4 border border-red-soft/30">
                 <p className="text-sm text-ink font-medium mb-1">Brand not mentioned in AI response</p>
-                <p className="text-xs text-red-soft">AI did not mention your brand for this query. Consider creating content to fill this gap.</p>
+                <p className="text-xs text-red-soft">AI did not mention your brand for this query. Use the signals below to plan content & PR.</p>
               </div>
+
+              {/* ── Strategic intel: who took your spot, what AI cited, judging criteria ─── */}
+              {(mention.competitors_mentioned.length > 0 || mention.cited_urls.length > 0 || mention.key_phrases?.length > 0) && (
+                <div className="mt-3 bg-surface-warm/50 rounded-lg p-4 border border-divider">
+                  <div className="flex items-center gap-1.5 mb-3">
+                    <Target className="w-3.5 h-3.5 text-ink-2" />
+                    <p className="text-xs font-semibold text-ink-2">What this tells you</p>
+                    <span className="text-[10px] text-ink-3">— extract these signals into your GEO plan</span>
+                  </div>
+
+                  {mention.competitors_mentioned.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-[11px] font-medium text-ink-3 mb-1.5">
+                        Brands AI recommended instead ({mention.competitors_mentioned.length})
+                        <span className="text-[10px] text-ink-3/70 ml-1">→ your direct AI-shelf competitors</span>
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {mention.competitors_mentioned.map((c, i) => (
+                          <span key={i} className="text-xs px-2 py-0.5 bg-caution-bg text-caution rounded-full font-medium">{c}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {mention.cited_urls.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-[11px] font-medium text-ink-3 mb-1.5 flex items-center gap-1">
+                        <Link2 className="w-3 h-3" />
+                        Sources AI trusted ({mention.cited_urls.length})
+                        <span className="text-[10px] text-ink-3/70 ml-1">→ your citation gap (PR / content targets)</span>
+                      </p>
+                      <div className="space-y-1">
+                        {mention.cited_urls.slice(0, 5).map((url, i) => (
+                          <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-ink-2 hover:text-ink hover:underline truncate">
+                            <ExternalLink className="w-3 h-3 flex-shrink-0" />{url}
+                          </a>
+                        ))}
+                        {mention.cited_urls.length > 5 && (
+                          <p className="text-[10px] text-ink-3 italic">+{mention.cited_urls.length - 5} more</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {mention.key_phrases?.length > 0 && (
+                    <div>
+                      <p className="text-[11px] font-medium text-ink-3 mb-1.5">
+                        Judging criteria AI used
+                        <span className="text-[10px] text-ink-3/70 ml-1">→ your content angle must hit these framings</span>
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {mention.key_phrases.slice(0, 6).map((kp, i) => (
+                          <span key={i} className="text-xs px-2 py-1 bg-surface-warm text-ink-2 rounded-lg">
+                            {kp.length > 60 ? kp.slice(0, 60) + '...' : kp}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="mt-3 bg-canvas rounded-lg p-4">
-                <p className="text-xs font-medium text-ink-3 mb-2">Full Response:</p>
-                <p className="text-sm text-ink-2 whitespace-pre-wrap leading-relaxed">{mention.response_text}</p>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Layers className="w-3 h-3 text-ink-3" />
+                  <p className="text-xs font-semibold text-ink-2">AI&apos;s recommended brands &amp; reasoning</p>
+                  <span className="text-[10px] text-ink-3">— full response below</span>
+                </div>
+                <p className="text-sm text-ink-2 whitespace-pre-wrap leading-relaxed">{stripMarkdown(mention.response_text)}</p>
               </div>
+
               {contentLinks.length > 0 && (
                 <div className="mt-3 flex items-center gap-2 flex-wrap">
                   <span className="text-xs text-ink-3 font-medium">Fill this gap:</span>

@@ -105,9 +105,36 @@ export function avgMetric(data: ReportRow[] | undefined, metricIndex: number): n
 
 // ─── Text helpers ────────────────────────────────────
 
+/**
+ * Strip Markdown syntax characters (headers, bold, italic, code, links, blockquotes)
+ * so AI responses render as clean plain text in the UI.
+ */
+export function stripMarkdown(text: string): string {
+  if (!text) return ''
+  return text
+    // Headers: "### Title" → "Title"
+    .replace(/^#{1,6}\s+/gm, '')
+    // Bold (**text** / __text__) and italic (*text* / _text_)
+    .replace(/\*\*([^*\n]+)\*\*/g, '$1')
+    .replace(/__([^_\n]+)__/g, '$1')
+    .replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s).,!?]|$)/g, '$1$2')
+    .replace(/(^|[\s(])_([^_\n]+)_(?=[\s).,!?]|$)/g, '$1$2')
+    // Inline code: `code` → code
+    .replace(/`([^`\n]+)`/g, '$1')
+    // Links: [text](url) → text
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1')
+    // Blockquote markers and horizontal rules
+    .replace(/^>\s+/gm, '')
+    .replace(/^[-*_]{3,}\s*$/gm, '')
+    // Collapse 3+ newlines to 2
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
 export function highlightBrand(text: string, brand: string): React.ReactNode {
-  if (!brand) return text
-  const parts = text.split(new RegExp(`(${brand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'))
+  const cleaned = stripMarkdown(text)
+  if (!brand) return cleaned
+  const parts = cleaned.split(new RegExp(`(${brand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'))
   return parts.map((part, i) =>
     part.toLowerCase() === brand.toLowerCase()
       ? <span key={i} className="bg-caution-bg text-caution font-semibold px-0.5 rounded">{part}</span>
