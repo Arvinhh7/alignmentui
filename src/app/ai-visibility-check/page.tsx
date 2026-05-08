@@ -61,6 +61,12 @@ function cleanCheckName(name: string): string {
   return name.replace(/\s*\(RFC\s*\d+\)/gi, '').trim()
 }
 
+function checkRowBgClass(status: string): string {
+  if (status === 'pass')    return 'bg-sage-bg'
+  if (status === 'warning') return 'bg-caution-bg'
+  return 'bg-red-soft-bg'
+}
+
 function normalizeDomain(raw: string): string {
   return raw.trim().replace(/^https?:\/\//, '').split('/')[0].split('?')[0]
 }
@@ -271,7 +277,7 @@ function DimensionPanel({
         <div>
           <div className="divide-y divide-divider-light/50">
             {visible.map(check => (
-              <div key={check.id} className="flex items-center gap-3 px-5 py-3">
+              <div key={check.id} className={`flex items-center gap-3 px-5 py-3 ${checkRowBgClass(check.status)}`}>
                 <StatusIcon status={check.status} />
                 <span className="text-sm text-ink-2 leading-snug">{cleanCheckName(check.name)}</span>
               </div>
@@ -282,7 +288,7 @@ function DimensionPanel({
             <div className="relative">
               <div className="divide-y divide-divider-light/50 select-none pointer-events-none">
                 {hidden.map(check => (
-                  <div key={check.id} className="flex items-center gap-3 px-5 py-3 blur-sm">
+                  <div key={check.id} className={`flex items-center gap-3 px-5 py-3 blur-sm ${checkRowBgClass(check.status)}`}>
                     <StatusIcon status={check.status} />
                     <span className="text-sm text-ink-2">{cleanCheckName(check.name)}</span>
                   </div>
