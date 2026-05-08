@@ -55,6 +55,12 @@ function isShopify(stack: Record<string, unknown>): boolean {
   return JSON.stringify(stack).toLowerCase().includes('shopify')
 }
 
+// Strip technical RFC references from check names for public-facing display
+// e.g. "Link Headers (RFC 8288)" → "Link Headers"
+function cleanCheckName(name: string): string {
+  return name.replace(/\s*\(RFC\s*\d+\)/gi, '').trim()
+}
+
 function normalizeDomain(raw: string): string {
   return raw.trim().replace(/^https?:\/\//, '').split('/')[0].split('?')[0]
 }
@@ -267,7 +273,7 @@ function DimensionPanel({
             {visible.map(check => (
               <div key={check.id} className="flex items-center gap-3 px-5 py-3">
                 <StatusIcon status={check.status} />
-                <span className="text-sm text-ink-2 leading-snug">{check.name}</span>
+                <span className="text-sm text-ink-2 leading-snug">{cleanCheckName(check.name)}</span>
               </div>
             ))}
           </div>
@@ -278,7 +284,7 @@ function DimensionPanel({
                 {hidden.map(check => (
                   <div key={check.id} className="flex items-center gap-3 px-5 py-3 blur-sm">
                     <StatusIcon status={check.status} />
-                    <span className="text-sm text-ink-2">{check.name}</span>
+                    <span className="text-sm text-ink-2">{cleanCheckName(check.name)}</span>
                   </div>
                 ))}
               </div>
@@ -489,14 +495,74 @@ function ResultSection({
 
         {/* ── Score + 5D ── */}
         {phase === 'l1' ? (
-          /* L1: score ring standalone + full DimensionPanels */
+          /* L1: insight cards + score ring + audit stats + DimensionPanels */
           <div className="space-y-4">
-            <div className="bg-surface rounded-2xl border border-divider-light p-6 text-center shadow-sm">
-              <p className="text-xs font-semibold text-ink-3 uppercase tracking-wider mb-4">AI Visibility Score</p>
-              <ScoreRing score={result.overall_score} level={result.level} />
-              <p className={`text-sm font-semibold mt-4 ${levelTextClass(result.level)}`}>{result.level}</p>
-              <p className="text-xs text-ink-3 mt-1">AI Visibility Score</p>
-            </div>
+            {/* Strongest / Priority to Fix — mirrors dashboard top */}
+            {(() => {
+              const sorted = [...result.dimensions].sort((a, b) => b.score - a.score)
+              const strongest = sorted[0]
+              const weakest   = sorted[sorted.length - 1]
+              const allChecks = Object.values(result.checks_by_dimension).flat()
+              const passedCt  = allChecks.filter(c => c.status === 'pass').length
+              const warnCt    = allChecks.filter(c => c.status === 'warning').length
+              const failCt    = allChecks.filter(c => c.status === 'fail').length
+              return (
+                <>
+                  {/* Insight row */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-gradient-to-br from-sage-bg to-surface-warm rounded-xl border border-sage/30 p-5">
+                      <p className="text-xs font-semibold text-sage uppercase tracking-wider mb-3">Strongest Dimension</p>
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-ink text-sm">{DIM_LABELS[strongest.id] ?? strongest.name}</span>
+                        <span className="text-2xl font-bold font-mono text-sage">{strongest.score}</span>
+                      </div>
+                      <p className="text-xs text-sage mt-1.5 opacity-75">Your best-performing area for AI visibility.</p>
+                    </div>
+                    <div className="bg-surface-warm rounded-xl border border-divider-light p-5">
+                      <p className="text-xs font-semibold text-red-soft uppercase tracking-wider mb-3">Priority to Fix</p>
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-ink text-sm">{DIM_LABELS[weakest.id] ?? weakest.name}</span>
+                        <span className="text-2xl font-bold font-mono text-red-soft">{weakest.score}</span>
+                      </div>
+                      <p className="text-xs text-red-soft mt-1.5 opacity-75">Improving this will have the biggest impact.</p>
+                    </div>
+                  </div>
+
+                  {/* Score ring + audit summary side-by-side */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-surface rounded-2xl border border-divider-light p-6 text-center shadow-sm">
+                      <p className="text-xs font-semibold text-ink-3 uppercase tracking-wider mb-4">AI Visibility Score</p>
+                      <ScoreRing score={result.overall_score} level={result.level} />
+                      <p className={`text-sm font-semibold mt-4 ${levelTextClass(result.level)}`}>{result.level}</p>
+                      <p className="text-xs text-ink-3 mt-1">AI Visibility Score</p>
+                    </div>
+                    <div className="bg-surface rounded-2xl border border-divider-light p-5 shadow-sm flex flex-col justify-center gap-3">
+                      <p className="text-xs font-semibold text-ink-3 uppercase tracking-wider">Audit Summary</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-sage-bg rounded-xl p-3 text-center">
+                          <div className="text-xl font-bold text-sage">{passedCt}</div>
+                          <div className="text-xs text-sage mt-0.5">Passed</div>
+                        </div>
+                        <div className="bg-caution-bg rounded-xl p-3 text-center">
+                          <div className="text-xl font-bold text-caution">{warnCt}</div>
+                          <div className="text-xs text-caution mt-0.5">Warnings</div>
+                        </div>
+                        <div className="bg-red-soft-bg rounded-xl p-3 text-center">
+                          <div className="text-xl font-bold text-red-soft">{failCt}</div>
+                          <div className="text-xs text-red-soft mt-0.5">Critical Issues</div>
+                        </div>
+                        <div className="bg-surface-muted rounded-xl p-3 text-center">
+                          <div className="text-xl font-bold text-ink">{allChecks.length}</div>
+                          <div className="text-xs text-ink-3 mt-0.5">Checks Performed</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )
+            })()}
+
+            {/* 5D Dimension Panels */}
             {result.dimensions.map(dim => (
               <DimensionPanel
                 key={dim.id}
