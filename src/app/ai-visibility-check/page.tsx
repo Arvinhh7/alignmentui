@@ -224,6 +224,77 @@ function CheckAccordion({ dimId, checks }: { dimId: string; checks: AuditCheck[]
   )
 }
 
+// D1 shows first 5 checks, D2–D5 show first 3; remaining blurred in L1
+const DIM_VISIBLE_COUNT: Record<string, number> = { d1: 5 }
+const DIM_VISIBLE_DEFAULT = 3
+
+function DimensionPanel({
+  dim,
+  checks,
+  locked,
+}: {
+  dim: { id: string; name: string; score: number; level: string }
+  checks: AuditCheck[]
+  locked: boolean  // true = L1 (blur overflow), false = L2 (show all)
+}) {
+  const visibleCount = DIM_VISIBLE_COUNT[dim.id] ?? DIM_VISIBLE_DEFAULT
+  const visible = checks.slice(0, visibleCount)
+  const hidden  = locked ? checks.slice(visibleCount) : []
+
+  return (
+    <div className="bg-surface rounded-2xl border border-divider-light shadow-sm overflow-hidden">
+      {/* Header: name + score + progress */}
+      <div className="px-5 py-4 border-b border-divider-light/50">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-semibold text-ink">{DIM_LABELS[dim.id] ?? dim.name}</span>
+          <span className={`text-sm font-bold tabular-nums ${levelTextClass(dim.level)}`}>{dim.score}</span>
+        </div>
+        <div className="h-1.5 bg-surface-muted rounded-full overflow-hidden mb-1.5">
+          <div
+            className="h-full rounded-full transition-all duration-700 ease-out"
+            style={{ width: `${dim.score}%`, backgroundColor: levelRingColor(dim.level) }}
+          />
+        </div>
+        <span className={`text-xs font-medium ${levelTextClass(dim.level)}`}>{dim.level}</span>
+      </div>
+
+      {/* Check items */}
+      {checks.length === 0 ? (
+        <div className="px-5 py-4 text-sm text-ink-3 italic">No checks available</div>
+      ) : (
+        <div>
+          <div className="divide-y divide-divider-light/50">
+            {visible.map(check => (
+              <div key={check.id} className="flex items-center gap-3 px-5 py-3">
+                <StatusIcon status={check.status} />
+                <span className="text-sm text-ink-2 leading-snug">{check.name}</span>
+              </div>
+            ))}
+          </div>
+
+          {hidden.length > 0 && (
+            <div className="relative">
+              <div className="divide-y divide-divider-light/50 select-none pointer-events-none">
+                {hidden.map(check => (
+                  <div key={check.id} className="flex items-center gap-3 px-5 py-3 blur-sm">
+                    <StatusIcon status={check.status} />
+                    <span className="text-sm text-ink-2">{check.name}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-xs font-semibold text-ink-2 bg-surface/90 px-3 py-1.5 rounded-full border border-divider-light shadow-sm">
+                  🔒 {hidden.length} more — unlock below
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Page phases ───────────────────────────────────────────────────────────────
 
 function InputSection({
@@ -417,40 +488,52 @@ function ResultSection({
       <div className="max-w-4xl mx-auto px-6 py-8 space-y-8">
 
         {/* ── Score + 5D ── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-          {/* Score ring */}
-          <div className="bg-surface rounded-2xl border border-divider-light p-6 text-center shadow-sm">
-            <p className="text-xs font-semibold text-ink-3 uppercase tracking-wider mb-4">AI Visibility Score</p>
-            <ScoreRing score={result.overall_score} level={result.level} />
-            <p className={`text-sm font-semibold mt-4 ${levelTextClass(result.level)}`}>{result.level}</p>
-            <p className="text-xs text-ink-3 mt-1">AI Visibility Score</p>
+        {phase === 'l1' ? (
+          /* L1: score ring standalone + full DimensionPanels */
+          <div className="space-y-4">
+            <div className="bg-surface rounded-2xl border border-divider-light p-6 text-center shadow-sm">
+              <p className="text-xs font-semibold text-ink-3 uppercase tracking-wider mb-4">AI Visibility Score</p>
+              <ScoreRing score={result.overall_score} level={result.level} />
+              <p className={`text-sm font-semibold mt-4 ${levelTextClass(result.level)}`}>{result.level}</p>
+              <p className="text-xs text-ink-3 mt-1">AI Visibility Score</p>
+            </div>
+            {result.dimensions.map(dim => (
+              <DimensionPanel
+                key={dim.id}
+                dim={dim}
+                checks={result.checks_by_dimension[dim.id] ?? []}
+                locked={true}
+              />
+            ))}
           </div>
-
-          {/* 5D dimensions */}
-          <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {result.dimensions.map(dim => {
-              const pct = dim.score  // already 0-100
-              return (
+        ) : (
+          /* L2: original compact layout — score ring + small cards grid */
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+            <div className="bg-surface rounded-2xl border border-divider-light p-6 text-center shadow-sm">
+              <p className="text-xs font-semibold text-ink-3 uppercase tracking-wider mb-4">AI Visibility Score</p>
+              <ScoreRing score={result.overall_score} level={result.level} />
+              <p className={`text-sm font-semibold mt-4 ${levelTextClass(result.level)}`}>{result.level}</p>
+              <p className="text-xs text-ink-3 mt-1">AI Visibility Score</p>
+            </div>
+            <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {result.dimensions.map(dim => (
                 <div key={dim.id} className="bg-surface rounded-xl border border-divider-light p-4 shadow-sm">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-ink-2">{dim.name}</span>
+                    <span className="text-xs font-semibold text-ink-2">{DIM_LABELS[dim.id] ?? dim.name}</span>
                     <span className={`text-xs font-bold ${levelTextClass(dim.level)}`}>{dim.score}</span>
                   </div>
                   <div className="h-1.5 bg-surface-muted rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-700 ease-out"
-                      style={{
-                        width: `${pct}%`,
-                        backgroundColor: levelRingColor(dim.level),
-                      }}
+                      style={{ width: `${dim.score}%`, backgroundColor: levelRingColor(dim.level) }}
                     />
                   </div>
                   <p className={`text-xs mt-1.5 ${levelTextClass(dim.level)}`}>{dim.level}</p>
                 </div>
-              )
-            })}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ── Pain metrics (L1) ── */}
         <div className="grid grid-cols-3 gap-4">
