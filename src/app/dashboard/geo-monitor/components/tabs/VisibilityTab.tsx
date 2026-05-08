@@ -2,10 +2,15 @@
 
 import { useMemo } from 'react'
 import {
-  Eye, BarChart3, MessageSquare, Target, TrendingUp,
+  Eye, BarChart3, MessageSquare, TrendingUp,
   Award, Link2, Loader2, AlertTriangle, Lightbulb, XCircle,
+  ShieldAlert, Layers, Gift, ArrowRight,
 } from 'lucide-react'
+import Link from 'next/link'
 import { useUnified } from '../UnifiedContext'
+import { computeCTM } from './CitationTruthMap'
+import { computeIntentFunnel, IntentFunnel } from './IntentFunnel'
+import { computeGEOScore, GEOHealthScore } from './GEOHealthScore'
 import {
   MetricCard,
   DonutChart,
@@ -14,7 +19,7 @@ import {
   formatPct,
   formatNum,
 } from '../shared/ChartComponents'
-import { METRIC_COLORS, INTENT_FUNNEL, POSITIONING_LABELS } from '../shared/constants'
+import { METRIC_COLORS, POSITIONING_LABELS } from '../shared/constants'
 
 export function VisibilityTab() {
   const ctx = useUnified()
@@ -57,24 +62,39 @@ export function VisibilityTab() {
     }))
   }, [ctx.scanResult, ctx.brandConfig.brand_name])
 
-  // ── Intent distribution ────────────────────────────
-  const intentCounts = useMemo(() => {
-    const counts: Record<string, number> = {}
-    if (ctx.scanResult?.mention_results) {
-      for (const m of ctx.scanResult.mention_results) {
-        const intent = (m as any).intent || 'info_cognition'
-        counts[intent] = (counts[intent] || 0) + 1
-      }
-    }
-    if (ctx.scanResult?.intent_distribution) {
-      for (const [intent, count] of Object.entries(ctx.scanResult.intent_distribution)) {
-        counts[intent] = count
-      }
-    }
-    return counts
-  }, [ctx.scanResult])
-
   const hasScanData = !!ctx.scanResult
+
+  // ── P5: Citation Health — CTM summary for Visibility tab ──
+  const ctmRows = useMemo(() => {
+    if (!ctx.discoverResult) return null
+    return computeCTM(ctx.discoverResult, ctx.scanResult)
+  }, [ctx.discoverResult, ctx.scanResult])
+
+  const citationHealth = useMemo(() => {
+    if (!ctmRows) return null
+    return {
+      gap:     ctmRows.filter(r => r.status === 'gap').length,
+      defend:  ctmRows.filter(r => r.status === 'defend').length,
+      amplify: ctmRows.filter(r => r.status === 'amplify').length,
+      bonus:   ctmRows.filter(r => r.status === 'bonus').length,
+      topGaps: ctmRows.filter(r => r.status === 'gap').slice(0, 3),
+    }
+  }, [ctmRows])
+
+  // ── P6: Intent Funnel stages ───────────────────────
+  const intentStages = useMemo(() => {
+    if (!ctx.scanResult) return []
+    return computeIntentFunnel(ctx.prompts, ctx.scanResult)
+  }, [ctx.prompts, ctx.scanResult])
+
+  // ── P7: GEO Health Score ───────────────────────────
+  const geoScoreBreakdown = useMemo(() => {
+    if (!ctx.scanResult) return null
+    const prevVisibility = ctx.scanHistory.length >= 2
+      ? ctx.scanHistory[ctx.scanHistory.length - 2]?.visibility_score ?? null
+      : null
+    return computeGEOScore(ctx.scanResult, ctx.prompts, ctmRows, intentStages, prevVisibility)
+  }, [ctx.scanResult, ctx.prompts, ctmRows, intentStages, ctx.scanHistory])
 
   // ── Diagnostic: detect zero visibility causes ─────────
   const zeroDiagnostic = useMemo(() => {
@@ -210,6 +230,97 @@ export function VisibilityTab() {
         </div>
       )}
 
+      {/* ═══ P7: GEO Health Score ═══════════════════════ */}
+      {geoScoreBreakdown && !ctx.isScanning && (
+        <GEOHealthScore breakdown={geoScoreBreakdown} />
+      )}
+
+      {/* ═══ P5: Citation Health Summary ════════════════ */}
+      {ctx.discoverResult && !ctx.isScanning && (
+        <div className="bg-surface rounded-xl border border-divider p-5">
+          <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
+            <div>
+              <h4 className="text-sm font-semibold text-ink">Citation Health</h4>
+              <p className="text-xs text-ink-3 mt-0.5">
+                {hasScanData
+                  ? 'Core source coverage: how many Discover sources appear in your brand scans.'
+                  : 'Run a scan to compare against Discover sources.'}
+              </p>
+            </div>
+            <Link
+              href="/dashboard/geo-monitor?tab=discover"
+              className="flex items-center gap-1 text-xs font-medium text-ink-2 hover:text-ink transition-colors flex-shrink-0"
+            >
+              View Citation Truth Map
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+
+          {/* Stat chips */}
+          {citationHealth ? (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+              {[
+                { icon: <XCircle className="w-4 h-4 text-red-soft" />,     label: 'Gaps',       value: citationHealth.gap,     bg: 'bg-red-soft-bg',    text: 'text-red-soft'  },
+                { icon: <ShieldAlert className="w-4 h-4 text-caution" />,  label: 'Threats',    value: citationHealth.defend,  bg: 'bg-caution-bg',     text: 'text-caution'   },
+                { icon: <Layers className="w-4 h-4 text-sage" />,          label: 'Amplifying', value: citationHealth.amplify, bg: 'bg-sage-bg',        text: 'text-sage'      },
+                { icon: <Gift className="w-4 h-4 text-ink-2" />,           label: 'Bonus',      value: citationHealth.bonus,   bg: 'bg-surface-warm',   text: 'text-ink-2'    },
+              ].map(({ icon, label, value, bg, text }) => (
+                <div key={label} className={`${bg} rounded-xl p-3 flex items-center gap-2.5`}>
+                  {icon}
+                  <div>
+                    <p className={`text-xl font-bold font-mono leading-none ${text}`}>{value}</p>
+                    <p className="text-[10px] text-ink-3 mt-0.5">{label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+              {['Gaps', 'Threats', 'Amplifying', 'Bonus'].map(label => (
+                <div key={label} className="bg-surface-warm rounded-xl p-3 flex items-center gap-2.5">
+                  <div className="w-4 h-4 rounded-full bg-divider" />
+                  <div>
+                    <p className="text-xl font-bold font-mono leading-none text-ink-3">—</p>
+                    <p className="text-[10px] text-ink-3 mt-0.5">{label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Top 3 Gap domains */}
+          {citationHealth && citationHealth.topGaps.length > 0 && (
+            <div>
+              <p className="text-[10px] font-semibold text-ink-3 uppercase tracking-wide mb-2">Top Priority Gaps</p>
+              <div className="space-y-1.5">
+                {citationHealth.topGaps.map(row => (
+                  <div key={row.domain} className="flex items-center justify-between gap-2 px-3 py-2 bg-red-soft-bg rounded-lg">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <img
+                        src={`https://www.google.com/s2/favicons?domain=${row.domain}&sz=32`}
+                        onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                        className="w-3.5 h-3.5 flex-shrink-0 rounded-sm"
+                        alt=""
+                      />
+                      <span className="text-xs font-medium text-ink truncate">{row.domain}</span>
+                      <span className="text-[10px] text-ink-3 flex-shrink-0">
+                        {row.discover_weight} prompts
+                      </span>
+                    </div>
+                    <Link
+                      href="/dashboard/distribute"
+                      className="flex items-center gap-0.5 text-[11px] font-semibold text-red-soft hover:text-red-soft/80 transition-colors flex-shrink-0"
+                    >
+                      Pitch <ArrowRight className="w-3 h-3" />
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ═══ Zero-Visibility Diagnostic Banner ═════════ */}
       {zeroDiagnostic && !ctx.isScanning && (
         <div className={`rounded-xl border p-4 flex items-start gap-3 ${
@@ -312,10 +423,10 @@ export function VisibilityTab() {
         </div>
       )}
 
-      {/* ═══ SoV + Intent Grid ════════════════════════ */}
+      {/* ═══ SoV + Intent Funnel ═══════════════════════ */}
       {hasScanData && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Mention Share Donut (only when competitors are configured) */}
+          {/* Mention Share Donut */}
           <div className="bg-surface rounded-xl border border-divider p-5">
             <h4 className="text-sm font-semibold text-ink-2 mb-1 flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-caution" />
@@ -333,29 +444,8 @@ export function VisibilityTab() {
             )}
           </div>
 
-          {/* Intent Distribution */}
-          <div className="bg-surface rounded-xl border border-divider p-5">
-            <h4 className="text-sm font-semibold text-ink-2 mb-4 flex items-center gap-2">
-              <Target className="w-4 h-4 text-ink-2" />
-              Intent Distribution
-            </h4>
-            <div className="grid grid-cols-2 gap-3">
-              {Object.entries(INTENT_FUNNEL).map(([key, funnel]) => {
-                const count = intentCounts[key] ?? 0
-                return (
-                  <div key={key} className={`rounded-xl p-4 ${funnel.bgColor} transition-shadow hover:shadow-sm`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-lg">{funnel.icon}</span>
-                      <span className={`text-xs font-semibold ${funnel.color}`}>Stage {funnel.stage}</span>
-                    </div>
-                    <p className="text-xs text-ink-2 font-medium capitalize">{key.replace(/_/g, ' ')}</p>
-                    <p className={`text-2xl font-bold font-mono mt-1 ${funnel.color}`}>{count}</p>
-                    <p className="text-[10px] text-ink-3 mt-0.5">mentions</p>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
+          {/* P6: Intent Funnel */}
+          <IntentFunnel prompts={ctx.prompts} scanResult={ctx.scanResult!} />
         </div>
       )}
 

@@ -8,6 +8,7 @@ import { useUnified } from '../UnifiedContext'
 import { DOMAIN_TYPE_LABELS } from '../shared/constants'
 import { GeneratePromptsModal } from './GeneratePromptsModal'
 import { CitationTruthMap } from './CitationTruthMap'
+import { PromptIntelligence } from './PromptIntelligence'
 import type { DiscoverSourceItem } from '@/lib/api'
 
 // ── Phase 4: Action CTA routing per domain type ──────
@@ -341,6 +342,15 @@ export function DiscoverTab() {
 
           {/* ── P2+P3: Citation Truth Map ─────────── */}
           <CitationTruthMap discoverResult={result} scanResult={ctx.scanResult} />
+
+          {/* ── P4: Prompt Intelligence ───────────── */}
+          {ctx.scanResult && (
+            <PromptIntelligence
+              scanResult={ctx.scanResult}
+              prompts={ctx.prompts}
+              onOpenGenerateModal={() => ctx.setShowGeneratePromptsModal(true)}
+            />
+          )}
         </>
       )}
 
