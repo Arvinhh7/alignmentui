@@ -19,7 +19,7 @@ import {
   formatPct,
   formatNum,
 } from '../shared/ChartComponents'
-import { METRIC_COLORS, POSITIONING_LABELS } from '../shared/constants'
+import { METRIC_COLORS, POSITIONING_LABELS, DASHBOARD_ROUTES } from '../shared/constants'
 
 export function VisibilityTab() {
   const ctx = useUnified()
@@ -308,7 +308,7 @@ export function VisibilityTab() {
                       </span>
                     </div>
                     <Link
-                      href="/dashboard/distribute"
+                      href={DASHBOARD_ROUTES.distribute}
                       className="flex items-center gap-0.5 text-[11px] font-semibold text-red-soft hover:text-red-soft/80 transition-colors flex-shrink-0"
                     >
                       Pitch <ArrowRight className="w-3 h-3" />

@@ -5,6 +5,7 @@ import { Globe, ExternalLink, ArrowRight, MapIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
 import type { DiscoverResult, MonitorScanResult, SourceDomainInfo } from '@/lib/api'
+import { DASHBOARD_ROUTES } from '../shared/constants'
 
 // ── Types ─────────────────────────────────────────────
 
@@ -66,11 +67,11 @@ const STATUS_CONFIG: Record<CTMStatus, {
   href: (domain: string) => string
   external: boolean
 }> = {
-  gap:     { labelKey: 'statusGap',     actionKey: 'actionPitch',   color: 'bg-red-soft-bg text-red-soft',   dot: 'bg-red-soft',   href: () => '/dashboard/distribute',    external: false },
-  defend:  { labelKey: 'statusDefend',  actionKey: 'actionCounter', color: 'bg-caution-bg text-caution',     dot: 'bg-caution',    href: () => '/dashboard/geo-content',   external: false },
-  amplify: { labelKey: 'statusAmplify', actionKey: 'actionAmplify', color: 'bg-sage-bg text-sage',           dot: 'bg-sage',       href: () => '/dashboard/geo-monitor',   external: false },
-  bonus:   { labelKey: 'statusBonus',   actionKey: 'actionAmplify', color: 'bg-surface-warm text-ink-2',     dot: 'bg-ink-3',      href: () => '/dashboard/geo-monitor',   external: false },
-  monitor: { labelKey: 'statusMonitor', actionKey: 'actionMonitor', color: 'bg-surface-muted text-ink-3',   dot: 'bg-divider',    href: d  => `https://${d}`,             external: true  },
+  gap:     { labelKey: 'statusGap',     actionKey: 'actionPitch',   color: 'bg-red-soft-bg text-red-soft',   dot: 'bg-red-soft',   href: () => DASHBOARD_ROUTES.distribute, external: false },
+  defend:  { labelKey: 'statusDefend',  actionKey: 'actionCounter', color: 'bg-caution-bg text-caution',     dot: 'bg-caution',    href: () => DASHBOARD_ROUTES.content,    external: false },
+  amplify: { labelKey: 'statusAmplify', actionKey: 'actionAmplify', color: 'bg-sage-bg text-sage',           dot: 'bg-sage',       href: () => DASHBOARD_ROUTES.monitor,    external: false },
+  bonus:   { labelKey: 'statusBonus',   actionKey: 'actionAmplify', color: 'bg-surface-warm text-ink-2',     dot: 'bg-ink-3',      href: () => DASHBOARD_ROUTES.monitor,    external: false },
+  monitor: { labelKey: 'statusMonitor', actionKey: 'actionMonitor', color: 'bg-surface-muted text-ink-3',    dot: 'bg-divider',    href: d  => `https://${d}`,              external: true  },
 }
 
 type FilterKey = 'all' | CTMStatus

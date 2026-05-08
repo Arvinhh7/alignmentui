@@ -5,7 +5,7 @@ import { Compass, Globe, Play, Square, ExternalLink, ArrowRight, Loader2, ScanSe
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useUnified } from '../UnifiedContext'
-import { DOMAIN_TYPE_LABELS } from '../shared/constants'
+import { DOMAIN_TYPE_LABELS, DASHBOARD_ROUTES } from '../shared/constants'
 import { GeneratePromptsModal } from './GeneratePromptsModal'
 import { CitationTruthMap } from './CitationTruthMap'
 import { PromptIntelligence } from './PromptIntelligence'
@@ -17,15 +17,15 @@ const DISCOVER_ACTION: Record<string, {
   href: (domain: string) => string
   external: boolean
 }> = {
-  reference:     { label: 'Add Schema Markup',    href: () => '/dashboard/optimize',      external: false },
-  editorial:     { label: 'Pitch This Source',    href: d  => `https://${d}`,             external: true  },
-  ugc:           { label: 'Build Review Profile', href: d  => `https://${d}`,             external: true  },
-  competitor:    { label: 'Monitor Competitor',   href: () => '/dashboard/geo-monitor',   external: false },
-  you:           { label: 'Strengthen Entity',    href: () => '/dashboard/optimize',      external: false },
-  corporate:     { label: 'Strengthen Entity',    href: () => '/dashboard/optimize',      external: false },
-  institutional: { label: 'Cite This Reference',  href: d  => `https://${d}`,             external: true  },
-  coupon:        { label: 'Track Distribution',   href: () => '/dashboard/distribute',    external: false },
-  other:         { label: 'Monitor Source',       href: d  => `https://${d}`,             external: true  },
+  reference:     { label: 'Add Schema Markup',    href: () => DASHBOARD_ROUTES.optimize,    external: false },
+  editorial:     { label: 'Pitch This Source',    href: d  => `https://${d}`,               external: true  },
+  ugc:           { label: 'Build Review Profile', href: d  => `https://${d}`,               external: true  },
+  competitor:    { label: 'Monitor Competitor',   href: () => DASHBOARD_ROUTES.monitor,     external: false },
+  you:           { label: 'Strengthen Entity',    href: () => DASHBOARD_ROUTES.optimize,    external: false },
+  corporate:     { label: 'Strengthen Entity',    href: () => DASHBOARD_ROUTES.optimize,    external: false },
+  institutional: { label: 'Cite This Reference',  href: d  => `https://${d}`,               external: true  },
+  coupon:        { label: 'Track Distribution',   href: () => DASHBOARD_ROUTES.distribute,  external: false },
+  other:         { label: 'Monitor Source',       href: d  => `https://${d}`,               external: true  },
 }
 
 // ── Phase 6: Engine definitions ──────────────────────

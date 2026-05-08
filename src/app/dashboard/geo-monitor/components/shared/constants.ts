@@ -1,3 +1,21 @@
+// ─── Central route registry ────────────────────────────
+// SINGLE SOURCE OF TRUTH for every internal sourcing/CTA link rendered in
+// GEO Monitor panels. Adding a new dashboard page? Register it here so all
+// downstream cards/maps/tabs route correctly. Never inline a /dashboard/...
+// string elsewhere — it WILL drift and break (e.g. /optimize vs /geo-optimization).
+export const DASHBOARD_ROUTES = {
+  audit:        '/dashboard/geo-audit',
+  optimize:     '/dashboard/geo-optimization',
+  content:      '/dashboard/geo-content',
+  distribute:   '/dashboard/geo-distribution',
+  monitor:      '/dashboard/geo-monitor',
+  monitorDiscover: '/dashboard/geo-monitor?tab=discover',
+  monitorPrompts:  '/dashboard/geo-monitor?tab=prompts',
+} as const
+
+// Build a content URL for a given content type (definition / faq / comparison …).
+export const contentRoute = (type: string) => `${DASHBOARD_ROUTES.content}?type=${type}`
+
 // ─── localStorage keys ─────────────────────────────────
 export const BRAND_CONFIG_KEY = 'alignment_monitor_brand_config'
 export const SCAN_RESULTS_KEY = 'alignment_monitor_scan_results'
@@ -108,20 +126,20 @@ export const INTENT_FUNNEL: Record<string, { stage: number; icon: string; color:
 
 export const INTENT_CONTENT_MAP: Record<string, { type: string; label: string; url: string }[]> = {
   info_cognition: [
-    { type: 'definition', label: 'Definition Article', url: '/dashboard/geo-content?type=definition' },
-    { type: 'reference_source', label: 'Reference / Source', url: '/dashboard/geo-content?type=reference_source' },
+    { type: 'definition', label: 'Definition Article', url: contentRoute('definition') },
+    { type: 'reference_source', label: 'Reference / Source', url: contentRoute('reference_source') },
   ],
   solution_explore: [
-    { type: 'usecase_mapping', label: 'Use-case Mapping', url: '/dashboard/geo-content?type=usecase_mapping' },
-    { type: 'faq', label: 'FAQ Article', url: '/dashboard/geo-content?type=faq' },
+    { type: 'usecase_mapping', label: 'Use-case Mapping', url: contentRoute('usecase_mapping') },
+    { type: 'faq', label: 'FAQ Article', url: contentRoute('faq') },
   ],
   comparison_decision: [
-    { type: 'comparison', label: 'Comparison / Ranking', url: '/dashboard/geo-content?type=comparison' },
-    { type: 'evaluation_risk', label: 'Evaluation & Risk', url: '/dashboard/geo-content?type=evaluation_risk' },
+    { type: 'comparison', label: 'Comparison / Ranking', url: contentRoute('comparison') },
+    { type: 'evaluation_risk', label: 'Evaluation & Risk', url: contentRoute('evaluation_risk') },
   ],
   action_choice: [
-    { type: 'howto', label: 'How-to Guide', url: '/dashboard/geo-content?type=howto' },
-    { type: 'faq', label: 'FAQ Article', url: '/dashboard/geo-content?type=faq' },
+    { type: 'howto', label: 'How-to Guide', url: contentRoute('howto') },
+    { type: 'faq', label: 'FAQ Article', url: contentRoute('faq') },
   ],
 }
 
