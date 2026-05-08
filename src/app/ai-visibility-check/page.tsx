@@ -5,6 +5,12 @@ import Link from 'next/link'
 import { LogoFull } from '@/components/Logo'
 import Footer from '@/components/Footer'
 import type { AuditResult, AuditCheck } from '@/lib/audit'
+import {
+  Shield, Layers, FileText, AlertOctagon, Brain,
+  CheckCircle, AlertTriangle, XCircle,
+  ChevronDown, ChevronUp,
+  type LucideIcon,
+} from 'lucide-react'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -61,10 +67,10 @@ function cleanCheckName(name: string): string {
   return name.replace(/\s*\(RFC\s*\d+\)/gi, '').trim()
 }
 
-function checkRowBgClass(status: string): string {
-  if (status === 'pass')    return 'bg-sage-bg'
-  if (status === 'warning') return 'bg-caution-bg'
-  return 'bg-red-soft-bg'
+function checkRowClass(status: string): string {
+  if (status === 'pass')    return 'border-divider-light bg-surface'
+  if (status === 'warning') return 'border-caution/30 bg-caution-bg/40'
+  return 'border-red-soft/30 bg-red-soft-bg/40'
 }
 
 function normalizeDomain(raw: string): string {
@@ -155,83 +161,78 @@ function ScoreRing({ score, level }: { score: number; level: string }) {
 }
 
 function StatusIcon({ status }: { status: string }) {
-  if (status === 'pass') {
-    return (
-      <span className="inline-flex w-5 h-5 items-center justify-center rounded-full bg-sage-bg flex-shrink-0">
-        <svg className="w-3 h-3 text-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-        </svg>
-      </span>
-    )
-  }
-  if (status === 'warning') {
-    return (
-      <span className="inline-flex w-5 h-5 items-center justify-center rounded-full bg-caution-bg flex-shrink-0">
-        <svg className="w-3 h-3 text-caution" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-        </svg>
-      </span>
-    )
-  }
-  return (
-    <span className="inline-flex w-5 h-5 items-center justify-center rounded-full bg-red-soft-bg flex-shrink-0">
-      <svg className="w-3 h-3 text-red-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-      </svg>
-    </span>
-  )
+  if (status === 'pass')    return <CheckCircle    className="w-4 h-4 text-sage      flex-shrink-0" />
+  if (status === 'warning') return <AlertTriangle  className="w-4 h-4 text-caution   flex-shrink-0" />
+  return                           <XCircle        className="w-4 h-4 text-red-soft  flex-shrink-0" />
 }
 
 function CheckAccordion({ dimId, checks }: { dimId: string; checks: AuditCheck[] }) {
   const [open, setOpen] = useState(false)
+  const cfg = DIMENSION_CONFIG[dimId] ?? DIMENSION_CONFIG.d1
+  const { Icon, prefix, iconBg, iconText, border } = cfg
+
   const passes   = checks.filter(c => c.status === 'pass').length
   const warnings = checks.filter(c => c.status === 'warning').length
   const fails    = checks.filter(c => c.status === 'fail').length
 
   return (
-    <div className="border border-divider-light rounded-xl overflow-hidden">
+    <div className={`bg-surface rounded-xl border overflow-hidden transition-all hover:shadow-md ${open ? border + ' shadow-md' : 'border-divider-light'}`}>
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-5 py-4 bg-surface hover:bg-surface-warm transition-colors text-left"
+        className="w-full p-5 text-left"
       >
-        <div className="flex items-center gap-3">
-          <span className="font-semibold text-ink text-sm">{DIM_LABELS[dimId] ?? dimId}</span>
-          <div className="flex items-center gap-1.5">
-            {fails > 0 && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-soft-bg text-red-soft text-xs rounded-full font-medium">
-                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                {fails}
+        <div className="flex items-start gap-3">
+          {/* Icon */}
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${iconBg} ${iconText}`}>
+            <Icon className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <h4 className="font-semibold text-ink flex items-center gap-2">
+                <span className="text-xs text-ink-3 font-mono">{prefix}</span>
+                {DIM_LABELS[dimId] ?? dimId}
+              </h4>
+              <span className="flex items-center gap-1 text-xs text-ink-3 hover:text-ink transition-colors flex-shrink-0">
+                {open ? 'Hide' : 'View'} {checks.length} checks
+                {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
               </span>
-            )}
-            {warnings > 0 && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-caution-bg text-caution text-xs rounded-full font-medium">
-                {warnings}⚠
-              </span>
-            )}
-            {passes > 0 && (
-              <span className="text-xs text-ink-3">{passes} pass</span>
-            )}
+            </div>
+            <div className="flex items-center gap-3 text-xs">
+              {passes > 0 && (
+                <span className="flex items-center gap-1 text-sage">
+                  <CheckCircle className="w-3 h-3" />{passes} pass
+                </span>
+              )}
+              {warnings > 0 && (
+                <span className="flex items-center gap-1 text-caution">
+                  <AlertTriangle className="w-3 h-3" />{warnings} warning
+                </span>
+              )}
+              {fails > 0 && (
+                <span className="flex items-center gap-1 text-red-soft">
+                  <XCircle className="w-3 h-3" />{fails} issue
+                </span>
+              )}
+            </div>
           </div>
         </div>
-        <svg
-          className={`w-4 h-4 text-ink-3 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-          fill="none" stroke="currentColor" viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
       </button>
-      <div className={`overflow-hidden transition-all duration-200 ${open ? 'max-h-[800px]' : 'max-h-0'}`}>
-        <div className="divide-y divide-divider-light/50">
-          {checks.map(check => (
-            <div key={check.id} className="flex items-center gap-3 px-5 py-3 bg-surface">
-              <StatusIcon status={check.status} />
-              <span className="text-sm text-ink-2">{check.name}</span>
-            </div>
-          ))}
+
+      {open && (
+        <div className="px-5 pb-4 border-t border-divider-light">
+          <div className="space-y-1.5 pt-3">
+            {checks.map(check => (
+              <div
+                key={check.id}
+                className={`rounded-lg border flex items-center gap-3 px-3 py-2.5 ${checkRowClass(check.status)}`}
+              >
+                <StatusIcon status={check.status} />
+                <span className="text-sm text-ink-2">{check.name}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
@@ -239,6 +240,18 @@ function CheckAccordion({ dimId, checks }: { dimId: string; checks: AuditCheck[]
 // D1 shows first 5 checks, D2–D5 show first 3; remaining blurred in L1
 const DIM_VISIBLE_COUNT: Record<string, number> = { d1: 5 }
 const DIM_VISIBLE_DEFAULT = 3
+
+// Dimension icon / color config — mirrors dashboard DIMENSION_MAP
+const DIMENSION_CONFIG: Record<string, {
+  Icon: LucideIcon; prefix: string
+  iconBg: string; iconText: string; border: string
+}> = {
+  d1: { Icon: Shield,       prefix: 'D1', iconBg: 'bg-surface-warm', iconText: 'text-ink-2',   border: 'border-divider-light' },
+  d2: { Icon: Layers,       prefix: 'D2', iconBg: 'bg-surface-warm', iconText: 'text-ink-2',   border: 'border-divider-light' },
+  d3: { Icon: FileText,     prefix: 'D3', iconBg: 'bg-surface-warm', iconText: 'text-ink-2',   border: 'border-divider-light' },
+  d4: { Icon: AlertOctagon, prefix: 'D4', iconBg: 'bg-red-soft-bg',  iconText: 'text-red-soft', border: 'border-red-soft/30'  },
+  d5: { Icon: Brain,        prefix: 'D5', iconBg: 'bg-sage-bg',      iconText: 'text-sage',    border: 'border-sage/30'      },
+}
 
 function DimensionPanel({
   dim,
@@ -249,57 +262,135 @@ function DimensionPanel({
   checks: AuditCheck[]
   locked: boolean  // true = L1 (blur overflow), false = L2 (show all)
 }) {
+  const [open, setOpen] = useState(true)
+
+  const cfg = DIMENSION_CONFIG[dim.id] ?? DIMENSION_CONFIG.d1
+  const { Icon, prefix, iconBg, iconText, border } = cfg
+
   const visibleCount = DIM_VISIBLE_COUNT[dim.id] ?? DIM_VISIBLE_DEFAULT
   const visible = checks.slice(0, visibleCount)
   const hidden  = locked ? checks.slice(visibleCount) : []
+  const total   = visible.length + hidden.length
+
+  const passCount    = checks.filter(c => c.status === 'pass').length
+  const warningCount = checks.filter(c => c.status === 'warning').length
+  const failCount    = checks.filter(c => c.status === 'fail').length
+
+  const getBarColor = (s: number) => {
+    if (s >= 85) return 'bg-sage'
+    if (s >= 65) return 'bg-ink-2'
+    if (s >= 45) return 'bg-caution'
+    return 'bg-red-soft'
+  }
+
+  const statusColor = dim.level === 'Excellent' || dim.level === 'Good'
+    ? 'bg-sage-bg text-sage'
+    : dim.level === 'Needs Work'
+    ? 'bg-caution-bg text-caution'
+    : 'bg-red-soft-bg text-red-soft'
 
   return (
-    <div className="bg-surface rounded-2xl border border-divider-light shadow-sm overflow-hidden">
-      {/* Header: name + score + progress */}
-      <div className="px-5 py-4 border-b border-divider-light/50">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-semibold text-ink">{DIM_LABELS[dim.id] ?? dim.name}</span>
-          <span className={`text-sm font-bold tabular-nums ${levelTextClass(dim.level)}`}>{dim.score}</span>
-        </div>
-        <div className="h-1.5 bg-surface-muted rounded-full overflow-hidden mb-1.5">
-          <div
-            className="h-full rounded-full transition-all duration-700 ease-out"
-            style={{ width: `${dim.score}%`, backgroundColor: levelRingColor(dim.level) }}
-          />
-        </div>
-        <span className={`text-xs font-medium ${levelTextClass(dim.level)}`}>{dim.level}</span>
-      </div>
-
-      {/* Check items */}
-      {checks.length === 0 ? (
-        <div className="px-5 py-4 text-sm text-ink-3 italic">No checks available</div>
-      ) : (
-        <div>
-          <div className="divide-y divide-divider-light/50">
-            {visible.map(check => (
-              <div key={check.id} className={`flex items-center gap-3 px-5 py-3 ${checkRowBgClass(check.status)}`}>
-                <StatusIcon status={check.status} />
-                <span className="text-sm text-ink-2 leading-snug">{cleanCheckName(check.name)}</span>
-              </div>
-            ))}
+    <div className={`bg-surface rounded-xl border overflow-hidden transition-all hover:shadow-md ${open ? border + ' shadow-md' : 'border-divider-light'}`}>
+      {/* ── Header (collapsible) ── */}
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full p-5 text-left"
+      >
+        <div className="flex items-start gap-3">
+          {/* Icon */}
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${iconBg} ${iconText}`}>
+            <Icon className="w-5 h-5" />
           </div>
 
-          {hidden.length > 0 && (
-            <div className="relative">
-              <div className="divide-y divide-divider-light/50 select-none pointer-events-none">
-                {hidden.map(check => (
-                  <div key={check.id} className={`flex items-center gap-3 px-5 py-3 blur-sm ${checkRowBgClass(check.status)}`}>
+          <div className="flex-1 min-w-0">
+            {/* Title row */}
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <h4 className="font-semibold text-ink flex items-center gap-2">
+                <span className="text-xs text-ink-3 font-mono">{prefix}</span>
+                {DIM_LABELS[dim.id] ?? dim.name}
+              </h4>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor}`}>{dim.level}</span>
+                <span className="text-2xl font-bold font-mono text-ink">{dim.score}</span>
+              </div>
+            </div>
+
+            {/* Score bar */}
+            <div className="w-full h-1.5 bg-surface-warm rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-700 ${getBarColor(dim.score)}`}
+                style={{ width: `${dim.score}%` }}
+              />
+            </div>
+
+            {/* Summary row */}
+            <div className="flex items-center justify-between mt-2 text-xs text-ink-3">
+              <span className="flex items-center gap-3">
+                {passCount > 0 && (
+                  <span className="flex items-center gap-1 text-sage">
+                    <CheckCircle className="w-3 h-3" />{passCount} pass
+                  </span>
+                )}
+                {warningCount > 0 && (
+                  <span className="flex items-center gap-1 text-caution">
+                    <AlertTriangle className="w-3 h-3" />{warningCount} warning
+                  </span>
+                )}
+                {failCount > 0 && (
+                  <span className="flex items-center gap-1 text-red-soft">
+                    <XCircle className="w-3 h-3" />{failCount} issue
+                  </span>
+                )}
+              </span>
+              <span className="flex items-center gap-1 hover:text-ink transition-colors">
+                {open ? 'Hide' : 'View'} {total} checks
+                {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              </span>
+            </div>
+          </div>
+        </div>
+      </button>
+
+      {/* ── Check items ── */}
+      {open && (
+        <div className="px-5 pb-4 border-t border-divider-light">
+          {checks.length === 0 ? (
+            <p className="py-4 text-sm text-ink-3 italic">No checks available</p>
+          ) : (
+            <>
+              <div className="space-y-1.5 pt-3">
+                {visible.map(check => (
+                  <div
+                    key={check.id}
+                    className={`rounded-lg border flex items-center gap-3 px-3 py-2.5 ${checkRowClass(check.status)}`}
+                  >
                     <StatusIcon status={check.status} />
-                    <span className="text-sm text-ink-2">{cleanCheckName(check.name)}</span>
+                    <span className="text-sm text-ink-2 leading-snug">{cleanCheckName(check.name)}</span>
                   </div>
                 ))}
               </div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-xs font-semibold text-ink-2 bg-surface/90 px-3 py-1.5 rounded-full border border-divider-light shadow-sm">
-                  🔒 {hidden.length} more — unlock below
-                </span>
-              </div>
-            </div>
+
+              {hidden.length > 0 && (
+                <div className="relative mt-1.5">
+                  <div className="space-y-1.5 select-none pointer-events-none">
+                    {hidden.map(check => (
+                      <div
+                        key={check.id}
+                        className={`rounded-lg border flex items-center gap-3 px-3 py-2.5 blur-sm ${checkRowClass(check.status)}`}
+                      >
+                        <StatusIcon status={check.status} />
+                        <span className="text-sm text-ink-2">{cleanCheckName(check.name)}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-xs font-semibold text-ink-2 bg-surface/90 px-3 py-1.5 rounded-full border border-divider-light shadow-sm">
+                      🔒 {hidden.length} more — unlock below
+                    </span>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
