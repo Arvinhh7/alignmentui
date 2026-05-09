@@ -23,7 +23,7 @@ const AUDIT_API_KEY =
 
 const DIM_LABELS: Record<string, string> = {
   d1: 'AI Discoverability',
-  d2: 'Semantic Structure',
+  d2: 'Semantic Structure & Format',
   d3: 'Content Citability',
   d4: 'Risk Boundary & Trust',
   d5: 'Reusability & Memory',

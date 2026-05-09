@@ -100,8 +100,8 @@ const dimensions = [
   },
   {
     icon: dimensionIcons.semantic,
-    title: 'Semantic Structure',
-    description: 'Whether your content is organized clearly enough for AI to understand, quote, and reference with confidence.',
+    title: 'Semantic Structure & Format',
+    description: 'Whether your content is structured and format-negotiable for AI — from heading hierarchy to Markdown Negotiation.',
     color: 'from-[#C84B31] to-[#A33820]',
   },
   {

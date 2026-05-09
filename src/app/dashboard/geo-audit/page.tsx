@@ -196,7 +196,7 @@ function RadarChart({ scores, size = 220 }: { scores: number[]; size?: number })
   const cx = size / 2
   const cy = size / 2
   const maxR = size * 0.38
-  const labels = ['Accessibility', 'Structure', 'Citability', 'Risk', 'Reusability']
+  const labels = ['Discoverability', 'Structure & Format', 'Citability', 'Risk & Trust', 'Memory']
 
   const getPoint = (index: number, value: number) => {
     const angle = (Math.PI * 2 * index) / 5 - Math.PI / 2
@@ -308,7 +308,7 @@ function RadarChart({ scores, size = 220 }: { scores: number[]; size?: number })
 // ─── Scanning Progress Panel ────────────────────────────
 const SCAN_STEPS = [
   { icon: Shield, label: 'AI Discoverability', desc: 'Checking llms.txt, agent.json & AI access...' },
-  { icon: Layers, label: 'Semantic Structure', desc: 'Analyzing headings, paragraphs & sections...' },
+  { icon: Layers, label: 'Semantic Structure & Format', desc: 'Analyzing headings, paragraphs & sections...' },
   { icon: FileText, label: 'Content Citability', desc: 'Evaluating fact units & objectivity...' },
   { icon: AlertOctagon, label: 'Risk Boundary & Trust', desc: 'Reviewing claims & safety signals...' },
   { icon: Brain, label: 'Reusability & Memory', desc: 'Assessing FAQ, definitions & memory signals...' },
@@ -455,7 +455,7 @@ function ScanProgressPanel({ url }: { url: string }) {
 function InsightCards({ result }: { result: AuditResult }) {
   const dimEntries: { key: string; label: string; icon: React.ReactNode; score: number }[] = [
     { key: 'ai_accessibility', label: 'AI Discoverability', icon: <Shield className="w-5 h-5" />, score: result.ai_accessibility.score },
-    { key: 'semantic_structure', label: 'Semantic Structure', icon: <Layers className="w-5 h-5" />, score: result.semantic_structure.score },
+    { key: 'semantic_structure', label: 'Semantic Structure & Format', icon: <Layers className="w-5 h-5" />, score: result.semantic_structure.score },
     { key: 'content_citability', label: 'Content Citability', icon: <FileText className="w-5 h-5" />, score: result.content_citability.score },
     { key: 'risk_boundary', label: 'Risk Boundary & Trust', icon: <AlertOctagon className="w-5 h-5" />, score: result.risk_boundary.score },
     { key: 'reusability', label: 'Reusability & Memory', icon: <Brain className="w-5 h-5" />, score: result.reusability.score },
@@ -1595,7 +1595,7 @@ const DIMENSION_MAP = [
   },
   {
     key: 'semantic_structure' as const, prefix: 'D2',
-    Icon: Layers, label: 'Semantic Structure',
+    Icon: Layers, label: 'Semantic Structure & Format',
     colorSet: {
       iconBg: 'bg-surface-warm', iconText: 'text-ink-2',
       bar: 'bg-ink-2', badge: 'bg-surface-warm text-ink-2',
@@ -2385,7 +2385,7 @@ export default function GEOAuditPage() {
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
                 {[
                   { icon: <Shield className="w-6 h-6" />, label: 'AI Discoverability', desc: 'Do AI agents find your llms.txt, agent.json & access rules?', color: 'from-surface-warm to-surface-warm text-ink-2 border-divider' },
-                  { icon: <Layers className="w-6 h-6" />, label: 'Semantic Structure', desc: 'Is your content self-organized for AI comprehension?', color: 'from-surface-warm to-surface-warm text-ink-2 border-divider' },
+                  { icon: <Layers className="w-6 h-6" />, label: 'Semantic Structure & Format', desc: 'Is your content structured and format-negotiable for AI?', color: 'from-surface-warm to-surface-warm text-ink-2 border-divider' },
                   { icon: <FileText className="w-6 h-6" />, label: 'Content Citability', desc: 'Does your content have quotable fact units?', color: 'from-surface-warm to-surface-warm text-ink-2 border-divider' },
                   { icon: <AlertOctagon className="w-6 h-6" />, label: 'Risk Boundary & Trust', desc: 'Is your content safe for AI to reference?', color: 'from-red-soft-bg to-red-soft-bg text-red-soft border-red-soft/30' },
                   { icon: <Brain className="w-6 h-6" />, label: 'Reusability & Memory', desc: 'Will AI reuse your content across answers?', color: 'from-sage-bg to-sage-bg text-sage border-sage/30' },
