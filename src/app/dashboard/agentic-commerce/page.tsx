@@ -12,7 +12,7 @@ import { getSupabase } from '@/lib/supabase'
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const INFRA = `${API}/api/v1/infra`
-const BRAND_ID = 'shopify-client-02'
+const DEMO_BRAND_ID = 'shopify-client-02'
 
 async function getSessionToken(): Promise<string | null> {
   try {
@@ -125,8 +125,46 @@ function trustColor(score: number): string {
 
 // ── Main Page ──────────────────────────────────────────────────────────────────
 
+interface BrandOption { brand_id: string; name: string; domain: string }
+
+const DEMO_BRAND: BrandOption = {
+  brand_id: DEMO_BRAND_ID,
+  name:     'Eco Essentials Store',
+  domain:   'demo-shopify.myshopify.com',
+}
+
 export default function AgenticCommercePage() {
-  const [activeTab, setActiveTab] = useState<TabId>('registry')
+  const [activeTab, setActiveTab]         = useState<TabId>('registry')
+  const [activeBrandId, setActiveBrandId] = useState(DEMO_BRAND_ID)
+  const [myBrands, setMyBrands]           = useState<BrandOption[]>([])
+
+  // Fetch brands registered by the current user
+  useEffect(() => {
+    ;(async () => {
+      const token = await getSessionToken()
+      if (!token) return
+      try {
+        const r = await fetch(`${INFRA}/my-brands`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!r.ok) return
+        const { brands } = await r.json()
+        if (Array.isArray(brands) && brands.length > 0) {
+          setMyBrands(brands)
+          // Auto-select the first non-demo brand
+          const own = brands.find((b: BrandOption) => b.brand_id !== DEMO_BRAND_ID)
+          if (own) setActiveBrandId(own.brand_id)
+        }
+      } catch { /* no-op */ }
+    })()
+  }, [])
+
+  // Always show user brands first, then demo brand as fallback
+  const allOptions: BrandOption[] = [
+    ...myBrands.filter(b => b.brand_id !== DEMO_BRAND_ID),
+    DEMO_BRAND,
+  ]
+  const activeBrand = allOptions.find(b => b.brand_id === activeBrandId) ?? DEMO_BRAND
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -144,10 +182,27 @@ export default function AgenticCommercePage() {
             </div>
             <p className="text-sm text-ink-3">Agent Visibility Infrastructure — Make your brand discoverable, verifiable, and trackable across every AI agent</p>
           </div>
-          <div className="flex items-center gap-2 text-[11px] text-ink-3 bg-surface border border-divider-light px-3 py-1.5 rounded-xl">
-            <Zap className="w-3 h-3 text-caution" />
-            <span className="font-medium">02 · Shopify Client</span>
-          </div>
+
+          {/* Brand selector ─ dropdown when user has own brands, badge otherwise */}
+          {allOptions.length > 1 ? (
+            <div className="flex items-center gap-2">
+              <Zap className="w-3 h-3 text-caution flex-shrink-0" />
+              <select
+                value={activeBrandId}
+                onChange={e => setActiveBrandId(e.target.value)}
+                className="text-[11px] font-medium text-ink-2 bg-surface border border-divider-light px-3 py-1.5 rounded-xl focus:outline-none focus:border-[rgba(250,245,236,0.3)] cursor-pointer"
+              >
+                {allOptions.map(b => (
+                  <option key={b.brand_id} value={b.brand_id}>{b.name}</option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-[11px] text-ink-3 bg-surface border border-divider-light px-3 py-1.5 rounded-xl">
+              <Zap className="w-3 h-3 text-caution" />
+              <span className="font-medium">{activeBrand.name}</span>
+            </div>
+          )}
         </div>
 
         {/* ── Tab bar ───────────────────────────────────────────────── */}
@@ -173,10 +228,10 @@ export default function AgenticCommercePage() {
         </div>
 
         {/* ── Tab Content ───────────────────────────────────────────── */}
-        {activeTab === 'registry'  && <RegistryTab />}
-        {activeTab === 'discovery' && <DiscoveryTab />}
-        {activeTab === 'verify'    && <VerifyTab />}
-        {activeTab === 'telemetry' && <TelemetryTab />}
+        {activeTab === 'registry'  && <RegistryTab  brandId={activeBrandId} />}
+        {activeTab === 'discovery' && <DiscoveryTab brandId={activeBrandId} />}
+        {activeTab === 'verify'    && <VerifyTab    brandId={activeBrandId} />}
+        {activeTab === 'telemetry' && <TelemetryTab brandId={activeBrandId} />}
 
       </div>
     </div>
@@ -195,7 +250,7 @@ interface RegisterForm {
   categories: string     // comma-separated
 }
 
-function RegistryTab() {
+function RegistryTab({ brandId }: { brandId: string }) {
   const [brand, setBrand]   = useState<BrandRecord | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError]   = useState('')
@@ -212,7 +267,7 @@ function RegistryTab() {
   const load = useCallback(async () => {
     setLoading(true); setError('')
     try {
-      const r = await fetch(`${INFRA}/resolve/${BRAND_ID}`)
+      const r = await fetch(`${INFRA}/resolve/${brandId}`)
       if (!r.ok) throw new Error(`${r.status}`)
       setBrand(await r.json())
     } catch {
@@ -220,7 +275,7 @@ function RegistryTab() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [brandId])
 
   useEffect(() => { load() }, [load])
 
@@ -472,7 +527,7 @@ function RegistryTab() {
 // TAB 2 — Discovery (SSE Live Feed)
 // ══════════════════════════════════════════════════════════════════════════════
 
-function DiscoveryTab() {
+function DiscoveryTab({ brandId }: { brandId: string }) {
   const [events, setEvents]   = useState<DiscoveryEvent[]>([])
   const [live, setLive]       = useState(false)
   const [connected, setConnected] = useState(false)
@@ -481,7 +536,7 @@ function DiscoveryTab() {
 
   const connect = useCallback(() => {
     if (esRef.current) { esRef.current.close(); esRef.current = null }
-    const url = `${INFRA}/stream/discovery/${BRAND_ID}`
+    const url = `${INFRA}/stream/discovery/${brandId}`
     const es = new EventSource(url)
     esRef.current = es
 
@@ -500,7 +555,7 @@ function DiscoveryTab() {
       } catch {}
     }
     es.onerror = () => { setConnected(false) }
-  }, [])
+  }, [brandId])
 
   const disconnect = useCallback(() => {
     esRef.current?.close()
@@ -602,7 +657,7 @@ function EventCard({ ev }: { ev: DiscoveryEvent }) {
 // TAB 3 — Verify
 // ══════════════════════════════════════════════════════════════════════════════
 
-function VerifyTab() {
+function VerifyTab({ brandId }: { brandId: string }) {
   const [result, setResult]   = useState<VerifyResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
@@ -615,7 +670,7 @@ function VerifyTab() {
       const r = await fetch(`${INFRA}/verify`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ brand_id: BRAND_ID, caller_agent_id: agentId }),
+        body:    JSON.stringify({ brand_id: brandId, caller_agent_id: agentId }),
       })
       if (!r.ok) throw new Error(`${r.status}`)
       setResult(await r.json())
@@ -767,7 +822,7 @@ function VerifyTab() {
 // TAB 4 — Telemetry
 // ══════════════════════════════════════════════════════════════════════════════
 
-function TelemetryTab() {
+function TelemetryTab({ brandId }: { brandId: string }) {
   const [data, setData]     = useState<TelemetryData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError]   = useState('')
@@ -776,7 +831,7 @@ function TelemetryTab() {
   const load = useCallback(async (d: number) => {
     setLoading(true); setError('')
     try {
-      const r = await fetch(`${INFRA}/telemetry/${BRAND_ID}?days=${d}`)
+      const r = await fetch(`${INFRA}/telemetry/${brandId}?days=${d}`)
       if (!r.ok) throw new Error(`${r.status}`)
       setData(await r.json())
     } catch {
@@ -784,7 +839,7 @@ function TelemetryTab() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [brandId, days])
 
   useEffect(() => { load(days) }, [load, days])
 
