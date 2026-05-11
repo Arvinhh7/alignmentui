@@ -568,8 +568,8 @@ export default function OverviewPage() {
                 <p className="text-[12px] text-ink-2 leading-relaxed mb-3">
                   Automate GEO analysis, generate AI-cited content, and monitor competitor visibility — all from preset agent templates.
                 </p>
-                <FeatureLink feature="agents" className="text-[12px] font-semibold text-ink hover:text-ink-2 flex items-center gap-1">
-                  Browse Agents <ArrowRight className="w-3 h-3" />
+                <FeatureLink feature="agentic-commerce" className="text-[12px] font-semibold text-ink hover:text-ink-2 flex items-center gap-1">
+                  Agentic Commerce <ArrowRight className="w-3 h-3" />
                 </FeatureLink>
               </div>
             </div>
@@ -743,7 +743,7 @@ export default function OverviewPage() {
                   icon={Bot}
                   iconColor="bg-surface-muted text-ink-2"
                   label={t.dashboard.runAgent}
-                  feature="agents"
+                  feature="agentic-commerce"
                   badge="NEW"
                 />
                 <ActionCard
@@ -917,7 +917,7 @@ export default function OverviewPage() {
                   { label: 'Answer Engine Insights', href: '/dashboard/geo-monitor', icon: TrendingUp, color: 'text-sage' },
                   { label: 'GEO Audit', href: '/dashboard/geo-audit', icon: Shield, color: 'text-red-soft' },
                   { label: 'Content Creator', href: '/dashboard/geo-content', icon: PenTool, color: 'text-ink-2' },
-                  { label: 'AI Agents', href: '/dashboard/agents', icon: Bot, color: 'text-caution', isNew: true },
+                  { label: 'Agentic Commerce', href: '/dashboard/agentic-commerce', icon: Bot, color: 'text-caution', isNew: true },
                 ].map(item => (
                   <Link
                     key={item.href}

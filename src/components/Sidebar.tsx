@@ -11,7 +11,7 @@ import {
   ShieldCheck, Zap, PenTool, Share2, BarChart3, Activity,
   LogOut, Settings, Wrench, PanelLeftClose, PanelLeft,
   Sparkles, ExternalLink, HelpCircle, Home, ChevronRight, CreditCard,
-  LineChart, LayoutDashboard, Bot, Search, MessageSquare,
+  LineChart, LayoutDashboard, Network, Search, MessageSquare,
   BookOpen, TrendingUp, Database, X, Globe, Users,
 } from 'lucide-react'
 
@@ -180,7 +180,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
     {
       labelKey: 'navGroupAction',
       items: [
-        { href: '/dashboard/agents',      icon: Bot,         labelKey: 'agentsNav',    isNew: true, permissionKey: 'agents' },
+        { href: '/dashboard/agentic-commerce', icon: Network, labelKey: 'agenticCommerceNav', isNew: true, matchPrefix: true, permissionKey: 'agentic-commerce' },
         { href: '/dashboard/geo-audit',   icon: ShieldCheck, labelKey: 'geoAuditNav',             permissionKey: 'geo-audit' },
         { href: '/dashboard/geo-content', icon: PenTool,     labelKey: 'geoContentNav',           permissionKey: 'geo-content' },
       ],

@@ -15,7 +15,7 @@ import type { UserRole, PermissionsMap } from '@/hooks/useAuth'
 export type FeatureKey =
   | 'overview'
   | 'geo-monitor'
-  | 'agents'
+  | 'agentic-commerce'
   | 'geo-audit'
   | 'geo-content'
   | 'prompts'
@@ -37,7 +37,7 @@ export interface FeatureInfo {
 export const FEATURES: Record<FeatureKey, FeatureInfo> = {
   'overview':         { key: 'overview',         label: 'Overview',              path: '/dashboard/overview' },
   'geo-monitor':      { key: 'geo-monitor',      label: 'Answer Engine Insights', path: '/dashboard/geo-monitor' },
-  'agents':           { key: 'agents',           label: 'AI Agents',             path: '/dashboard/agents' },
+  'agentic-commerce': { key: 'agentic-commerce', label: 'Agentic Commerce',       path: '/dashboard/agentic-commerce' },
   'geo-audit':        { key: 'geo-audit',        label: 'GEO Audit',             path: '/dashboard/geo-audit' },
   'geo-content':      { key: 'geo-content',      label: 'GEO Content',           path: '/dashboard/geo-content' },
   'prompts':          { key: 'prompts',          label: 'Prompt Library',        path: '/dashboard/prompts' },
