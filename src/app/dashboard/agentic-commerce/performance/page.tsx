@@ -27,23 +27,22 @@ type Stats = {
 };
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-// Consumer Agent demo labels — Outer Ring (per concept doc v1).
-// See note in quotes/page.tsx for why labels are Outer Ring even though backend
-// mock IDs use claude/chatgpt/etc as opaque keys.
+// Consumer Agent labels — Outer Ring per concept doc v1.
+// Backend (event_engine._AGENT_DIST) now emits these keys directly.
 const AGENT_LABEL: Record<string, { name: string; emoji: string }> = {
-  claude:        { name: "WhatsApp Shopping Bot",    emoji: "💬" },
-  chatgpt:       { name: "Phone OS Agent",           emoji: "📱" },
-  perplexity:    { name: "Voice Shopping Assistant", emoji: "🎙️" },
-  gemini:        { name: "Vertical Fashion AI",      emoji: "👗" },
-  "custom-agent":{ name: "Custom (Third-party)",     emoji: "🔧" },
+  "whatsapp-bot":     { name: "WhatsApp Shopping Bot",    emoji: "💬"  },
+  "phone-os-agent":   { name: "Phone OS Agent",           emoji: "📱"  },
+  "voice-shopper":    { name: "Voice Shopping Assistant", emoji: "🎙️" },
+  "vertical-fashion": { name: "Vertical Fashion AI",      emoji: "👗"  },
+  "custom-agent":     { name: "Custom (Third-party)",     emoji: "🔧"  },
 };
 
 const AGENT_COLOR: Record<string, string> = {
-  claude:         "bg-purple-500",
-  chatgpt:        "bg-green-500",
-  perplexity:     "bg-blue-500",
-  gemini:         "bg-orange-500",
-  "custom-agent": "bg-slate-400",
+  "whatsapp-bot":     "bg-emerald-500",
+  "phone-os-agent":   "bg-blue-500",
+  "voice-shopper":    "bg-purple-500",
+  "vertical-fashion": "bg-pink-500",
+  "custom-agent":     "bg-slate-400",
 };
 
 const TRUST_BADGE: Record<string, string> = {

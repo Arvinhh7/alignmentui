@@ -34,17 +34,14 @@ type Quote = BrokerEvent & {
 };
 
 // ── Constants ──────────────────────────────────────────────────────────────────
-// Consumer Agent demo labels — Outer Ring (per concept doc v1).
-// Backend mock data uses ids `claude / chatgpt / perplexity / gemini / custom-agent`
-// as opaque keys; here we present them as plausible Outer Ring agents (WhatsApp /
-// phone OS / voice / vertical / generic third-party) so the UI doesn't suggest
-// AI chat platforms are themselves Alignment Consumer Agents.
+// Consumer Agent labels — Outer Ring per concept doc v1.
+// Backend now emits these Outer Ring keys directly (event_engine._AGENT_DIST).
 const AGENT_LABEL: Record<string, { name: string; emoji: string; operator: string }> = {
-  claude:        { name: "WhatsApp Shopping Bot",    emoji: "💬", operator: "Acme Inc. (demo)"      },
-  chatgpt:       { name: "Phone OS Agent",           emoji: "📱", operator: "Mobile Vendor (demo)"  },
-  perplexity:    { name: "Voice Shopping Assistant", emoji: "🎙️", operator: "VoiceAI Co. (demo)"    },
-  gemini:        { name: "Vertical Fashion AI",      emoji: "👗", operator: "FashionAI YC (demo)"   },
-  "custom-agent":{ name: "Custom Consumer Agent",    emoji: "🔧", operator: "Third-party"           },
+  "whatsapp-bot":     { name: "WhatsApp Shopping Bot",    emoji: "💬",  operator: "Acme Inc. (demo)"     },
+  "phone-os-agent":   { name: "Phone OS Agent",           emoji: "📱",  operator: "Mobile Vendor (demo)" },
+  "voice-shopper":    { name: "Voice Shopping Assistant", emoji: "🎙️", operator: "VoiceAI Co. (demo)"   },
+  "vertical-fashion": { name: "Vertical Fashion AI",      emoji: "👗",  operator: "FashionAI YC (demo)"  },
+  "custom-agent":     { name: "Custom Consumer Agent",    emoji: "🔧",  operator: "Third-party"          },
 };
 
 const OUTCOME_MAP: Record<string, { label: string; color: string; icon: string }> = {

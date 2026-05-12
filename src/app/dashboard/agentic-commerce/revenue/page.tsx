@@ -39,15 +39,18 @@ type Tx = {
 };
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-// Consumer Agent emoji map — Outer Ring (concept doc v1).
-// Backend mock IDs (claude/chatgpt/…) are opaque keys; we render them as
-// WhatsApp / Phone OS / Voice / Vertical / Custom for v1 consistency.
+// Consumer Agent label / emoji map — Outer Ring per concept doc v1.
+// Backend emits these keys directly (services/attribution._AGENT_DIST).
 const AGENT_EMOJI: Record<string, string> = {
-  claude: "💬", chatgpt: "📱", perplexity: "🎙️", gemini: "👗", "custom-agent": "🔧",
+  "whatsapp-bot": "💬", "phone-os-agent": "📱", "voice-shopper": "🎙️",
+  "vertical-fashion": "👗", "custom-agent": "🔧",
 };
 const AGENT_LABEL: Record<string, string> = {
-  claude: "WhatsApp Shopper", chatgpt: "Phone OS Agent", perplexity: "Voice Assistant",
-  gemini: "Vertical AI", "custom-agent": "Custom Agent",
+  "whatsapp-bot":     "WhatsApp Shopper",
+  "phone-os-agent":   "Phone OS Agent",
+  "voice-shopper":    "Voice Assistant",
+  "vertical-fashion": "Vertical AI",
+  "custom-agent":     "Custom Agent",
 };
 const BRAND_COLOR: Record<string, string> = {
   "eco-home": "text-emerald-600", "tech-gear": "text-blue-600", "nutri-plus": "text-orange-600",
