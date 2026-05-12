@@ -1,347 +1,579 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import {
+  Zap, ShoppingCart, TrendingUp, ArrowRight, Activity,
+  MessageCircle, Smartphone, Mic2, Shirt, Wrench,
+  Store, Globe, Shield, CheckCircle, Circle,
+  ChevronRight, AlertCircle, BarChart2, RefreshCw,
+  Package, CreditCard, Cpu, Radio,
+} from "lucide-react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
-const AC = `${API_BASE}/api/agentic-commerce`;
+// ── Design tokens (commerce accent = violet) ───────────────────────────────────
+const V = {
+  accent:      "#6D4AE8",
+  accentBg:    "#F0EEFF",
+  accentLight: "#EDE8FF",
+  accentBorder:"#C4B5FD",
+};
 
-// ── Types ──────────────────────────────────────────────────────────────────────
-type PlatformOverview = {
-  summary: {
-    total_brands: number;
-    total_gmv: number;
-    total_commission: number;
-    total_transactions: number;
-    total_discoveries: number;
-    period_days: number;
+// ── Mock data ──────────────────────────────────────────────────────────────────
+const MOCK_METRICS = {
+  queries:     12_847,
+  brands:      842,
+  commits:     3_291,
+  gmv:         847_293,
+  successRate: 25.62,
+  delta: {
+    queries:  +18.4,
+    brands:   +7.2,
+    commits:  +22.1,
+    gmv:      +19.8,
+  },
+};
+
+const AGENT_SURFACES = [
+  { icon: MessageCircle, name: "WhatsApp Bot",     sub: "shopping bots in chat",         count: 4821, pct: 38, color: "#1a7a4c" },
+  { icon: Smartphone,    name: "Phone OS Agent",   sub: "OS-level purchasing agents",    count: 3204, pct: 25, color: V.accent   },
+  { icon: Mic2,          name: "Voice Assistant",  sub: "voice-assistant shopping",      count: 2569, pct: 20, color: "#d9a85c"  },
+  { icon: Shirt,         name: "Vertical AI",      sub: "category AIs (fashion, food…)", count: 1541, pct: 12, color: "#B5453A"  },
+  { icon: Wrench,        name: "Custom Agent",     sub: "any third-party shopper",       count:  712, pct:  5, color: "#9E9484"  },
+];
+
+const PROTOCOL_STEPS = [
+  { icon: Shield,       id: "01", title: "Identity",   sub: "Agent presents signed credentials",    color: "#1a7a4c" },
+  { icon: Globe,        id: "02", title: "Query",      sub: "\"Find me X under $Y, ships in Z\"",   color: V.accent  },
+  { icon: BarChart2,    id: "03", title: "Quote",      sub: "Brand agents return ranked offers",     color: "#d9a85c" },
+  { icon: CheckCircle,  id: "04", title: "Commit",     sub: "Consumer agent selects & confirms",    color: "#1a7a4c" },
+  { icon: CreditCard,   id: "05", title: "Settlement", sub: "Alignment clears USDC, brands paid",   color: V.accent  },
+];
+
+const LIVE_PRODUCTS = [
+  "Nike Air Max 97 · White / Silver",
+  "Allbirds Wool Runner · Natural Grey",
+  "Samsung Galaxy S25 · Phantom Black",
+  "Patagonia Nano Puff Jacket · Blue",
+  "Apple AirPods Pro (Gen 3)",
+  "Lululemon Align Shorts 6\"",
+  "Dyson V15 Detect Absolute",
+  "Dr. Martens 1460 · Cherry Red",
+  "Fellow Opus Grinder · Matte Black",
+  "Razer Blade 16 Gaming Laptop",
+];
+
+const CONSUMER_AGENTS = [
+  { label: "WhatsApp Bot",   emoji: "💬" },
+  { label: "Phone OS",       emoji: "📱" },
+  { label: "Voice Shopper",  emoji: "🎙️" },
+];
+
+interface TxItem {
+  id: number;
+  product: string;
+  amount: number;
+  agent: string;
+  brand: string;
+  status: "commit" | "quote" | "query";
+  ts: string;
+}
+
+function mkTx(id: number): TxItem {
+  const product = LIVE_PRODUCTS[Math.floor(Math.random() * LIVE_PRODUCTS.length)];
+  const price   = Math.round((29 + Math.random() * 470) * 100) / 100;
+  const agents  = ["WhatsApp Bot", "Phone OS", "Voice", "Fashion AI", "Custom"];
+  const brands  = ["Nike", "Apple", "Samsung", "Allbirds", "Lululemon", "Dyson"];
+  const states  = ["commit", "quote", "query"] as const;
+  const weights = [0.26, 0.45, 0.29];
+  let r = Math.random(), st: TxItem["status"] = "commit";
+  if (r > weights[0] + weights[1]) st = "query";
+  else if (r > weights[0]) st = "quote";
+  const now = new Date();
+  const s = `${now.getHours().toString().padStart(2,"0")}:${now.getMinutes().toString().padStart(2,"0")}:${now.getSeconds().toString().padStart(2,"0")}`;
+  return {
+    id,
+    product,
+    amount: price,
+    agent:  agents[Math.floor(Math.random() * agents.length)],
+    brand:  brands[Math.floor(Math.random() * brands.length)],
+    status: st,
+    ts: s,
   };
-};
+}
 
-type FailureBreakdown = {
-  label: string;
-  pct: number;
-  count: number;
-  color: string;
-};
-
-// ── Helpers ────────────────────────────────────────────────────────────────────
 function fmt(n: number, d = 0) {
   return n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
 }
 
-function pulseDot(color: string) {
+// ── Sub-components ─────────────────────────────────────────────────────────────
+
+function PulseDot({ color }: { color: string }) {
   return (
-    <span className="relative inline-flex w-2 h-2">
-      <span className={`absolute inline-flex h-full w-full rounded-full ${color} opacity-75 animate-ping`} />
-      <span className={`relative inline-flex rounded-full h-2 w-2 ${color}`} />
+    <span className="relative inline-flex w-2 h-2 flex-shrink-0">
+      <span className="absolute inline-flex h-full w-full rounded-full animate-ping opacity-60"
+        style={{ backgroundColor: color }} />
+      <span className="relative inline-flex rounded-full w-2 h-2"
+        style={{ backgroundColor: color }} />
     </span>
   );
 }
 
+function Delta({ v }: { v: number }) {
+  const pos = v >= 0;
+  return (
+    <span className={`text-xs font-medium flex items-center gap-0.5 ${pos ? "text-sage" : "text-red-soft"}`}>
+      <TrendingUp className={`w-3 h-3 ${pos ? "" : "rotate-180"}`} />
+      {pos ? "+" : ""}{v}%
+    </span>
+  );
+}
+
+function StatusPill({ status }: { status: TxItem["status"] }) {
+  if (status === "commit")
+    return <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sage-bg text-sage">COMMIT</span>;
+  if (status === "quote")
+    return <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-caution-bg text-caution">QUOTE</span>;
+  return <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-surface-warm text-ink-3">QUERY</span>;
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function AgenticCommerceOverview() {
-  const [data, setData] = useState<PlatformOverview | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [feed, setFeed]       = useState<TxItem[]>([]);
+  const [ticks, setTicks]     = useState(0);
+  const [live, setLive]       = useState(true);
+  const idRef = useRef(1);
 
+  // Seed feed
   useEffect(() => {
-    fetch(`${AC}/platform/overview?days=1`)
-      .then((r) => r.json())
-      .then((d) => setData(d))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    const initial = Array.from({ length: 8 }, () => mkTx(idRef.current++));
+    setFeed(initial);
   }, []);
 
-  // Derived display values (graceful fallbacks if API is empty)
-  const queries = data?.summary.total_discoveries ?? 0;
-  const commits = data?.summary.total_transactions ?? 0;
-  const gmv = data?.summary.total_gmv ?? 0;
-  const activeBrands = data?.summary.total_brands ?? 0;
-  const successRate = queries > 0 ? (commits / queries) * 100 : 0;
+  // Live ticker
+  useEffect(() => {
+    if (!live) return;
+    const id = setInterval(() => {
+      setTicks(t => t + 1);
+      setFeed(prev => [mkTx(idRef.current++), ...prev].slice(0, 14));
+    }, 1400);
+    return () => clearInterval(id);
+  }, [live]);
 
-  // Mock failure breakdown (would be a real endpoint in production)
-  const failureBreakdown: FailureBreakdown[] = [
-    { label: "Lost on price",      pct: 38, count: Math.round((queries - commits) * 0.38), color: "bg-rose-500" },
-    { label: "Out of stock",       pct: 24, count: Math.round((queries - commits) * 0.24), color: "bg-amber-500" },
-    { label: "Schema mismatch",    pct: 18, count: Math.round((queries - commits) * 0.18), color: "bg-orange-500" },
-    { label: "BA timeout / 5xx",   pct: 12, count: Math.round((queries - commits) * 0.12), color: "bg-slate-500" },
-    { label: "User abandoned",     pct: 8,  count: Math.round((queries - commits) * 0.08), color: "bg-zinc-400"  },
-  ];
+  const metrics = MOCK_METRICS;
 
   return (
-    <div className="space-y-8">
-      {/* ── Hero ─────────────────────────────────────────────────────── */}
-      <div className="space-y-3">
-        <h1 className="text-3xl md:text-4xl font-bold text-ink leading-tight">
-          The infrastructure for{" "}
-          <span className="text-purple-600">AI commerce.</span>
+    <div className="space-y-8 pb-12">
+
+      {/* ── Module header ─────────────────────────────────────────────── */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full border"
+            style={{ background: V.accentBg, borderColor: V.accentBorder, color: V.accent }}>
+            <Cpu className="w-3 h-3" />
+            Layer 3 · Agentic Commerce
+          </span>
+          <span className="flex items-center gap-1.5 text-xs text-ink-3">
+            <PulseDot color="#1a7a4c" />
+            Live · last 24h
+          </span>
+        </div>
+        <h1 className="text-2xl md:text-3xl font-bold text-ink leading-tight mb-2">
+          The open routing layer for AI commerce.
         </h1>
-        <p className="text-ink-2 text-base max-w-3xl leading-relaxed">
-          <strong>Consumer Agents</strong> — the new generation of autonomous shopping assistants
-          built into WhatsApp, phone operating systems, voice apps, and vertical shopping startups —
-          need a way to reach every brand on Earth. <strong>Brands</strong> need a way to be reachable
-          by every Consumer Agent. <strong>Alignment</strong> is the open routing and clearing layer
-          between them, built on the MCP protocol.
+        <p className="text-sm text-ink-2 max-w-2xl leading-relaxed">
+          Consumer Agents — WhatsApp bots, Phone OS assistants, Voice apps — call Alignment to
+          discover, quote, and commit purchases across any brand. Brands expose a{" "}
+          <span className="font-semibold text-ink">Brand Agent</span> once; every Consumer Agent
+          finds them. You pay only on cleared transactions.
         </p>
       </div>
 
-      {/* ── Outer Ring surface strip (visual reinforcement) ──────── */}
-      <section className="space-y-3">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-xs font-mono uppercase tracking-wider text-ink-3">
-            Built for these surfaces
-          </h2>
-          <span className="text-[10px] text-ink-3">Outer Ring · concept doc v1</span>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {[
-            { emoji: "💬",  name: "WhatsApp",       sub: "shopping bots in chat",          accent: "from-emerald-50 to-emerald-100",  ring: "border-emerald-200" },
-            { emoji: "📱",  name: "Phone OS",       sub: "OS-level purchasing agents",     accent: "from-blue-50 to-blue-100",        ring: "border-blue-200"    },
-            { emoji: "🎙️", name: "Voice apps",     sub: "voice-assistant shopping",       accent: "from-purple-50 to-purple-100",    ring: "border-purple-200"  },
-            { emoji: "👗",  name: "Vertical apps",  sub: "category AIs (fashion, food…)",  accent: "from-pink-50 to-pink-100",        ring: "border-pink-200"    },
-            { emoji: "🔧",  name: "Custom agents",  sub: "any third-party shopper",        accent: "from-slate-50 to-slate-100",      ring: "border-slate-200"   },
-          ].map((s) => (
-            <div
-              key={s.name}
-              className={`bg-gradient-to-br ${s.accent} border ${s.ring} rounded-xl p-3 text-center transition-transform hover:-translate-y-0.5`}
-            >
-              <div className="text-2xl">{s.emoji}</div>
-              <div className="text-xs font-semibold text-ink mt-1">{s.name}</div>
-              <div className="text-[10px] text-ink-3 mt-0.5 leading-tight">{s.sub}</div>
+      {/* ── KPI bar ────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { label: "Consumer Agent queries",   value: fmt(metrics.queries),       icon: Radio,      delta: metrics.delta.queries,  accent: V.accent    },
+          { label: "Brand Agents reachable",   value: fmt(metrics.brands),        icon: Store,      delta: metrics.delta.brands,   accent: "#1a7a4c"   },
+          { label: "Successful commits",        value: fmt(metrics.commits),       icon: CheckCircle,delta: metrics.delta.commits,  accent: "#1a7a4c"   },
+          { label: "Cleared GMV",               value: `$${fmt(metrics.gmv)}`,    icon: CreditCard, delta: metrics.delta.gmv,      accent: V.accent    },
+        ].map((m) => {
+          const Icon = m.icon;
+          return (
+            <div key={m.label}
+              className="bg-surface border border-divider-light rounded-xl p-4 shadow-elevation-sm hover:shadow-elevation-md transition-all">
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-surface-warm">
+                  <Icon className="w-4 h-4 text-ink-2" />
+                </div>
+                <Delta v={m.delta} />
+              </div>
+              <div className="text-2xl font-bold font-mono text-ink tabular-nums">{m.value}</div>
+              <div className="text-xs text-ink-3 mt-0.5">{m.label}</div>
             </div>
-          ))}
-        </div>
-        <p className="text-[11px] text-ink-3 italic">
-          Not Claude / ChatGPT / Perplexity built-in shopping — those are Inner Ring and integrate
-          with brands directly. We serve everything <em>outside</em> their walled gardens.
-        </p>
-      </section>
+          );
+        })}
+      </div>
 
-      {/* ── Live Counter ────────────────────────────────────────────── */}
-      <section className="bg-gradient-to-br from-ink to-[#1a1a1a] rounded-2xl p-6 md:p-8 text-white relative overflow-hidden">
-        <div className="absolute top-4 right-4 flex items-center gap-2 text-xs">
-          {pulseDot("bg-green-400")}
-          <span className="text-white/70 font-mono">LIVE · last 24h</span>
-        </div>
-
-        <h2 className="text-sm font-mono uppercase tracking-wider text-white/50 mb-4">
-          Today on Alignment
-        </h2>
-
-        {loading ? (
-          <div className="text-white/40 animate-pulse text-sm">Connecting…</div>
-        ) : (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-              <div>
-                <div className="text-3xl md:text-4xl font-bold tabular-nums">{fmt(queries)}</div>
-                <div className="text-white/50 text-xs mt-1">Consumer Agent queries</div>
-              </div>
-              <div>
-                <div className="text-3xl md:text-4xl font-bold tabular-nums text-purple-300">{fmt(activeBrands)}</div>
-                <div className="text-white/50 text-xs mt-1">Brand Agents reachable</div>
-              </div>
-              <div>
-                <div className="text-3xl md:text-4xl font-bold tabular-nums text-green-300">{fmt(commits)}</div>
-                <div className="text-white/50 text-xs mt-1">successful commits</div>
-              </div>
-              <div>
-                <div className="text-3xl md:text-4xl font-bold tabular-nums text-yellow-300">${fmt(gmv, 0)}</div>
-                <div className="text-white/50 text-xs mt-1">cleared GMV</div>
-              </div>
-            </div>
-
-            <div className="border-t border-white/10 pt-4 space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-white/60">Quote → Commit success rate</span>
-                <span className="font-mono text-green-300">{successRate.toFixed(2)}%</span>
-              </div>
-              <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-green-400 to-emerald-400 rounded-full transition-all"
-                  style={{ width: `${Math.min(successRate, 100)}%` }} />
-              </div>
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* ── Failure Breakdown ────────────────────────────────────────── */}
-      <section className="bg-surface border border-divider rounded-2xl p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="font-semibold text-ink">Why the other {fmt(queries - commits)} queries didn't commit</h2>
-            <p className="text-ink-3 text-xs mt-0.5">Failure breakdown — the actionable surface for brands</p>
-          </div>
-          <Link href="/dashboard/agentic-commerce/quotes" className="text-xs text-purple-600 hover:underline">
-            Drill into Quote Log →
-          </Link>
-        </div>
-        <div className="space-y-3">
-          {failureBreakdown.map((f) => (
-            <div key={f.label} className="flex items-center gap-3 text-xs">
-              <span className="w-36 text-ink-2 shrink-0">{f.label}</span>
-              <div className="flex-1 bg-surface-muted rounded-full h-2 overflow-hidden">
-                <div className={`h-full rounded-full ${f.color} transition-all duration-700`}
-                  style={{ width: `${f.pct}%` }} />
-              </div>
-              <span className="w-24 text-right text-ink-3 tabular-nums shrink-0">
-                {f.pct}% · {fmt(f.count)}
+      {/* ── Success rate bar ───────────────────────────────────────────── */}
+      <div className="bg-ink rounded-2xl p-5 md:p-6 relative overflow-hidden">
+        {/* Subtle grid pattern */}
+        <div className="absolute inset-0 opacity-[0.03]"
+          style={{ backgroundImage: "repeating-linear-gradient(0deg,#fff 0,#fff 1px,transparent 1px,transparent 40px),repeating-linear-gradient(90deg,#fff 0,#fff 1px,transparent 1px,transparent 40px)" }} />
+        <div className="relative flex flex-col md:flex-row md:items-center gap-5">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs font-mono text-white/50 uppercase tracking-wider">
+                Quote → Commit success rate
+              </span>
+              <span className="text-xs font-bold text-white font-mono tabular-nums">
+                {metrics.successRate.toFixed(2)}%
               </span>
             </div>
+            <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-1000"
+                style={{ width: `${metrics.successRate}%`, background: "linear-gradient(90deg, #1a7a4c, #2ecc71)" }}
+              />
+            </div>
+            <div className="flex items-center justify-between mt-1 text-[10px] text-white/40 font-mono">
+              <span>0%</span>
+              <span>Industry avg ~18%  ·  Alignment {metrics.successRate}%</span>
+              <span>100%</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-6 shrink-0">
+            <div className="text-center">
+              <div className="text-xl font-bold text-white font-mono">{fmt(metrics.queries - metrics.commits)}</div>
+              <div className="text-[10px] text-white/40 mt-0.5">queries lost</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-bold text-white font-mono">{fmt(metrics.commits)}</div>
+              <div className="text-[10px] text-white/40 mt-0.5">cleared</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Two-column: Live feed + Consumer Agent breakdown ──────────── */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
+
+        {/* Live transaction feed */}
+        <div className="md:col-span-3 bg-surface border border-divider-light rounded-2xl shadow-elevation-sm overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-divider-light">
+            <div className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-ink-2" />
+              <span className="text-sm font-semibold text-ink">Live Transaction Feed</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1.5 text-[11px] text-ink-3">
+                <PulseDot color={live ? "#1a7a4c" : "#9E9484"} />
+                {live ? "streaming" : "paused"}
+              </span>
+              <button
+                onClick={() => setLive(l => !l)}
+                className="text-[11px] px-2.5 py-1 rounded-lg bg-surface-warm border border-divider-light text-ink-2 hover:text-ink transition-colors"
+              >
+                {live ? "Pause" : "Resume"}
+              </button>
+            </div>
+          </div>
+
+          {/* Header row */}
+          <div className="grid grid-cols-[1fr_auto_auto_auto] gap-3 px-5 py-2 bg-canvas border-b border-divider-light text-[10px] font-semibold text-ink-3 uppercase tracking-wider">
+            <span>Product</span>
+            <span className="text-right">Agent</span>
+            <span className="text-right">Amount</span>
+            <span className="text-right">Status</span>
+          </div>
+
+          <div className="divide-y divide-divider-light/50 overflow-hidden" style={{ maxHeight: 370 }}>
+            {feed.map((tx, i) => (
+              <div
+                key={tx.id}
+                className={`grid grid-cols-[1fr_auto_auto_auto] gap-3 px-5 py-2.5 items-center transition-all duration-300 ${
+                  i === 0 ? "bg-sage-bg/40" : "bg-surface hover:bg-canvas"
+                }`}
+                style={{ opacity: Math.max(0.45, 1 - i * 0.065) }}
+              >
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-ink truncate">{tx.product}</p>
+                  <p className="text-[10px] text-ink-3 font-mono">{tx.ts} · {tx.brand}</p>
+                </div>
+                <span className="text-[11px] text-ink-2 whitespace-nowrap">{tx.agent}</span>
+                <span className="text-xs font-mono font-semibold text-ink tabular-nums text-right">
+                  ${fmt(tx.amount, 2)}
+                </span>
+                <span className="flex justify-end">
+                  <StatusPill status={tx.status} />
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="px-5 py-2.5 border-t border-divider-light bg-canvas flex items-center justify-between">
+            <span className="text-[10px] text-ink-3 font-mono">{ticks} events this session</span>
+            <Link href="/dashboard/agentic-commerce/quotes"
+              className="text-[11px] text-ink-2 hover:text-ink flex items-center gap-1 transition-colors">
+              Full Quote Log <ChevronRight className="w-3 h-3" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Consumer Agent breakdown */}
+        <div className="md:col-span-2 bg-surface border border-divider-light rounded-2xl shadow-elevation-sm overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-3.5 border-b border-divider-light">
+            <Cpu className="w-4 h-4 text-ink-2" />
+            <span className="text-sm font-semibold text-ink">Consumer Agent Sources</span>
+          </div>
+          <div className="p-5 space-y-3">
+            {AGENT_SURFACES.map((a) => {
+              const Icon = a.icon;
+              return (
+                <div key={a.name} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-md flex items-center justify-center bg-surface-warm">
+                        <Icon className="w-3.5 h-3.5 text-ink-2" />
+                      </div>
+                      <span className="font-medium text-ink-2">{a.name}</span>
+                    </div>
+                    <span className="font-mono font-semibold text-ink tabular-nums">{fmt(a.count)}</span>
+                  </div>
+                  <div className="h-1.5 bg-surface-warm rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{ width: `${a.pct}%`, backgroundColor: a.color }}
+                    />
+                  </div>
+                  <p className="text-[10px] text-ink-3">{a.sub} · {a.pct}%</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Protocol flow ──────────────────────────────────────────────── */}
+      <div className="bg-surface border border-divider-light rounded-2xl shadow-elevation-sm p-6">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h2 className="font-semibold text-ink flex items-center gap-2">
+              <Globe className="w-4 h-4 text-ink-2" />
+              The Alignment Protocol — 5 steps
+            </h2>
+            <p className="text-xs text-ink-3 mt-0.5">Open spec built on MCP · transparent · no hidden ranking</p>
+          </div>
+          <Link href="/dashboard/agentic-commerce/integration?role=protocol"
+            className="text-xs text-ink-2 hover:text-ink flex items-center gap-1 transition-colors">
+            Read spec <ChevronRight className="w-3 h-3" />
+          </Link>
+        </div>
+        <div className="flex items-stretch gap-0">
+          {PROTOCOL_STEPS.map((step, i) => {
+            const Icon = step.icon;
+            return (
+              <div key={step.id} className="flex items-center flex-1 min-w-0">
+                <div className="flex-1 bg-canvas border border-divider-light rounded-xl p-4 text-center space-y-1.5">
+                  <div className="flex items-center justify-center mx-auto w-8 h-8 rounded-lg"
+                    style={{ backgroundColor: step.color + "18" }}>
+                    <Icon className="w-4 h-4" style={{ color: step.color }} />
+                  </div>
+                  <div className="text-[10px] font-mono text-ink-3">{step.id}</div>
+                  <div className="text-xs font-bold text-ink">{step.title}</div>
+                  <p className="text-[10px] text-ink-3 leading-snug hidden md:block">{step.sub}</p>
+                </div>
+                {i < PROTOCOL_STEPS.length - 1 && (
+                  <div className="flex-shrink-0 px-1">
+                    <ArrowRight className="w-3.5 h-3.5 text-ink-3" />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Why queries fail ──────────────────────────────────────────── */}
+      <div className="bg-surface border border-divider-light rounded-2xl shadow-elevation-sm p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-semibold text-ink flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-ink-2" />
+              Why {fmt(metrics.queries - metrics.commits)} queries didn&apos;t convert
+            </h2>
+            <p className="text-xs text-ink-3 mt-0.5">Actionable failure breakdown — optimize these to lift GMV</p>
+          </div>
+          <Link href="/dashboard/agentic-commerce/performance"
+            className="text-xs text-ink-2 hover:text-ink flex items-center gap-1 transition-colors">
+            Deep analysis <ChevronRight className="w-3 h-3" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          {[
+            { label: "Lost on price",     pct: 38, color: "#B5453A", bg: "bg-red-soft-bg"    },
+            { label: "Out of stock",      pct: 24, color: "#d9a85c", bg: "bg-caution-bg"     },
+            { label: "Schema mismatch",   pct: 18, color: V.accent,  bg: V.accentBg          },
+            { label: "BA timeout / 5xx",  pct: 12, color: "#9E9484", bg: "bg-surface-warm"   },
+            { label: "User abandoned",    pct:  8, color: "#C8BFB0", bg: "bg-canvas"         },
+          ].map((f) => (
+            <div key={f.label} className="space-y-2">
+              <div className="flex items-baseline justify-between text-xs">
+                <span className="text-ink-2 font-medium truncate">{f.label}</span>
+                <span className="font-mono font-bold text-ink shrink-0 ml-2">{f.pct}%</span>
+              </div>
+              <div className="h-1.5 bg-surface-warm rounded-full overflow-hidden">
+                <div className="h-full rounded-full transition-all duration-700"
+                  style={{ width: `${f.pct * 2.5}%`, backgroundColor: f.color }} />
+              </div>
+            </div>
           ))}
         </div>
-      </section>
+      </div>
 
-      {/* ── Role Entry Points ───────────────────────────────────────── */}
-      <section className="space-y-3">
-        <h2 className="text-xs font-mono uppercase tracking-wider text-ink-3">
-          Pick your role
-        </h2>
+      {/* ── Role entry ────────────────────────────────────────────────── */}
+      <div className="space-y-3">
+        <h2 className="text-xs font-semibold text-ink-3 uppercase tracking-wider">Get started</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Brand */}
           <Link href="/dashboard/agentic-commerce/integration?role=brand"
-            className="group bg-surface border border-divider hover:border-purple-300 rounded-2xl p-5 space-y-3 transition-all">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-lg">
-              🏪
+            className="group bg-surface border border-divider-light hover:border-ink/20 hover:shadow-elevation-md rounded-2xl p-5 space-y-3 transition-all">
+            <div className="flex items-center justify-between">
+              <div className="w-10 h-10 rounded-xl bg-sage-bg flex items-center justify-center">
+                <Store className="w-5 h-5 text-sage" />
+              </div>
+              <ChevronRight className="w-4 h-4 text-ink-3 group-hover:translate-x-0.5 transition-transform" />
             </div>
             <div>
-              <div className="font-semibold text-ink text-sm group-hover:text-purple-700 transition-colors">
-                I'm a brand
-              </div>
-              <div className="text-ink-3 text-xs mt-0.5">Open my catalog to Consumer Agents</div>
+              <div className="font-semibold text-ink text-sm">I&apos;m a brand</div>
+              <div className="text-xs text-ink-3 mt-0.5">Open my catalog to Consumer Agents</div>
             </div>
-            <p className="text-ink-2 text-xs leading-relaxed">
-              Expose your catalog as a Brand Agent. Consumer Agents in WhatsApp, phone OS,
-              voice apps, and vertical shopping startups discover, quote, and commit
-              through Alignment. You pay only on cleared transactions (~8%).
+            <p className="text-xs text-ink-2 leading-relaxed">
+              Expose your catalog as a Brand Agent. Consumer Agents across WhatsApp, Phone OS,
+              and voice apps discover and purchase. Pay ~8% only on cleared transactions.
             </p>
-            <div className="text-purple-600 text-xs font-medium pt-1">Get started →</div>
+            <div className="text-xs font-medium text-sage flex items-center gap-1">
+              Connect catalog <ArrowRight className="w-3 h-3" />
+            </div>
           </Link>
 
           {/* Consumer Agent builder */}
           <Link href="/dashboard/agentic-commerce/integration?role=consumer"
-            className="group bg-surface border border-divider hover:border-purple-300 rounded-2xl p-5 space-y-3 transition-all">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-lg">
-              📱
+            className="group bg-surface border border-divider-light hover:border-ink/20 hover:shadow-elevation-md rounded-2xl p-5 space-y-3 transition-all"
+            style={{ borderColor: V.accentBorder }}>
+            <div className="flex items-center justify-between">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: V.accentBg }}>
+                <Cpu className="w-5 h-5" style={{ color: V.accent }} />
+              </div>
+              <ChevronRight className="w-4 h-4 text-ink-3 group-hover:translate-x-0.5 transition-transform" />
             </div>
             <div>
-              <div className="font-semibold text-ink text-sm group-hover:text-purple-700 transition-colors">
-                I build Consumer Agents
-              </div>
-              <div className="text-ink-3 text-xs mt-0.5">Connect to brands</div>
+              <div className="font-semibold text-ink text-sm">I build Consumer Agents</div>
+              <div className="text-xs text-ink-3 mt-0.5">Connect to brand catalog network</div>
             </div>
-            <p className="text-ink-2 text-xs leading-relaxed">
-              One API call, ranked quotes from thousands of brand catalogs. Built on the
-              open MCP protocol. Optional referral fee (1–3%) on every cleared transaction
-              you originate.
+            <p className="text-xs text-ink-2 leading-relaxed">
+              One API call → ranked quotes from 842 brand catalogs. Built on open MCP protocol.
+              Earn 1–3% referral fee on every cleared transaction you originate.
             </p>
-            <div className="text-purple-600 text-xs font-medium pt-1">Get an API key →</div>
+            <div className="text-xs font-medium flex items-center gap-1" style={{ color: V.accent }}>
+              Get API key <ArrowRight className="w-3 h-3" />
+            </div>
           </Link>
 
           {/* Protocol */}
           <Link href="/dashboard/agentic-commerce/integration?role=protocol"
-            className="group bg-surface border border-divider hover:border-purple-300 rounded-2xl p-5 space-y-3 transition-all">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center text-white text-lg">
-              📖
+            className="group bg-surface border border-divider-light hover:border-ink/20 hover:shadow-elevation-md rounded-2xl p-5 space-y-3 transition-all">
+            <div className="flex items-center justify-between">
+              <div className="w-10 h-10 rounded-xl bg-surface-warm flex items-center justify-center">
+                <Globe className="w-5 h-5 text-ink-2" />
+              </div>
+              <ChevronRight className="w-4 h-4 text-ink-3 group-hover:translate-x-0.5 transition-transform" />
             </div>
             <div>
-              <div className="font-semibold text-ink text-sm group-hover:text-purple-700 transition-colors">
-                How it works
-              </div>
-              <div className="text-ink-3 text-xs mt-0.5">Open protocol, built on MCP</div>
+              <div className="font-semibold text-ink text-sm">Read the protocol</div>
+              <div className="text-xs text-ink-3 mt-0.5">Open spec · built on MCP</div>
             </div>
-            <p className="text-ink-2 text-xs leading-relaxed">
-              MCP-based Commerce extension. Identity, query, quote, commit, settlement —
-              all transparent. Open spec, fork it, implement it. No paid placement, no
-              hidden ranking.
+            <p className="text-xs text-ink-2 leading-relaxed">
+              Identity → Query → Quote → Commit → Settlement. Open spec, fork it, implement it.
+              No paid placement, no hidden ranking. Transparent clearing.
             </p>
-            <div className="text-purple-600 text-xs font-medium pt-1">Read the protocol →</div>
+            <div className="text-xs font-medium text-ink-2 flex items-center gap-1">
+              View spec <ArrowRight className="w-3 h-3" />
+            </div>
           </Link>
         </div>
-      </section>
+      </div>
 
-      {/* ── Inner Ring vs Outer Ring ───────────────────────────────── */}
-      <section className="bg-surface border border-divider rounded-2xl p-6 space-y-4">
+      {/* ── Inner vs Outer Ring ────────────────────────────────────────── */}
+      <div className="bg-surface border border-divider-light rounded-2xl shadow-elevation-sm p-6 space-y-4">
         <div>
-          <h2 className="font-semibold text-ink">Where Alignment plays</h2>
-          <p className="text-ink-3 text-xs mt-0.5">
-            AI shopping is splitting into two rings. We serve one of them.
+          <h2 className="font-semibold text-ink flex items-center gap-2">
+            <BarChart2 className="w-4 h-4 text-ink-2" />
+            Where Alignment plays
+          </h2>
+          <p className="text-xs text-ink-3 mt-0.5">
+            AI shopping is splitting into two rings. We serve the Outer Ring.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Inner Ring */}
-          <div className="bg-surface-muted rounded-xl p-5 space-y-2 opacity-75 border border-divider">
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-ink-3 uppercase tracking-wider text-[10px]">Inner Ring</span>
-              <span className="text-[10px] text-ink-3">·  NOT our market</span>
-            </div>
+          <div className="bg-canvas border border-divider-light rounded-xl p-5 space-y-2 opacity-70">
+            <div className="text-[10px] font-mono text-ink-3 uppercase tracking-wider">Inner Ring · Not our market</div>
             <div className="font-semibold text-ink text-sm">Shopping inside AI chat platforms</div>
-            <p className="text-ink-2 text-xs leading-relaxed">
-              User logs into <em>Claude / ChatGPT / Perplexity</em> → asks for products → AI
-              completes order inside the same walled garden. These platforms will integrate
-              with brands directly. They don't need an open Broker.
+            <p className="text-xs text-ink-2 leading-relaxed">
+              Claude / ChatGPT / Perplexity user asks for products → AI completes order in its
+              own walled garden. These platforms integrate with brands directly. No open Broker needed.
             </p>
           </div>
-          {/* Outer Ring */}
-          <div className="bg-purple-50 border-2 border-purple-300 rounded-xl p-5 space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-purple-700 uppercase tracking-wider text-[10px]">Outer Ring</span>
-              <span className="text-[10px] text-purple-700 font-semibold">·  Alignment lives here</span>
+          <div className="rounded-xl p-5 space-y-2 border-2"
+            style={{ background: V.accentBg, borderColor: V.accentBorder }}>
+            <div className="text-[10px] font-mono uppercase tracking-wider font-semibold" style={{ color: V.accent }}>
+              Outer Ring · Alignment lives here
             </div>
             <div className="font-semibold text-ink text-sm">Consumer Agents outside any AI platform</div>
-            <p className="text-ink-2 text-xs leading-relaxed">
-              Autonomous shopping agents embedded in <em>WhatsApp, phone operating systems,
-              voice assistants, vertical shopping startups</em>. They don't own the brand
-              network — they call ours.
+            <p className="text-xs text-ink-2 leading-relaxed">
+              Autonomous shopping agents embedded in <em>WhatsApp, Phone OS, voice assistants,
+              vertical shopping startups</em>. They don&apos;t own the brand network — they call ours.
             </p>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* ── Layer 2 vs Layer 3 (product-family navigation) ────────── */}
-      <section className="bg-surface-muted border border-divider rounded-2xl p-6">
-        <h2 className="font-semibold text-ink text-sm mb-1">Layer 2 vs. Layer 3 — don't confuse them</h2>
-        <p className="text-ink-3 text-xs mb-3">Where this product sits in the Alignment stack.</p>
+      {/* ── Layer 2 vs Layer 3 ─────────────────────────────────────────── */}
+      <div className="bg-canvas border border-divider-light rounded-2xl p-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-          <div className="bg-surface rounded-xl p-4 space-y-2 border border-divider">
+          <div className="bg-surface rounded-xl p-4 space-y-1.5 border border-divider-light">
             <div className="font-mono text-ink-3 uppercase tracking-wider text-[10px]">Layer 2 — GEO</div>
-            <div className="font-semibold text-ink">"Be mentioned by AI"</div>
+            <div className="font-semibold text-ink">&quot;Be mentioned by AI&quot;</div>
             <p className="text-ink-2 leading-relaxed">
-              Optimize how language models <em>describe</em> your brand in chat. Measured in
-              mentions, citations, sentiment. The customer reads a human-language answer.
+              Optimize how LLMs <em>describe</em> your brand in chat. Measured in mentions, citations, sentiment.
             </p>
-            <Link href="/dashboard/geo-monitor" className="text-purple-600 hover:underline text-xs">Go to GEO module →</Link>
+            <Link href="/dashboard/geo-monitor" className="text-ink-2 hover:text-ink flex items-center gap-1 pt-1 transition-colors">
+              Go to GEO module <ChevronRight className="w-3 h-3" />
+            </Link>
           </div>
-          <div className="bg-surface rounded-xl p-4 space-y-2 border-2 border-purple-300">
-            <div className="font-mono text-purple-700 uppercase tracking-wider text-[10px]">Layer 3 — Agentic Commerce</div>
-            <div className="font-semibold text-ink">"Be transacted with by Consumer Agents"</div>
+          <div className="rounded-xl p-4 space-y-1.5 border-2"
+            style={{ background: V.accentBg, borderColor: V.accentBorder }}>
+            <div className="font-mono uppercase tracking-wider text-[10px] font-semibold" style={{ color: V.accent }}>
+              Layer 3 — Agentic Commerce · You&apos;re here
+            </div>
+            <div className="font-semibold text-ink">&quot;Be transacted with by Consumer Agents&quot;</div>
             <p className="text-ink-2 leading-relaxed">
-              Expose a machine-callable Brand Agent. Consumer Agents call you, get a quote,
-              commit a purchase. Measured in queries, quotes, commits, GMV.
+              Expose a machine-callable Brand Agent. Consumer Agents call you, get a quote, commit a purchase.
+              Measured in queries, quotes, commits, GMV.
             </p>
-            <span className="text-purple-600 text-xs">You're here →</span>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* ── Walk-away sentence ─────────────────────────────────────── */}
-      <section className="text-center py-10 md:py-14 border-t border-divider">
-        <p className="text-xl md:text-3xl font-bold text-ink leading-snug max-w-3xl mx-auto">
-          Every brand is reachable by Consumer Agents.<br />
+      {/* ── Walk-away ─────────────────────────────────────────────────── */}
+      <div className="text-center py-10 border-t border-divider-light">
+        <p className="text-xl md:text-2xl font-bold text-ink leading-snug max-w-2xl mx-auto">
+          Every brand reachable by Consumer Agents.<br />
           Every Consumer Agent finds the right brand.
         </p>
-        <p className="text-ink-3 text-xs mt-4 font-mono">— the open infrastructure for AI commerce</p>
-      </section>
+        <p className="text-ink-3 text-xs mt-3 font-mono tracking-wider">
+          // open infrastructure for AI commerce · built on MCP · no walled garden
+        </p>
+      </div>
 
-      {/* ── Footer / Quick Links ────────────────────────────────────── */}
-      <section className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-ink-3 pt-2 border-t border-divider">
-        <span>Backend:</span>
-        <a href={`${API_BASE}/api/agentic-commerce/brand/brands`} target="_blank" rel="noreferrer"
-          className="text-purple-600 hover:underline font-mono">/brand/brands</a>
-        <a href={`${API_BASE}/api/agentic-commerce/platform/overview`} target="_blank" rel="noreferrer"
-          className="text-purple-600 hover:underline font-mono">/platform/overview</a>
-        <span className="ml-auto">Concept v1 · MCP-based · 2026-05-12</span>
-      </section>
     </div>
   );
 }
