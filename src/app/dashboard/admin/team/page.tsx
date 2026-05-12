@@ -11,7 +11,6 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
 const PERMISSION_KEYS: { key: string; label: string; group: string }[] = [
   { key: 'overview',          label: 'Overview',          group: 'Analytics' },
   { key: 'geo-monitor',       label: 'Answer Engine',     group: 'Analytics' },
-  { key: 'agentic-commerce',  label: 'Agentic Commerce',  group: 'Action' },
   { key: 'geo-audit',         label: 'GEO Audit',         group: 'Action' },
   { key: 'geo-content',       label: 'GEO Content',       group: 'Action' },
   { key: 'prompts',           label: 'Prompt Library',    group: 'Context' },

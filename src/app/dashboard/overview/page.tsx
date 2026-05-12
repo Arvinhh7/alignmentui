@@ -15,7 +15,7 @@ import {
 } from '@/lib/api'
 import {
   TrendingUp, TrendingDown, Minus, BarChart3, Shield,
-  PenTool, MessageSquare, Bot, Zap, ArrowRight,
+  PenTool, MessageSquare, Zap, ArrowRight,
   Sparkles, AlertTriangle, CheckCircle2,
   RefreshCw, Clock, Target,
   ChevronRight, Eye, BookOpen, Activity,
@@ -561,18 +561,6 @@ export default function OverviewPage() {
                 </FeatureLink>
               </div>
             </div>
-            <div className="bg-surface-warm border border-divider-light rounded-2xl p-5 flex items-start gap-3">
-              <Bot className="w-5 h-5 text-ink-2 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-[13px] font-semibold text-ink mb-1">Explore AI Agents</p>
-                <p className="text-[12px] text-ink-2 leading-relaxed mb-3">
-                  Automate GEO analysis, generate AI-cited content, and monitor competitor visibility — all from preset agent templates.
-                </p>
-                <FeatureLink feature="agentic-commerce" className="text-[12px] font-semibold text-ink hover:text-ink-2 flex items-center gap-1">
-                  Agentic Commerce <ArrowRight className="w-3 h-3" />
-                </FeatureLink>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -738,13 +726,6 @@ export default function OverviewPage() {
                   iconColor="bg-surface-muted text-ink-2"
                   label={t.dashboard.createContent}
                   feature="geo-content"
-                />
-                <ActionCard
-                  icon={Bot}
-                  iconColor="bg-surface-muted text-ink-2"
-                  label={t.dashboard.runAgent}
-                  feature="agentic-commerce"
-                  badge="NEW"
                 />
                 <ActionCard
                   icon={MessageSquare}
@@ -917,7 +898,6 @@ export default function OverviewPage() {
                   { label: 'Answer Engine Insights', href: '/dashboard/geo-monitor', icon: TrendingUp, color: 'text-sage' },
                   { label: 'GEO Audit', href: '/dashboard/geo-audit', icon: Shield, color: 'text-red-soft' },
                   { label: 'Content Creator', href: '/dashboard/geo-content', icon: PenTool, color: 'text-ink-2' },
-                  { label: 'Agentic Commerce', href: '/dashboard/agentic-commerce', icon: Bot, color: 'text-caution', isNew: true },
                 ].map(item => (
                   <Link
                     key={item.href}

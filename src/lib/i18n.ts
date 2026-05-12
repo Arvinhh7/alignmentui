@@ -285,7 +285,6 @@ export const translations = {
       // Module navigation
       overviewNav: 'Overview',
       answerEngineNav: 'Answer Engine Insights',
-      agenticCommerceNav: 'Agentic Commerce',
       geoAuditNav: 'GEO Audit',
       geoOptimizationNav: 'GEO Optimize',
       geoContentNav: 'GEO Content',
@@ -952,7 +951,6 @@ export const translations = {
       // Module navigation
       overviewNav: '总览',
       answerEngineNav: 'AI 引擎洞察',
-      agenticCommerceNav: 'Agentic Commerce',
       geoAuditNav: 'GEO 诊断',
       geoOptimizationNav: 'GEO 优化',
       geoContentNav: 'GEO 内容',
