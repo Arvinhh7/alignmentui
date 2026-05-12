@@ -8,208 +8,62 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 type Role = "brand" | "consumer" | "protocol";
 
-// ── Code blocks ───────────────────────────────────────────────────────────────
-const BRAND_WELLKNOWN = `// Hosted at https://your-domain.com/.well-known/agent.json
-{
-  "schema_version": "v0.1",
-  "agent_id":       "did:alignment:yourbrand:prod-1",
-  "operator":       "Your Brand Inc.",
-  "public_key":     "-----BEGIN PUBLIC KEY-----\\n…",
-  "endpoints": {
-    "quote":     "https://agents.yourbrand.com/v1/quote",
-    "commit":    "https://agents.yourbrand.com/v1/commit",
-    "cancel":    "https://agents.yourbrand.com/v1/cancel",
-    "inventory": "https://agents.yourbrand.com/v1/inventory",
-    "catalog":   "https://agents.yourbrand.com/v1/catalog"
-  },
-  "capabilities": {
-    "currencies":     ["USD", "EUR"],
-    "ship_to":        ["US", "EU"],
-    "max_qty_per_tx": 50
-  },
-  "sla": {
-    "quote_p95_ms":  800,
-    "commit_p95_ms": 3000,
-    "uptime_target": 0.995
-  },
-  "protocol_versions": ["v0.1"]
-}`;
+// ─────────────────────────────────────────────────────────────────────────────
+// API skill data — small, declarative. Each role is presented as ONE coherent
+// API surface (the "skill"), not a multi-step tutorial with code dumps.
+// ─────────────────────────────────────────────────────────────────────────────
 
-const BRAND_QUOTE_HANDLER = `// POST /v1/quote — your Brand Agent handler
-import { Hono } from 'hono';
-import { assertBrokerKey } from '@alignment-ai/broker-protocol';
+type Endpoint = { method: string; path: string; purpose: string };
 
-const app = new Hono();
-const REGISTERED_BROKER_KEY = process.env.ALIGNMENT_BROKER_KEY!;
+const BRAND_SKILL = {
+  emoji:    "🏪",
+  title:    "Brand Agent API",
+  oneLine:  "Expose your catalog once. Every Consumer Agent finds you.",
+  body:     "Two endpoints + one discovery file. The Alignment Broker fans out incoming Consumer Agent queries to your /v1/quote, ranks the responses, and routes the winner to /v1/commit. Built on MCP — your handlers run as standard MCP tools.",
+  endpoints: [
+    { method: "GET",  path: "/.well-known/agent.json", purpose: "Discovery doc — Broker auto-fetches at registration" },
+    { method: "POST", path: "/v1/quote",                purpose: "Live price + inventory · p95 ≤ 800 ms" },
+    { method: "POST", path: "/v1/commit",               purpose: "Atomic order confirmation · p95 ≤ 3 s" },
+    { method: "POST", path: "/v1/cancel",               purpose: "Refund / void (optional)" },
+  ] as Endpoint[],
+  auth:     "Broker→Brand calls signed with `broker_key` (assigned at registration). Brand→Broker uses an Ed25519 key declared in `.well-known/agent.json`.",
+  pricing:  "Pay only on cleared transactions · default 8% (negotiable 5–15% at registration) · settled T+7 via Stripe Connect.",
+};
 
-app.post('/v1/quote', async (c) => {
-  const { broker_query_id, broker_key, intent, user_context } = await c.req.json();
+const CONSUMER_SKILL = {
+  emoji:    "📱",
+  title:    "Consumer Agent API",
+  oneLine:  "One API call → ranked quotes from every brand on the network.",
+  body:     "From your WhatsApp bot, phone-OS agent, voice app, or vertical shopper, query the Broker with a structured intent. The Broker fans out to all eligible Brand Agents in parallel and returns ranked, signed, time-boxed quotes. Pick one, commit, done.",
+  endpoints: [
+    { method: "POST", path: "/v1/agents/consumer/register", purpose: "Register your Consumer Agent · returns api_key" },
+    { method: "POST", path: "/v1/broker/query",             purpose: "Send intent → ranked quotes (200–600 ms p95)" },
+    { method: "POST", path: "/v1/broker/commit",            purpose: "Confirm a quote → atomic transaction" },
+    { method: "GET",  path: "/v1/broker/query/{query_id}",  purpose: "Replay a past query (audit / debug)" },
+  ] as Endpoint[],
+  auth:     "Bearer `api_key` (from register endpoint) in `Authorization` header. All payloads JSON.",
+  pricing:  "Free to call. Optional 1–3% referral fee on every cleared transaction you originate, paid T+7 via Stripe Connect.",
+};
 
-  // 1. Verify the call is from Alignment Broker
-  assertBrokerKey(broker_key, REGISTERED_BROKER_KEY);
+const PROTOCOL_SKILL = {
+  emoji:    "📖",
+  title:    "Alignment Broker Protocol v0.1",
+  oneLine:  "Open MCP-based Commerce Extension. Implement the spec, you're connected.",
+  body:     "Identity → Query → Quote → Commit → Settlement. Transparent 5-factor ranking. No paid placement. No hidden levers. Brand Agents cannot pay to rank higher — the Broker's only revenue is the per-transaction commission declared at registration. This is the protocol's central trust commitment.",
+  endpoints: [],
+  auth:     "DID-style identities. Ed25519 request signing. 30-second nonce window.",
+  pricing:  "Open spec, public docs. Fork it, implement it. No license fee.",
+};
 
-  // 2. Match intent to your catalog
-  const product = await matchProduct(intent);
-  if (!product) {
-    return c.json({
-      broker_query_id,
-      brand_id: 'yourbrand',
-      error: { code: 'NO_MATCH', message: 'No matching product' }
-    });
-  }
+const SKILLS: Record<Role, typeof BRAND_SKILL> = {
+  brand:    BRAND_SKILL,
+  consumer: CONSUMER_SKILL,
+  protocol: PROTOCOL_SKILL,
+};
 
-  // 3. Build the quote (valid_until = 10 min from now)
-  return c.json({
-    quote_id:        \`yourbrand_q_\${broker_query_id}_\${product.sku}\`,
-    broker_query_id,
-    brand_id:        'yourbrand',
-    issued_at:       new Date().toISOString(),
-    valid_until:     new Date(Date.now() + 10 * 60_000).toISOString(),
-    product:         { ...product, currency: 'USD' },
-    match_score:     0.91,
-    match_reason:    \`exact match for "\${intent.raw}"\`,
-    trust_signals:   { verified_brand: true, rating: 4.8 }
-  });
-});
-
-export default app;`;
-
-const CONSUMER_QUERY_EXAMPLE = `// Consumer Agent — sending a query to the Broker
-// (e.g. inside your WhatsApp shopping bot or phone-OS agent)
-import { AlignmentBroker } from '@alignment-ai/broker-protocol';
-
-const CONSUMER_AGENT_ID = 'did:alignment:yourstartup:whatsapp-bot-1';
-
-const broker = new AlignmentBroker({
-  apiKey:  process.env.ALIGNMENT_API_KEY,           // from registerConsumerAgent()
-  baseUrl: 'https://api.alignmenttech.ai',          // default
-});
-
-// User says (in your WhatsApp UI): "I need waterproof running shoes under $150"
-const result = await broker.query({
-  consumer_agent_id: CONSUMER_AGENT_ID,
-  intent: {
-    raw: 'waterproof running shoes under $150',
-    structured: {
-      category:    'athletic_footwear',
-      constraints: { price_max: 150, features: ['waterproof'] },
-      qty:         1,
-    },
-  },
-  user_context: {
-    region:           'US',
-    currency:         'USD',
-    ship_to_country:  'US',
-    urgency:          'standard',
-  },
-  preferences: { max_brands: 5 },
-});
-
-console.log(\`Broker fanned out to \${result.stats.brands_queried} Brand Agents\`);
-console.log(\`Top: \${result.ranked_quotes[0].brand_id} @ \$\${result.ranked_quotes[0].product.price}\`);
-
-// User confirms (taps the result in WhatsApp) — commit
-const tx = await broker.commit({
-  quote_id:          result.ranked_quotes[0].quote_id,
-  consumer_agent_id: CONSUMER_AGENT_ID,
-  shipping:          userShipping,
-  payment_token:     stripeToken,
-  user_consent:      { ts: new Date().toISOString() },
-});
-
-console.log(\`Transaction confirmed: \${tx.transaction_id} · settled T+7\`);`;
-
-const CONSUMER_REGISTER = `# Register your Consumer Agent
-# (e.g. your WhatsApp shopping bot, phone-OS agent, voice app, etc.)
-curl -X POST https://api.alignmenttech.ai/v1/agents/consumer/register \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "agent_id":     "did:alignment:yourstartup:whatsapp-bot-1",
-    "operator":     "Your Startup",
-    "operator_url": "https://yourstartup.com",
-    "capabilities": ["product_search", "price_compare", "checkout"],
-    "public_key":   "-----BEGIN PUBLIC KEY-----\\n…",
-    "contact":      "agents@yourstartup.com"
-  }'
-
-# Response:
-# {
-#   "agent_id":   "did:alignment:yourstartup:whatsapp-bot-1",
-#   "status":     "active",
-#   "rate_limit": { "rps": 50, "rpd": 1000000 },
-#   "api_key":    "ak_live_xxxxxxxxxxxxxxxxxxxx"
-# }`;
-
-const PROTOCOL_FLOW = `// The full 8-step lifecycle
-// (see PROTOCOL_v0.1.md §4 for the wire details)
-
-// Step 1 ─ Consumer Agent (CA, Outer Ring: WhatsApp bot / phone OS /
-//          voice / vertical app) → Alignment Broker (BR)
-POST /v1/broker/query
-  { query_id, consumer_agent_id, intent, user_context, preferences }
-
-// Step 2 ─ BR fans out in parallel to N Brand Agents (BA)
-//          (MCP-based: each BA exposes /v1/quote as an MCP tool)
-POST {brand.endpoints.quote}
-  { broker_query_id, broker_key, intent, user_context, expires_in_ms: 2000 }
-
-// Step 3 ─ Each BA returns a Quote (signed, time-boxed, no charge)
-  { quote_id, valid_until, product, match_score, trust_signals }
-
-// Step 4 ─ BR ranks via transparent 5-factor formula → CA
-  broker_score = 0.30·price_match + 0.25·trust + 0.20·semantic
-               + 0.15·eta + 0.10·inventory
-
-// Step 5 ─ CA picks one, commits
-POST /v1/broker/commit
-  { quote_id, shipping, payment_token, user_consent }
-
-// Step 6 ─ BR routes commit to the winning BA
-POST {brand.endpoints.commit}
-  { quote_id, shipping, payment_token }
-
-// Step 7 ─ BA confirms transaction
-  { transaction_id, status, tracking_url, settlement: { gross, commission, net } }
-
-// Step 8 ─ BR settles T+7 via Stripe Connect to BA's account
-//          BR's commission deducted, optional referral fee paid to CA operator`;
-
-// ── Component ─────────────────────────────────────────────────────────────────
-function CodeBlock({ code, lang }: { code: string; lang: string }) {
-  return (
-    <div className="bg-[#1a1a1a] rounded-xl overflow-hidden">
-      <div className="px-4 py-2 border-b border-white/10 flex items-center justify-between">
-        <span className="text-white/40 text-xs font-mono uppercase tracking-wider">{lang}</span>
-        <button
-          onClick={() => navigator.clipboard.writeText(code)}
-          className="text-white/40 hover:text-white text-xs font-mono"
-        >
-          copy
-        </button>
-      </div>
-      <pre className="p-4 text-xs text-white/80 overflow-x-auto leading-relaxed">
-        <code>{code}</code>
-      </pre>
-    </div>
-  );
-}
-
-function StepCard({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
-  return (
-    <div className="flex gap-4">
-      <div className="flex flex-col items-center shrink-0">
-        <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">
-          {n}
-        </div>
-        <div className="flex-1 w-px bg-divider mt-2" />
-      </div>
-      <div className="flex-1 pb-6 space-y-2">
-        <div className="font-semibold text-ink text-sm">{title}</div>
-        <div className="text-ink-2 text-xs leading-relaxed space-y-2">{children}</div>
-      </div>
-    </div>
-  );
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// Page
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function IntegrationPage() {
   const params = useSearchParams();
@@ -221,23 +75,24 @@ export default function IntegrationPage() {
     if (r) setRole(r);
   }, [params]);
 
+  const skill = SKILLS[role];
+
   return (
     <div className="space-y-6">
       {/* ── Header ────────────────────────────────────────────────── */}
       <div>
         <h1 className="text-2xl font-bold text-ink">Integration</h1>
         <p className="text-ink-2 text-sm mt-1">
-          Connect to the Alignment Broker over the open MCP-based Commerce protocol.
-          Pick your role below — the rest of this page adapts.
+          One open MCP-based protocol. Three API surfaces. Pick yours.
         </p>
       </div>
 
-      {/* ── Role Toggle ───────────────────────────────────────────── */}
+      {/* ── Role tabs ─────────────────────────────────────────────── */}
       <div className="inline-flex bg-surface-muted p-1 rounded-xl border border-divider">
         {([
-          { id: "brand",    label: "🏪 Brand Agent",    sub: "I'm a merchant"           },
-          { id: "consumer", label: "📱 Consumer Agent", sub: "I build Consumer Agents"  },
-          { id: "protocol", label: "📖 Protocol",        sub: "Open spec, built on MCP"  },
+          { id: "brand",    label: "🏪 Brand Agent API",    sub: "I'm a merchant"           },
+          { id: "consumer", label: "📱 Consumer Agent API", sub: "I build shopping agents"  },
+          { id: "protocol", label: "📖 Protocol Spec",      sub: "I'm reading the standard" },
         ] as { id: Role; label: string; sub: string }[]).map((r) => (
           <button
             key={r.id}
@@ -252,162 +107,168 @@ export default function IntegrationPage() {
         ))}
       </div>
 
-      {/* ── BRAND AGENT VIEW ──────────────────────────────────────── */}
-      {role === "brand" && (
-        <>
-          <section className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
-            <h2 className="font-semibold text-emerald-900">Brand Agent — 4-step onboarding</h2>
-            <p className="text-emerald-800 text-sm mt-1">
-              Expose your catalog as a Brand Agent. <strong>Consumer Agents</strong> — shopping
-              bots embedded in WhatsApp, phone operating systems, voice apps, and vertical
-              shopping startups — query you for live quotes through Alignment. You only
-              pay when a transaction clears (default 8%).
-            </p>
-          </section>
+      {/* ── Skill card ────────────────────────────────────────────── */}
+      <section className="bg-surface border border-divider rounded-2xl p-6 space-y-5">
+        {/* Skill header */}
+        <div className="flex items-start gap-4">
+          <div className="text-4xl leading-none">{skill.emoji}</div>
+          <div className="flex-1">
+            <h2 className="text-xl font-bold text-ink">{skill.title}</h2>
+            <p className="text-purple-700 text-sm font-medium mt-0.5">{skill.oneLine}</p>
+            <p className="text-ink-2 text-sm mt-3 leading-relaxed max-w-3xl">{skill.body}</p>
+          </div>
+        </div>
 
-          <section>
-            <StepCard n={1} title="Publish a .well-known/agent.json discovery doc">
-              <p>Host this at <code className="font-mono bg-surface-muted px-1 rounded">https://yourbrand.com/.well-known/agent.json</code>. The Broker fetches it during registration to discover your endpoints, public key, and SLA declarations.</p>
-              <CodeBlock code={BRAND_WELLKNOWN} lang="json · .well-known/agent.json" />
-            </StepCard>
-
-            <StepCard n={2} title="Implement /v1/quote — the hot path">
-              <p>The Broker calls this endpoint with intent + user_context. You return a signed, time-boxed quote or a refusal. P95 latency must be under 800 ms.</p>
-              <CodeBlock code={BRAND_QUOTE_HANDLER} lang="typescript · agents.yourbrand.com" />
-            </StepCard>
-
-            <StepCard n={3} title="Implement /v1/commit + /v1/cancel">
-              <p>When a consumer agent commits a quote, the Broker forwards to <code className="font-mono bg-surface-muted px-1 rounded">/v1/commit</code>. You confirm fulfillment and return tracking. <code className="font-mono bg-surface-muted px-1 rounded">/v1/cancel</code> handles refunds.</p>
-              <p className="text-ink-3">Full request/response in <Link href="#" className="text-purple-600 hover:underline">PROTOCOL_v0.1.md §4.6</Link></p>
-            </StepCard>
-
-            <StepCard n={4} title="Register with the Broker">
-              <p>Submit your agent for verification. The Broker probes your endpoints, validates schema, and assigns a trust level.</p>
-              <BrandRegisterForm />
-            </StepCard>
-          </section>
-        </>
-      )}
-
-      {/* ── CONSUMER AGENT VIEW ───────────────────────────────────── */}
-      {role === "consumer" && (
-        <>
-          <section className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
-            <h2 className="font-semibold text-blue-900">Consumer Agent — 3-step quickstart</h2>
-            <p className="text-blue-800 text-sm mt-1">
-              Building a shopping bot for WhatsApp / phone OS / voice / a vertical
-              shopping app? One API call returns ranked quotes from thousands of Brand
-              Agents. Optional 1–3% referral fee on cleared transactions you originate.
-            </p>
-          </section>
-
-          <section>
-            <StepCard n={1} title="Register your Consumer Agent">
-              <p>Provide your agent identity, public key, and capability declaration. You get back an <code className="font-mono bg-surface-muted px-1 rounded">api_key</code> and rate limits.</p>
-              <CodeBlock code={CONSUMER_REGISTER} lang="bash · curl" />
-            </StepCard>
-
-            <StepCard n={2} title="Query the Broker">
-              <p>One call → ranked quotes from all eligible Brand Agents in parallel. Typical Broker round-trip: 400–600 ms (the slow leg is the slowest BA).</p>
-              <CodeBlock code={CONSUMER_QUERY_EXAMPLE} lang="typescript · your-agent.ts" />
-            </StepCard>
-
-            <StepCard n={3} title="Commit the user's choice">
-              <p>When the user picks one, call <code className="font-mono bg-surface-muted px-1 rounded">broker.commit()</code> with a tokenized payment method (Stripe / Apple Pay). The Broker handles the rest.</p>
-              <div className="bg-surface-muted rounded-xl p-3 text-xs">
-                <div className="font-mono text-ink-3 mb-1">Referral fee config (optional):</div>
-                Set <code>referral_fee_pct</code> in your operator profile to earn 1–3% of every cleared
-                transaction you originate. Settled T+7 via Stripe Connect.
-              </div>
-            </StepCard>
-          </section>
-
-          <section className="bg-surface border border-divider rounded-2xl p-5 space-y-2">
-            <h3 className="font-semibold text-ink text-sm">Need an API key?</h3>
-            <p className="text-ink-2 text-xs">
-              Consumer Agent registration is currently invite-only during the v0.1 protocol period.
-              Email <a href="mailto:agents@alignmenttech.ai" className="text-purple-600">agents@alignmenttech.ai</a> with
-              your operator info and intended use case (which surface — WhatsApp / phone OS / voice / vertical app — is great context).
-            </p>
-          </section>
-        </>
-      )}
-
-      {/* ── PROTOCOL VIEW ──────────────────────────────────────────── */}
-      {role === "protocol" && (
-        <>
-          <section className="bg-slate-50 border border-slate-200 rounded-2xl p-5">
-            <h2 className="font-semibold text-ink">Alignment Broker Protocol v0.1</h2>
-            <p className="text-ink-2 text-sm mt-1">
-              An open <strong>MCP-based Commerce Extension</strong> for connecting Consumer Agents
-              and Brand Agents. No proprietary client required — implement the spec, you're connected.
-            </p>
-            <div className="flex flex-wrap gap-2 mt-3 text-xs">
-              <span className="px-2 py-1 rounded bg-white border border-divider font-mono">Status: Draft</span>
-              <span className="px-2 py-1 rounded bg-white border border-divider font-mono">Version: v0.1</span>
-              <span className="px-2 py-1 rounded bg-white border border-divider font-mono">Built on: MCP</span>
-              <span className="px-2 py-1 rounded bg-white border border-divider font-mono">Last updated: 2026-05-12</span>
+        {/* Endpoints table (skipped for Protocol view since it's all in spec doc) */}
+        {skill.endpoints.length > 0 && (
+          <div>
+            <h3 className="text-xs font-mono uppercase tracking-wider text-ink-3 mb-2">Endpoints</h3>
+            <div className="border border-divider rounded-xl overflow-hidden">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-surface-muted text-ink-3 border-b border-divider">
+                    <th className="px-3 py-2 text-left font-medium w-16">Method</th>
+                    <th className="px-3 py-2 text-left font-medium">Path</th>
+                    <th className="px-3 py-2 text-left font-medium">Purpose</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {skill.endpoints.map((e) => (
+                    <tr key={e.path} className="border-b border-divider last:border-b-0">
+                      <td className="px-3 py-2">
+                        <span className={`font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                          e.method === "GET"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-emerald-100 text-emerald-700"
+                        }`}>
+                          {e.method}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 font-mono text-ink">{e.path}</td>
+                      <td className="px-3 py-2 text-ink-2">{e.purpose}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </section>
+          </div>
+        )}
 
-          <section className="space-y-4">
-            <h3 className="font-semibold text-ink text-sm">The 8-step transaction lifecycle</h3>
-            <CodeBlock code={PROTOCOL_FLOW} lang="protocol flow" />
-          </section>
+        {/* Auth + Pricing two-up */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="bg-surface-muted border border-divider rounded-xl p-4 space-y-1.5">
+            <h3 className="text-xs font-mono uppercase tracking-wider text-ink-3">Authentication</h3>
+            <p className="text-xs text-ink-2 leading-relaxed">{skill.auth}</p>
+          </div>
+          <div className="bg-surface-muted border border-divider rounded-xl p-4 space-y-1.5">
+            <h3 className="text-xs font-mono uppercase tracking-wider text-ink-3">
+              {role === "protocol" ? "Licensing" : "Compensation"}
+            </h3>
+            <p className="text-xs text-ink-2 leading-relaxed">{skill.pricing}</p>
+          </div>
+        </div>
 
-          <section className="bg-surface border border-divider rounded-2xl p-5 space-y-3">
-            <h3 className="font-semibold text-ink text-sm">Ranking — transparent by design</h3>
-            <p className="text-ink-2 text-xs leading-relaxed">
-              The Broker's <code className="font-mono bg-surface-muted px-1 rounded">broker_score</code> is a
-              weighted sum of 5 normalized factors. <strong>Brand Agents cannot pay to rank higher.</strong>{" "}
-              The Broker's only revenue is the commission declared at registration. No "boost fees", no
-              "promoted listings". This is the protocol's central trust commitment.
-            </p>
-            <div className="bg-[#1a1a1a] rounded-xl p-3 text-xs text-white/80 font-mono">
-              broker_score = 0.30 × price_match<br />
-              {"             "}+ 0.25 × trust<br />
-              {"             "}+ 0.20 × semantic_match<br />
-              {"             "}+ 0.15 × eta<br />
-              {"             "}+ 0.10 × inventory
-            </div>
-          </section>
+        {/* Role-specific footer (form / contact / spec links) */}
+        {role === "brand"    && <BrandFooter />}
+        {role === "consumer" && <ConsumerFooter />}
+        {role === "protocol" && <ProtocolFooter />}
+      </section>
 
-          <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-surface border border-divider rounded-2xl p-5 space-y-2">
-              <h3 className="font-semibold text-ink text-sm">Reference implementations</h3>
-              <ul className="text-xs text-ink-2 space-y-1">
-                <li>· Python — <code className="font-mono">alignment-ai/broker-protocol-py</code> <span className="text-ink-3">(v0.1 alpha)</span></li>
-                <li>· TypeScript — <code className="font-mono">alignment-ai/broker-protocol-ts</code> <span className="text-ink-3">(v0.1 alpha)</span></li>
-                <li>· Go — <span className="text-ink-3">planned</span></li>
-                <li>· Shopify App — <code className="font-mono">alignment-geo</code> <span className="text-ink-3">(in App Store review)</span></li>
-              </ul>
-            </div>
-            <div className="bg-surface border border-divider rounded-2xl p-5 space-y-2">
-              <h3 className="font-semibold text-ink text-sm">Spec sections</h3>
-              <ul className="text-xs text-ink-2 space-y-1">
-                <li>§1. Roles · §2. Identity &amp; Auth · §3. Registration</li>
-                <li>§4. Transaction Flow · §5. Error Codes</li>
-                <li>§6. Ranking Algorithm · §7. SLA &amp; Health</li>
-                <li>§8. Settlement · §9. Trust &amp; Safety</li>
-                <li>§10. Versioning · §13. RFC for v0.2</li>
-              </ul>
-              <a
-                href={`${API_BASE}/api/agentic-commerce/brand/brands`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-block text-purple-600 hover:underline text-xs mt-2"
-              >
-                Read full spec: PROTOCOL_v0.1.md →
-              </a>
-            </div>
-          </section>
-        </>
-      )}
+      {/* ── SDK / Resources ───────────────────────────────────────── */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+        <ResourceCard
+          title="SDK · TypeScript"
+          line="@alignment-ai/broker-protocol"
+          sub="npm install · ESM + CJS · 5 KB gzipped"
+          href="https://www.npmjs.com/package/@alignment-ai/broker-protocol"
+        />
+        <ResourceCard
+          title="Protocol Spec"
+          line="PROTOCOL_v0.1.md"
+          sub="Full wire format · §1–§13 + RFC v0.2"
+          href="https://github.com/Alignment-GEOAI/alignment-workspace/blob/main/01-Alignment-Product/docs/agentic-commerce/PROTOCOL_v0.1.md"
+        />
+        <ResourceCard
+          title="Concept doc"
+          line="LAYER_3_AGENTIC_COMMERCE_CONCEPT_v1.md"
+          sub="Inner / Outer Ring · canonical terminology"
+          href="https://github.com/Alignment-GEOAI/alignment-workspace/blob/main/08-Alignment-Agentic%20Commerce/LAYER_3_AGENTIC_COMMERCE_CONCEPT_v1.md"
+        />
+      </section>
     </div>
   );
 }
 
-// ── Brand Register Form (lightweight inline) ────────────────────────────────
+// ─── Role-specific footer sub-components ─────────────────────────────────────
+
+function BrandFooter() {
+  return (
+    <div className="space-y-3 pt-1">
+      <h3 className="text-xs font-mono uppercase tracking-wider text-ink-3">Register your Brand Agent</h3>
+      <p className="text-xs text-ink-2">
+        Submit your agent_id + well-known URL. The Broker probes your endpoints, validates the
+        schema, and assigns a trust level within ~60 seconds.
+      </p>
+      <BrandRegisterForm />
+    </div>
+  );
+}
+
+function ConsumerFooter() {
+  return (
+    <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 text-xs text-ink-2 space-y-1.5">
+      <h3 className="font-semibold text-ink">Need an API key?</h3>
+      <p>
+        Consumer Agent registration is currently invite-only during the v0.1 protocol period.
+        Email{" "}
+        <a href="mailto:agents@alignmenttech.ai" className="text-purple-600 font-medium">
+          agents@alignmenttech.ai
+        </a>{" "}
+        with your operator info and the surface you build on (WhatsApp / phone OS / voice / vertical app).
+      </p>
+    </div>
+  );
+}
+
+function ProtocolFooter() {
+  return (
+    <div className="space-y-3 pt-1">
+      <h3 className="text-xs font-mono uppercase tracking-wider text-ink-3">5-factor ranking — transparent</h3>
+      <div className="bg-[#1a1a1a] rounded-xl p-3 text-xs text-white/80 font-mono leading-relaxed">
+        broker_score = 0.30 × price_match<br />
+        {"             "}+ 0.25 × trust<br />
+        {"             "}+ 0.20 × semantic_match<br />
+        {"             "}+ 0.15 × eta<br />
+        {"             "}+ 0.10 × inventory
+      </div>
+      <p className="text-xs text-ink-3">
+        Brand Agents cannot pay to rank higher. The Broker's only revenue is the per-transaction
+        commission declared at registration.
+      </p>
+    </div>
+  );
+}
+
+// ─── Shared sub-components ───────────────────────────────────────────────────
+
+function ResourceCard({ title, line, sub, href }: { title: string; line: string; sub: string; href: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="bg-surface border border-divider hover:border-purple-300 rounded-xl p-4 space-y-1 transition-colors block"
+    >
+      <div className="font-mono uppercase tracking-wider text-[10px] text-ink-3">{title}</div>
+      <div className="font-semibold text-ink text-sm font-mono">{line}</div>
+      <div className="text-ink-3 text-[11px]">{sub}</div>
+      <div className="text-purple-600 text-xs mt-1">Open →</div>
+    </a>
+  );
+}
+
+// ─── Brand Register Form (carried over, unchanged behaviour, /brand URL) ─────
+
 function BrandRegisterForm() {
   const [form, setForm] = useState({
     brand_id: "",
@@ -452,53 +313,25 @@ function BrandRegisterForm() {
   };
 
   return (
-    <form onSubmit={submit} className="bg-surface border border-divider rounded-xl p-4 space-y-3">
+    <form onSubmit={submit} className="bg-surface-muted border border-divider rounded-xl p-4 space-y-3">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <label className="text-xs text-ink-3">Brand ID</label>
-          <input
-            value={form.brand_id}
-            onChange={(e) => setForm({ ...form, brand_id: e.target.value })}
-            placeholder="yourbrand (lowercase, hyphens)"
-            className="w-full text-sm border border-divider rounded-lg px-3 py-2 bg-surface-muted focus:outline-none focus:ring-2 focus:ring-purple-300"
-          />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs text-ink-3">Display name</label>
-          <input
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            placeholder="Your Brand Inc."
-            className="w-full text-sm border border-divider rounded-lg px-3 py-2 bg-surface-muted focus:outline-none focus:ring-2 focus:ring-purple-300"
-          />
-        </div>
-        <div className="md:col-span-2 space-y-1">
-          <label className="text-xs text-ink-3">.well-known URL</label>
-          <input
-            value={form.well_known}
-            onChange={(e) => setForm({ ...form, well_known: e.target.value })}
-            placeholder="https://yourbrand.com/.well-known/agent.json"
-            className="w-full text-sm border border-divider rounded-lg px-3 py-2 bg-surface-muted focus:outline-none focus:ring-2 focus:ring-purple-300"
-          />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs text-ink-3">Categories (comma-separated)</label>
-          <input
-            value={form.categories}
-            onChange={(e) => setForm({ ...form, categories: e.target.value })}
-            placeholder="footwear, apparel"
-            className="w-full text-sm border border-divider rounded-lg px-3 py-2 bg-surface-muted focus:outline-none focus:ring-2 focus:ring-purple-300"
-          />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs text-ink-3">Commission rate</label>
-          <input
-            value={form.commission_rate}
-            onChange={(e) => setForm({ ...form, commission_rate: e.target.value })}
-            placeholder="0.08 = 8%"
-            className="w-full text-sm border border-divider rounded-lg px-3 py-2 bg-surface-muted focus:outline-none focus:ring-2 focus:ring-purple-300"
-          />
-        </div>
+        {[
+          { key: "brand_id",        label: "Brand ID",        ph: "yourbrand (lowercase, hyphens)" },
+          { key: "name",            label: "Display name",    ph: "Your Brand Inc." },
+          { key: "well_known",      label: ".well-known URL", ph: "https://yourbrand.com/.well-known/agent.json", colspan: true },
+          { key: "categories",      label: "Categories",      ph: "footwear, apparel" },
+          { key: "commission_rate", label: "Commission rate", ph: "0.08 = 8%" },
+        ].map((f) => (
+          <div key={f.key} className={`space-y-1 ${f.colspan ? "md:col-span-2" : ""}`}>
+            <label className="text-xs text-ink-3">{f.label}</label>
+            <input
+              value={(form as Record<string, string>)[f.key]}
+              onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+              placeholder={f.ph}
+              className="w-full text-sm border border-divider rounded-lg px-3 py-2 bg-surface focus:outline-none focus:ring-2 focus:ring-purple-300"
+            />
+          </div>
+        ))}
       </div>
       <div className="flex items-center gap-3">
         <button
@@ -517,3 +350,6 @@ function BrandRegisterForm() {
     </form>
   );
 }
+
+// Suppress lint: API_BASE is used inside form
+void API_BASE;

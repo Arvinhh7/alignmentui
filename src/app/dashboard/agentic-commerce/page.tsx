@@ -68,6 +68,32 @@ const CONSUMER_AGENTS = [
   { label: "Voice Shopper",  emoji: "🎙️" },
 ];
 
+// Brand metadata for "official logo + name" rendering across the module.
+// Logos fetched from Clearbit (free, no auth). Bg color = brand's primary
+// hex (shows through if image fails to load).
+const BRAND_META: Record<string, { domain: string; color: string }> = {
+  Nike:          { domain: "nike.com",          color: "#000000" },
+  Apple:         { domain: "apple.com",         color: "#1d1d1f" },
+  Samsung:       { domain: "samsung.com",       color: "#1428a0" },
+  Allbirds:      { domain: "allbirds.com",      color: "#d4af37" },
+  Lululemon:     { domain: "lululemon.com",     color: "#ed1c24" },
+  Dyson:         { domain: "dyson.com",         color: "#ffb500" },
+  Patagonia:     { domain: "patagonia.com",     color: "#000000" },
+  Razer:         { domain: "razer.com",         color: "#44d62c" },
+  "Dr. Martens": { domain: "drmartens.com",     color: "#8b0000" },
+  Fellow:        { domain: "fellowproducts.com", color: "#1a1a1a" },
+};
+
+// Consumer Agent icon + tint map for the Live Feed agent column.
+// Keys match the values in mkTx() so the icon resolves at render time.
+const AGENT_META: Record<string, { Icon: typeof MessageCircle; color: string; bg: string }> = {
+  "WhatsApp Bot": { Icon: MessageCircle, color: "#1a7a4c",  bg: "rgba(26,122,76,0.10)"  },
+  "Phone OS":     { Icon: Smartphone,    color: "#6D4AE8",  bg: "rgba(109,74,232,0.10)" },
+  "Voice":        { Icon: Mic2,          color: "#d9a85c",  bg: "rgba(217,168,92,0.10)" },
+  "Fashion AI":   { Icon: Shirt,         color: "#B5453A",  bg: "rgba(181,69,58,0.10)"  },
+  "Custom":       { Icon: Wrench,        color: "#9E9484",  bg: "rgba(158,148,132,0.10)"},
+};
+
 interface TxItem {
   id: number;
   product: string;
@@ -134,6 +160,47 @@ function StatusPill({ status }: { status: TxItem["status"] }) {
   if (status === "quote")
     return <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-caution-bg text-caution">QUOTE</span>;
   return <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-surface-warm text-ink-3">QUERY</span>;
+}
+
+// Official-logo-+-name brand chip. Falls back to letter+brand-color circle
+// if Clearbit fetch fails (img onError hides image → underlying letter shows).
+function BrandLogo({ name, size = 14 }: { name: string; size?: number }) {
+  const meta = BRAND_META[name] ?? { domain: "", color: "#9E9484" };
+  const initial = name[0]?.toUpperCase() ?? "?";
+  return (
+    <span
+      className="inline-flex items-center justify-center rounded-full overflow-hidden shrink-0 relative text-white font-semibold leading-none"
+      style={{ width: size, height: size, backgroundColor: meta.color, fontSize: size * 0.55 }}
+      title={name}
+    >
+      <span>{initial}</span>
+      {meta.domain && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={`https://logo.clearbit.com/${meta.domain}`}
+          alt={name}
+          className="absolute inset-0 w-full h-full object-contain bg-white"
+          loading="lazy"
+          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+        />
+      )}
+    </span>
+  );
+}
+
+// Consumer Agent icon + label pill for the live feed.
+function AgentBadge({ name }: { name: string }) {
+  const meta = AGENT_META[name] ?? AGENT_META["Custom"];
+  const Icon = meta.Icon;
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap"
+      style={{ backgroundColor: meta.bg, color: meta.color }}
+    >
+      <Icon className="w-3 h-3 flex-shrink-0" />
+      <span>{name}</span>
+    </span>
+  );
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -290,15 +357,20 @@ export default function AgenticCommerceOverview() {
               <div
                 key={tx.id}
                 className={`grid grid-cols-[1fr_auto_auto_auto] gap-3 px-5 py-2.5 items-center transition-all duration-300 ${
-                  i === 0 ? "bg-sage-bg/40" : "bg-surface hover:bg-canvas"
+                  i === 0 ? "bg-sage-bg/40 animate-[slideDown_0.45s_ease-out]" : "bg-surface hover:bg-canvas"
                 }`}
                 style={{ opacity: Math.max(0.45, 1 - i * 0.065) }}
               >
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-ink truncate">{tx.product}</p>
-                  <p className="text-[10px] text-ink-3 font-mono">{tx.ts} · {tx.brand}</p>
+                  <p className="text-[10px] text-ink-3 font-mono mt-0.5 flex items-center gap-1.5">
+                    <span>{tx.ts}</span>
+                    <span>·</span>
+                    <BrandLogo name={tx.brand} size={12} />
+                    <span className="text-ink-2 font-sans">{tx.brand}</span>
+                  </p>
                 </div>
-                <span className="text-[11px] text-ink-2 whitespace-nowrap">{tx.agent}</span>
+                <AgentBadge name={tx.agent} />
                 <span className="text-xs font-mono font-semibold text-ink tabular-nums text-right">
                   ${fmt(tx.amount, 2)}
                 </span>

@@ -566,6 +566,13 @@ body {
   50%       { opacity: 0.3; }
 }
 
+/* slideDown — live-feed row entrance animation (Agentic Commerce Overview) */
+@keyframes slideDown {
+  0%   { opacity: 0; transform: translateY(-8px); }
+  60%  { opacity: 1; }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
 /* Status badge styles (updated to DESIGN.md semantic colors) */
 .status-running     { color: #4A7C59; background: rgba(74,124,89,0.08); }
 .status-completed   { color: #4A7C59; background: rgba(74,124,89,0.08); }
