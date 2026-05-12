@@ -27,12 +27,15 @@ type Stats = {
 };
 
 // ── Constants ─────────────────────────────────────────────────────────────────
+// Consumer Agent demo labels — Outer Ring (per concept doc v1).
+// See note in quotes/page.tsx for why labels are Outer Ring even though backend
+// mock IDs use claude/chatgpt/etc as opaque keys.
 const AGENT_LABEL: Record<string, { name: string; emoji: string }> = {
-  claude:        { name: "Anthropic Claude",   emoji: "🤖" },
-  chatgpt:       { name: "OpenAI Operator",    emoji: "💬" },
-  perplexity:    { name: "Perplexity Shopping",emoji: "🔍" },
-  gemini:        { name: "Google Gemini",      emoji: "✨" },
-  "custom-agent":{ name: "Custom (Third-party)",emoji: "🔧" },
+  claude:        { name: "WhatsApp Shopping Bot",    emoji: "💬" },
+  chatgpt:       { name: "Phone OS Agent",           emoji: "📱" },
+  perplexity:    { name: "Voice Shopping Assistant", emoji: "🎙️" },
+  gemini:        { name: "Vertical Fashion AI",      emoji: "👗" },
+  "custom-agent":{ name: "Custom (Third-party)",     emoji: "🔧" },
 };
 
 const AGENT_COLOR: Record<string, string> = {
@@ -109,7 +112,8 @@ export default function PerformancePage() {
         <div>
           <h1 className="text-2xl font-bold text-ink">Performance</h1>
           <p className="text-ink-2 text-sm mt-1">
-            Aggregated Broker metrics for your Brand Agent — agent breakdown, conversion, SLA health.
+            Aggregated Broker metrics for your Brand Agent — which Consumer Agents
+            are calling you, conversion, SLA health.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -163,7 +167,7 @@ export default function PerformancePage() {
           {/* ── KPI cards ───────────────────────────────────── */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: "Quotes issued (14d)", value: fmt(stats?.total_discoveries ?? 0), sub: "consumer agent queries", color: "text-ink" },
+              { label: "Quotes issued (14d)", value: fmt(stats?.total_discoveries ?? 0), sub: "Consumer Agent queries", color: "text-ink" },
               { label: "Committed",           value: fmt(stats?.selected_count ?? 0),     sub: "successful txns",       color: "text-green-600" },
               { label: "Conversion",          value: stats ? `${(stats.conversion_rate * 100).toFixed(1)}%` : "—", sub: "quote → commit", color: "text-purple-600" },
               { label: "Avg trust score",     value: stats?.avg_trust_score.toFixed(3) ?? "—", sub: "broker reputation", color: "text-blue-600" },
@@ -182,7 +186,7 @@ export default function PerformancePage() {
             <div className="bg-surface border border-divider rounded-2xl p-5 space-y-4">
               <div>
                 <h2 className="font-semibold text-ink text-sm">Who's calling you</h2>
-                <p className="text-ink-3 text-xs mt-0.5">Distribution of consumer agents that queried your Brand Agent</p>
+                <p className="text-ink-3 text-xs mt-0.5">Consumer Agent distribution — by surface (WhatsApp / phone OS / voice / vertical / custom)</p>
               </div>
               {stats && stats.agent_breakdown.length > 0 ? (
                 <div className="space-y-3">

@@ -35,16 +35,20 @@ const BRAND_WELLKNOWN = `// Hosted at https://your-domain.com/.well-known/agent.
   "protocol_versions": ["v0.1"]
 }`;
 
-const BRAND_QUOTE_HANDLER = `// POST /v1/quote — your handler implementation
+const BRAND_QUOTE_HANDLER = `// POST /v1/quote — your Brand Agent handler
 import { Hono } from 'hono';
-import { signResponse } from '@alignment-ai/broker-protocol';
+import { assertBrokerKey } from '@alignment-ai/broker-protocol';
 
 const app = new Hono();
+const REGISTERED_BROKER_KEY = process.env.ALIGNMENT_BROKER_KEY!;
 
 app.post('/v1/quote', async (c) => {
-  const { broker_query_id, intent, user_context } = await c.req.json();
+  const { broker_query_id, broker_key, intent, user_context } = await c.req.json();
 
-  // 1. Match intent to your catalog
+  // 1. Verify the call is from Alignment Broker
+  assertBrokerKey(broker_key, REGISTERED_BROKER_KEY);
+
+  // 2. Match intent to your catalog
   const product = await matchProduct(intent);
   if (!product) {
     return c.json({
@@ -54,8 +58,8 @@ app.post('/v1/quote', async (c) => {
     });
   }
 
-  // 2. Build the quote
-  const quote = {
+  // 3. Build the quote (valid_until = 10 min from now)
+  return c.json({
     quote_id:        \`yourbrand_q_\${broker_query_id}_\${product.sku}\`,
     broker_query_id,
     brand_id:        'yourbrand',
@@ -65,59 +69,62 @@ app.post('/v1/quote', async (c) => {
     match_score:     0.91,
     match_reason:    \`exact match for "\${intent.raw}"\`,
     trust_signals:   { verified_brand: true, rating: 4.8 }
-  };
-
-  // 3. Sign + return
-  return c.json(signResponse(quote, process.env.AGENT_PRIVATE_KEY));
+  });
 });
 
 export default app;`;
 
 const CONSUMER_QUERY_EXAMPLE = `// Consumer Agent — sending a query to the Broker
+// (e.g. inside your WhatsApp shopping bot or phone-OS agent)
 import { AlignmentBroker } from '@alignment-ai/broker-protocol';
 
+const CONSUMER_AGENT_ID = 'did:alignment:yourstartup:whatsapp-bot-1';
+
 const broker = new AlignmentBroker({
-  agent_id:    'did:alignment:yourstartup:shopper-v1',
-  api_key:     process.env.ALIGNMENT_API_KEY,
-  private_key: process.env.AGENT_PRIVATE_KEY,
+  apiKey:  process.env.ALIGNMENT_API_KEY,           // from registerConsumerAgent()
+  baseUrl: 'https://api.alignmenttech.ai',          // default
 });
 
-// User says: "I need waterproof running shoes under $150"
+// User says (in your WhatsApp UI): "I need waterproof running shoes under $150"
 const result = await broker.query({
+  consumer_agent_id: CONSUMER_AGENT_ID,
   intent: {
     raw: 'waterproof running shoes under $150',
     structured: {
       category:    'athletic_footwear',
       constraints: { price_max: 150, features: ['waterproof'] },
-      qty:         1
-    }
+      qty:         1,
+    },
   },
   user_context: {
     region:           'US',
     currency:         'USD',
     ship_to_country:  'US',
-    urgency:          'standard'
+    urgency:          'standard',
   },
-  preferences: { max_brands: 5 }
+  preferences: { max_brands: 5 },
 });
 
-console.log(\`Broker queried \${result.stats.brands_queried} brands\`);
-console.log(\`Top result: \${result.ranked_quotes[0].brand_id} at \$\${result.ranked_quotes[0].product.price}\`);
+console.log(\`Broker fanned out to \${result.stats.brands_queried} Brand Agents\`);
+console.log(\`Top: \${result.ranked_quotes[0].brand_id} @ \$\${result.ranked_quotes[0].product.price}\`);
 
-// User confirms — commit
+// User confirms (taps the result in WhatsApp) — commit
 const tx = await broker.commit({
-  quote_id:      result.ranked_quotes[0].quote_id,
-  shipping:      userShipping,
-  payment_token: stripeToken,
+  quote_id:          result.ranked_quotes[0].quote_id,
+  consumer_agent_id: CONSUMER_AGENT_ID,
+  shipping:          userShipping,
+  payment_token:     stripeToken,
+  user_consent:      { ts: new Date().toISOString() },
 });
 
-console.log(\`Transaction confirmed: \${tx.transaction_id}\`);`;
+console.log(\`Transaction confirmed: \${tx.transaction_id} · settled T+7\`);`;
 
 const CONSUMER_REGISTER = `# Register your Consumer Agent
-curl -X POST https://api.alignment.ai/v1/agents/consumer/register \\
+# (e.g. your WhatsApp shopping bot, phone-OS agent, voice app, etc.)
+curl -X POST https://api.alignmenttech.ai/v1/agents/consumer/register \\
   -H "Content-Type: application/json" \\
   -d '{
-    "agent_id":     "did:alignment:yourstartup:shopper-v1",
+    "agent_id":     "did:alignment:yourstartup:whatsapp-bot-1",
     "operator":     "Your Startup",
     "operator_url": "https://yourstartup.com",
     "capabilities": ["product_search", "price_compare", "checkout"],
@@ -127,7 +134,7 @@ curl -X POST https://api.alignment.ai/v1/agents/consumer/register \\
 
 # Response:
 # {
-#   "agent_id":   "did:alignment:yourstartup:shopper-v1",
+#   "agent_id":   "did:alignment:yourstartup:whatsapp-bot-1",
 #   "status":     "active",
 #   "rate_limit": { "rps": 50, "rpd": 1000000 },
 #   "api_key":    "ak_live_xxxxxxxxxxxxxxxxxxxx"
@@ -136,11 +143,13 @@ curl -X POST https://api.alignment.ai/v1/agents/consumer/register \\
 const PROTOCOL_FLOW = `// The full 8-step lifecycle
 // (see PROTOCOL_v0.1.md §4 for the wire details)
 
-// Step 1 ─ Consumer Agent (CA) → Broker (BR)
+// Step 1 ─ Consumer Agent (CA, Outer Ring: WhatsApp bot / phone OS /
+//          voice / vertical app) → Alignment Broker (BR)
 POST /v1/broker/query
   { query_id, consumer_agent_id, intent, user_context, preferences }
 
 // Step 2 ─ BR fans out in parallel to N Brand Agents (BA)
+//          (MCP-based: each BA exposes /v1/quote as an MCP tool)
 POST {brand.endpoints.quote}
   { broker_query_id, broker_key, intent, user_context, expires_in_ms: 2000 }
 
@@ -218,16 +227,17 @@ export default function IntegrationPage() {
       <div>
         <h1 className="text-2xl font-bold text-ink">Integration</h1>
         <p className="text-ink-2 text-sm mt-1">
-          Connect to the Alignment Broker. Pick your role below — the rest of this page adapts.
+          Connect to the Alignment Broker over the open MCP-based Commerce protocol.
+          Pick your role below — the rest of this page adapts.
         </p>
       </div>
 
       {/* ── Role Toggle ───────────────────────────────────────────── */}
       <div className="inline-flex bg-surface-muted p-1 rounded-xl border border-divider">
         {([
-          { id: "brand",    label: "🏪 Brand Agent",    sub: "I'm a merchant" },
-          { id: "consumer", label: "🤖 Consumer Agent", sub: "I build shopping AI" },
-          { id: "protocol", label: "📜 Protocol",        sub: "Read the spec" },
+          { id: "brand",    label: "🏪 Brand Agent",    sub: "I'm a merchant"           },
+          { id: "consumer", label: "📱 Consumer Agent", sub: "I build Consumer Agents"  },
+          { id: "protocol", label: "📖 Protocol",        sub: "Open spec, built on MCP"  },
         ] as { id: Role; label: string; sub: string }[]).map((r) => (
           <button
             key={r.id}
@@ -248,8 +258,10 @@ export default function IntegrationPage() {
           <section className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
             <h2 className="font-semibold text-emerald-900">Brand Agent — 4-step onboarding</h2>
             <p className="text-emerald-800 text-sm mt-1">
-              Expose your catalog as an agent. Consumer agents (Claude, ChatGPT, custom shopping AI)
-              query you for live quotes. You only pay when a transaction clears (default 8%).
+              Expose your catalog as a Brand Agent. <strong>Consumer Agents</strong> — shopping
+              bots embedded in WhatsApp, phone operating systems, voice apps, and vertical
+              shopping startups — query you for live quotes through Alignment. You only
+              pay when a transaction clears (default 8%).
             </p>
           </section>
 
@@ -283,8 +295,9 @@ export default function IntegrationPage() {
           <section className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
             <h2 className="font-semibold text-blue-900">Consumer Agent — 3-step quickstart</h2>
             <p className="text-blue-800 text-sm mt-1">
-              Building a shopping agent? One API call returns ranked quotes from N brand agents.
-              Optional 1–3% referral fee on cleared transactions you originate.
+              Building a shopping bot for WhatsApp / phone OS / voice / a vertical
+              shopping app? One API call returns ranked quotes from thousands of Brand
+              Agents. Optional 1–3% referral fee on cleared transactions you originate.
             </p>
           </section>
 
@@ -295,7 +308,7 @@ export default function IntegrationPage() {
             </StepCard>
 
             <StepCard n={2} title="Query the Broker">
-              <p>One call → ranked quotes from all eligible brand agents in parallel. Typical Broker round-trip: 400–600 ms (the slow leg is the slowest BA).</p>
+              <p>One call → ranked quotes from all eligible Brand Agents in parallel. Typical Broker round-trip: 400–600 ms (the slow leg is the slowest BA).</p>
               <CodeBlock code={CONSUMER_QUERY_EXAMPLE} lang="typescript · your-agent.ts" />
             </StepCard>
 
@@ -312,9 +325,9 @@ export default function IntegrationPage() {
           <section className="bg-surface border border-divider rounded-2xl p-5 space-y-2">
             <h3 className="font-semibold text-ink text-sm">Need an API key?</h3>
             <p className="text-ink-2 text-xs">
-              Consumer agent registration is currently invite-only during the v0.1 protocol period.
-              Email <a href="mailto:agents@alignment.ai" className="text-purple-600">agents@alignment.ai</a> with your
-              operator info and intended use case.
+              Consumer Agent registration is currently invite-only during the v0.1 protocol period.
+              Email <a href="mailto:agents@alignmenttech.ai" className="text-purple-600">agents@alignmenttech.ai</a> with
+              your operator info and intended use case (which surface — WhatsApp / phone OS / voice / vertical app — is great context).
             </p>
           </section>
         </>
@@ -326,12 +339,13 @@ export default function IntegrationPage() {
           <section className="bg-slate-50 border border-slate-200 rounded-2xl p-5">
             <h2 className="font-semibold text-ink">Alignment Broker Protocol v0.1</h2>
             <p className="text-ink-2 text-sm mt-1">
-              An open wire protocol for agent-to-agent commerce. No proprietary client required.
-              Implement the spec, you're connected.
+              An open <strong>MCP-based Commerce Extension</strong> for connecting Consumer Agents
+              and Brand Agents. No proprietary client required — implement the spec, you're connected.
             </p>
             <div className="flex flex-wrap gap-2 mt-3 text-xs">
               <span className="px-2 py-1 rounded bg-white border border-divider font-mono">Status: Draft</span>
               <span className="px-2 py-1 rounded bg-white border border-divider font-mono">Version: v0.1</span>
+              <span className="px-2 py-1 rounded bg-white border border-divider font-mono">Built on: MCP</span>
               <span className="px-2 py-1 rounded bg-white border border-divider font-mono">Last updated: 2026-05-12</span>
             </div>
           </section>
@@ -345,7 +359,7 @@ export default function IntegrationPage() {
             <h3 className="font-semibold text-ink text-sm">Ranking — transparent by design</h3>
             <p className="text-ink-2 text-xs leading-relaxed">
               The Broker's <code className="font-mono bg-surface-muted px-1 rounded">broker_score</code> is a
-              weighted sum of 5 normalized factors. <strong>Brands cannot pay to rank higher.</strong>{" "}
+              weighted sum of 5 normalized factors. <strong>Brand Agents cannot pay to rank higher.</strong>{" "}
               The Broker's only revenue is the commission declared at registration. No "boost fees", no
               "promoted listings". This is the protocol's central trust commitment.
             </p>

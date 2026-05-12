@@ -34,12 +34,17 @@ type Quote = BrokerEvent & {
 };
 
 // ── Constants ──────────────────────────────────────────────────────────────────
+// Consumer Agent demo labels — Outer Ring (per concept doc v1).
+// Backend mock data uses ids `claude / chatgpt / perplexity / gemini / custom-agent`
+// as opaque keys; here we present them as plausible Outer Ring agents (WhatsApp /
+// phone OS / voice / vertical / generic third-party) so the UI doesn't suggest
+// AI chat platforms are themselves Alignment Consumer Agents.
 const AGENT_LABEL: Record<string, { name: string; emoji: string; operator: string }> = {
-  claude:        { name: "Claude Personal Shopper",  emoji: "🤖", operator: "Anthropic"  },
-  chatgpt:       { name: "ChatGPT Operator",         emoji: "💬", operator: "OpenAI"     },
-  perplexity:    { name: "Perplexity Shopping",      emoji: "🔍", operator: "Perplexity" },
-  gemini:        { name: "Gemini Commerce Agent",    emoji: "✨", operator: "Google"     },
-  "custom-agent":{ name: "Custom Agent",             emoji: "🔧", operator: "Third-party"},
+  claude:        { name: "WhatsApp Shopping Bot",    emoji: "💬", operator: "Acme Inc. (demo)"      },
+  chatgpt:       { name: "Phone OS Agent",           emoji: "📱", operator: "Mobile Vendor (demo)"  },
+  perplexity:    { name: "Voice Shopping Assistant", emoji: "🎙️", operator: "VoiceAI Co. (demo)"    },
+  gemini:        { name: "Vertical Fashion AI",      emoji: "👗", operator: "FashionAI YC (demo)"   },
+  "custom-agent":{ name: "Custom Consumer Agent",    emoji: "🔧", operator: "Third-party"           },
 };
 
 const OUTCOME_MAP: Record<string, { label: string; color: string; icon: string }> = {
@@ -203,7 +208,8 @@ export default function QuoteLogPage() {
         <div>
           <h1 className="text-2xl font-bold text-ink">Quote Log</h1>
           <p className="text-ink-2 text-sm mt-1">
-            Every quote your Brand Agent issued via the Broker — fully traceable, drillable, exportable.
+            Every quote your Brand Agent issued via the Alignment Broker — which Consumer
+            Agent called, what they asked, what you quoted, who won. Fully traceable, drillable.
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs">
@@ -387,9 +393,10 @@ export default function QuoteLogPage() {
       {/* ── Footnote ──────────────────────────────────────────── */}
       <div className="text-xs text-ink-3 space-y-1">
         <p>
-          <strong>Reading the table:</strong> every row is one Broker round-trip — a consumer agent
-          queried the Broker, the Broker fanned out to all brand agents, your agent returned a quote,
-          and either the consumer agent committed (✓) or someone else won the rank-1 slot (✗).
+          <strong>Reading the table:</strong> every row is one Broker round-trip — a Consumer
+          Agent (a shopping bot in WhatsApp / phone OS / voice / vertical app) queried the
+          Broker, the Broker fanned out to all eligible Brand Agents, your agent returned a
+          quote, and either the Consumer Agent committed (✓) or someone else won the rank-1 slot (✗).
         </p>
         <p>
           For the wire format of each event, see <code className="font-mono bg-surface-muted px-1 rounded">PROTOCOL_v0.1.md §4</code>.

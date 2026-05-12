@@ -39,8 +39,15 @@ type Tx = {
 };
 
 // ── Constants ─────────────────────────────────────────────────────────────────
+// Consumer Agent emoji map — Outer Ring (concept doc v1).
+// Backend mock IDs (claude/chatgpt/…) are opaque keys; we render them as
+// WhatsApp / Phone OS / Voice / Vertical / Custom for v1 consistency.
 const AGENT_EMOJI: Record<string, string> = {
-  claude: "🤖", chatgpt: "💬", perplexity: "🔍", gemini: "✨", "custom-agent": "🔧",
+  claude: "💬", chatgpt: "📱", perplexity: "🎙️", gemini: "👗", "custom-agent": "🔧",
+};
+const AGENT_LABEL: Record<string, string> = {
+  claude: "WhatsApp Shopper", chatgpt: "Phone OS Agent", perplexity: "Voice Assistant",
+  gemini: "Vertical AI", "custom-agent": "Custom Agent",
 };
 const BRAND_COLOR: Record<string, string> = {
   "eco-home": "text-emerald-600", "tech-gear": "text-blue-600", "nutri-plus": "text-orange-600",
@@ -111,7 +118,8 @@ export default function RevenuePage() {
         <div>
           <h1 className="text-2xl font-bold text-ink">Revenue</h1>
           <p className="text-ink-2 text-sm mt-1">
-            Cleared transactions through the Broker · settled T+7 via Stripe Connect · last {days} days
+            Cleared transactions from Consumer Agents · routed by the Alignment Broker ·
+            settled T+7 via Stripe Connect · last {days} days
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -260,7 +268,7 @@ export default function RevenuePage() {
                       <span className="text-ink-2 text-xs truncate">{tx.product_name}</span>
                     </div>
                     <div className="text-ink-3 text-[10px] mt-0.5 font-mono">
-                      from {tx.consumer_agent_id} · {relTime(tx.created_at)} · tx_{tx.tx_id.slice(-8)}
+                      from {AGENT_LABEL[tx.consumer_agent_id] ?? tx.consumer_agent_id} · {relTime(tx.created_at)} · tx_{tx.tx_id.slice(-8)}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
