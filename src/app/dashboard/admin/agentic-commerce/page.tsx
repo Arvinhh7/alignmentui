@@ -35,8 +35,35 @@ type Overview = {
 };
 
 const BRAND_COLOR: Record<string, string> = {
-  "eco-home": "text-emerald-600", "tech-gear": "text-blue-600", "nutri-plus": "text-orange-600",
+  "allbirds": "text-emerald-700", "razer": "text-green-600", "patagonia": "text-orange-700",
 };
+
+// Brand logo metadata — Clearbit + fallback color
+const BRAND_META: Record<string, { domain: string; color: string; initial: string }> = {
+  allbirds:  { domain: "allbirds.com",  color: "#2D6A4F", initial: "A" },
+  razer:     { domain: "razer.com",     color: "#00D384", initial: "R" },
+  patagonia: { domain: "patagonia.com", color: "#C1440E", initial: "P" },
+};
+
+function BrandLogo({ brandId, name }: { brandId: string; name: string }) {
+  const meta = BRAND_META[brandId];
+  const initial = meta?.initial ?? name.charAt(0).toUpperCase();
+  const bg = meta?.color ?? "#6D4AE8";
+  return (
+    <span className="relative inline-flex items-center justify-center w-6 h-6 rounded-full text-white font-bold text-[10px] shrink-0 overflow-hidden" style={{ background: bg }}>
+      {initial}
+      {meta && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={`https://logo.clearbit.com/${meta.domain}`}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover rounded-full"
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
+        />
+      )}
+    </span>
+  );
+}
 
 function fmt(n: number, d = 2) {
   return n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -167,7 +194,10 @@ export default function AdminAgenticCommercePage() {
             return (
               <div key={b.brand_id} className="bg-surface border border-divider rounded-2xl p-5 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className={`font-semibold text-sm ${BRAND_COLOR[b.brand_id] ?? "text-ink"}`}>{b.name}</span>
+                  <div className="flex items-center gap-2">
+                    <BrandLogo brandId={b.brand_id} name={b.name} />
+                    <span className={`font-semibold text-sm ${BRAND_COLOR[b.brand_id] ?? "text-ink"}`}>{b.name}</span>
+                  </div>
                   <span className="text-xs text-ink-3">{b.product_count} products</span>
                 </div>
                 <div className="space-y-1">

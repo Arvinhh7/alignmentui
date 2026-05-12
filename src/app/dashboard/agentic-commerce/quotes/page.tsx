@@ -52,10 +52,37 @@ const OUTCOME_MAP: Record<string, { label: string; color: string; icon: string }
 };
 
 const SAMPLE_PRODUCTS: Record<string, { name: string; price: number }[]> = {
-  "eco-home":  [{ name: "Bamboo Cleaning Kit",       price: 28.50 }, { name: "Solar Garden Light",     price: 42.00 }],
-  "tech-gear": [{ name: "Noise-Cancel Earbuds Pro",  price: 149.00 }, { name: "Smart Hub V2",          price: 89.00 }],
-  "nutri-plus":[{ name: "Plant Protein 1kg",         price: 35.00 }, { name: "Recovery Multivitamin",  price: 24.00 }],
+  "allbirds":  [{ name: "Tree Runner Go",            price: 110.00 }, { name: "Wool Runner Mizzles",   price: 145.00 }],
+  "razer":     [{ name: "BlackShark V2 Pro Headset", price: 179.99 }, { name: "DeathAdder V3 Pro",     price: 159.99 }],
+  "patagonia": [{ name: "Better Sweater Fleece",     price: 139.00 }, { name: "Nano Puff Jacket",      price: 229.00 }],
 };
+
+// Brand logo metadata — Clearbit + fallback color
+const BRAND_META: Record<string, { domain: string; color: string; initial: string }> = {
+  allbirds:  { domain: "allbirds.com",  color: "#2D6A4F", initial: "A" },
+  razer:     { domain: "razer.com",     color: "#00D384", initial: "R" },
+  patagonia: { domain: "patagonia.com", color: "#C1440E", initial: "P" },
+};
+
+function BrandLogo({ brandId, name }: { brandId: string; name: string }) {
+  const meta = BRAND_META[brandId];
+  const initial = meta?.initial ?? name.charAt(0).toUpperCase();
+  const bg = meta?.color ?? "#6D4AE8";
+  return (
+    <span className="relative inline-flex items-center justify-center w-6 h-6 rounded-full text-white font-bold text-[10px] shrink-0 overflow-hidden" style={{ background: bg }}>
+      {initial}
+      {meta && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={`https://logo.clearbit.com/${meta.domain}`}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover rounded-full"
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
+        />
+      )}
+    </span>
+  );
+}
 
 const FAILURE_REASONS = [
   "competitor quoted lower",
@@ -228,6 +255,9 @@ export default function QuoteLogPage() {
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
             <label className="text-xs text-ink-3">Brand Agent</label>
+            {selectedBrand && (
+              <BrandLogo brandId={selectedBrand} name={brands.find((b) => b.brand_id === selectedBrand)?.name ?? selectedBrand} />
+            )}
             <select
               value={selectedBrand}
               onChange={(e) => setSelectedBrand(e.target.value)}
@@ -360,7 +390,7 @@ export default function QuoteLogPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                               <div className="space-y-1">
                                 <div className="font-mono text-ink-3 uppercase tracking-wider text-[10px]">Quote</div>
-                                <div>Product: <span className="text-ink font-medium">{q.product_name}</span></div>
+                                <div className="flex items-center gap-1.5">Product: <BrandLogo brandId={q.brand_id} name={q.brand_id} /><span className="text-ink font-medium">{q.product_name}</span></div>
                                 <div>Price quoted: <span className="font-mono">${fmt(q.quoted_price)}</span></div>
                                 <div>Issued at: <span className="font-mono">{fullTime(q.created_at)}</span></div>
                                 <div>Valid for: <span className="font-mono">10 min</span></div>

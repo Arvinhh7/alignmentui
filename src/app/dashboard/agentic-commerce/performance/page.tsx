@@ -51,6 +51,33 @@ const TRUST_BADGE: Record<string, string> = {
   unverified: "bg-slate-100 text-slate-500 border-slate-200",
 };
 
+// Brand logo metadata — Clearbit + fallback color
+const BRAND_META: Record<string, { domain: string; color: string; initial: string }> = {
+  allbirds:  { domain: "allbirds.com",  color: "#2D6A4F", initial: "A" },
+  razer:     { domain: "razer.com",     color: "#00D384", initial: "R" },
+  patagonia: { domain: "patagonia.com", color: "#C1440E", initial: "P" },
+};
+
+function BrandLogo({ brandId, name }: { brandId: string; name: string }) {
+  const meta = BRAND_META[brandId];
+  const initial = meta?.initial ?? name.charAt(0).toUpperCase();
+  const bg = meta?.color ?? "#6D4AE8";
+  return (
+    <span className="relative inline-flex items-center justify-center w-8 h-8 rounded-full text-white font-bold text-sm shrink-0 overflow-hidden" style={{ background: bg }}>
+      {initial}
+      {meta && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={`https://logo.clearbit.com/${meta.domain}`}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover rounded-full"
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
+        />
+      )}
+    </span>
+  );
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function fmt(n: number, d = 0) {
   return n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -117,6 +144,9 @@ export default function PerformancePage() {
         </div>
         <div className="flex items-center gap-2">
           <label className="text-xs text-ink-3">Brand Agent</label>
+          {selectedBrand && (
+            <BrandLogo brandId={selectedBrand} name={brands.find((b) => b.brand_id === selectedBrand)?.name ?? selectedBrand} />
+          )}
           <select
             value={selectedBrand}
             onChange={(e) => setSelectedBrand(e.target.value)}
@@ -136,15 +166,18 @@ export default function PerformancePage() {
           {/* ── Brand identity card ─────────────────────────── */}
           {brand && (
             <div className="bg-surface border border-divider rounded-2xl p-5 flex items-center justify-between flex-wrap gap-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="font-bold text-ink">{brand.name}</h2>
-                  <span className={`text-xs px-2 py-0.5 rounded-full border ${TRUST_BADGE[brand.trust_level] ?? TRUST_BADGE.standard}`}>
-                    {brand.trust_level}
-                  </span>
+              <div className="flex items-center gap-3">
+                <BrandLogo brandId={brand.brand_id} name={brand.name} />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-bold text-ink">{brand.name}</h2>
+                    <span className={`text-xs px-2 py-0.5 rounded-full border ${TRUST_BADGE[brand.trust_level] ?? TRUST_BADGE.standard}`}>
+                      {brand.trust_level}
+                    </span>
+                  </div>
+                  <p className="text-ink-2 text-xs mt-0.5">{brand.tagline}</p>
+                  <p className="text-ink-3 text-xs mt-1 font-mono">did:alignment:{brand.brand_id}:prod-1</p>
                 </div>
-                <p className="text-ink-2 text-xs mt-0.5">{brand.tagline}</p>
-                <p className="text-ink-3 text-xs mt-1 font-mono">did:alignment:{brand.brand_id}:prod-1</p>
               </div>
               <div className="flex items-center gap-4 text-xs">
                 <div>

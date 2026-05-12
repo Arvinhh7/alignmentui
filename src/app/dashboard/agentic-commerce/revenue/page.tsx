@@ -52,9 +52,32 @@ const AGENT_LABEL: Record<string, string> = {
   "vertical-fashion": "Vertical AI",
   "custom-agent":     "Custom Agent",
 };
-const BRAND_COLOR: Record<string, string> = {
-  "eco-home": "text-emerald-600", "tech-gear": "text-blue-600", "nutri-plus": "text-orange-600",
+// Brand logo metadata — Clearbit + fallback color
+const BRAND_META: Record<string, { domain: string; color: string; initial: string }> = {
+  allbirds:  { domain: "allbirds.com",  color: "#2D6A4F", initial: "A" },
+  razer:     { domain: "razer.com",     color: "#00D384", initial: "R" },
+  patagonia: { domain: "patagonia.com", color: "#C1440E", initial: "P" },
 };
+
+function BrandLogo({ brandId, name }: { brandId: string; name: string }) {
+  const meta = BRAND_META[brandId];
+  const initial = meta?.initial ?? name.charAt(0).toUpperCase();
+  const bg = meta?.color ?? "#6D4AE8";
+  return (
+    <span className="relative inline-flex items-center justify-center w-6 h-6 rounded-full text-white font-bold text-[10px] shrink-0 overflow-hidden" style={{ background: bg }}>
+      {initial}
+      {meta && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={`https://logo.clearbit.com/${meta.domain}`}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover rounded-full"
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
+        />
+      )}
+    </span>
+  );
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function fmt(n: number, d = 2) {
@@ -187,10 +210,13 @@ export default function RevenuePage() {
                         className={`border-b border-divider hover:bg-surface-muted transition-colors ${i === 0 ? "bg-yellow-50/40" : ""}`}
                       >
                         <td className="px-5 py-2">
-                          <span className={`font-medium ${BRAND_COLOR[b.brand_id] ?? "text-ink"}`}>
-                            {b.brand_name}
-                          </span>
-                          <div className="text-ink-3 text-[10px] mt-0.5">avg ${fmt(b.avg_order_value)}/order</div>
+                          <div className="flex items-center gap-2">
+                            <BrandLogo brandId={b.brand_id} name={b.brand_name} />
+                            <div>
+                              <div className="font-medium text-ink">{b.brand_name}</div>
+                              <div className="text-ink-3 text-[10px] mt-0.5">avg ${fmt(b.avg_order_value)}/order</div>
+                            </div>
+                          </div>
                         </td>
                         <td className="px-4 py-2 text-right font-mono text-ink-2">${fmt(b.total_gmv)}</td>
                         <td className="px-4 py-2 text-right font-mono text-yellow-600">${fmt(b.commission_earned)}</td>
@@ -267,7 +293,8 @@ export default function RevenuePage() {
                   <span className="text-lg shrink-0">{AGENT_EMOJI[tx.consumer_agent_id] ?? "🤖"}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`font-medium text-xs ${BRAND_COLOR[tx.brand_id] ?? "text-ink"}`}>{tx.brand_name}</span>
+                      <BrandLogo brandId={tx.brand_id} name={tx.brand_name} />
+                      <span className="font-medium text-xs text-ink">{tx.brand_name}</span>
                       <span className="text-ink-2 text-xs truncate">{tx.product_name}</span>
                     </div>
                     <div className="text-ink-3 text-[10px] mt-0.5 font-mono">
