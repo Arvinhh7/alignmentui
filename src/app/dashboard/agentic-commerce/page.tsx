@@ -85,6 +85,38 @@ export default function AgenticCommerceOverview() {
         </p>
       </div>
 
+      {/* ── Outer Ring surface strip (visual reinforcement) ──────── */}
+      <section className="space-y-3">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-xs font-mono uppercase tracking-wider text-ink-3">
+            Built for these surfaces
+          </h2>
+          <span className="text-[10px] text-ink-3">Outer Ring · concept doc v1</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {[
+            { emoji: "💬",  name: "WhatsApp",       sub: "shopping bots in chat",          accent: "from-emerald-50 to-emerald-100",  ring: "border-emerald-200" },
+            { emoji: "📱",  name: "Phone OS",       sub: "OS-level purchasing agents",     accent: "from-blue-50 to-blue-100",        ring: "border-blue-200"    },
+            { emoji: "🎙️", name: "Voice apps",     sub: "voice-assistant shopping",       accent: "from-purple-50 to-purple-100",    ring: "border-purple-200"  },
+            { emoji: "👗",  name: "Vertical apps",  sub: "category AIs (fashion, food…)",  accent: "from-pink-50 to-pink-100",        ring: "border-pink-200"    },
+            { emoji: "🔧",  name: "Custom agents",  sub: "any third-party shopper",        accent: "from-slate-50 to-slate-100",      ring: "border-slate-200"   },
+          ].map((s) => (
+            <div
+              key={s.name}
+              className={`bg-gradient-to-br ${s.accent} border ${s.ring} rounded-xl p-3 text-center transition-transform hover:-translate-y-0.5`}
+            >
+              <div className="text-2xl">{s.emoji}</div>
+              <div className="text-xs font-semibold text-ink mt-1">{s.name}</div>
+              <div className="text-[10px] text-ink-3 mt-0.5 leading-tight">{s.sub}</div>
+            </div>
+          ))}
+        </div>
+        <p className="text-[11px] text-ink-3 italic">
+          Not Claude / ChatGPT / Perplexity built-in shopping — those are Inner Ring and integrate
+          with brands directly. We serve everything <em>outside</em> their walled gardens.
+        </p>
+      </section>
+
       {/* ── Live Counter ────────────────────────────────────────────── */}
       <section className="bg-gradient-to-br from-ink to-[#1a1a1a] rounded-2xl p-6 md:p-8 text-white relative overflow-hidden">
         <div className="absolute top-4 right-4 flex items-center gap-2 text-xs">
