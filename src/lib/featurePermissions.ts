@@ -24,6 +24,7 @@ export type FeatureKey =
   | 'geo-distribution'
   | 'ga4-attribution'
   | 'ops'
+  | 'agentic-commerce'
 
 export interface FeatureInfo {
   key: FeatureKey
@@ -45,6 +46,7 @@ export const FEATURES: Record<FeatureKey, FeatureInfo> = {
   'geo-distribution': { key: 'geo-distribution', label: 'GEO Distribution',      path: '/dashboard/geo-distribution' },
   'ga4-attribution':  { key: 'ga4-attribution',  label: 'GA4 Attribution',       path: '/dashboard/ga4-attribution' },
   'ops':              { key: 'ops',              label: 'Managed Service',       path: '/dashboard/ops' },
+  'agentic-commerce': { key: 'agentic-commerce', label: 'Agentic Commerce',      path: '/dashboard/agentic-commerce' },
 }
 
 /**

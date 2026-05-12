@@ -20,6 +20,7 @@ const PERMISSION_KEYS: { key: string; label: string; group: string }[] = [
   { key: 'geo-distribution',  label: 'GEO Distribution',  group: 'Advanced' },
   { key: 'ga4-attribution',   label: 'GA4 Attribution',   group: 'Advanced' },
   { key: 'ops',               label: 'Managed Service',   group: 'Advanced' },
+  { key: 'agentic-commerce',  label: 'Agentic Commerce',  group: 'Advanced' },
 ]
 
 // ── Types ──────────────────────────────────────────────────────────────────────

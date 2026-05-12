@@ -292,6 +292,7 @@ export const translations = {
       geoMonitorNav: 'GEO Monitor',
       promptsNav: 'Prompts',
       brandNav: 'Brand Hub',
+      agenticCommerceNav: 'Agentic Commerce',
       visibilityProxyNav: 'Visibility Proxy',
       // Nav group labels
       navGroupAnalytics: 'Analytics',
@@ -957,6 +958,7 @@ export const translations = {
       geoDistributionNav: 'GEO 投放',
       geoMonitorNav: 'GEO 监控',
       promptsNav: 'Prompt 管理',
+      agenticCommerceNav: 'Agentic Commerce',
       brandNav: '品牌中心',
       visibilityProxyNav: '可见性代理',
       // Nav group labels

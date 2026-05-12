@@ -12,7 +12,7 @@ import {
   LogOut, Settings, Wrench, PanelLeftClose, PanelLeft,
   Sparkles, ExternalLink, HelpCircle, Home, ChevronRight, CreditCard,
   LineChart, LayoutDashboard, Search, MessageSquare,
-  BookOpen, TrendingUp, Database, X, Globe, Users,
+  BookOpen, TrendingUp, Database, X, Globe, Users, ShoppingCart,
 } from 'lucide-react'
 
 const SIDEBAR_KEY = 'sidebar_expanded'
@@ -202,9 +202,10 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
   // Advanced features — admin sees all; staff sees permitted ones only
   const advancedFeatureItems: NavItem[] = [
     { href: '/dashboard/geo-optimization', icon: Zap,       labelKey: 'geoOptimizationNav',              permissionKey: 'geo-optimization' },
-    { href: '/dashboard/geo-distribution', icon: Share2,    labelKey: 'geoDistributionNav',              permissionKey: 'geo-distribution' },
-    { href: '/dashboard/ga4-attribution',  icon: LineChart, labelKey: 'GA4 Attribution' as never,        permissionKey: 'ga4-attribution' },
-    { href: '/dashboard/ops',              icon: Activity,  labelKey: 'Managed Service' as never, matchPrefix: true, permissionKey: 'ops' },
+    { href: '/dashboard/geo-distribution',   icon: Share2,    labelKey: 'geoDistributionNav',                permissionKey: 'geo-distribution' },
+    { href: '/dashboard/ga4-attribution',    icon: LineChart, labelKey: 'GA4 Attribution' as never,          permissionKey: 'ga4-attribution' },
+    { href: '/dashboard/ops',                icon: Activity,  labelKey: 'Managed Service' as never, matchPrefix: true, permissionKey: 'ops' },
+    { href: '/dashboard/agentic-commerce',   icon: ShoppingCart, labelKey: 'agenticCommerceNav' as never, matchPrefix: true, permissionKey: 'agentic-commerce' },
   ]
 
   // Admin-only items (never shown to staff)
