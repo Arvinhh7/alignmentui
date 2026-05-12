@@ -15,7 +15,7 @@ type Brand = {
 };
 
 type AgentBreakdown = { agent: string; calls: number; pct: number };
-type DailyPoint = { date: string; discoveries: number; selected: number };
+type DailyPoint = { date: string; quotes: number; commits: number; gmv: number };
 
 type Stats = {
   total_discoveries: number;
@@ -92,8 +92,8 @@ export default function PerformancePage() {
 
   const maxCalls = stats ? Math.max(...stats.agent_breakdown.map((a) => a.calls), 1) : 1;
   const last7 = stats ? stats.daily_series.slice(-7) : [];
-  const maxDisc = last7.length ? Math.max(...last7.map((d) => d.discoveries), 1) : 1;
-  const maxSelected = last7.length ? Math.max(...last7.map((d) => d.selected), 1) : 1;
+  const maxQuotes  = last7.length ? Math.max(...last7.map((d) => d.quotes),  1) : 1;
+  const maxCommits = last7.length ? Math.max(...last7.map((d) => d.commits), 1) : 1;
 
   // SLA health (mock — would come from broker probe in production)
   const slaHealth = {
@@ -222,20 +222,20 @@ export default function PerformancePage() {
                 <>
                   <div className="flex items-end gap-2 h-32">
                     {last7.map((d) => {
-                      const qH = Math.round((d.discoveries / maxDisc) * 100);
-                      const sH = Math.round((d.selected / maxSelected) * 100);
+                      const qH = Math.round((d.quotes  / maxQuotes)  * 100);
+                      const sH = Math.round((d.commits / maxCommits) * 100);
                       return (
                         <div key={d.date} className="flex-1 flex flex-col items-center gap-1 group">
                           <div className="w-full h-full flex flex-col justify-end gap-px">
                             <div
                               className="w-full bg-purple-500/40 rounded-t"
                               style={{ height: `${qH}%` }}
-                              title={`${d.discoveries} quotes`}
+                              title={`${d.quotes} quotes`}
                             />
                             <div
                               className="w-full bg-green-500/70"
                               style={{ height: `${(sH / 100) * 32}px` }}
-                              title={`${d.selected} commits`}
+                              title={`${d.commits} commits`}
                             />
                           </div>
                           <div className="text-[10px] text-ink-3 font-mono">{d.date.slice(5)}</div>

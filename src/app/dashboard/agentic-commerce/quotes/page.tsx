@@ -16,6 +16,12 @@ type BrokerEvent = {
   outcome: "discovered" | "selected" | "rejected" | "abandoned";
   created_at: string;
   _type?: "live" | "catchup" | "heartbeat";
+  // PROTOCOL_v0.1 §4.3 — provided by backend; absent in older events
+  quote_id?: string;
+  quoted_price?: number;
+  product_name?: string;
+  product_id?: string;
+  failure_reason?: string | null;
 };
 
 type Brand = { brand_id: string; name: string };
@@ -74,8 +80,21 @@ function fullTime(iso: string) {
   return new Date(iso).toISOString().replace("T", " ").slice(0, 19);
 }
 
-// Deterministic per-event derived values (so re-renders don't flicker)
+// Hydrate a raw BrokerEvent into a Quote.
+// Prefers backend-provided PROTOCOL_v0.1 fields; falls back to deterministic
+// client-side derivation for events that predate the schema upgrade.
 function deriveQuote(ev: BrokerEvent): Quote {
+  if (ev.quote_id && ev.quoted_price != null && ev.product_name) {
+    // Backend supplied all Protocol fields — use them directly
+    return {
+      ...ev,
+      quote_id:      ev.quote_id,
+      quoted_price:  ev.quoted_price,
+      product_name:  ev.product_name,
+      failure_reason: ev.failure_reason ?? undefined,
+    };
+  }
+  // Fallback: derive deterministically so re-renders don't flicker
   const products = SAMPLE_PRODUCTS[ev.brand_id] ?? [{ name: "Product", price: 50 }];
   const seed = ev.event_id.split("").reduce((s, c) => s + c.charCodeAt(0), 0);
   const p = products[seed % products.length];
@@ -84,9 +103,9 @@ function deriveQuote(ev: BrokerEvent): Quote {
     : undefined;
   return {
     ...ev,
-    quote_id: `q_${ev.event_id.slice(-8)}`,
-    quoted_price: p.price,
-    product_name: p.name,
+    quote_id:      `q_${ev.event_id.slice(-8)}`,
+    quoted_price:  p.price,
+    product_name:  p.name,
     failure_reason: failure,
   };
 }
