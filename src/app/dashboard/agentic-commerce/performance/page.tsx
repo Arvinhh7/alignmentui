@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 const AC = `${API_BASE}/api/agentic-commerce`;
@@ -51,32 +52,6 @@ const TRUST_BADGE: Record<string, string> = {
   unverified: "bg-slate-100 text-slate-500 border-slate-200",
 };
 
-// Brand logo metadata — Clearbit + fallback color
-const BRAND_META: Record<string, { domain: string; color: string; initial: string }> = {
-  allbirds:  { domain: "allbirds.com",  color: "#2D6A4F", initial: "A" },
-  razer:     { domain: "razer.com",     color: "#00D384", initial: "R" },
-  patagonia: { domain: "patagonia.com", color: "#C1440E", initial: "P" },
-};
-
-function BrandLogo({ brandId, name }: { brandId: string; name: string }) {
-  const meta = BRAND_META[brandId];
-  const initial = meta?.initial ?? name.charAt(0).toUpperCase();
-  const bg = meta?.color ?? "#6D4AE8";
-  return (
-    <span className="relative inline-flex items-center justify-center w-8 h-8 rounded-full text-white font-bold text-sm shrink-0 overflow-hidden" style={{ background: bg }}>
-      {initial}
-      {meta && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={`https://logo.clearbit.com/${meta.domain}`}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover rounded-full"
-          onError={(e) => { e.currentTarget.style.display = "none"; }}
-        />
-      )}
-    </span>
-  );
-}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function fmt(n: number, d = 0) {
@@ -145,7 +120,7 @@ export default function PerformancePage() {
         <div className="flex items-center gap-2">
           <label className="text-xs text-ink-3">Brand Agent</label>
           {selectedBrand && (
-            <BrandLogo brandId={selectedBrand} name={brands.find((b) => b.brand_id === selectedBrand)?.name ?? selectedBrand} />
+            <BrandLogo brandId={selectedBrand} name={brands.find((b) => b.brand_id === selectedBrand)?.name ?? selectedBrand} size={24} />
           )}
           <select
             value={selectedBrand}
@@ -167,7 +142,7 @@ export default function PerformancePage() {
           {brand && (
             <div className="bg-surface border border-divider rounded-2xl p-5 flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-3">
-                <BrandLogo brandId={brand.brand_id} name={brand.name} />
+                <BrandLogo brandId={brand.brand_id} name={brand.name} size={40} />
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="font-bold text-ink">{brand.name}</h2>

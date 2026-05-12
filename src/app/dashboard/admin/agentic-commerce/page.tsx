@@ -7,6 +7,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 const AC = `${API_BASE}/api/agentic-commerce`;
@@ -38,32 +39,6 @@ const BRAND_COLOR: Record<string, string> = {
   "allbirds": "text-emerald-700", "razer": "text-green-600", "patagonia": "text-orange-700",
 };
 
-// Brand logo metadata — Clearbit + fallback color
-const BRAND_META: Record<string, { domain: string; color: string; initial: string }> = {
-  allbirds:  { domain: "allbirds.com",  color: "#2D6A4F", initial: "A" },
-  razer:     { domain: "razer.com",     color: "#00D384", initial: "R" },
-  patagonia: { domain: "patagonia.com", color: "#C1440E", initial: "P" },
-};
-
-function BrandLogo({ brandId, name }: { brandId: string; name: string }) {
-  const meta = BRAND_META[brandId];
-  const initial = meta?.initial ?? name.charAt(0).toUpperCase();
-  const bg = meta?.color ?? "#6D4AE8";
-  return (
-    <span className="relative inline-flex items-center justify-center w-6 h-6 rounded-full text-white font-bold text-[10px] shrink-0 overflow-hidden" style={{ background: bg }}>
-      {initial}
-      {meta && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={`https://logo.clearbit.com/${meta.domain}`}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover rounded-full"
-          onError={(e) => { e.currentTarget.style.display = "none"; }}
-        />
-      )}
-    </span>
-  );
-}
 
 function fmt(n: number, d = 2) {
   return n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });

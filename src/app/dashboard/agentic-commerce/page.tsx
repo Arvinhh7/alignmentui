@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { BrandLogo } from "@/components/BrandLogo";
 import {
   Zap, ShoppingCart, TrendingUp, ArrowRight, Activity,
   MessageCircle, Smartphone, Mic2, Shirt, Wrench,
@@ -68,21 +69,8 @@ const CONSUMER_AGENTS = [
   { label: "Voice Shopper",  emoji: "🎙️" },
 ];
 
-// Brand metadata for "official logo + name" rendering across the module.
-// Logos fetched from Clearbit (free, no auth). Bg color = brand's primary
-// hex (shows through if image fails to load).
-const BRAND_META: Record<string, { domain: string; color: string }> = {
-  Nike:          { domain: "nike.com",          color: "#000000" },
-  Apple:         { domain: "apple.com",         color: "#1d1d1f" },
-  Samsung:       { domain: "samsung.com",       color: "#1428a0" },
-  Allbirds:      { domain: "allbirds.com",      color: "#d4af37" },
-  Lululemon:     { domain: "lululemon.com",     color: "#ed1c24" },
-  Dyson:         { domain: "dyson.com",         color: "#ffb500" },
-  Patagonia:     { domain: "patagonia.com",     color: "#000000" },
-  Razer:         { domain: "razer.com",         color: "#44d62c" },
-  "Dr. Martens": { domain: "drmartens.com",     color: "#8b0000" },
-  Fellow:        { domain: "fellowproducts.com", color: "#1a1a1a" },
-};
+// Brand names used in the live feed (must match BRAND_META keys in shared BrandLogo component)
+
 
 // Consumer Agent icon + tint map for the Live Feed agent column.
 // Keys match the values in mkTx() so the icon resolves at render time.
@@ -162,30 +150,9 @@ function StatusPill({ status }: { status: TxItem["status"] }) {
   return <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-surface-warm text-ink-3">QUERY</span>;
 }
 
-// Official-logo-+-name brand chip. Falls back to letter+brand-color circle
-// if Clearbit fetch fails (img onError hides image → underlying letter shows).
-function BrandLogo({ name, size = 14 }: { name: string; size?: number }) {
-  const meta = BRAND_META[name] ?? { domain: "", color: "#9E9484" };
-  const initial = name[0]?.toUpperCase() ?? "?";
-  return (
-    <span
-      className="inline-flex items-center justify-center rounded-full overflow-hidden shrink-0 relative text-white font-semibold leading-none"
-      style={{ width: size, height: size, backgroundColor: meta.color, fontSize: size * 0.55 }}
-      title={name}
-    >
-      <span>{initial}</span>
-      {meta.domain && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={`https://logo.clearbit.com/${meta.domain}`}
-          alt={name}
-          className="absolute inset-0 w-full h-full object-contain bg-white"
-          loading="lazy"
-          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-        />
-      )}
-    </span>
-  );
+// BrandLogo wrapper: maps display name → shared BrandLogo component
+function BrandLogoByName({ name, size = 14 }: { name: string; size?: number }) {
+  return <BrandLogo brandId={name.toLowerCase().replace(/[\s.]/g, "")} name={name} size={size} />;
 }
 
 // Consumer Agent icon + label pill for the live feed.
@@ -366,7 +333,7 @@ export default function AgenticCommerceOverview() {
                   <p className="text-[10px] text-ink-3 font-mono mt-0.5 flex items-center gap-1.5">
                     <span>{tx.ts}</span>
                     <span>·</span>
-                    <BrandLogo name={tx.brand} size={12} />
+                    <BrandLogoByName name={tx.brand} size={12} />
                     <span className="text-ink-2 font-sans">{tx.brand}</span>
                   </p>
                 </div>
