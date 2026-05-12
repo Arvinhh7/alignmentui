@@ -304,8 +304,8 @@ export default function AgenticCommerceOverview() {
       {/* ── Footer / Quick Links ────────────────────────────────────── */}
       <section className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-ink-3 pt-2 border-t border-divider">
         <span>Backend:</span>
-        <a href={`${API_BASE}/api/agentic-commerce/enterprise/brands`} target="_blank" rel="noreferrer"
-          className="text-purple-600 hover:underline font-mono">/enterprise/brands</a>
+        <a href={`${API_BASE}/api/agentic-commerce/brand/brands`} target="_blank" rel="noreferrer"
+          className="text-purple-600 hover:underline font-mono">/brand/brands</a>
         <a href={`${API_BASE}/api/agentic-commerce/platform/overview`} target="_blank" rel="noreferrer"
           className="text-purple-600 hover:underline font-mono">/platform/overview</a>
         <span className="ml-auto">Concept v1 · MCP-based · 2026-05-12</span>

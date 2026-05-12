@@ -66,7 +66,7 @@ export default function PerformancePage() {
 
   // 1. Load brand list
   useEffect(() => {
-    fetch(`${AC}/enterprise/brands`)
+    fetch(`${AC}/brand/brands`)
       .then((r) => r.json())
       .then((d) => {
         setBrands(d.brands ?? []);
@@ -81,7 +81,7 @@ export default function PerformancePage() {
     if (!selectedBrand) return;
     setLoading(true);
     Promise.all([
-      fetch(`${AC}/enterprise/${selectedBrand}`).then((r) => r.json()),
+      fetch(`${AC}/brand/${selectedBrand}`).then((r) => r.json()),
       fetch(`${AC}/events/telemetry/${selectedBrand}`).then((r) => r.json()),
     ])
       .then(([b, s]) => {

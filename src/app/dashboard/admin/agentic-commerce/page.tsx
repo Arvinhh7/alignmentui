@@ -84,7 +84,7 @@ export default function AdminAgenticCommercePage() {
     setRegistering(true);
     setRegisterMsg(null);
     try {
-      const res = await fetch(`${AC}/enterprise/register`, {
+      const res = await fetch(`${AC}/brand/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

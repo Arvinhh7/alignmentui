@@ -392,7 +392,7 @@ export default function IntegrationPage() {
                 <li>§10. Versioning · §13. RFC for v0.2</li>
               </ul>
               <a
-                href={`${API_BASE}/api/agentic-commerce/enterprise/brands`}
+                href={`${API_BASE}/api/agentic-commerce/brand/brands`}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-block text-purple-600 hover:underline text-xs mt-2"
@@ -424,7 +424,7 @@ function BrandRegisterForm() {
     setSubmitting(true);
     setResult(null);
     try {
-      const res = await fetch(`${API_BASE}/api/agentic-commerce/enterprise/register`, {
+      const res = await fetch(`${API_BASE}/api/agentic-commerce/brand/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

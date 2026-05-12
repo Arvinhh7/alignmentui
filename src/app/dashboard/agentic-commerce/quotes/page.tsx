@@ -126,7 +126,7 @@ export default function QuoteLogPage() {
 
   // 1. Load brand list
   useEffect(() => {
-    fetch(`${AC}/enterprise/brands`)
+    fetch(`${AC}/brand/brands`)
       .then((r) => r.json())
       .then((d) => {
         setBrands(d.brands ?? []);
