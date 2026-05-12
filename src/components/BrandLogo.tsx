@@ -4,9 +4,9 @@
  * BrandLogo — official logo avatar for Agentic Commerce brand agents.
  *
  * Fallback chain (each level activates only if the previous fails):
- *   1. Clearbit Logo API  — logo.clearbit.com/{domain}    (high-res, free tier)
- *   2. Google Favicon     — gstatic.com faviconV2          (always available)
- *   3. Letter circle      — brand initial on brand color   (zero-dependency)
+ *   1. Clearbit Logo API  — logo.clearbit.com/{domain}          (high-res brand logo)
+ *   2. Google s2/favicons — google.com/s2/favicons?domain=…     (same API as Discover tab, very reliable)
+ *   3. Letter circle      — brand initial on brand color         (zero-dependency)
  */
 
 import { useState } from "react";
@@ -32,12 +32,14 @@ export const BRAND_META: Record<
 };
 
 // ─── Logo sources ─────────────────────────────────────────────────────────────
+// Mirrors the pattern used in DiscoverTab.tsx (geo-monitor module).
 function logoSrcs(domain: string): string[] {
   return [
     // 1. Clearbit — high-res brand logos for well-known companies
     `https://logo.clearbit.com/${domain}`,
-    // 2. Google gstatic faviconV2 — reliable 128px fallback
-    `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${domain}&size=128`,
+    // 2. Google s2/favicons — the same reliable endpoint DiscoverTab uses;
+    //    sz=64 gives a sharp icon at up to 40px display size.
+    `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
   ];
 }
 
@@ -84,7 +86,9 @@ export function BrandLogo({
         <img
           src={currentSrc}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover rounded-full"
+          // object-contain + white bg: works for both full-bleed Clearbit logos
+          // and small favicon-style images returned by s2/favicons.
+          className="absolute inset-0 w-full h-full object-contain bg-white rounded-full p-[1px]"
           onError={() => setAttempt((prev) => prev + 1)}
         />
       )}
