@@ -34,13 +34,14 @@ const MOCK_METRICS = {
   },
 };
 
-const AGENT_SURFACES = [
-  { icon: MessageCircle, name: "WhatsApp Bot",     sub: "shopping bots in chat",         count: 4821, pct: 38, color: "#1a7a4c" },
-  { icon: Smartphone,    name: "Phone OS Agent",   sub: "OS-level purchasing agents",    count: 3204, pct: 25, color: V.accent   },
-  { icon: Mic2,          name: "Voice Assistant",  sub: "voice-assistant shopping",      count: 2569, pct: 20, color: "#d9a85c"  },
-  { icon: Shirt,         name: "Vertical AI",      sub: "category AIs (fashion, food…)", count: 1541, pct: 12, color: "#B5453A"  },
-  { icon: Wrench,        name: "Custom Agent",     sub: "any third-party shopper",       count:  712, pct:  5, color: "#9E9484"  },
-];
+// Operator name map — keys match mkTx() agent values; used in Consumer Agent Sources panel.
+const AGENT_OPERATOR: Record<string, { operator: string; emoji: string; color: string }> = {
+  "WhatsApp Bot": { operator: "Acme Inc. (demo)",     emoji: "💬",  color: "#1a7a4c" },
+  "Phone OS":     { operator: "Mobile Vendor (demo)", emoji: "📱",  color: "#6D4AE8" },
+  "Voice":        { operator: "VoiceAI Co. (demo)",   emoji: "🎙️", color: "#d9a85c" },
+  "Fashion AI":   { operator: "FashionAI YC (demo)",  emoji: "👗",  color: "#B5453A" },
+  "Custom":       { operator: "Third-party",           emoji: "🔧",  color: "#9E9484" },
+};
 
 const PROTOCOL_STEPS = [
   { icon: Shield,       id: "01", title: "Identity",   sub: "Agent presents signed credentials",    color: "#1a7a4c" },
@@ -194,6 +195,22 @@ export default function AgenticCommerceOverview() {
   }, [live]);
 
   const metrics = MOCK_METRICS;
+
+  // Derive top agents from live feed — updates every tick
+  const agentCounts = feed.reduce((acc, tx) => {
+    acc[tx.agent] = (acc[tx.agent] ?? 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  const maxAgentCount = Math.max(...Object.values(agentCounts), 1);
+  const topAgents = Object.entries(agentCounts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 7)
+    .map(([agent, count]) => ({
+      agent,
+      count,
+      pct: Math.round((count / maxAgentCount) * 100),
+      ...(AGENT_OPERATOR[agent] ?? { operator: agent, emoji: "🤖", color: "#9E9484" }),
+    }));
 
   return (
     <div className="space-y-8 pb-12">
@@ -357,25 +374,27 @@ export default function AgenticCommerceOverview() {
           </div>
         </div>
 
-        {/* Consumer Agent breakdown */}
+        {/* Consumer Agent breakdown — live-synced from feed */}
         <div className="md:col-span-2 bg-surface border border-divider-light rounded-2xl shadow-elevation-sm overflow-hidden">
-          <div className="flex items-center gap-2 px-5 py-3.5 border-b border-divider-light">
-            <Cpu className="w-4 h-4 text-ink-2" />
-            <span className="text-sm font-semibold text-ink">Consumer Agent Sources</span>
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-divider-light">
+            <div className="flex items-center gap-2">
+              <Cpu className="w-4 h-4 text-ink-2" />
+              <span className="text-sm font-semibold text-ink">Consumer Agent Sources</span>
+            </div>
+            <span className="text-[10px] text-ink-3 font-mono">live · top {topAgents.length}</span>
           </div>
           <div className="p-5 space-y-3">
-            {AGENT_SURFACES.map((a) => {
-              const Icon = a.icon;
-              return (
-                <div key={a.name} className="space-y-1">
+            {topAgents.length === 0 ? (
+              <p className="text-xs text-ink-3 text-center py-4 animate-pulse">Waiting for feed data…</p>
+            ) : (
+              topAgents.map((a) => (
+                <div key={a.agent} className="space-y-1">
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md flex items-center justify-center bg-surface-warm">
-                        <Icon className="w-3.5 h-3.5 text-ink-2" />
-                      </div>
-                      <span className="font-medium text-ink-2">{a.name}</span>
+                      <span className="text-sm leading-none">{a.emoji}</span>
+                      <span className="font-medium text-ink">{a.operator}</span>
                     </div>
-                    <span className="font-mono font-semibold text-ink tabular-nums">{fmt(a.count)}</span>
+                    <span className="font-mono font-semibold text-ink tabular-nums">{a.count}</span>
                   </div>
                   <div className="h-1.5 bg-surface-warm rounded-full overflow-hidden">
                     <div
@@ -383,10 +402,9 @@ export default function AgenticCommerceOverview() {
                       style={{ width: `${a.pct}%`, backgroundColor: a.color }}
                     />
                   </div>
-                  <p className="text-[10px] text-ink-3">{a.sub} · {a.pct}%</p>
                 </div>
-              );
-            })}
+              ))
+            )}
           </div>
         </div>
       </div>

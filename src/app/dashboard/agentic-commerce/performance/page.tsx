@@ -30,12 +30,12 @@ type Stats = {
 // ── Constants ─────────────────────────────────────────────────────────────────
 // Consumer Agent labels — Outer Ring per concept doc v1.
 // Backend (event_engine._AGENT_DIST) now emits these keys directly.
-const AGENT_LABEL: Record<string, { name: string; emoji: string }> = {
-  "whatsapp-bot":     { name: "WhatsApp Shopping Bot",    emoji: "💬"  },
-  "phone-os-agent":   { name: "Phone OS Agent",           emoji: "📱"  },
-  "voice-shopper":    { name: "Voice Shopping Assistant", emoji: "🎙️" },
-  "vertical-fashion": { name: "Vertical Fashion AI",      emoji: "👗"  },
-  "custom-agent":     { name: "Custom (Third-party)",     emoji: "🔧"  },
+const AGENT_LABEL: Record<string, { name: string; emoji: string; operator: string }> = {
+  "whatsapp-bot":     { name: "WhatsApp Shopping Bot",    emoji: "💬",  operator: "Acme Inc. (demo)"     },
+  "phone-os-agent":   { name: "Phone OS Agent",           emoji: "📱",  operator: "Mobile Vendor (demo)" },
+  "voice-shopper":    { name: "Voice Shopping Assistant", emoji: "🎙️", operator: "VoiceAI Co. (demo)"   },
+  "vertical-fashion": { name: "Vertical Fashion AI",      emoji: "👗",  operator: "FashionAI YC (demo)"  },
+  "custom-agent":     { name: "Custom (Third-party)",     emoji: "🔧",  operator: "Third-party"          },
 };
 
 const AGENT_COLOR: Record<string, string> = {
@@ -65,6 +65,7 @@ export default function PerformancePage() {
   const [brand, setBrand] = useState<Brand | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [filterCallerBy, setFilterCallerBy] = useState<"quoted" | "success" | "failed">("quoted");
 
   // 1. Load brand list
   useEffect(() => {
@@ -94,7 +95,6 @@ export default function PerformancePage() {
       .finally(() => setLoading(false));
   }, [selectedBrand]);
 
-  const maxCalls = stats ? Math.max(...stats.agent_breakdown.map((a) => a.calls), 1) : 1;
   const last7 = stats ? stats.daily_series.slice(-7) : [];
   const maxQuotes  = last7.length ? Math.max(...last7.map((d) => d.quotes),  1) : 1;
   const maxCommits = last7.length ? Math.max(...last7.map((d) => d.commits), 1) : 1;
@@ -191,34 +191,80 @@ export default function PerformancePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Agent breakdown */}
             <div className="bg-surface border border-divider rounded-2xl p-5 space-y-4">
-              <div>
-                <h2 className="font-semibold text-ink text-sm">Who's calling you</h2>
-                <p className="text-ink-3 text-xs mt-0.5">Consumer Agent distribution — by surface (WhatsApp / phone OS / voice / vertical / custom)</p>
-              </div>
-              {stats && stats.agent_breakdown.length > 0 ? (
-                <div className="space-y-3">
-                  {stats.agent_breakdown.map((a) => {
-                    const meta = AGENT_LABEL[a.agent] ?? { name: a.agent, emoji: "🤖" };
-                    return (
-                      <div key={a.agent} className="text-xs">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="flex items-center gap-1.5 text-ink-2">
-                            <span>{meta.emoji}</span>
-                            <span>{meta.name}</span>
-                          </span>
-                          <span className="text-ink-3 font-mono">{a.pct}% · {fmt(a.calls)} calls</span>
-                        </div>
-                        <div className="w-full bg-surface-muted rounded-full h-2 overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${AGENT_COLOR[a.agent] ?? "bg-slate-400"} transition-all duration-700`}
-                            style={{ width: `${Math.round((a.calls / maxCalls) * 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
+              <div className="flex items-start justify-between gap-3 flex-wrap">
+                <div>
+                  <h2 className="font-semibold text-ink text-sm">Who&apos;s calling you</h2>
+                  <p className="text-ink-3 text-xs mt-0.5">Top Consumer Agents — sort by activity</p>
                 </div>
-              ) : (
+                <div className="flex items-center gap-1 text-[11px]">
+                  {(["quoted", "success", "failed"] as const).map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setFilterCallerBy(f)}
+                      className={`px-2.5 py-1 rounded-lg border transition-colors ${
+                        filterCallerBy === f
+                          ? f === "success" ? "bg-green-100 text-green-700 border-green-200"
+                            : f === "failed"  ? "bg-rose-100 text-rose-600 border-rose-200"
+                            : "bg-blue-100 text-blue-700 border-blue-200"
+                          : "bg-surface-muted text-ink-3 border-divider"
+                      }`}
+                    >
+                      {f === "quoted" ? "Quoted" : f === "success" ? "✅ Success" : "❌ Failed"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {stats && stats.agent_breakdown.length > 0 ? (() => {
+                const convRate = stats.conversion_rate ?? 0.26;
+                const enriched = stats.agent_breakdown.map((a) => ({
+                  ...a,
+                  successN: Math.round(a.calls * convRate),
+                  failedN:  a.calls - Math.round(a.calls * convRate),
+                }));
+                const sorted = [...enriched]
+                  .sort((a, b) =>
+                    filterCallerBy === "success" ? b.successN - a.successN
+                    : filterCallerBy === "failed"  ? b.failedN  - a.failedN
+                    : b.calls - a.calls
+                  )
+                  .slice(0, 7);
+                const maxN = Math.max(
+                  ...sorted.map((a) =>
+                    filterCallerBy === "success" ? a.successN
+                    : filterCallerBy === "failed"  ? a.failedN
+                    : a.calls
+                  ),
+                  1
+                );
+                return (
+                  <div className="space-y-3">
+                    {sorted.map((a) => {
+                      const meta = AGENT_LABEL[a.agent] ?? { name: a.agent, emoji: "🤖", operator: a.agent };
+                      const displayN = filterCallerBy === "success" ? a.successN : filterCallerBy === "failed" ? a.failedN : a.calls;
+                      return (
+                        <div key={a.agent} className="text-xs">
+                          <div className="flex items-center justify-between mb-1">
+                            <div>
+                              <div className="flex items-center gap-1.5 font-medium text-ink">
+                                <span>{meta.emoji}</span>
+                                <span>{meta.operator}</span>
+                              </div>
+                              <div className="text-ink-3 text-[10px] mt-0.5">{meta.name}</div>
+                            </div>
+                            <span className="text-ink-3 font-mono ml-3">{fmt(displayN)}</span>
+                          </div>
+                          <div className="w-full bg-surface-muted rounded-full h-2 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${AGENT_COLOR[a.agent] ?? "bg-slate-400"} transition-all duration-700`}
+                              style={{ width: `${Math.round((displayN / maxN) * 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })() : (
                 <div className="text-ink-3 text-sm">No agent activity yet</div>
               )}
             </div>
