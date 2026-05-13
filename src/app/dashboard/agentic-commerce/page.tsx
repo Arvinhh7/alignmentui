@@ -51,23 +51,18 @@ const PROTOCOL_STEPS = [
   { icon: CreditCard,   id: "05", title: "Settlement", sub: "Alignment clears USDC, brands paid",   color: V.accent  },
 ];
 
-const LIVE_PRODUCTS = [
-  "Nike Air Max 97 · White / Silver",
-  "Allbirds Wool Runner · Natural Grey",
-  "Samsung Galaxy S25 · Phantom Black",
-  "Patagonia Nano Puff Jacket · Blue",
-  "Apple AirPods Pro (Gen 3)",
-  "Lululemon Align Shorts 6\"",
-  "Dyson V15 Detect Absolute",
-  "Dr. Martens 1460 · Cherry Red",
-  "Fellow Opus Grinder · Matte Black",
-  "Razer Blade 16 Gaming Laptop",
-];
-
-const CONSUMER_AGENTS = [
-  { label: "WhatsApp Bot",   emoji: "💬" },
-  { label: "Phone OS",       emoji: "📱" },
-  { label: "Voice Shopper",  emoji: "🎙️" },
+// Product-brand pairs — bound so the feed never shows a mismatched combo
+const LIVE_CATALOG: { product: string; brand: string }[] = [
+  { product: "Nike Air Max 97 · White / Silver",      brand: "Nike"       },
+  { product: "Allbirds Wool Runner · Natural Grey",    brand: "Allbirds"   },
+  { product: "Samsung Galaxy S25 · Phantom Black",     brand: "Samsung"    },
+  { product: "Patagonia Nano Puff Jacket · Blue",      brand: "Patagonia"  },
+  { product: "Apple AirPods Pro (Gen 3)",             brand: "Apple"      },
+  { product: "Lululemon Align Shorts 6\"",            brand: "Lululemon"  },
+  { product: "Dyson V15 Detect Absolute",             brand: "Dyson"      },
+  { product: "Dr. Martens 1460 · Cherry Red",         brand: "Dr. Martens"},
+  { product: "Fellow Opus Grinder · Matte Black",     brand: "Fellow"     },
+  { product: "Razer Blade 16 Gaming Laptop",          brand: "Razer"      },
 ];
 
 // Brand names used in the live feed (must match BRAND_META keys in shared BrandLogo component)
@@ -94,11 +89,9 @@ interface TxItem {
 }
 
 function mkTx(id: number): TxItem {
-  const product = LIVE_PRODUCTS[Math.floor(Math.random() * LIVE_PRODUCTS.length)];
+  const item    = LIVE_CATALOG[Math.floor(Math.random() * LIVE_CATALOG.length)];
   const price   = Math.round((29 + Math.random() * 470) * 100) / 100;
   const agents  = ["WhatsApp Bot", "Phone OS", "Voice", "Fashion AI", "Custom"];
-  const brands  = ["Nike", "Apple", "Samsung", "Allbirds", "Lululemon", "Dyson"];
-  const states  = ["commit", "quote", "query"] as const;
   const weights = [0.26, 0.45, 0.29];
   let r = Math.random(), st: TxItem["status"] = "commit";
   if (r > weights[0] + weights[1]) st = "query";
@@ -107,12 +100,12 @@ function mkTx(id: number): TxItem {
   const s = `${now.getHours().toString().padStart(2,"0")}:${now.getMinutes().toString().padStart(2,"0")}:${now.getSeconds().toString().padStart(2,"0")}`;
   return {
     id,
-    product,
-    amount: price,
-    agent:  agents[Math.floor(Math.random() * agents.length)],
-    brand:  brands[Math.floor(Math.random() * brands.length)],
-    status: st,
-    ts: s,
+    product: item.product,
+    amount:  price,
+    agent:   agents[Math.floor(Math.random() * agents.length)],
+    brand:   item.brand,
+    status:  st,
+    ts:      s,
   };
 }
 
@@ -156,18 +149,22 @@ function BrandLogoByName({ name, size = 14 }: { name: string; size?: number }) {
   return <BrandLogo brandId={name.toLowerCase().replace(/[\s.]/g, "")} name={name} size={size} />;
 }
 
-// Consumer Agent icon + label pill for the live feed.
+// Dual-label agent cell: operator name (colored badge, primary) + surface type (gray, secondary).
 function AgentBadge({ name }: { name: string }) {
   const meta = AGENT_META[name] ?? AGENT_META["Custom"];
+  const op   = AGENT_OPERATOR[name] ?? { operator: name, emoji: "🤖", color: "#9E9484" };
   const Icon = meta.Icon;
   return (
-    <span
-      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap"
-      style={{ backgroundColor: meta.bg, color: meta.color }}
-    >
-      <Icon className="w-3 h-3 flex-shrink-0" />
-      <span>{name}</span>
-    </span>
+    <div className="flex flex-col items-end gap-0.5">
+      <span
+        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap"
+        style={{ backgroundColor: meta.bg, color: meta.color }}
+      >
+        <Icon className="w-3 h-3 flex-shrink-0" />
+        <span>{op.operator}</span>
+      </span>
+      <span className="text-[10px] text-ink-3 whitespace-nowrap">{name}</span>
+    </div>
   );
 }
 
@@ -180,7 +177,7 @@ export default function AgenticCommerceOverview() {
 
   // Seed feed
   useEffect(() => {
-    const initial = Array.from({ length: 8 }, () => mkTx(idRef.current++));
+    const initial = Array.from({ length: 7 }, () => mkTx(idRef.current++));
     setFeed(initial);
   }, []);
 
@@ -189,7 +186,7 @@ export default function AgenticCommerceOverview() {
     if (!live) return;
     const id = setInterval(() => {
       setTicks(t => t + 1);
-      setFeed(prev => [mkTx(idRef.current++), ...prev].slice(0, 8));
+      setFeed(prev => [mkTx(idRef.current++), ...prev].slice(0, 7));
     }, 2800);
     return () => clearInterval(id);
   }, [live]);
@@ -304,107 +301,112 @@ export default function AgenticCommerceOverview() {
         </div>
       </div>
 
-      {/* ── Two-column: Live feed + Consumer Agent breakdown ──────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
-
-        {/* Live transaction feed */}
-        <div className="md:col-span-3 bg-surface border border-divider-light rounded-2xl shadow-elevation-sm overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-divider-light">
-            <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-ink-2" />
-              <span className="text-sm font-semibold text-ink">Live Transaction Feed</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1.5 text-[11px] text-ink-3">
-                <PulseDot color={live ? "#1a7a4c" : "#9E9484"} />
-                {live ? "streaming" : "paused"}
-              </span>
-              <button
-                onClick={() => setLive(l => !l)}
-                className="text-[11px] px-2.5 py-1 rounded-lg bg-surface-warm border border-divider-light text-ink-2 hover:text-ink transition-colors"
-              >
-                {live ? "Pause" : "Resume"}
-              </button>
-            </div>
+      {/* ── Live Activity ─────────────────────────────────────────────── */}
+      <div className="space-y-3">
+        {/* Unified header — single streaming indicator + pause control for both panels */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <Activity className="w-4 h-4 text-ink-2" />
+            <span className="text-sm font-semibold text-ink">Live Activity</span>
+            <span className="flex items-center gap-1.5 text-[11px] text-ink-3 font-mono">
+              <PulseDot color={live ? "#1a7a4c" : "#9E9484"} />
+              {live ? "· streaming" : "· paused"}
+            </span>
           </div>
-
-          {/* Header row */}
-          <div className="grid grid-cols-[1fr_auto_auto_auto] gap-3 px-5 py-2 bg-canvas border-b border-divider-light text-[10px] font-semibold text-ink-3 uppercase tracking-wider">
-            <span>Product</span>
-            <span className="text-right">Agent</span>
-            <span className="text-right">Amount</span>
-            <span className="text-right">Status</span>
-          </div>
-
-          <div className="divide-y divide-divider-light/50 overflow-hidden" style={{ maxHeight: 370 }}>
-            {feed.map((tx, i) => (
-              <div
-                key={tx.id}
-                className={`grid grid-cols-[1fr_auto_auto_auto] gap-3 px-5 py-2.5 items-center transition-all duration-300 ${
-                  i === 0 ? "bg-sage-bg/40 animate-fade-in" : "bg-surface hover:bg-canvas"
-                }`}
-                style={{ opacity: Math.max(0.45, 1 - i * 0.065) }}
-              >
-                <div className="min-w-0">
-                  <p className="text-xs font-medium text-ink truncate">{tx.product}</p>
-                  <p className="text-[10px] text-ink-3 font-mono mt-0.5 flex items-center gap-1.5">
-                    <span>{tx.ts}</span>
-                    <span>·</span>
-                    <BrandLogoByName name={tx.brand} size={12} />
-                    <span className="text-ink-2 font-sans">{tx.brand}</span>
-                  </p>
-                </div>
-                <AgentBadge name={tx.agent} />
-                <span className="text-xs font-mono font-semibold text-ink tabular-nums text-right">
-                  ${fmt(tx.amount, 2)}
-                </span>
-                <span className="flex justify-end">
-                  <StatusPill status={tx.status} />
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <div className="px-5 py-2.5 border-t border-divider-light bg-canvas flex items-center justify-between">
-            <span className="text-[10px] text-ink-3 font-mono">{ticks} events this session</span>
-            <Link href="/dashboard/agentic-commerce/quotes"
-              className="text-[11px] text-ink-2 hover:text-ink flex items-center gap-1 transition-colors">
-              Full Quote Log <ChevronRight className="w-3 h-3" />
-            </Link>
-          </div>
+          <button
+            onClick={() => setLive(l => !l)}
+            className="text-[11px] px-2.5 py-1 rounded-lg bg-surface-warm border border-divider-light text-ink-2 hover:text-ink transition-colors"
+          >
+            {live ? "Pause" : "Resume"}
+          </button>
         </div>
 
-        {/* Consumer Agent breakdown — live-synced from feed */}
-        <div className="md:col-span-2 bg-surface border border-divider-light rounded-2xl shadow-elevation-sm overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-divider-light">
-            <div className="flex items-center gap-2">
-              <Cpu className="w-4 h-4 text-ink-2" />
-              <span className="text-sm font-semibold text-ink">Consumer Agent Sources</span>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
+
+          {/* Left panel — transaction feed */}
+          <div className="md:col-span-3 bg-surface border border-divider-light rounded-2xl shadow-elevation-sm overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-divider-light">
+              <span className="text-xs font-semibold text-ink-2 uppercase tracking-wider">Transaction Feed</span>
+              <span className="text-[10px] text-ink-3 font-mono">{ticks} events</span>
             </div>
-            <span className="text-[10px] text-ink-3 font-mono">live · top {topAgents.length}</span>
-          </div>
-          <div className="p-5 space-y-3">
-            {topAgents.length === 0 ? (
-              <p className="text-xs text-ink-3 text-center py-4 animate-pulse">Waiting for feed data…</p>
-            ) : (
-              topAgents.map((a) => (
-                <div key={a.agent} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm leading-none">{a.emoji}</span>
-                      <span className="font-medium text-ink">{a.operator}</span>
-                    </div>
-                    <span className="font-mono font-semibold text-ink tabular-nums">{a.count}</span>
+
+            {/* Column headers */}
+            <div className="grid grid-cols-[1fr_auto_auto_auto] gap-3 px-5 py-2 bg-canvas border-b border-divider-light text-[10px] font-semibold text-ink-3 uppercase tracking-wider">
+              <span>Product</span>
+              <span className="text-right">Agent</span>
+              <span className="text-right">Amount</span>
+              <span className="text-right">Status</span>
+            </div>
+
+            <div className="divide-y divide-divider-light/50 overflow-hidden" style={{ maxHeight: 370 }}>
+              {feed.map((tx, i) => (
+                <div
+                  key={tx.id}
+                  className={`grid grid-cols-[1fr_auto_auto_auto] gap-3 px-5 py-2.5 items-center transition-all duration-300 ${
+                    i === 0 ? "bg-sage-bg/40 animate-fade-in" : "bg-surface hover:bg-canvas"
+                  }`}
+                  style={{ opacity: Math.max(0.45, 1 - i * 0.065) }}
+                >
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-ink truncate">{tx.product}</p>
+                    <p className="text-[10px] text-ink-3 font-mono mt-0.5 flex items-center gap-1.5">
+                      <span>{tx.ts}</span>
+                      <span>·</span>
+                      <BrandLogoByName name={tx.brand} size={12} />
+                      <span className="text-ink-2 font-sans">{tx.brand}</span>
+                    </p>
                   </div>
-                  <div className="h-1.5 bg-surface-warm rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${a.pct}%`, backgroundColor: a.color }}
-                    />
-                  </div>
+                  <AgentBadge name={tx.agent} />
+                  <span className="text-xs font-mono font-semibold text-ink tabular-nums text-right">
+                    ${fmt(tx.amount, 2)}
+                  </span>
+                  <span className="flex justify-end">
+                    <StatusPill status={tx.status} />
+                  </span>
                 </div>
-              ))
-            )}
+              ))}
+            </div>
+
+            <div className="px-5 py-2.5 border-t border-divider-light bg-canvas flex items-center justify-end">
+              <Link href="/dashboard/agentic-commerce/quotes"
+                className="text-[11px] text-ink-2 hover:text-ink flex items-center gap-1 transition-colors">
+                Full Quote Log <ChevronRight className="w-3 h-3" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Right panel — Consumer Agent breakdown (dual-label, live-synced from feed) */}
+          <div className="md:col-span-2 bg-surface border border-divider-light rounded-2xl shadow-elevation-sm overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-divider-light">
+              <span className="text-xs font-semibold text-ink-2 uppercase tracking-wider">Agent Sources</span>
+              <span className="text-[10px] text-ink-3 font-mono">top {topAgents.length}</span>
+            </div>
+            <div className="p-5 space-y-3">
+              {topAgents.length === 0 ? (
+                <p className="text-xs text-ink-3 text-center py-4 animate-pulse">Waiting for feed data…</p>
+              ) : (
+                topAgents.map((a) => (
+                  <div key={a.agent} className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base leading-none">{a.emoji}</span>
+                        <div>
+                          <div className="text-xs font-medium text-ink leading-tight">{a.operator}</div>
+                          <div className="text-[10px] text-ink-3 leading-tight">{a.agent}</div>
+                        </div>
+                      </div>
+                      <span className="text-xs font-mono font-semibold text-ink tabular-nums">{a.count}</span>
+                    </div>
+                    <div className="h-1.5 bg-surface-warm rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{ width: `${a.pct}%`, backgroundColor: a.color }}
+                      />
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
