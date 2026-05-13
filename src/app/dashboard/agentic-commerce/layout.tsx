@@ -61,7 +61,7 @@ export default function AgenticCommerceLayout({ children }: { children: React.Re
 
 function AgenticCommerceShell({ children, pathname }: { children: React.ReactNode; pathname: string }) {
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
       {/* Sub-nav */}
       <nav className="flex items-center gap-1 border-b border-divider pb-0 overflow-x-auto">
         {NAV_ITEMS.map((item) => {

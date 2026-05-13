@@ -188,8 +188,8 @@ export default function AgenticCommerceOverview() {
     if (!live) return;
     const id = setInterval(() => {
       setTicks(t => t + 1);
-      setFeed(prev => [mkTx(idRef.current++), ...prev].slice(0, 14));
-    }, 1400);
+      setFeed(prev => [mkTx(idRef.current++), ...prev].slice(0, 8));
+    }, 2800);
     return () => clearInterval(id);
   }, [live]);
 
@@ -324,7 +324,7 @@ export default function AgenticCommerceOverview() {
               <div
                 key={tx.id}
                 className={`grid grid-cols-[1fr_auto_auto_auto] gap-3 px-5 py-2.5 items-center transition-all duration-300 ${
-                  i === 0 ? "bg-sage-bg/40 animate-[slideDown_0.45s_ease-out]" : "bg-surface hover:bg-canvas"
+                  i === 0 ? "bg-sage-bg/40 animate-fade-in" : "bg-surface hover:bg-canvas"
                 }`}
                 style={{ opacity: Math.max(0.45, 1 - i * 0.065) }}
               >

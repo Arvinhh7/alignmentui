@@ -46,10 +46,10 @@ const AGENT_LABEL: Record<string, { name: string; emoji: string; operator: strin
 };
 
 const OUTCOME_MAP: Record<string, { label: string; color: string; icon: string }> = {
-  selected:   { label: "Committed",  color: "bg-green-100 text-green-700 border-green-200",  icon: "✓" },
-  discovered: { label: "Quoted",     color: "bg-blue-100 text-blue-700 border-blue-200",     icon: "○" },
-  rejected:   { label: "Lost",       color: "bg-rose-100 text-rose-600 border-rose-200",     icon: "✗" },
-  abandoned:  { label: "Abandoned",  color: "bg-slate-100 text-slate-500 border-slate-200",  icon: "—" },
+  selected:   { label: "Success",  color: "bg-green-100 text-green-700 border-green-200",  icon: "✅" },
+  discovered: { label: "Quoted",   color: "bg-blue-100 text-blue-700 border-blue-200",     icon: "○"  },
+  rejected:   { label: "Failed",   color: "bg-rose-100 text-rose-600 border-rose-200",     icon: "❌" },
+  abandoned:  { label: "Failed",   color: "bg-rose-100 text-rose-600 border-rose-200",     icon: "❌" },
 };
 
 const SAMPLE_PRODUCTS: Record<string, { name: string; price: number }[]> = {
@@ -186,7 +186,9 @@ export default function QuoteLogPage() {
 
   // Filtered view
   const filtered = quotes.filter((q) => {
-    if (filterOutcome !== "all" && q.outcome !== filterOutcome) return false;
+    if (filterOutcome === "failed") {
+      if (q.outcome !== "rejected" && q.outcome !== "abandoned") return false;
+    } else if (filterOutcome !== "all" && q.outcome !== filterOutcome) return false;
     if (filterAgent !== "all" && q.caller_agent_id !== filterAgent) return false;
     return true;
   });
@@ -252,10 +254,9 @@ export default function QuoteLogPage() {
               className="text-sm border border-divider rounded-lg px-3 py-1.5 bg-surface-muted focus:outline-none"
             >
               <option value="all">All</option>
-              <option value="selected">✓ Committed</option>
-              <option value="discovered">○ Quoted (no commit)</option>
-              <option value="rejected">✗ Lost</option>
-              <option value="abandoned">— Abandoned</option>
+              <option value="selected">✅ Success</option>
+              <option value="discovered">○ Quoted</option>
+              <option value="failed">❌ Failed</option>
             </select>
           </div>
 
@@ -281,15 +282,17 @@ export default function QuoteLogPage() {
         {/* Outcome breakdown bar */}
         {quotes.length > 0 && (
           <div className="flex items-center gap-2 text-xs">
-            {(["selected", "discovered", "rejected", "abandoned"] as const).map((k) => {
-              const n = counts[k] ?? 0;
-              const pct = quotes.length > 0 ? (n / quotes.length) * 100 : 0;
-              const conf = OUTCOME_MAP[k];
+            {[
+              { key: "selected",   label: "Success", n: counts["selected"]   ?? 0,                                    color: "bg-green-100 text-green-700 border-green-200" },
+              { key: "discovered", label: "Quoted",  n: counts["discovered"] ?? 0,                                    color: "bg-blue-100 text-blue-700 border-blue-200"   },
+              { key: "failed",     label: "Failed",  n: (counts["rejected"]  ?? 0) + (counts["abandoned"] ?? 0),      color: "bg-rose-100 text-rose-600 border-rose-200"   },
+            ].map((b) => {
+              const pct = quotes.length > 0 ? (b.n / quotes.length) * 100 : 0;
               return (
-                <div key={k} className={`flex-1 ${pct > 0 ? "" : "opacity-50"}`}>
-                  <div className={`px-2 py-1 rounded ${conf.color} flex items-center justify-between`}>
-                    <span>{conf.label}</span>
-                    <span className="font-mono">{n} · {pct.toFixed(0)}%</span>
+                <div key={b.key} className={`flex-1 ${pct > 0 ? "" : "opacity-50"}`}>
+                  <div className={`px-2 py-1 rounded ${b.color} flex items-center justify-between`}>
+                    <span>{b.label}</span>
+                    <span className="font-mono">{b.n} · {pct.toFixed(0)}%</span>
                   </div>
                 </div>
               );
