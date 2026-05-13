@@ -1,10 +1,9 @@
 {
-  // Cloudflare Pages project — static Next.js export
-  // Build command : npm run build  (runs in GitHub Actions or locally)
-  // Output dir    : ./out
-  // Local deploy  : npx wrangler pages deploy
-  // CI deploy     : .github/workflows/deploy.yml
-  "name": "alignmenttech-website",
-  "pages_build_output_dir": "./out",
-  "compatibility_date": "2026-02-10"
+  "name": "alignmenttech",
+  "compatibility_date": "2026-02-10",
+  "main": "worker.js",
+  "assets": {
+    "directory": "./out",
+    "binding": "ASSETS"
+  }
 }
