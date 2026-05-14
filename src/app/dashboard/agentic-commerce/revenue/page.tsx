@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
+import GMVTrendChart from "@/components/GMVTrendChart";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 const AC = `${API_BASE}/api/agentic-commerce`;
@@ -64,30 +65,6 @@ function relTime(iso: string) {
   if (s < 3600) return `${Math.floor(s / 60)}m ago`;
   if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
   return `${Math.floor(s / 86400)}d ago`;
-}
-
-function GMVChart({ series }: { series: DailyPoint[] }) {
-  const last14 = series.slice(-14);
-  const maxGMV = Math.max(...last14.map((d) => d.gmv), 1);
-  return (
-    <div className="flex items-end gap-1 h-24">
-      {last14.map((d) => (
-        <div key={d.date} className="flex-1 relative group">
-          <div
-            className="absolute bottom-0 w-full bg-yellow-400/70 rounded-t"
-            style={{ height: `${Math.round((d.commission / maxGMV) * 96)}px` }}
-          />
-          <div
-            className="w-full bg-purple-500/30 rounded-t"
-            style={{ height: `${Math.round((d.gmv / maxGMV) * 96)}px` }}
-          />
-          <div className="absolute -top-7 left-1/2 -translate-x-1/2 hidden group-hover:block bg-ink text-ink-inv text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-            {d.date.slice(5)}: ${fmt(d.gmv, 0)}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -160,8 +137,8 @@ export default function RevenuePage() {
           </div>
 
           {/* ── Per-brand table + GMV chart ────────────────── */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div className="md:col-span-2 bg-surface border border-divider rounded-2xl overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
+            <div className="md:col-span-3 bg-surface border border-divider rounded-2xl overflow-hidden">
               <div className="px-5 py-3 border-b border-divider">
                 <h2 className="font-semibold text-ink text-sm">Settlement by Product Agent</h2>
                 <p className="text-ink-3 text-xs mt-0.5">Per-brand revenue · commission · take rate</p>
@@ -217,20 +194,14 @@ export default function RevenuePage() {
             </div>
 
             {/* GMV chart */}
-            <div className="bg-surface border border-divider rounded-2xl p-5 space-y-4">
+            <div className="md:col-span-2 bg-surface border border-divider rounded-2xl p-5 space-y-3">
               <div>
                 <h2 className="font-semibold text-ink text-sm">GMV trend</h2>
-                <p className="text-ink-3 text-xs mt-0.5">Last 14 days · hover bars for detail</p>
+                <p className="text-ink-3 text-xs mt-0.5">
+                  {period === "all" ? "All available data" : `Last ${period} days`} · GMV cumulative growth vs Day 1
+                </p>
               </div>
-              <GMVChart series={daily} />
-              <div className="flex gap-4 text-xs text-ink-3">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded bg-purple-500/30" /> GMV
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded bg-yellow-400/70" /> Commission
-                </div>
-              </div>
+              <GMVTrendChart data={daily} height={260} />
               <div className="border-t border-divider pt-3 space-y-1 text-xs">
                 {daily.slice(-3).reverse().map((d) => (
                   <div key={d.date} className="flex justify-between text-ink-3">
