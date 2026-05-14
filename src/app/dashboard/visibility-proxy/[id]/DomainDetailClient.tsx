@@ -15,11 +15,12 @@ import {
 } from 'lucide-react'
 
 import BrandDataTab from './BrandDataTab'
+import SdkAdminTab from './SdkAdminTab'
 import dynamic from 'next/dynamic'
 
 const EChartsWorldMap = dynamic(() => import('@/components/EChartsWorldMap'), { ssr: false })
 
-type Tab = 'overview' | 'assets' | 'analytics'
+type Tab = 'overview' | 'assets' | 'analytics' | 'sdk'
 
 function formatRelativeTime(iso: string): string {
   const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
@@ -1573,6 +1574,7 @@ export default function DomainDetailClient() {
     { key: 'overview',  label: 'Overview',  icon: Settings },
     { key: 'assets',    label: 'Brand Data', icon: Layers },
     { key: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { key: 'sdk',       label: 'SDK Mode',   icon: Zap },
   ]
 
   return (
@@ -1641,6 +1643,12 @@ export default function DomainDetailClient() {
             onDaysChange={setAnalyticsDays}
             domain={domain}
             domainId={domainId}
+            userId={user?.id ?? ''}
+          />
+        )}
+        {activeTab === 'sdk' && (
+          <SdkAdminTab
+            domain={domain}
             userId={user?.id ?? ''}
           />
         )}
