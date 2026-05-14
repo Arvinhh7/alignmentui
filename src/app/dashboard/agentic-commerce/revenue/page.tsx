@@ -119,12 +119,12 @@ export default function RevenuePage() {
         <div>
           <h1 className="text-2xl font-bold text-ink">Revenue</h1>
           <p className="text-ink-2 text-sm mt-1">
-            Cleared transactions from Consumer Agents · routed by the Alignment Broker ·
-            settled T+7 via Stripe Connect · last {days} days
+            Cleared transactions from Customer Agents · routed by the Alignment Broker ·
+            settled T+7 via Stripe Connect · {days === 365 ? "all time" : `last ${days} days`}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {[7, 14, 30].map((d) => (
+        <div className="flex items-center gap-1">
+          {([7, 30, 90, 365] as const).map((d) => (
             <button
               key={d}
               onClick={() => setDays(d)}
@@ -132,7 +132,7 @@ export default function RevenuePage() {
                 days === d ? "bg-purple-600 text-white" : "bg-surface-muted text-ink-2 hover:bg-purple-50 border border-divider"
               }`}
             >
-              {d}d
+              {d === 365 ? "All" : `${d}d`}
             </button>
           ))}
         </div>
@@ -162,13 +162,13 @@ export default function RevenuePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div className="md:col-span-2 bg-surface border border-divider rounded-2xl overflow-hidden">
               <div className="px-5 py-3 border-b border-divider">
-                <h2 className="font-semibold text-ink text-sm">Settlement by Brand Agent</h2>
+                <h2 className="font-semibold text-ink text-sm">Settlement by Product Agent</h2>
                 <p className="text-ink-3 text-xs mt-0.5">Per-brand revenue · commission · take rate</p>
               </div>
               <table className="w-full text-xs">
                 <thead>
                   <tr className="text-ink-3 border-b border-divider bg-surface-muted">
-                    <th className="px-5 py-2 text-left font-medium">Brand Agent</th>
+                    <th className="px-5 py-2 text-left font-medium">Product Agent</th>
                     <th className="px-4 py-2 text-right font-medium">Gross</th>
                     <th className="px-4 py-2 text-right font-medium">Commission</th>
                     <th className="px-4 py-2 text-right font-medium">Net</th>

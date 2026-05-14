@@ -28,14 +28,12 @@ type Stats = {
 };
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-// Consumer Agent labels — Outer Ring per concept doc v1.
-// Backend (event_engine._AGENT_DIST) now emits these keys directly.
-const AGENT_LABEL: Record<string, { name: string; emoji: string; operator: string }> = {
-  "whatsapp-bot":     { name: "WhatsApp Shopping Bot",    emoji: "💬",  operator: "Acme Inc. (demo)"     },
-  "phone-os-agent":   { name: "Phone OS Agent",           emoji: "📱",  operator: "Mobile Vendor (demo)" },
-  "voice-shopper":    { name: "Voice Shopping Assistant", emoji: "🎙️", operator: "VoiceAI Co. (demo)"   },
-  "vertical-fashion": { name: "Vertical Fashion AI",      emoji: "👗",  operator: "FashionAI YC (demo)"  },
-  "custom-agent":     { name: "Custom (Third-party)",     emoji: "🔧",  operator: "Third-party"          },
+const AGENT_LABEL: Record<string, { name: string; emoji: string; operator: string; surface: string; country: string }> = {
+  "whatsapp-bot":     { name: "WhatsApp Shopping Bot",    emoji: "💬",  operator: "Acme Inc. (demo)",      surface: "WhatsApp Bot", country: "🇺🇸 US · 🇲🇽 MX · 🇮🇳 IN" },
+  "phone-os-agent":   { name: "Phone OS Agent",           emoji: "📱",  operator: "Mobile Vendor (demo)",  surface: "Phone OS",     country: "🇯🇵 JP · 🇰🇷 KR"          },
+  "voice-shopper":    { name: "Voice Shopping Assistant", emoji: "🎙️", operator: "VoiceAI Co. (demo)",    surface: "Voice",        country: "🇺🇸 US"                   },
+  "vertical-fashion": { name: "Vertical Fashion AI",      emoji: "👗",  operator: "FashionAI YC (demo)",   surface: "Fashion AI",   country: "🇫🇷 FR"                   },
+  "custom-agent":     { name: "Custom (Third-party)",     emoji: "🔧",  operator: "Third-party",           surface: "Custom",       country: "Global"                   },
 };
 
 const AGENT_COLOR: Record<string, string> = {
@@ -46,12 +44,32 @@ const AGENT_COLOR: Record<string, string> = {
   "custom-agent":     "bg-slate-400",
 };
 
+// Mock avg order value per agent surface (used for Amount / GMV sort)
+const AVG_AMOUNT: Record<string, number> = {
+  "whatsapp-bot":     89,
+  "phone-os-agent":   245,
+  "voice-shopper":    167,
+  "vertical-fashion": 312,
+  "custom-agent":     78,
+};
+
 const TRUST_BADGE: Record<string, string> = {
   verified:   "bg-green-100 text-green-700 border-green-200",
   standard:   "bg-blue-100 text-blue-700 border-blue-200",
   unverified: "bg-slate-100 text-slate-500 border-slate-200",
 };
 
+// SLA metric definitions shown on hover
+const SLA_DEFS = {
+  quote_p95: "95th-percentile latency for the Broker to receive your quote response. Target: < 800 ms.",
+  error_rate: "% of Broker quote requests that returned 5xx or timed out. Target: < 1%.",
+  uptime: "% of time your Product Agent endpoint was reachable by the Broker probe. Target: > 99%.",
+};
+
+const SURFACES = ["All", "WhatsApp Bot", "Phone OS", "Voice", "Fashion AI", "Custom"] as const;
+type Surface = typeof SURFACES[number];
+
+type SortKey = "quoted" | "success" | "failed" | "avg_amount" | "total_gmv";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function fmt(n: number, d = 0) {
@@ -65,7 +83,13 @@ export default function PerformancePage() {
   const [brand, setBrand] = useState<Brand | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [filterCallerBy, setFilterCallerBy] = useState<"quoted" | "success" | "failed">("quoted");
+
+  // "Who's calling you" controls
+  const [sortCallerBy, setSortCallerBy] = useState<SortKey>("quoted");
+  const [filterSurface, setFilterSurface] = useState<Surface>("All");
+
+  // Chart period
+  const [chartWindow, setChartWindow] = useState<7 | 30 | 90 | 0>(7);
 
   // 1. Load brand list
   useEffect(() => {
@@ -95,9 +119,11 @@ export default function PerformancePage() {
       .finally(() => setLoading(false));
   }, [selectedBrand]);
 
-  const last7 = stats ? stats.daily_series.slice(-7) : [];
-  const maxQuotes  = last7.length ? Math.max(...last7.map((d) => d.quotes),  1) : 1;
-  const maxCommits = last7.length ? Math.max(...last7.map((d) => d.commits), 1) : 1;
+  // Chart data sliced by selected window
+  const allSeries = stats?.daily_series ?? [];
+  const chartData = chartWindow === 0 ? allSeries : allSeries.slice(-chartWindow);
+  const maxQuotes  = chartData.length ? Math.max(...chartData.map((d) => d.quotes),  1) : 1;
+  const maxCommits = chartData.length ? Math.max(...chartData.map((d) => d.commits), 1) : 1;
 
   // SLA health (mock — would come from broker probe in production)
   const slaHealth = {
@@ -113,12 +139,12 @@ export default function PerformancePage() {
         <div>
           <h1 className="text-2xl font-bold text-ink">Performance</h1>
           <p className="text-ink-2 text-sm mt-1">
-            Aggregated Broker metrics for your Brand Agent — which Consumer Agents
+            Aggregated Broker metrics for your Product Agent — which Customer Agents
             are calling you, conversion, SLA health.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-xs text-ink-3">Brand Agent</label>
+          <label className="text-xs text-ink-3">Product Agent</label>
           {selectedBrand && (
             <BrandLogo brandId={selectedBrand} name={brands.find((b) => b.brand_id === selectedBrand)?.name ?? selectedBrand} size={24} />
           )}
@@ -154,18 +180,29 @@ export default function PerformancePage() {
                   <p className="text-ink-3 text-xs mt-1 font-mono">did:alignment:{brand.brand_id}:prod-1</p>
                 </div>
               </div>
-              <div className="flex items-center gap-4 text-xs">
-                <div>
-                  <div className="text-ink-3">Quote p95</div>
+
+              {/* SLA metrics — hover for definition */}
+              <div className="flex items-center gap-6 text-xs">
+                <div title={SLA_DEFS.quote_p95} className="cursor-help text-center">
+                  <div className="text-ink-3 flex items-center gap-0.5">
+                    Quote p95 <span className="text-[10px] text-ink-3/60 ml-0.5">?</span>
+                  </div>
                   <div className="font-mono text-green-600 font-semibold">{slaHealth.quote_p95_ms}ms</div>
+                  <div className="text-[10px] text-ink-3/60 mt-0.5">target &lt; 800ms</div>
                 </div>
-                <div>
-                  <div className="text-ink-3">Error rate</div>
+                <div title={SLA_DEFS.error_rate} className="cursor-help text-center">
+                  <div className="text-ink-3 flex items-center gap-0.5">
+                    Error rate <span className="text-[10px] text-ink-3/60 ml-0.5">?</span>
+                  </div>
                   <div className="font-mono text-green-600 font-semibold">{(slaHealth.error_rate * 100).toFixed(2)}%</div>
+                  <div className="text-[10px] text-ink-3/60 mt-0.5">target &lt; 1%</div>
                 </div>
-                <div>
-                  <div className="text-ink-3">Uptime</div>
+                <div title={SLA_DEFS.uptime} className="cursor-help text-center">
+                  <div className="text-ink-3 flex items-center gap-0.5">
+                    Uptime <span className="text-[10px] text-ink-3/60 ml-0.5">?</span>
+                  </div>
                   <div className="font-mono text-green-600 font-semibold">{(slaHealth.uptime * 100).toFixed(1)}%</div>
+                  <div className="text-[10px] text-ink-3/60 mt-0.5">target &gt; 99%</div>
                 </div>
               </div>
             </div>
@@ -174,8 +211,8 @@ export default function PerformancePage() {
           {/* ── KPI cards ───────────────────────────────────── */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: "Quotes issued (14d)", value: fmt(stats?.total_discoveries ?? 0), sub: "Consumer Agent queries", color: "text-ink" },
-              { label: "Committed",           value: fmt(stats?.selected_count ?? 0),     sub: "successful txns",       color: "text-green-600" },
+              { label: "Quotes issued (14d)", value: fmt(stats?.total_discoveries ?? 0), sub: "Customer Agent queries", color: "text-ink" },
+              { label: "Committed",           value: fmt(stats?.selected_count ?? 0),     sub: "successful txns",        color: "text-green-600" },
               { label: "Conversion",          value: stats ? `${(stats.conversion_rate * 100).toFixed(1)}%` : "—", sub: "quote → commit", color: "text-purple-600" },
               { label: "Avg trust score",     value: stats?.avg_trust_score.toFixed(3) ?? "—", sub: "broker reputation", color: "text-blue-600" },
             ].map((c) => (
@@ -189,58 +226,104 @@ export default function PerformancePage() {
 
           {/* ── Charts row ─────────────────────────────────── */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Agent breakdown */}
+
+            {/* ── Who's calling you ─────────────────────── */}
             <div className="bg-surface border border-divider rounded-2xl p-5 space-y-4">
-              <div className="flex items-start justify-between gap-3 flex-wrap">
-                <div>
-                  <h2 className="font-semibold text-ink text-sm">Who&apos;s calling you</h2>
-                  <p className="text-ink-3 text-xs mt-0.5">Top Consumer Agents — sort by activity</p>
-                </div>
-                <div className="flex items-center gap-1 text-[11px]">
-                  {(["quoted", "success", "failed"] as const).map((f) => (
-                    <button
-                      key={f}
-                      onClick={() => setFilterCallerBy(f)}
-                      className={`px-2.5 py-1 rounded-lg border transition-colors ${
-                        filterCallerBy === f
-                          ? f === "success" ? "bg-green-100 text-green-700 border-green-200"
-                            : f === "failed"  ? "bg-rose-100 text-rose-600 border-rose-200"
-                            : "bg-blue-100 text-blue-700 border-blue-200"
-                          : "bg-surface-muted text-ink-3 border-divider"
-                      }`}
-                    >
-                      {f === "quoted" ? "Quoted" : f === "success" ? "✅ Success" : "❌ Failed"}
-                    </button>
-                  ))}
-                </div>
+              <div>
+                <h2 className="font-semibold text-ink text-sm">Who&apos;s calling you</h2>
+                <p className="text-ink-3 text-xs mt-0.5">Top Customer Agents — filter by surface, sort by metric</p>
               </div>
+
+              {/* Surface filter */}
+              <div className="flex items-center gap-1 flex-wrap">
+                <span className="text-[10px] text-ink-3 uppercase tracking-wider mr-1">Surface</span>
+                {SURFACES.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setFilterSurface(s)}
+                    className={`text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
+                      filterSurface === s
+                        ? "bg-ink text-white border-ink"
+                        : "bg-surface-muted text-ink-3 border-divider hover:border-ink/30"
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+
+              {/* Sort by */}
+              <div className="flex items-center gap-1 flex-wrap">
+                <span className="text-[10px] text-ink-3 uppercase tracking-wider mr-1">Sort by</span>
+                {([
+                  { key: "quoted",     label: "Quoted"     },
+                  { key: "success",    label: "✅ Success"  },
+                  { key: "failed",     label: "❌ Failed"   },
+                  { key: "avg_amount", label: "Avg $"      },
+                  { key: "total_gmv",  label: "Total GMV"  },
+                ] as { key: SortKey; label: string }[]).map((opt) => (
+                  <button
+                    key={opt.key}
+                    onClick={() => setSortCallerBy(opt.key)}
+                    className={`text-[11px] px-2.5 py-1 rounded-lg border transition-colors ${
+                      sortCallerBy === opt.key
+                        ? opt.key === "success"    ? "bg-green-100 text-green-700 border-green-200"
+                          : opt.key === "failed"   ? "bg-rose-100 text-rose-600 border-rose-200"
+                          : opt.key === "avg_amount" || opt.key === "total_gmv"
+                            ? "bg-amber-100 text-amber-700 border-amber-200"
+                          : "bg-blue-100 text-blue-700 border-blue-200"
+                        : "bg-surface-muted text-ink-3 border-divider"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+
               {stats && stats.agent_breakdown.length > 0 ? (() => {
                 const convRate = stats.conversion_rate ?? 0.26;
-                const enriched = stats.agent_breakdown.map((a) => ({
-                  ...a,
-                  successN: Math.round(a.calls * convRate),
-                  failedN:  a.calls - Math.round(a.calls * convRate),
-                }));
-                const sorted = [...enriched]
+                const enriched = stats.agent_breakdown.map((a) => {
+                  const successN  = Math.round(a.calls * convRate);
+                  const failedN   = a.calls - successN;
+                  const avgAmt    = AVG_AMOUNT[a.agent] ?? 100;
+                  const totalGmv  = Math.round(successN * avgAmt);
+                  return { ...a, successN, failedN, avgAmt, totalGmv };
+                });
+
+                // Apply surface filter
+                const surfaceFiltered = filterSurface === "All"
+                  ? enriched
+                  : enriched.filter((a) => (AGENT_LABEL[a.agent]?.surface ?? "Custom") === filterSurface);
+
+                const sorted = [...surfaceFiltered]
                   .sort((a, b) =>
-                    filterCallerBy === "success" ? b.successN - a.successN
-                    : filterCallerBy === "failed"  ? b.failedN  - a.failedN
+                    sortCallerBy === "success"    ? b.successN  - a.successN
+                    : sortCallerBy === "failed"   ? b.failedN   - a.failedN
+                    : sortCallerBy === "avg_amount" ? b.avgAmt  - a.avgAmt
+                    : sortCallerBy === "total_gmv"  ? b.totalGmv - a.totalGmv
                     : b.calls - a.calls
                   )
                   .slice(0, 7);
-                const maxN = Math.max(
-                  ...sorted.map((a) =>
-                    filterCallerBy === "success" ? a.successN
-                    : filterCallerBy === "failed"  ? a.failedN
-                    : a.calls
-                  ),
-                  1
-                );
+
+                const displayKey = (a: typeof sorted[0]) =>
+                  sortCallerBy === "success" ? a.successN
+                  : sortCallerBy === "failed"   ? a.failedN
+                  : sortCallerBy === "avg_amount" ? a.avgAmt
+                  : sortCallerBy === "total_gmv"  ? a.totalGmv
+                  : a.calls;
+
+                const maxN = Math.max(...sorted.map(displayKey), 1);
+
                 return (
                   <div className="space-y-3">
-                    {sorted.map((a) => {
-                      const meta = AGENT_LABEL[a.agent] ?? { name: a.agent, emoji: "🤖", operator: a.agent };
-                      const displayN = filterCallerBy === "success" ? a.successN : filterCallerBy === "failed" ? a.failedN : a.calls;
+                    {sorted.length === 0 ? (
+                      <div className="text-ink-3 text-xs py-2">No agents match this surface filter.</div>
+                    ) : sorted.map((a) => {
+                      const meta = AGENT_LABEL[a.agent] ?? { name: a.agent, emoji: "🤖", operator: a.agent, surface: "Custom", country: "—" };
+                      const n = displayKey(a);
+                      const displayVal = (sortCallerBy === "avg_amount" || sortCallerBy === "total_gmv")
+                        ? `$${fmt(n)}`
+                        : fmt(n);
                       return (
                         <div key={a.agent} className="text-xs">
                           <div className="flex items-center justify-between mb-1">
@@ -249,14 +332,14 @@ export default function PerformancePage() {
                                 <span>{meta.emoji}</span>
                                 <span>{meta.operator}</span>
                               </div>
-                              <div className="text-ink-3 text-[10px] mt-0.5">{meta.name}</div>
+                              <div className="text-ink-3 text-[10px] mt-0.5">{meta.name} · {meta.country}</div>
                             </div>
-                            <span className="text-ink-3 font-mono ml-3">{fmt(displayN)}</span>
+                            <span className="text-ink-3 font-mono ml-3 tabular-nums">{displayVal}</span>
                           </div>
                           <div className="w-full bg-surface-muted rounded-full h-2 overflow-hidden">
                             <div
                               className={`h-full rounded-full ${AGENT_COLOR[a.agent] ?? "bg-slate-400"} transition-all duration-700`}
-                              style={{ width: `${Math.round((displayN / maxN) * 100)}%` }}
+                              style={{ width: `${Math.round((n / maxN) * 100)}%` }}
                             />
                           </div>
                         </div>
@@ -269,33 +352,51 @@ export default function PerformancePage() {
               )}
             </div>
 
-            {/* Daily series */}
+            {/* ── Quote / commit volume chart ────────────── */}
             <div className="bg-surface border border-divider rounded-2xl p-5 space-y-4">
-              <div>
-                <h2 className="font-semibold text-ink text-sm">Quote / commit volume — last 7 days</h2>
-                <p className="text-ink-3 text-xs mt-0.5">Bar height = quotes issued · green = committed</p>
+              <div className="flex items-start justify-between gap-2 flex-wrap">
+                <div>
+                  <h2 className="font-semibold text-ink text-sm">Quote / commit volume</h2>
+                  <p className="text-ink-3 text-xs mt-0.5">Bar height = quotes issued · green = committed</p>
+                </div>
+                {/* Period selector */}
+                <div className="flex items-center gap-1">
+                  {([7, 30, 90, 0] as const).map((w) => (
+                    <button
+                      key={w}
+                      onClick={() => setChartWindow(w)}
+                      className={`text-[11px] px-2.5 py-1 rounded-lg border transition-colors ${
+                        chartWindow === w
+                          ? "bg-purple-600 text-white border-purple-600"
+                          : "bg-surface-muted text-ink-3 border-divider hover:border-purple-300"
+                      }`}
+                    >
+                      {w === 0 ? "All" : `${w}d`}
+                    </button>
+                  ))}
+                </div>
               </div>
-              {last7.length > 0 ? (
+              {chartData.length > 0 ? (
                 <>
-                  <div className="flex items-end gap-2 h-32">
-                    {last7.map((d) => {
+                  <div className="flex items-end gap-1 h-32">
+                    {chartData.map((d) => {
                       const qH = Math.round((d.quotes  / maxQuotes)  * 100);
                       const sH = Math.round((d.commits / maxCommits) * 100);
                       return (
-                        <div key={d.date} className="flex-1 flex flex-col items-center gap-1 group">
+                        <div key={d.date} className="flex-1 flex flex-col items-center gap-1 group" title={`${d.date.slice(5)}: ${d.quotes} quotes · ${d.commits} commits`}>
                           <div className="w-full h-full flex flex-col justify-end gap-px">
                             <div
                               className="w-full bg-purple-500/40 rounded-t"
                               style={{ height: `${qH}%` }}
-                              title={`${d.quotes} quotes`}
                             />
                             <div
                               className="w-full bg-green-500/70"
                               style={{ height: `${(sH / 100) * 32}px` }}
-                              title={`${d.commits} commits`}
                             />
                           </div>
-                          <div className="text-[10px] text-ink-3 font-mono">{d.date.slice(5)}</div>
+                          {chartData.length <= 14 && (
+                            <div className="text-[9px] text-ink-3 font-mono">{d.date.slice(5)}</div>
+                          )}
                         </div>
                       );
                     })}
@@ -323,7 +424,7 @@ export default function PerformancePage() {
                 <span className="font-mono">{stats ? (stats.conversion_rate * 100).toFixed(1) : "—"}%</span>{" "}
                 quote → commit rate is below the platform median{" "}
                 <span className="font-mono">28.4%</span>. Common cause: quoted price not matching market.
-                See <em>Quote Log → filter "Lost"</em> for per-quote failure reasons.
+                See <em>Quote Log → filter &ldquo;Lost&rdquo;</em> for per-quote failure reasons.
               </li>
               <li>
                 <strong>SLA headroom:</strong> Your p95 quote latency{" "}

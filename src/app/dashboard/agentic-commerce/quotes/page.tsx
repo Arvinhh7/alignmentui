@@ -209,7 +209,7 @@ export default function QuoteLogPage() {
         <div>
           <h1 className="text-2xl font-bold text-ink">Quote Log</h1>
           <p className="text-ink-2 text-sm mt-1">
-            Every quote your Brand Agent issued via the Alignment Broker — which Consumer
+            Every quote your Product Agent issued via the Alignment Broker — which Consumer
             Agent called, what they asked, what you quoted, who won. Fully traceable, drillable.
           </p>
         </div>
@@ -231,7 +231,7 @@ export default function QuoteLogPage() {
       <div className="bg-surface border border-divider rounded-2xl p-4 space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
-            <label className="text-xs text-ink-3">Brand Agent</label>
+            <label className="text-xs text-ink-3">Product Agent</label>
             {selectedBrand && (
               <BrandLogo brandId={selectedBrand} name={brands.find((b) => b.brand_id === selectedBrand)?.name ?? selectedBrand} />
             )}
@@ -283,8 +283,8 @@ export default function QuoteLogPage() {
         {quotes.length > 0 && (
           <div className="flex items-center gap-2 text-xs">
             {[
-              { key: "selected",   label: "Success", n: counts["selected"]   ?? 0,                                    color: "bg-green-100 text-green-700 border-green-200" },
               { key: "discovered", label: "Quoted",  n: counts["discovered"] ?? 0,                                    color: "bg-blue-100 text-blue-700 border-blue-200"   },
+              { key: "selected",   label: "Success", n: counts["selected"]   ?? 0,                                    color: "bg-green-100 text-green-700 border-green-200" },
               { key: "failed",     label: "Failed",  n: (counts["rejected"]  ?? 0) + (counts["abandoned"] ?? 0),      color: "bg-rose-100 text-rose-600 border-rose-200"   },
             ].map((b) => {
               const pct = quotes.length > 0 ? (b.n / quotes.length) * 100 : 0;
@@ -400,7 +400,7 @@ export default function QuoteLogPage() {
         <p>
           <strong>Reading the table:</strong> every row is one Broker round-trip — a Consumer
           Agent (a shopping bot in WhatsApp / phone OS / voice / vertical app) queried the
-          Broker, the Broker fanned out to all eligible Brand Agents, your agent returned a
+          Broker, the Broker fanned out to all eligible Product Agents, your agent returned a
           quote, and either the Consumer Agent committed (✓) or someone else won the rank-1 slot (✗).
         </p>
         <p>
