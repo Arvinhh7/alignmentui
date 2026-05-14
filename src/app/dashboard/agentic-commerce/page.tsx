@@ -18,6 +18,11 @@ const V = {
   accentLight: "#EDE8FF",
   accentBorder:"#C4B5FD",
 };
+const DR = {                            // deep-red accent: Outer Ring + Layer 3 cards
+  accent:      "#991B1B",
+  accentBg:    "rgba(153,27,27,0.10)",
+  accentBorder:"rgba(153,27,27,0.40)",
+};
 
 // ── Mock data ──────────────────────────────────────────────────────────────────
 const MOCK_METRICS = {
@@ -177,9 +182,15 @@ function AgentBadge({ agentKey }: { agentKey: string }) {
 export default function AgenticCommerceOverview() {
   const [feed, setFeed]               = useState<TxItem[]>([]);
   const [ticks, setTicks]             = useState(0);
-  const [agentsTotal, setAgentsTotal] = useState(1247);   // active Customer Agent instances across the network
+  const [agentsTotal, setAgentsTotal] = useState(1247);
+  const [productTicks, setProductTicks] = useState(0);   // independent counter for Product Agents (slower)
   const [live, setLive]               = useState(true);
   const idRef = useRef(1);
+
+  const [liveQueries, setLiveQueries] = useState(MOCK_METRICS.queries);
+  const [liveCommits, setLiveCommits] = useState(MOCK_METRICS.commits);
+  const [liveGmv, setLiveGmv]         = useState(MOCK_METRICS.gmv);
+  const [liveBrands, setLiveBrands]   = useState(MOCK_METRICS.brands);
 
   // Seed feed
   useEffect(() => {
@@ -187,33 +198,51 @@ export default function AgenticCommerceOverview() {
     setFeed(initial);
   }, []);
 
-  // Live ticker — events tick by 1, agentsTotal by 1–3 each cycle
-  // (7 categories × thousands of instances each = active fleet that dwarfs the Live window)
+  // 1800ms — Customer Agents transaction feed (left panel, fast = strong visual presence)
   useEffect(() => {
     if (!live) return;
     const id = setInterval(() => {
+      const newTx = mkTx(idRef.current++);
       setTicks(t => t + 1);
-      setFeed(prev => [mkTx(idRef.current++), ...prev].slice(0, 7));
-      setAgentsTotal(n => n + 1 + Math.floor(Math.random() * 3));   // +1 to +3
-    }, 2800);
+      setFeed(prev => [newTx, ...prev].slice(0, 7));
+      setAgentsTotal(n => n + 2 + Math.floor(Math.random() * 4));
+      setLiveQueries(q => q + 1 + Math.floor(Math.random() * 3));
+      if (newTx.status === "commit") {
+        setLiveCommits(c => c + 1);
+        setLiveGmv(g => Math.round((g + newTx.amount) * 100) / 100);
+      }
+      if (Math.random() < 0.05) setLiveBrands(b => b + 1);
+    }, 1800);
     return () => clearInterval(id);
   }, [live]);
 
-  const metrics = MOCK_METRICS;
+  // 3600ms — Product Agents leaderboard (right panel, half-speed, less visual dominance)
+  useEffect(() => {
+    if (!live) return;
+    const id = setInterval(() => setProductTicks(t => t + 1), 3600);
+    return () => clearInterval(id);
+  }, [live]);
 
-  // Customer Agents leaderboard — always exactly 7 entries (all registered agents),
-  // sorted by live activity from the feed.
-  const agentCounts = feed.reduce((acc, tx) => {
-    acc[tx.agentKey] = (acc[tx.agentKey] ?? 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-  const customerAgentsRanked = CUSTOMER_AGENTS
-    .map(ca => ({
-      ...ca,
-      count: agentCounts[ca.key] ?? 0,
-      meta: AGENT_META[ca.surface],
-    }))
-    .sort((a, b) => b.count - a.count);
+  const metrics = {
+    ...MOCK_METRICS,
+    queries: liveQueries,
+    commits: liveCommits,
+    gmv:     liveGmv,
+    brands:  liveBrands,
+  };
+
+  // Product leaderboard — derived from feed but only re-ranks on productTicks (slower cadence).
+  // Counts how many times each LIVE_CATALOG product appears in the recent feed window.
+  const productsRanked = (() => {
+    void productTicks;   // re-evaluate on slow tick
+    const counts = feed.reduce((acc, tx) => {
+      acc[tx.product] = (acc[tx.product] ?? 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    return LIVE_CATALOG
+      .map(p => ({ ...p, count: counts[p.product] ?? 0 }))
+      .sort((a, b) => b.count - a.count);
+  })();
 
   return (
     <div className="space-y-8 pb-12">
@@ -224,7 +253,7 @@ export default function AgenticCommerceOverview() {
           <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full border"
             style={{ background: V.accentBg, borderColor: V.accentBorder, color: V.accent }}>
             <Cpu className="w-3 h-3" />
-            Layer 3 · Agentic Commerce
+            Agentic Commerce · Live
           </span>
           <span className="flex items-center gap-1.5 text-xs text-ink-3">
             <PulseDot color="#1a7a4c" />
@@ -329,48 +358,58 @@ export default function AgenticCommerceOverview() {
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
 
-          {/* Left panel — transaction feed */}
+          {/* LEFT — Customer Agents (live transaction feed, 4 columns, fast tick) */}
           <div className="md:col-span-3 bg-surface border border-divider-light rounded-2xl shadow-elevation-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3 border-b border-divider-light">
-              <span className="text-xs font-semibold text-ink-2 uppercase tracking-wider">Product Agents</span>
-              <span className="text-[10px] text-ink-3 font-mono">{ticks} events</span>
+              <span className="text-xs font-semibold text-ink-2 uppercase tracking-wider">Customer Agents</span>
+              <span className="text-[10px] text-ink-3 font-mono tabular-nums">{fmt(agentsTotal)} agents · {ticks} events</span>
             </div>
 
-            {/* Column headers */}
-            <div className="grid grid-cols-[1fr_auto_auto_auto] gap-3 px-5 py-2 bg-canvas border-b border-divider-light text-[10px] font-semibold text-ink-3 uppercase tracking-wider">
+            {/* Column headers — Agent | Product | Amount | Status */}
+            <div className="grid grid-cols-[auto_1fr_auto_auto] gap-3 px-5 py-2 bg-canvas border-b border-divider-light text-[10px] font-semibold text-ink-3 uppercase tracking-wider">
+              <span>Agent</span>
               <span>Product</span>
-              <span className="text-right">Agent</span>
               <span className="text-right">Amount</span>
               <span className="text-right">Status</span>
             </div>
 
             <div className="divide-y divide-divider-light/50 overflow-hidden" style={{ maxHeight: 370 }}>
-              {feed.map((tx, i) => (
-                <div
-                  key={tx.id}
-                  className={`grid grid-cols-[1fr_auto_auto_auto] gap-3 px-5 py-2.5 items-center transition-all duration-300 ${
-                    i === 0 ? "bg-sage-bg/40 animate-fade-in" : "bg-surface hover:bg-canvas"
-                  }`}
-                  style={{ opacity: Math.max(0.45, 1 - i * 0.065) }}
-                >
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-ink truncate">{tx.product}</p>
-                    <p className="text-[10px] text-ink-3 font-mono mt-0.5 flex items-center gap-1.5">
-                      <span>{tx.ts}</span>
-                      <span>·</span>
-                      <BrandLogoByName name={tx.brand} size={12} />
-                      <span className="text-ink-2 font-sans">{tx.brand}</span>
-                    </p>
+              {feed.map((tx, i) => {
+                const ca = CUSTOMER_AGENT_BY_KEY[tx.agentKey];
+                return (
+                  <div
+                    key={tx.id}
+                    className={`grid grid-cols-[auto_1fr_auto_auto] gap-3 px-5 py-2.5 items-center transition-all duration-300 ${
+                      i === 0 ? "bg-sage-bg/40 animate-fade-in" : "bg-surface hover:bg-canvas"
+                    }`}
+                    style={{ opacity: Math.max(0.45, 1 - i * 0.065) }}
+                  >
+                    <div className="min-w-0">
+                      <AgentBadge agentKey={tx.agentKey} />
+                      {ca && (
+                        <p className="text-[10px] text-ink-3 font-mono mt-0.5 whitespace-nowrap">
+                          {ca.region}
+                        </p>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-ink truncate">{tx.product}</p>
+                      <p className="text-[10px] text-ink-3 font-mono mt-0.5 flex items-center gap-1.5">
+                        <span>{tx.ts}</span>
+                        <span>·</span>
+                        <BrandLogoByName name={tx.brand} size={12} />
+                        <span className="text-ink-2 font-sans">{tx.brand}</span>
+                      </p>
+                    </div>
+                    <span className="text-xs font-mono font-semibold text-ink tabular-nums text-right">
+                      ${fmt(tx.amount, 2)}
+                    </span>
+                    <span className="flex justify-end">
+                      <StatusPill status={tx.status} />
+                    </span>
                   </div>
-                  <AgentBadge agentKey={tx.agentKey} />
-                  <span className="text-xs font-mono font-semibold text-ink tabular-nums text-right">
-                    ${fmt(tx.amount, 2)}
-                  </span>
-                  <span className="flex justify-end">
-                    <StatusPill status={tx.status} />
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="px-5 py-2.5 border-t border-divider-light bg-canvas flex items-center justify-end">
@@ -381,51 +420,55 @@ export default function AgenticCommerceOverview() {
             </div>
           </div>
 
-          {/* Right panel — Customer Agents list (mirrors left panel structure, no bars) */}
+          {/* RIGHT — Product Agents (single Product column, slower tick, deep-red #1) */}
           <div className="md:col-span-2 bg-surface border border-divider-light rounded-2xl shadow-elevation-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3 border-b border-divider-light">
-              <span className="text-xs font-semibold text-ink-2 uppercase tracking-wider">Customer Agents</span>
-              <span className="text-[10px] text-ink-3 font-mono tabular-nums">{fmt(agentsTotal)} agents</span>
+              <span className="text-xs font-semibold text-ink-2 uppercase tracking-wider">Product Agents</span>
+              <span className="text-[10px] text-ink-3 font-mono tabular-nums">{LIVE_CATALOG.length} products</span>
             </div>
 
-            {/* Column headers — match left panel */}
-            <div className="grid grid-cols-[1fr_auto] gap-3 px-5 py-2 bg-canvas border-b border-divider-light text-[10px] font-semibold text-ink-3 uppercase tracking-wider">
-              <span>Agent</span>
-              <span className="text-right">Events</span>
+            {/* Column header — single Product column */}
+            <div className="grid grid-cols-[1fr] gap-3 px-5 py-2 bg-canvas border-b border-divider-light text-[10px] font-semibold text-ink-3 uppercase tracking-wider">
+              <span>Product</span>
             </div>
 
             <div className="divide-y divide-divider-light/50 overflow-hidden" style={{ maxHeight: 370 }}>
-              {customerAgentsRanked.map((a) => {
-                const Icon = a.meta.Icon;
+              {productsRanked.map((p, idx) => {
+                const isTop = idx === 0;
+                const DEEP_RED    = "#991B1B";   // tailwind red-800
+                const DEEP_RED_BG = "rgba(153, 27, 27, 0.14)";
                 return (
                   <div
-                    key={a.key}
-                    className="grid grid-cols-[1fr_auto] gap-3 px-5 py-2.5 items-center bg-surface hover:bg-canvas transition-colors"
+                    key={p.product}
+                    className={`flex items-center gap-3 transition-all duration-500 border-l-[4px] ${
+                      isTop
+                        ? "py-3 pl-[16px] pr-5"
+                        : "py-2.5 pl-5 pr-5 border-l-transparent bg-surface hover:bg-canvas"
+                    }`}
+                    style={isTop ? {
+                      borderLeftColor: DEEP_RED,
+                      backgroundColor: DEEP_RED_BG,
+                    } : undefined}
                   >
-                    <div className="min-w-0">
-                      <span
-                        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap"
-                        style={{ backgroundColor: a.meta.bg, color: a.meta.color }}
+                    <BrandLogoByName name={p.brand} size={14} />
+                    <div className="min-w-0 flex-1">
+                      <p
+                        className={`font-medium truncate ${isTop ? "text-sm" : "text-xs text-ink"}`}
+                        style={isTop ? { color: DEEP_RED } : undefined}
                       >
-                        <Icon className="w-3 h-3 flex-shrink-0" />
-                        <span>{a.name}</span>
-                      </span>
-                      <p className="text-[10px] text-ink-3 font-mono mt-0.5 whitespace-nowrap">
-                        {a.region}
+                        {p.product}
                       </p>
+                      <p className="text-[10px] text-ink-3 mt-0.5 whitespace-nowrap">{p.brand}</p>
                     </div>
-                    <span className="text-xs font-mono font-semibold text-ink tabular-nums text-right">
-                      {a.count}
-                    </span>
                   </div>
                 );
               })}
             </div>
 
             <div className="px-5 py-2.5 border-t border-divider-light bg-canvas flex items-center justify-end">
-              <Link href="/dashboard/agentic-commerce/integration?role=consumer"
+              <Link href="/dashboard/agentic-commerce/integration?role=brand"
                 className="text-[11px] text-ink-2 hover:text-ink flex items-center gap-1 transition-colors">
-                Browse all agents <ChevronRight className="w-3 h-3" />
+                Browse all brands <ChevronRight className="w-3 h-3" />
               </Link>
             </div>
           </div>
@@ -478,7 +521,7 @@ export default function AgenticCommerceOverview() {
           <div>
             <h2 className="font-semibold text-ink flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-ink-2" />
-              Why {fmt(metrics.queries - metrics.commits)} queries didn&apos;t convert
+              Why queries don&apos;t convert
             </h2>
             <p className="text-xs text-ink-3 mt-0.5">Actionable failure breakdown — optimize these to lift GMV</p>
           </div>
@@ -523,8 +566,8 @@ export default function AgenticCommerceOverview() {
               <ChevronRight className="w-4 h-4 text-ink-3 group-hover:translate-x-0.5 transition-transform" />
             </div>
             <div>
-              <div className="font-semibold text-ink text-sm">I&apos;m a brand</div>
-              <div className="text-xs text-ink-3 mt-0.5">Open my catalog to Consumer Agents</div>
+              <div className="font-semibold text-ink text-sm">Product Agents Configuration</div>
+              <div className="text-xs text-ink-3 mt-0.5">Expose your catalog to Consumer Agents</div>
             </div>
             <p className="text-xs text-ink-2 leading-relaxed">
               Expose your catalog as a Brand Agent. Consumer Agents across WhatsApp, Phone OS,
@@ -546,7 +589,7 @@ export default function AgenticCommerceOverview() {
               <ChevronRight className="w-4 h-4 text-ink-3 group-hover:translate-x-0.5 transition-transform" />
             </div>
             <div>
-              <div className="font-semibold text-ink text-sm">I build Consumer Agents</div>
+              <div className="font-semibold text-ink text-sm">Customer Agents Configuration</div>
               <div className="text-xs text-ink-3 mt-0.5">Connect to brand catalog network</div>
             </div>
             <p className="text-xs text-ink-2 leading-relaxed">
@@ -598,13 +641,29 @@ export default function AgenticCommerceOverview() {
             <div className="text-[10px] font-mono text-ink-3 uppercase tracking-wider">Inner Ring · Not our market</div>
             <div className="font-semibold text-ink text-sm">Shopping inside AI chat platforms</div>
             <p className="text-xs text-ink-2 leading-relaxed">
-              Claude / ChatGPT / Perplexity user asks for products → AI completes order in its
-              own walled garden. These platforms integrate with brands directly. No open Broker needed.
+              Users ask AI platforms for products — the platform completes the order in its own
+              walled garden. Brands integrate directly with each platform. No open broker needed.
             </p>
+            <div className="flex items-center gap-1.5 flex-wrap pt-1">
+              {[
+                { src: "/logos/openai.png",     name: "ChatGPT"    },
+                { src: "/logos/anthropic.png",  name: "Claude"     },
+                { src: "/logos/gemini.png",     name: "Gemini"     },
+                { src: "/logos/perplexity.png", name: "Perplexity" },
+                { src: "/logos/microsoft.png",  name: "Copilot"    },
+                { src: "/logos/grok.png",       name: "Grok"       },
+              ].map(p => (
+                <span key={p.name} className="inline-flex items-center gap-1 text-[10px] text-ink-3 bg-surface border border-divider-light rounded-full px-2 py-0.5">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={p.src} alt={p.name} width={12} height={12} className="object-contain rounded-sm" style={{ opacity: 0.8 }} />
+                  {p.name}
+                </span>
+              ))}
+            </div>
           </div>
           <div className="rounded-xl p-5 space-y-2 border-2"
-            style={{ background: V.accentBg, borderColor: V.accentBorder }}>
-            <div className="text-[10px] font-mono uppercase tracking-wider font-semibold" style={{ color: V.accent }}>
+            style={{ background: DR.accentBg, borderColor: DR.accentBorder }}>
+            <div className="text-[10px] font-mono uppercase tracking-wider font-semibold" style={{ color: DR.accent }}>
               Outer Ring · Alignment lives here
             </div>
             <div className="font-semibold text-ink text-sm">Consumer Agents outside any AI platform</div>
@@ -630,8 +689,8 @@ export default function AgenticCommerceOverview() {
             </Link>
           </div>
           <div className="rounded-xl p-4 space-y-1.5 border-2"
-            style={{ background: V.accentBg, borderColor: V.accentBorder }}>
-            <div className="font-mono uppercase tracking-wider text-[10px] font-semibold" style={{ color: V.accent }}>
+            style={{ background: DR.accentBg, borderColor: DR.accentBorder }}>
+            <div className="font-mono uppercase tracking-wider text-[10px] font-semibold" style={{ color: DR.accent }}>
               Layer 3 — Agentic Commerce · You&apos;re here
             </div>
             <div className="font-semibold text-ink">&quot;Be transacted with by Consumer Agents&quot;</div>
