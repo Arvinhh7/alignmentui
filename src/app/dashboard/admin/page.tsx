@@ -323,7 +323,11 @@ function TokenManagement() {
   const [newLabel, setNewLabel] = useState('')
   const [creating, setCreating] = useState(false)
   const [newToken, setNewToken] = useState<string | null>(null)
-  const [expandedToken, setExpandedToken] = useState<string | null>(null)
+  // Search & filter
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'revoked'>('all')
+  // Row detail panel
+  const [selectedToken, setSelectedToken] = useState<string | null>(null)
 
   const showFeedback = (type: 'success' | 'error', text: string) => {
     setFeedback({ type, text })
@@ -374,7 +378,8 @@ function TokenManagement() {
     try {
       const res = await fetch(`${API_BASE}/api/admin/proxy-tokens/${token}`, { method: 'DELETE' })
       if (!res.ok) throw new Error(await res.text())
-      showFeedback('success', `Token revoked.`)
+      showFeedback('success', 'Token revoked.')
+      setSelectedToken(null)
       await loadTokens()
     } catch (e: unknown) {
       showFeedback('error', `Revoke failed: ${(e as Error).message}`)
@@ -387,6 +392,19 @@ function TokenManagement() {
     insight: 'bg-ink text-ink-inv',
   }
 
+  // Filtered token list
+  const filteredTokens = tokens.filter(t => {
+    const q = searchQuery.toLowerCase()
+    const matchesSearch = !q ||
+      t.shop.toLowerCase().includes(q) ||
+      (t.label ?? '').toLowerCase().includes(q) ||
+      t.token.toLowerCase().includes(q)
+    const matchesStatus = statusFilter === 'all' || t.status === statusFilter
+    return matchesSearch && matchesStatus
+  })
+
+  const selectedDetails = tokens.find(t => t.token === selectedToken) ?? null
+
   return (
     <div className="space-y-6">
       {feedback && (
@@ -397,7 +415,7 @@ function TokenManagement() {
         }`}>{feedback.text}</div>
       )}
 
-      {/* New token revealed after creation */}
+      {/* New token banner */}
       {newToken && (
         <div className="bg-sage-bg border border-sage/30 rounded-xl p-4 space-y-2">
           <div className="flex items-center justify-between">
@@ -416,100 +434,197 @@ function TokenManagement() {
         <h2 className="text-lg font-semibold text-ink">New Client Token</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <input
-            placeholder="shop.myshopify.com"
+            placeholder="redmagic.gg"
             value={newShop} onChange={(e) => setNewShop(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             className="px-4 py-2.5 border border-divider rounded-xl text-sm focus:ring-2 focus:ring-ink/10 focus:border-ink outline-none"
           />
           <select value={newTier} onChange={(e) => setNewTier(e.target.value)}
             className="px-4 py-2.5 border border-divider rounded-xl text-sm focus:ring-2 focus:ring-ink/10 focus:border-ink outline-none bg-white">
             <option value="build">Build — 60 req/min (testing)</option>
-            <option value="optimize">Optimize — 600 req/min (standard client)</option>
+            <option value="optimize">Optimize — 600 req/min (standard)</option>
             <option value="insight">Insight — 1200 req/min (enterprise)</option>
           </select>
           <input
-            placeholder="Label (optional)"
+            placeholder="Label, e.g. RedMagic Phase 1"
             value={newLabel} onChange={(e) => setNewLabel(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             className="px-4 py-2.5 border border-divider rounded-xl text-sm focus:ring-2 focus:ring-ink/10 focus:border-ink outline-none"
           />
         </div>
         <button onClick={handleCreate} disabled={creating || !newShop.trim()}
           className="px-5 py-2.5 bg-ink text-ink-inv text-sm font-medium rounded-xl hover:bg-[#2d2d2c] disabled:opacity-50 transition-colors">
-          {creating ? 'Creating...' : 'Create Token'}
+          {creating ? 'Creating...' : '⚡ Create Token'}
         </button>
       </section>
 
       {/* Token table */}
       <section className="bg-surface rounded-2xl border border-divider p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-ink">All Tokens</h2>
-          <button onClick={loadTokens} disabled={loading}
-            className="text-xs text-ink-3 hover:text-ink transition-colors disabled:opacity-50">
-            {loading ? 'Loading...' : 'Refresh'}
-          </button>
+        {/* Header + search + filter */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-lg font-semibold text-ink">
+            All Tokens
+            {filteredTokens.length !== tokens.length && (
+              <span className="ml-2 text-sm font-normal text-ink-3">
+                ({filteredTokens.length} / {tokens.length})
+              </span>
+            )}
+          </h2>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Search shop, label, token…"
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setSelectedToken(null) }}
+              className="px-3 py-1.5 border border-divider rounded-lg text-xs focus:ring-2 focus:ring-ink/10 focus:border-ink outline-none w-48"
+            />
+            <div className="flex rounded-lg border border-divider overflow-hidden text-xs font-medium">
+              {(['all', 'active', 'revoked'] as const).map(s => (
+                <button
+                  key={s}
+                  onClick={() => { setStatusFilter(s); setSelectedToken(null) }}
+                  className={`px-3 py-1.5 capitalize transition-colors ${
+                    statusFilter === s ? 'bg-ink text-ink-inv' : 'text-ink-3 hover:bg-surface-warm'
+                  }`}
+                >{s}</button>
+              ))}
+            </div>
+            <button onClick={loadTokens} disabled={loading}
+              className="text-xs text-ink-3 hover:text-ink transition-colors disabled:opacity-50 px-2">
+              {loading ? '…' : '↻'}
+            </button>
+          </div>
         </div>
 
-        {tokens.length === 0 && !loading ? (
-          <p className="text-sm text-ink-3">No tokens found.</p>
+        {filteredTokens.length === 0 && !loading ? (
+          <p className="text-sm text-ink-3">
+            {searchQuery || statusFilter !== 'all' ? 'No tokens match your search.' : 'No tokens found.'}
+          </p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-divider">
+          <div className="rounded-xl border border-divider overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-canvas">
                 <tr>
-                  {['Token', 'Shop', 'Tier', 'Label', 'Created', 'Status', ''].map((h) => (
-                    <th key={h} className="text-left px-4 py-3 text-ink-3 font-medium whitespace-nowrap">{h}</th>
+                  {['Shop / Label', 'Tier', 'Status', 'Created', ''].map((h) => (
+                    <th key={h} className="text-left px-4 py-3 text-ink-3 font-medium whitespace-nowrap text-xs">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-divider-light">
-                {tokens.map((t) => (
-                  <>
-                    <tr key={t.token} className={`hover:bg-surface-warm ${t.status === 'revoked' ? 'opacity-40' : ''}`}>
-                      {/* Token — expandable */}
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <code className="font-mono text-xs text-ink-3">
-                            {expandedToken === t.token ? t.token : `${t.token.slice(0, 20)}…`}
-                          </code>
-                          <CopyButton value={t.token} size="xs" />
-                          <button
-                            onClick={() => setExpandedToken(expandedToken === t.token ? null : t.token)}
-                            className="text-[10px] text-ink-3 hover:text-ink underline"
-                          >
-                            {expandedToken === t.token ? 'hide' : 'show'}
-                          </button>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-ink text-xs whitespace-nowrap">{t.shop}</td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${tierColors[t.tier] ?? 'bg-surface-warm text-ink-2'}`}>
-                          {t.tier}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-ink-3 text-xs">{t.label || '—'}</td>
-                      <td className="px-4 py-3 text-ink-3 text-xs whitespace-nowrap">
-                        {new Date(t.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                          t.status === 'active' ? 'bg-sage-bg text-sage' : 'bg-red-soft-bg text-red-soft'
-                        }`}>{t.status}</span>
-                      </td>
-                      <td className="px-4 py-3">
-                        {t.status === 'active' && (
-                          <button onClick={() => handleRevoke(t.token, t.shop)}
-                            className="text-xs text-red-soft hover:underline">
-                            Revoke
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  </>
-                ))}
+                {filteredTokens.map((t) => {
+                  const isSelected = selectedToken === t.token
+                  return (
+                    <>
+                      {/* ── Main row — click to expand ── */}
+                      <tr
+                        key={t.token}
+                        onClick={() => setSelectedToken(isSelected ? null : t.token)}
+                        className={`cursor-pointer transition-colors ${
+                          isSelected
+                            ? 'bg-canvas border-l-2 border-l-ink'
+                            : t.status === 'revoked'
+                              ? 'opacity-40 hover:bg-surface-warm'
+                              : 'hover:bg-surface-warm'
+                        }`}
+                      >
+                        <td className="px-4 py-3">
+                          <p className="text-xs font-semibold text-ink">{t.shop}</p>
+                          {t.label && <p className="text-[11px] text-ink-3 mt-0.5">{t.label}</p>}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${tierColors[t.tier] ?? 'bg-surface-warm text-ink-2'}`}>
+                            {t.tier}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                            t.status === 'active' ? 'bg-sage-bg text-sage' : 'bg-red-soft-bg text-red-soft'
+                          }`}>{t.status}</span>
+                        </td>
+                        <td className="px-4 py-3 text-ink-3 text-xs whitespace-nowrap">
+                          {new Date(t.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3 text-ink-3 text-xs text-right pr-4">
+                          {isSelected ? '▲' : '▼'}
+                        </td>
+                      </tr>
+
+                      {/* ── Detail panel — shown when row is selected ── */}
+                      {isSelected && (
+                        <tr key={`${t.token}-detail`}>
+                          <td colSpan={5} className="px-4 py-4 bg-canvas border-l-2 border-l-ink">
+                            <div className="space-y-3">
+                              {/* Token row */}
+                              <div className="flex items-center gap-3 bg-surface rounded-xl px-4 py-3 border border-divider-light">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[10px] text-ink-3 font-semibold tracking-wide mb-1">API TOKEN</p>
+                                  <code className="text-xs font-mono text-ink break-all select-all">{t.token}</code>
+                                </div>
+                                <CopyButton value={t.token} size="sm" />
+                              </div>
+
+                              {/* Info grid */}
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                {[
+                                  { label: 'SHOP', value: t.shop },
+                                  { label: 'TIER', value: t.tier },
+                                  { label: 'LABEL', value: t.label || '—' },
+                                  { label: 'CREATED', value: new Date(t.created_at).toLocaleString() },
+                                ].map(({ label, value }) => (
+                                  <div key={label} className="bg-surface rounded-xl px-3 py-2.5 border border-divider-light">
+                                    <p className="text-[10px] text-ink-3 font-semibold tracking-wide">{label}</p>
+                                    <p className="text-xs text-ink mt-0.5 font-medium">{value}</p>
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* Revoked info */}
+                              {t.revoked_at && (
+                                <p className="text-xs text-red-soft">
+                                  Revoked at: {new Date(t.revoked_at).toLocaleString()}
+                                </p>
+                              )}
+
+                              {/* Actions */}
+                              <div className="flex gap-2 pt-1">
+                                {t.status === 'active' && (
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleRevoke(t.token, t.shop) }}
+                                    className="px-4 py-2 text-xs font-medium text-red-soft border border-red-soft/30 rounded-xl hover:bg-red-soft-bg transition-colors"
+                                  >
+                                    Revoke Token
+                                  </button>
+                                )}
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setSelectedToken(null) }}
+                                  className="px-4 py-2 text-xs font-medium text-ink-3 border border-divider-light rounded-xl hover:bg-surface-warm transition-colors"
+                                >
+                                  Close
+                                </button>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
+                  )
+                })}
               </tbody>
             </table>
           </div>
         )}
       </section>
+
+      {/* Detail panel (floating, shown when nothing is in table view) */}
+      {selectedDetails && filteredTokens.length === 0 && (
+        <section className="bg-surface rounded-2xl border border-divider p-6 space-y-3">
+          <p className="text-sm font-semibold text-ink">{selectedDetails.shop}</p>
+          <div className="flex items-center gap-3 bg-canvas rounded-xl px-4 py-3 border border-divider-light">
+            <code className="flex-1 text-xs font-mono text-ink break-all select-all">{selectedDetails.token}</code>
+            <CopyButton value={selectedDetails.token} size="sm" />
+          </div>
+        </section>
+      )}
     </div>
   )
 }
