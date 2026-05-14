@@ -164,7 +164,7 @@ export function MetricCard({ icon, label, value, subtitle, color, bgColor, trend
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${bgColor}`}>{icon}</div>
         {trend && trend.delta !== 0 && (
           <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${trend.delta > 0 ? 'bg-sage-bg text-sage' : 'bg-red-soft-bg text-red-soft'}`}>
-            {trend.delta > 0 ? '\u2191' : '\u2193'} {Math.abs(trend.delta)}{trend.label}
+            {trend.delta > 0 ? '\u2191' : '\u2193'} {parseFloat(Math.abs(trend.delta).toFixed(1))}{trend.label}
           </span>
         )}
       </div>
