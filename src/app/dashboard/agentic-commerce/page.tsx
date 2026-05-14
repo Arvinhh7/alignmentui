@@ -175,9 +175,10 @@ function AgentBadge({ agentKey }: { agentKey: string }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function AgenticCommerceOverview() {
-  const [feed, setFeed]       = useState<TxItem[]>([]);
-  const [ticks, setTicks]     = useState(0);
-  const [live, setLive]       = useState(true);
+  const [feed, setFeed]               = useState<TxItem[]>([]);
+  const [ticks, setTicks]             = useState(0);
+  const [agentsTotal, setAgentsTotal] = useState(1247);   // active Customer Agent instances across the network
+  const [live, setLive]               = useState(true);
   const idRef = useRef(1);
 
   // Seed feed
@@ -186,12 +187,14 @@ export default function AgenticCommerceOverview() {
     setFeed(initial);
   }, []);
 
-  // Live ticker
+  // Live ticker — events tick by 1, agentsTotal by 1–3 each cycle
+  // (7 categories × thousands of instances each = active fleet that dwarfs the Live window)
   useEffect(() => {
     if (!live) return;
     const id = setInterval(() => {
       setTicks(t => t + 1);
       setFeed(prev => [mkTx(idRef.current++), ...prev].slice(0, 7));
+      setAgentsTotal(n => n + 1 + Math.floor(Math.random() * 3));   // +1 to +3
     }, 2800);
     return () => clearInterval(id);
   }, [live]);
@@ -204,17 +207,12 @@ export default function AgenticCommerceOverview() {
     acc[tx.agentKey] = (acc[tx.agentKey] ?? 0) + 1;
     return acc;
   }, {} as Record<string, number>);
-  const maxAgentCount = Math.max(...Object.values(agentCounts), 1);
   const customerAgentsRanked = CUSTOMER_AGENTS
-    .map(ca => {
-      const count = agentCounts[ca.key] ?? 0;
-      return {
-        ...ca,
-        count,
-        pct: Math.round((count / maxAgentCount) * 100),
-        meta: AGENT_META[ca.surface],
-      };
-    })
+    .map(ca => ({
+      ...ca,
+      count: agentCounts[ca.key] ?? 0,
+      meta: AGENT_META[ca.surface],
+    }))
     .sort((a, b) => b.count - a.count);
 
   return (
@@ -383,43 +381,52 @@ export default function AgenticCommerceOverview() {
             </div>
           </div>
 
-          {/* Right panel — Consumer Agent breakdown (dual-label, live-synced from feed) */}
+          {/* Right panel — Customer Agents list (mirrors left panel structure, no bars) */}
           <div className="md:col-span-2 bg-surface border border-divider-light rounded-2xl shadow-elevation-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3 border-b border-divider-light">
               <span className="text-xs font-semibold text-ink-2 uppercase tracking-wider">Customer Agents</span>
-              <span className="text-[10px] text-ink-3 font-mono">{customerAgentsRanked.length} agents</span>
+              <span className="text-[10px] text-ink-3 font-mono tabular-nums">{fmt(agentsTotal)} agents</span>
             </div>
-            <div className="p-5 space-y-3">
-              {customerAgentsRanked.every(a => a.count === 0) ? (
-                <p className="text-xs text-ink-3 text-center py-4 animate-pulse">Waiting for feed data…</p>
-              ) : (
-                customerAgentsRanked.map((a) => {
-                  const Icon = a.meta.Icon;
-                  return (
-                    <div key={a.key} className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span
-                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium shrink-0"
-                            style={{ backgroundColor: a.meta.bg, color: a.meta.color }}
-                          >
-                            <Icon className="w-3 h-3 flex-shrink-0" />
-                            {a.name}
-                          </span>
-                          <span className="text-[10px] text-ink-3 whitespace-nowrap">{a.region}</span>
-                        </div>
-                        <span className="text-xs font-mono font-semibold text-ink tabular-nums">{a.count}</span>
-                      </div>
-                      <div className="h-1.5 bg-surface-warm rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-700"
-                          style={{ width: `${a.pct}%`, backgroundColor: a.meta.color }}
-                        />
-                      </div>
+
+            {/* Column headers — match left panel */}
+            <div className="grid grid-cols-[1fr_auto] gap-3 px-5 py-2 bg-canvas border-b border-divider-light text-[10px] font-semibold text-ink-3 uppercase tracking-wider">
+              <span>Agent</span>
+              <span className="text-right">Events</span>
+            </div>
+
+            <div className="divide-y divide-divider-light/50 overflow-hidden" style={{ maxHeight: 370 }}>
+              {customerAgentsRanked.map((a) => {
+                const Icon = a.meta.Icon;
+                return (
+                  <div
+                    key={a.key}
+                    className="grid grid-cols-[1fr_auto] gap-3 px-5 py-2.5 items-center bg-surface hover:bg-canvas transition-colors"
+                  >
+                    <div className="min-w-0">
+                      <span
+                        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap"
+                        style={{ backgroundColor: a.meta.bg, color: a.meta.color }}
+                      >
+                        <Icon className="w-3 h-3 flex-shrink-0" />
+                        <span>{a.name}</span>
+                      </span>
+                      <p className="text-[10px] text-ink-3 font-mono mt-0.5 whitespace-nowrap">
+                        {a.region}
+                      </p>
                     </div>
-                  );
-                })
-              )}
+                    <span className="text-xs font-mono font-semibold text-ink tabular-nums text-right">
+                      {a.count}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="px-5 py-2.5 border-t border-divider-light bg-canvas flex items-center justify-end">
+              <Link href="/dashboard/agentic-commerce/integration?role=consumer"
+                className="text-[11px] text-ink-2 hover:text-ink flex items-center gap-1 transition-colors">
+                Browse all agents <ChevronRight className="w-3 h-3" />
+              </Link>
             </div>
           </div>
         </div>
