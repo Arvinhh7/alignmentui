@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { Copy, CheckCheck } from 'lucide-react'
 import { api, CreditBalance } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -297,15 +298,32 @@ function UserManagement() {
 
 // ── Token Management tab ──────────────────────────────────────────────────────
 
+function CopyButton({ value, size = 'sm' }: { value: string; size?: 'xs' | 'sm' }) {
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    navigator.clipboard.writeText(value).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+  const cls = size === 'xs' ? 'w-3 h-3' : 'w-3.5 h-3.5'
+  return (
+    <button onClick={copy} title="Copy" className="inline-flex items-center gap-1 text-ink-3 hover:text-ink transition-colors">
+      {copied ? <CheckCheck className={`${cls} text-sage`} /> : <Copy className={cls} />}
+    </button>
+  )
+}
+
 function TokenManagement() {
   const [tokens, setTokens] = useState<ProxyToken[]>([])
   const [loading, setLoading] = useState(false)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [newShop, setNewShop] = useState('')
-  const [newTier, setNewTier] = useState('build')
+  const [newTier, setNewTier] = useState('optimize')
   const [newLabel, setNewLabel] = useState('')
   const [creating, setCreating] = useState(false)
   const [newToken, setNewToken] = useState<string | null>(null)
+  const [expandedToken, setExpandedToken] = useState<string | null>(null)
 
   const showFeedback = (type: 'success' | 'error', text: string) => {
     setFeedback({ type, text })
@@ -381,9 +399,15 @@ function TokenManagement() {
 
       {/* New token revealed after creation */}
       {newToken && (
-        <div className="bg-sage-bg border border-sage/30 rounded-xl p-4 space-y-1">
-          <p className="text-xs font-semibold text-sage">Token created — copy now, it won't be shown again</p>
-          <code className="block text-sm font-mono text-ink break-all select-all">{newToken}</code>
+        <div className="bg-sage-bg border border-sage/30 rounded-xl p-4 space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold text-sage">Token created — copy and send to client</p>
+            <span className="text-xs text-sage/70">Always retrievable from the table below</span>
+          </div>
+          <div className="flex items-center gap-3 bg-white/60 rounded-lg px-3 py-2">
+            <code className="flex-1 text-sm font-mono text-ink break-all select-all">{newToken}</code>
+            <CopyButton value={newToken} size="sm" />
+          </div>
         </div>
       )}
 
@@ -398,9 +422,9 @@ function TokenManagement() {
           />
           <select value={newTier} onChange={(e) => setNewTier(e.target.value)}
             className="px-4 py-2.5 border border-divider rounded-xl text-sm focus:ring-2 focus:ring-ink/10 focus:border-ink outline-none bg-white">
-            <option value="build">Build (60 req/min)</option>
-            <option value="optimize">Optimize (600 req/min)</option>
-            <option value="insight">Insight (1200 req/min)</option>
+            <option value="build">Build — 60 req/min (testing)</option>
+            <option value="optimize">Optimize — 600 req/min (standard client)</option>
+            <option value="insight">Insight — 1200 req/min (enterprise)</option>
           </select>
           <input
             placeholder="Label (optional)"
@@ -438,34 +462,48 @@ function TokenManagement() {
               </thead>
               <tbody className="divide-y divide-divider-light">
                 {tokens.map((t) => (
-                  <tr key={t.token} className={`hover:bg-surface-warm ${t.status === 'revoked' ? 'opacity-40' : ''}`}>
-                    <td className="px-4 py-3 font-mono text-xs text-ink-3 whitespace-nowrap">
-                      {t.token.slice(0, 16)}…
-                    </td>
-                    <td className="px-4 py-3 text-ink text-xs whitespace-nowrap">{t.shop}</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${tierColors[t.tier] ?? 'bg-surface-warm text-ink-2'}`}>
-                        {t.tier}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-ink-3 text-xs">{t.label || '—'}</td>
-                    <td className="px-4 py-3 text-ink-3 text-xs whitespace-nowrap">
-                      {new Date(t.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                        t.status === 'active' ? 'bg-sage-bg text-sage' : 'bg-red-soft-bg text-red-soft'
-                      }`}>{t.status}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      {t.status === 'active' && (
-                        <button onClick={() => handleRevoke(t.token, t.shop)}
-                          className="text-xs text-red-soft hover:underline">
-                          Revoke
-                        </button>
-                      )}
-                    </td>
-                  </tr>
+                  <>
+                    <tr key={t.token} className={`hover:bg-surface-warm ${t.status === 'revoked' ? 'opacity-40' : ''}`}>
+                      {/* Token — expandable */}
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <code className="font-mono text-xs text-ink-3">
+                            {expandedToken === t.token ? t.token : `${t.token.slice(0, 20)}…`}
+                          </code>
+                          <CopyButton value={t.token} size="xs" />
+                          <button
+                            onClick={() => setExpandedToken(expandedToken === t.token ? null : t.token)}
+                            className="text-[10px] text-ink-3 hover:text-ink underline"
+                          >
+                            {expandedToken === t.token ? 'hide' : 'show'}
+                          </button>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-ink text-xs whitespace-nowrap">{t.shop}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${tierColors[t.tier] ?? 'bg-surface-warm text-ink-2'}`}>
+                          {t.tier}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-ink-3 text-xs">{t.label || '—'}</td>
+                      <td className="px-4 py-3 text-ink-3 text-xs whitespace-nowrap">
+                        {new Date(t.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                          t.status === 'active' ? 'bg-sage-bg text-sage' : 'bg-red-soft-bg text-red-soft'
+                        }`}>{t.status}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {t.status === 'active' && (
+                          <button onClick={() => handleRevoke(t.token, t.shop)}
+                            className="text-xs text-red-soft hover:underline">
+                            Revoke
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  </>
                 ))}
               </tbody>
             </table>
