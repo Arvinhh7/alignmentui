@@ -34,14 +34,22 @@ const MOCK_METRICS = {
   },
 };
 
-// Operator name map — keys match mkTx() agent values; used in Consumer Agent Sources panel.
-const AGENT_OPERATOR: Record<string, { operator: string; emoji: string; color: string }> = {
-  "WhatsApp Bot": { operator: "Acme Inc. (demo)",     emoji: "💬",  color: "#1a7a4c" },
-  "Phone OS":     { operator: "Mobile Vendor (demo)", emoji: "📱",  color: "#6D4AE8" },
-  "Voice":        { operator: "VoiceAI Co. (demo)",   emoji: "🎙️", color: "#d9a85c" },
-  "Fashion AI":   { operator: "FashionAI YC (demo)",  emoji: "👗",  color: "#B5453A" },
-  "Custom":       { operator: "Third-party",           emoji: "🔧",  color: "#9E9484" },
-};
+// Customer Agent registry — 7 named agents (no "demo" suffix) across 5 surfaces and 6 countries.
+// Surface = integration channel (encoded in badge color/icon). Region = primary market (shown as secondary label).
+type Surface = "WhatsApp Bot" | "Phone OS" | "Voice" | "Fashion AI" | "Custom";
+
+const CUSTOMER_AGENTS: { key: string; name: string; surface: Surface; region: string }[] = [
+  { key: "rufus",           name: "Rufus",           surface: "WhatsApp Bot", region: "🇺🇸 US"     },
+  { key: "mila",            name: "Mila Shopping",   surface: "WhatsApp Bot", region: "🇲🇽 Mexico" },
+  { key: "chatloop",        name: "ChatLoop",         surface: "WhatsApp Bot", region: "🇮🇳 India"  },
+  { key: "hayl",            name: "Hayl",            surface: "Voice",        region: "🇺🇸 US"     },
+  { key: "stylr",           name: "Stylr AI",        surface: "Fashion AI",   region: "🇫🇷 France" },
+  { key: "pixel-concierge", name: "Pixel Concierge", surface: "Phone OS",     region: "🇯🇵 Japan"  },
+  { key: "kartly",          name: "Kartly AI",       surface: "Phone OS",     region: "🇰🇷 Korea"  },
+];
+
+const CUSTOMER_AGENT_BY_KEY: Record<string, typeof CUSTOMER_AGENTS[number]> =
+  Object.fromEntries(CUSTOMER_AGENTS.map(ca => [ca.key, ca]));
 
 const PROTOCOL_STEPS = [
   { icon: Shield,       id: "01", title: "Identity",   sub: "Agent presents signed credentials",    color: "#1a7a4c" },
@@ -68,21 +76,20 @@ const LIVE_CATALOG: { product: string; brand: string }[] = [
 // Brand names used in the live feed (must match BRAND_META keys in shared BrandLogo component)
 
 
-// Consumer Agent icon + tint map for the Live Feed agent column.
-// Keys match the values in mkTx() so the icon resolves at render time.
-const AGENT_META: Record<string, { Icon: typeof MessageCircle; color: string; bg: string }> = {
-  "WhatsApp Bot": { Icon: MessageCircle, color: "#1a7a4c",  bg: "rgba(26,122,76,0.10)"  },
-  "Phone OS":     { Icon: Smartphone,    color: "#6D4AE8",  bg: "rgba(109,74,232,0.10)" },
-  "Voice":        { Icon: Mic2,          color: "#d9a85c",  bg: "rgba(217,168,92,0.10)" },
-  "Fashion AI":   { Icon: Shirt,         color: "#B5453A",  bg: "rgba(181,69,58,0.10)"  },
-  "Custom":       { Icon: Wrench,        color: "#9E9484",  bg: "rgba(158,148,132,0.10)"},
+// Surface-level icon + tint (controls badge appearance in Live Feed + sort emoji in Customer Agents).
+const AGENT_META: Record<Surface, { Icon: typeof MessageCircle; color: string; bg: string; emoji: string }> = {
+  "WhatsApp Bot": { Icon: MessageCircle, color: "#1a7a4c",  bg: "rgba(26,122,76,0.10)",  emoji: "💬"  },
+  "Phone OS":     { Icon: Smartphone,    color: "#6D4AE8",  bg: "rgba(109,74,232,0.10)", emoji: "📱"  },
+  "Voice":        { Icon: Mic2,          color: "#d9a85c",  bg: "rgba(217,168,92,0.10)", emoji: "🎙️" },
+  "Fashion AI":   { Icon: Shirt,         color: "#B5453A",  bg: "rgba(181,69,58,0.10)",  emoji: "👗"  },
+  "Custom":       { Icon: Wrench,        color: "#9E9484",  bg: "rgba(158,148,132,0.10)", emoji: "🔧" },
 };
 
 interface TxItem {
   id: number;
   product: string;
   amount: number;
-  agent: string;
+  agentKey: string;    // key into CUSTOMER_AGENT_BY_KEY
   brand: string;
   status: "commit" | "quote" | "query";
   ts: string;
@@ -90,8 +97,8 @@ interface TxItem {
 
 function mkTx(id: number): TxItem {
   const item    = LIVE_CATALOG[Math.floor(Math.random() * LIVE_CATALOG.length)];
+  const agent   = CUSTOMER_AGENTS[Math.floor(Math.random() * CUSTOMER_AGENTS.length)];
   const price   = Math.round((29 + Math.random() * 470) * 100) / 100;
-  const agents  = ["WhatsApp Bot", "Phone OS", "Voice", "Fashion AI", "Custom"];
   const weights = [0.26, 0.45, 0.29];
   let r = Math.random(), st: TxItem["status"] = "commit";
   if (r > weights[0] + weights[1]) st = "query";
@@ -100,12 +107,12 @@ function mkTx(id: number): TxItem {
   const s = `${now.getHours().toString().padStart(2,"0")}:${now.getMinutes().toString().padStart(2,"0")}:${now.getSeconds().toString().padStart(2,"0")}`;
   return {
     id,
-    product: item.product,
-    amount:  price,
-    agent:   agents[Math.floor(Math.random() * agents.length)],
-    brand:   item.brand,
-    status:  st,
-    ts:      s,
+    product:  item.product,
+    amount:   price,
+    agentKey: agent.key,
+    brand:    item.brand,
+    status:   st,
+    ts:       s,
   };
 }
 
@@ -149,22 +156,20 @@ function BrandLogoByName({ name, size = 14 }: { name: string; size?: number }) {
   return <BrandLogo brandId={name.toLowerCase().replace(/[\s.]/g, "")} name={name} size={size} />;
 }
 
-// Dual-label agent cell: operator name (colored badge, primary) + surface type (gray, secondary).
-function AgentBadge({ name }: { name: string }) {
-  const meta = AGENT_META[name] ?? AGENT_META["Custom"];
-  const op   = AGENT_OPERATOR[name] ?? { operator: name, emoji: "🤖", color: "#9E9484" };
+// Left-panel agent badge: name only (surface encoded in icon+color, region not shown here).
+function AgentBadge({ agentKey }: { agentKey: string }) {
+  const ca   = CUSTOMER_AGENT_BY_KEY[agentKey];
+  if (!ca) return null;
+  const meta = AGENT_META[ca.surface];
   const Icon = meta.Icon;
   return (
-    <div className="flex flex-col items-end gap-0.5">
-      <span
-        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap"
-        style={{ backgroundColor: meta.bg, color: meta.color }}
-      >
-        <Icon className="w-3 h-3 flex-shrink-0" />
-        <span>{op.operator}</span>
-      </span>
-      <span className="text-[10px] text-ink-3 whitespace-nowrap">{name}</span>
-    </div>
+    <span
+      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap"
+      style={{ backgroundColor: meta.bg, color: meta.color }}
+    >
+      <Icon className="w-3 h-3 flex-shrink-0" />
+      <span>{ca.name}</span>
+    </span>
   );
 }
 
@@ -193,21 +198,24 @@ export default function AgenticCommerceOverview() {
 
   const metrics = MOCK_METRICS;
 
-  // Derive top agents from live feed — updates every tick
+  // Customer Agents leaderboard — always exactly 7 entries (all registered agents),
+  // sorted by live activity from the feed.
   const agentCounts = feed.reduce((acc, tx) => {
-    acc[tx.agent] = (acc[tx.agent] ?? 0) + 1;
+    acc[tx.agentKey] = (acc[tx.agentKey] ?? 0) + 1;
     return acc;
   }, {} as Record<string, number>);
   const maxAgentCount = Math.max(...Object.values(agentCounts), 1);
-  const topAgents = Object.entries(agentCounts)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 7)
-    .map(([agent, count]) => ({
-      agent,
-      count,
-      pct: Math.round((count / maxAgentCount) * 100),
-      ...(AGENT_OPERATOR[agent] ?? { operator: agent, emoji: "🤖", color: "#9E9484" }),
-    }));
+  const customerAgentsRanked = CUSTOMER_AGENTS
+    .map(ca => {
+      const count = agentCounts[ca.key] ?? 0;
+      return {
+        ...ca,
+        count,
+        pct: Math.round((count / maxAgentCount) * 100),
+        meta: AGENT_META[ca.surface],
+      };
+    })
+    .sort((a, b) => b.count - a.count);
 
   return (
     <div className="space-y-8 pb-12">
@@ -326,7 +334,7 @@ export default function AgenticCommerceOverview() {
           {/* Left panel — transaction feed */}
           <div className="md:col-span-3 bg-surface border border-divider-light rounded-2xl shadow-elevation-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3 border-b border-divider-light">
-              <span className="text-xs font-semibold text-ink-2 uppercase tracking-wider">Transaction Feed</span>
+              <span className="text-xs font-semibold text-ink-2 uppercase tracking-wider">Product Agents</span>
               <span className="text-[10px] text-ink-3 font-mono">{ticks} events</span>
             </div>
 
@@ -356,7 +364,7 @@ export default function AgenticCommerceOverview() {
                       <span className="text-ink-2 font-sans">{tx.brand}</span>
                     </p>
                   </div>
-                  <AgentBadge name={tx.agent} />
+                  <AgentBadge agentKey={tx.agentKey} />
                   <span className="text-xs font-mono font-semibold text-ink tabular-nums text-right">
                     ${fmt(tx.amount, 2)}
                   </span>
@@ -378,33 +386,39 @@ export default function AgenticCommerceOverview() {
           {/* Right panel — Consumer Agent breakdown (dual-label, live-synced from feed) */}
           <div className="md:col-span-2 bg-surface border border-divider-light rounded-2xl shadow-elevation-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3 border-b border-divider-light">
-              <span className="text-xs font-semibold text-ink-2 uppercase tracking-wider">Agent Sources</span>
-              <span className="text-[10px] text-ink-3 font-mono">top {topAgents.length}</span>
+              <span className="text-xs font-semibold text-ink-2 uppercase tracking-wider">Customer Agents</span>
+              <span className="text-[10px] text-ink-3 font-mono">{customerAgentsRanked.length} agents</span>
             </div>
             <div className="p-5 space-y-3">
-              {topAgents.length === 0 ? (
+              {customerAgentsRanked.every(a => a.count === 0) ? (
                 <p className="text-xs text-ink-3 text-center py-4 animate-pulse">Waiting for feed data…</p>
               ) : (
-                topAgents.map((a) => (
-                  <div key={a.agent} className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-base leading-none">{a.emoji}</span>
-                        <div>
-                          <div className="text-xs font-medium text-ink leading-tight">{a.operator}</div>
-                          <div className="text-[10px] text-ink-3 leading-tight">{a.agent}</div>
+                customerAgentsRanked.map((a) => {
+                  const Icon = a.meta.Icon;
+                  return (
+                    <div key={a.key} className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium shrink-0"
+                            style={{ backgroundColor: a.meta.bg, color: a.meta.color }}
+                          >
+                            <Icon className="w-3 h-3 flex-shrink-0" />
+                            {a.name}
+                          </span>
+                          <span className="text-[10px] text-ink-3 whitespace-nowrap">{a.region}</span>
                         </div>
+                        <span className="text-xs font-mono font-semibold text-ink tabular-nums">{a.count}</span>
                       </div>
-                      <span className="text-xs font-mono font-semibold text-ink tabular-nums">{a.count}</span>
+                      <div className="h-1.5 bg-surface-warm rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-700"
+                          style={{ width: `${a.pct}%`, backgroundColor: a.meta.color }}
+                        />
+                      </div>
                     </div>
-                    <div className="h-1.5 bg-surface-warm rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-700"
-                        style={{ width: `${a.pct}%`, backgroundColor: a.color }}
-                      />
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
