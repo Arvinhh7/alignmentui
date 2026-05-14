@@ -39,10 +39,19 @@ export default function GMVTrendChart({ data, height = 280 }: { data: GMVPoint[]
     const commData = data.map(d => d.commission)
     const netData  = data.map(d => Math.max(0, d.gmv - d.commission)) // purple portion
 
-    // GMV cumulative growth from Day-1 baseline (always ≥ 0, monotonically rising)
-    const baseGMV = data.length > 0 ? data[0].gmv : 0
-    const growth  = data.map(d =>
-      baseGMV > 0 ? parseFloat(((d.gmv / baseGMV - 1) * 100).toFixed(1)) : 0
+    // Running cumulative GMV sum — always monotonically increasing
+    let cum = 0
+    const cumGMV = data.map(d => { cum += d.gmv; return cum })
+
+    // Use first non-zero cumulative point as the baseline (avoids div-by-zero on $0 early days)
+    const baseIdx = cumGMV.findIndex(v => v > 0)
+    const baseCum = baseIdx >= 0 ? cumGMV[baseIdx] : 0
+
+    // Growth = (cumGMV[i] / baseCum - 1) × 100 — starts at 0% when GMV first appears, rises from there
+    const growth = cumGMV.map((v, i) =>
+      baseCum > 0 && i >= baseIdx
+        ? parseFloat(((v / baseCum - 1) * 100).toFixed(1))
+        : 0
     )
 
     return {
@@ -74,7 +83,7 @@ export default function GMVTrendChart({ data, height = 280 }: { data: GMVPoint[]
               <span style="font-weight:600;color:#EAB308">$${commVal.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
             </div>
             <div style="font-size:11px;display:flex;justify-content:space-between;gap:16px;margin-top:2px">
-              <span style="opacity:0.7">GMV Growth</span>
+              <span style="opacity:0.7">Cumul. Growth</span>
               <span style="font-weight:600;color:#8B5CF6">+${growVal}%</span>
             </div>`
         },
