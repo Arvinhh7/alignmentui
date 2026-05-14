@@ -443,7 +443,7 @@ export default function PerformancePage() {
               <div className="flex items-start justify-between gap-2 flex-wrap">
                 <div>
                   <h2 className="font-semibold text-ink text-sm">Quote / Success volume</h2>
-                  <p className="text-ink-3 text-xs mt-0.5">Stacked bar = total Quoted (green = Success) · line = Success rate %</p>
+                  <p className="text-ink-3 text-xs mt-0.5">Stacked bar = total Quoted (green = Success) · line = Quoted growth rate vs Day 1</p>
                 </div>
                 <div className="flex items-center gap-1">
                   {([7, 30, 90, 0] as const).map((w) => (

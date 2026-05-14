@@ -18,7 +18,7 @@ export interface DailyPoint {
 const COLORS = {
   success:    '#1a7a4c',                   // green = Success (committed)
   noSale:     'rgba(153, 27, 27, 0.45)',   // muted red = Quoted but no sale
-  rate:       '#6D4AE8',                   // purple = Success-rate line
+  rate:       '#6D4AE8',                   // purple = Quoted growth line
   axis:       '#9E9484',
   axisText:   '#7a7568',
   grid:       'rgba(158, 148, 132, 0.18)',
@@ -32,7 +32,11 @@ export default function QuoteSuccessChart({ data, height = 280 }: { data: DailyP
     const dates    = data.map(d => d.date.slice(5))                            // MM-DD
     const success  = data.map(d => d.commits)
     const noSale   = data.map(d => Math.max(0, d.quotes - d.commits))
-    const rate     = data.map(d => d.quotes > 0 ? Math.round((d.commits / d.quotes) * 1000) / 10 : 0)
+    // Quoted cumulative growth rate from Day-1 baseline (always ≥ 0, monotonically rising)
+    const baseQuotes = data.length > 0 ? data[0].quotes : 0
+    const rate     = data.map(d =>
+      baseQuotes > 0 ? parseFloat(((d.quotes / baseQuotes - 1) * 100).toFixed(1)) : 0
+    )
 
     return {
       backgroundColor: 'transparent',
@@ -54,7 +58,7 @@ export default function QuoteSuccessChart({ data, height = 280 }: { data: DailyP
             <div style="display:flex;align-items:center;gap:6px;font-size:11px;margin-top:3px">
               <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${p.color}"></span>
               <span style="opacity:0.75">${p.seriesName}</span>
-              <span style="margin-left:auto;font-weight:600">${p.value}${p.seriesName === 'Success Rate' ? '%' : ''}</span>
+              <span style="margin-left:auto;font-weight:600">${p.seriesName === 'Quoted Growth' ? '+' + p.value + '%' : p.value}</span>
             </div>`).join('')
           return `
             <div style="font-weight:600;margin-bottom:4px">${date}</div>
@@ -72,7 +76,7 @@ export default function QuoteSuccessChart({ data, height = 280 }: { data: DailyP
         data: [
           { name: 'Success',          icon: 'rect' },
           { name: 'Quoted (no sale)', icon: 'rect' },
-          { name: 'Success Rate',     icon: 'roundRect' },
+          { name: 'Quoted Growth',    icon: 'roundRect' },
         ],
       },
       grid: { left: 36, right: 42, top: 28, bottom: 24 },
@@ -94,10 +98,9 @@ export default function QuoteSuccessChart({ data, height = 280 }: { data: DailyP
         {
           type: 'value',
           name: '',
-          max: 100,
           min: 0,
           axisLine:  { show: false },
-          axisLabel: { color: COLORS.axisText, fontSize: 10, formatter: '{value}%' },
+          axisLabel: { color: COLORS.axisText, fontSize: 10, formatter: '+{value}%' },
           splitLine: { show: false },
         },
       ],
@@ -118,7 +121,7 @@ export default function QuoteSuccessChart({ data, height = 280 }: { data: DailyP
           itemStyle: { color: COLORS.noSale, borderRadius: [4, 4, 0, 0] },
         },
         {
-          name: 'Success Rate',
+          name: 'Quoted Growth',
           type: 'line',
           yAxisIndex: 1,
           data: rate,
