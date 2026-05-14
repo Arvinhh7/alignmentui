@@ -35,13 +35,17 @@ export default function GMVTrendChart({ data, height = 280 }: { data: GMVPoint[]
   const inst = useRef<echarts.ECharts | null>(null)
 
   const option: EChartsOption = useMemo(() => {
-    const dates    = data.map(d => d.date.slice(5))                   // MM-DD
-    const commData = data.map(d => d.commission)
-    const netData  = data.map(d => Math.max(0, d.gmv - d.commission)) // purple portion
+    // Trim leading $0 days — chart starts from first day with actual GMV
+    const firstActiveIdx = data.findIndex(d => d.gmv > 0)
+    const trimmed = firstActiveIdx >= 0 ? data.slice(firstActiveIdx) : data
+
+    const dates    = trimmed.map(d => d.date.slice(5))                   // MM-DD
+    const commData = trimmed.map(d => d.commission)
+    const netData  = trimmed.map(d => Math.max(0, d.gmv - d.commission)) // purple portion
 
     // Running cumulative GMV sum — always monotonically increasing
     let cum = 0
-    const cumGMV = data.map(d => { cum += d.gmv; return cum })
+    const cumGMV = trimmed.map(d => { cum += d.gmv; return cum })
 
     // Use first non-zero cumulative point as the baseline (avoids div-by-zero on $0 early days)
     const baseIdx = cumGMV.findIndex(v => v > 0)
