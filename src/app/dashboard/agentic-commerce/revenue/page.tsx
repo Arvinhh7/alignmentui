@@ -97,11 +97,12 @@ export default function RevenuePage() {
   const [daily, setDaily] = useState<DailyPoint[]>([]);
   const [recent, setRecent] = useState<Tx[]>([]);
   const [loading, setLoading] = useState(true);
-  const [days, setDays] = useState(14);
+  const [period, setPeriod] = useState<7 | 30 | 90 | "all">(7);
+  const apiDays = period === "all" ? 90 : period;   // backend caps at 90
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${AC}/attribution/dashboard?days=${days}`)
+    fetch(`${AC}/attribution/dashboard?days=${apiDays}`)
       .then((r) => r.json())
       .then((d) => {
         setPlatform(d.platform);
@@ -110,7 +111,7 @@ export default function RevenuePage() {
         setRecent(d.recent_transactions);
       })
       .finally(() => setLoading(false));
-  }, [days]);
+  }, [apiDays]);
 
   return (
     <div className="space-y-6">
@@ -120,19 +121,19 @@ export default function RevenuePage() {
           <h1 className="text-2xl font-bold text-ink">Revenue</h1>
           <p className="text-ink-2 text-sm mt-1">
             Cleared transactions from Customer Agents · routed by the Alignment Broker ·
-            settled T+7 via Stripe Connect · {days === 365 ? "all time" : `last ${days} days`}
+            settled T+7 via Stripe Connect · {period === "all" ? "all available data" : `last ${period} days`}
           </p>
         </div>
         <div className="flex items-center gap-1">
-          {([7, 30, 90, 365] as const).map((d) => (
+          {([7, 30, 90, "all"] as const).map((p) => (
             <button
-              key={d}
-              onClick={() => setDays(d)}
+              key={p}
+              onClick={() => setPeriod(p)}
               className={`text-xs px-3 py-1.5 rounded-lg transition-colors ${
-                days === d ? "bg-purple-600 text-white" : "bg-surface-muted text-ink-2 hover:bg-purple-50 border border-divider"
+                period === p ? "bg-purple-600 text-white" : "bg-surface-muted text-ink-2 hover:bg-purple-50 border border-divider"
               }`}
             >
-              {d === 365 ? "All" : `${d}d`}
+              {p === "all" ? "All" : `${p}d`}
             </button>
           ))}
         </div>

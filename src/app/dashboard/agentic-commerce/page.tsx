@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
+
+const AgentsWorldMap = dynamic(() => import("@/components/AgentsWorldMap"), { ssr: false });
 import {
   Zap, ShoppingCart, TrendingUp, ArrowRight, Activity,
   MessageCircle, Smartphone, Mic2, Shirt, Wrench,
@@ -76,6 +79,26 @@ const LIVE_CATALOG: { product: string; brand: string }[] = [
   { product: "Dr. Martens 1460 · Cherry Red",         brand: "Dr. Martens"},
   { product: "Fellow Opus Grinder · Matte Black",     brand: "Fellow"     },
   { product: "Razer Blade 16 Gaming Laptop",          brand: "Razer"      },
+];
+
+// Mock geo distribution — Customer Agents (consumer-side) + Product Agents (brand HQ).
+// Customer counts derived from where each surface operates; Product counts = brand HQ country.
+const AGENT_GEO: { country: string; customers: number; products: number }[] = [
+  { country: "US", customers: 412, products: 5 },   // WhatsApp+Voice; Nike·Allbirds·Patagonia·Apple·Fellow
+  { country: "MX", customers: 89,  products: 0 },   // WhatsApp Mexico (Mila)
+  { country: "IN", customers: 156, products: 0 },   // WhatsApp India (ChatLoop)
+  { country: "JP", customers: 78,  products: 0 },   // Phone OS Japan (Pixel Concierge)
+  { country: "KR", customers: 64,  products: 1 },   // Phone OS Korea (Kartly); Samsung
+  { country: "FR", customers: 47,  products: 0 },   // Fashion AI (Stylr)
+  { country: "GB", customers: 23,  products: 2 },   // Dyson · Dr. Martens
+  { country: "CA", customers: 31,  products: 1 },   // Lululemon
+  { country: "SG", customers: 12,  products: 1 },   // Razer
+  { country: "DE", customers: 19,  products: 0 },
+  { country: "AU", customers: 14,  products: 0 },
+  { country: "BR", customers: 22,  products: 0 },
+  { country: "ES", customers: 11,  products: 0 },
+  { country: "IT", customers: 9,   products: 0 },
+  { country: "NL", customers: 8,   products: 0 },
 ];
 
 // Brand names used in the live feed (must match BRAND_META keys in shared BrandLogo component)
@@ -474,6 +497,9 @@ export default function AgenticCommerceOverview() {
           </div>
         </div>
       </div>
+
+      {/* ── Global Agents Distribution map ─────────────────────────────── */}
+      <AgentsWorldMap data={AGENT_GEO} />
 
       {/* ── Protocol flow ──────────────────────────────────────────────── */}
       <div className="bg-surface border border-divider-light rounded-2xl shadow-elevation-sm p-6">

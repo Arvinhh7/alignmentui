@@ -38,10 +38,10 @@ type Quote = BrokerEvent & {
 // Consumer Agent labels — Outer Ring per concept doc v1.
 // Backend now emits these Outer Ring keys directly (event_engine._AGENT_DIST).
 const AGENT_LABEL: Record<string, { name: string; emoji: string; operator: string }> = {
-  "whatsapp-bot":     { name: "WhatsApp Shopping Bot",    emoji: "💬",  operator: "Acme Inc. (demo)"     },
-  "phone-os-agent":   { name: "Phone OS Agent",           emoji: "📱",  operator: "Mobile Vendor (demo)" },
-  "voice-shopper":    { name: "Voice Shopping Assistant", emoji: "🎙️", operator: "VoiceAI Co. (demo)"   },
-  "vertical-fashion": { name: "Vertical Fashion AI",      emoji: "👗",  operator: "FashionAI YC (demo)"  },
+  "whatsapp-bot":     { name: "WhatsApp Shopping Bot",    emoji: "💬",  operator: "Acme Inc."     },
+  "phone-os-agent":   { name: "Phone OS Agent",           emoji: "📱",  operator: "Mobile Vendor" },
+  "voice-shopper":    { name: "Voice Shopping Assistant", emoji: "🎙️", operator: "VoiceAI Co."   },
+  "vertical-fashion": { name: "Vertical Fashion AI",      emoji: "👗",  operator: "FashionAI YC"  },
   "custom-agent":     { name: "Custom Consumer Agent",    emoji: "🔧",  operator: "Third-party"          },
 };
 
