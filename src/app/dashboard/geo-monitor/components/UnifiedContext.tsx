@@ -116,7 +116,7 @@ interface UnifiedState {
   handleStopDiscover: () => void
   showGeneratePromptsModal: boolean
   setShowGeneratePromptsModal: (v: boolean) => void
-  handleBatchSavePrompts: (prompts: import('./tabs/GeneratePromptsModal').GeneratedPrompt[]) => Promise<void>
+  handleBatchSavePrompts: (prompts: import('@/lib/api').SmartPrompt[]) => Promise<void>
 
   // AEO
   aeoUrl: string
@@ -773,11 +773,11 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     setIsRunningDeepDiscover(false)
   }
 
-  const handleBatchSavePrompts = async (prompts: import('./tabs/GeneratePromptsModal').GeneratedPrompt[]) => {
+  const handleBatchSavePrompts = async (prompts: import('@/lib/api').SmartPrompt[]) => {
     const existing = new Set(filteredPrompts.map(p => p.template.trim().toLowerCase()))
     const toSave = prompts.filter(p => !existing.has(p.template.trim().toLowerCase()))
     await Promise.all(
-      toSave.map(p => api.createMonitorPrompt({ template: p.template, category: p.intentKey }))
+      toSave.map(p => api.createMonitorPrompt({ template: p.template, category: p.intent }))
     )
     await loadPrompts()
   }

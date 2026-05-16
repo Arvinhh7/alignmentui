@@ -394,6 +394,48 @@ export interface DiscoverResult {
   source_domains: DiscoverSourceItem[];
 }
 
+// ─── Smart Prompts ─────────────────────────────────────────────────────────
+
+export interface SmartPromptEngineSource {
+  domain: string;
+  prompt_count: number;
+  intent_coverage: number;
+}
+
+export interface SmartPromptProvenance {
+  target_domain: string | null;
+  engines: string[];
+  why: string;
+}
+
+export interface SmartPrompt {
+  template: string;
+  intent: 'info_cognition' | 'solution_explore' | 'comparison_decision' | 'action_choice';
+  layer: 'foundation' | 'universal' | 'chatgpt_dominant' | 'cross_diverse' | 'gap';
+  provenance: SmartPromptProvenance;
+}
+
+export interface SmartPromptGenerateRequest {
+  brand_name: string;
+  domain?: string;
+  keywords?: string[];
+  competitors?: string[];
+  target_audience?: string;
+  engine_snapshots: Record<string, SmartPromptEngineSource[]>;
+  gap_domains?: string[];
+  force_regenerate?: boolean;
+}
+
+export interface SmartPromptGenerateResponse {
+  prompts: SmartPrompt[];
+  generated_at: string;
+  cache_hit: boolean;
+  engines_used: string[];
+  fallback: boolean;
+}
+
+// ─── Monitor scan result ───────────────────────────────────────────────────
+
 export interface MonitorScanResult {
   scan_id: string;
   brand_name: string;
@@ -1238,6 +1280,13 @@ class APIClient {
     return this.request<MonitorPrompt>('/api/monitor/prompts', {
       method: 'POST',
       body: JSON.stringify(data),
+    });
+  }
+
+  async generateSmartPrompts(req: SmartPromptGenerateRequest) {
+    return this.request<SmartPromptGenerateResponse>('/api/monitor/prompts/generate-smart', {
+      method: 'POST',
+      body: JSON.stringify(req),
     });
   }
 
