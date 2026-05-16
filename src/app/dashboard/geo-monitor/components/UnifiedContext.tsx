@@ -372,7 +372,37 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     if (!merged.brand_name.trim()) { setConfigError('Brand name is required'); return }
     setConfigError('')
     if (kw || comp) setBrandConfig(merged)
+
+    // ── Level 1: Detect brand change → read OLD brand BEFORE overwriting localStorage ──
+    // The edit form updates brandConfig in real-time, so we can't rely on React state for "old" brand.
+    // Read the previously-persisted value from localStorage as the authoritative old brand.
+    const savedConfigRaw = localStorage.getItem(BRAND_CONFIG_KEY)
+    const savedBrand = savedConfigRaw ? (JSON.parse(savedConfigRaw) as BrandConfig).brand_name?.trim().toLowerCase() : ''
+    const newBrand = merged.brand_name.trim().toLowerCase()
+    const brandChanged = isConfigured && savedBrand && savedBrand !== newBrand
+
+    // Now persist the new config
     localStorage.setItem(BRAND_CONFIG_KEY, JSON.stringify(merged))
+
+    if (brandChanged) {
+      // Clear all result caches from localStorage
+      localStorage.removeItem(SCAN_RESULTS_KEY)
+      localStorage.removeItem(SCAN_HISTORY_KEY)
+      localStorage.removeItem(GAP_RESULTS_KEY)
+      localStorage.removeItem(ADV_MENTIONS_KEY)
+      localStorage.removeItem(DISCOVER_RESULT_KEY)
+      // Clear all result state
+      setScanResult(null)
+      setScanHistory([])
+      setGapResult(null)
+      setAdvancedMentions(null)
+      setIntelReport(null)
+      setDiscoverResult(null)
+      setMultiBrandTrends(null)
+      // ── Level 2: Auto re-scan for the new brand ────────────────────────────
+      autoScanTriggered.current = true
+    }
+
     setIsConfigured(true); setShowConfig(false)
 
     // Save to recent brands with merged config (avoids stale closure in saveRecentBrand)

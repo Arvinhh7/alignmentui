@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, StopCircle } from 'lucide-react'
+import { Search, StopCircle, Pencil } from 'lucide-react'
 import { useUnified } from './UnifiedContext'
 
 export function ControlBar() {
@@ -12,7 +12,13 @@ export function ControlBar() {
       {ctx.isConfigured && (
         <div className="flex items-center gap-2 px-3 py-1.5 bg-red-soft-bg rounded-xl border border-red-soft/30">
           <span className="text-sm font-semibold text-ink">{ctx.brandConfig.brand_name}</span>
-          <button onClick={() => ctx.setShowConfig(!ctx.showConfig)} className="text-xs text-ink-3 hover:text-ink-2">Edit</button>
+          <button
+            onClick={() => ctx.setShowConfig(!ctx.showConfig)}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-700 text-white hover:bg-red-800 active:bg-red-900 transition-colors shadow-sm"
+          >
+            <Pencil className="w-3 h-3" />
+            Edit
+          </button>
         </div>
       )}
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Users, Award, Shield, Target, Monitor } from 'lucide-react'
+import { Users, Award, Shield, Target, Monitor, AlertTriangle } from 'lucide-react'
 import { useUnified } from '../UnifiedContext'
 import { MetricCard, DonutChart, HorizontalBar, formatPct, formatNum } from '../shared/ChartComponents'
 import { POSITIONING_LABELS, RELATIONSHIP_COLORS, COMP_POSITION_COLORS } from '../shared/constants'
@@ -76,6 +76,13 @@ export function CompetitorsTab() {
 
   return (
     <div className="space-y-6">
+      {/* ── Level 3: Stale data warning ────────────────── */}
+      {ctx.scanResult && ctx.scanResult.brand_name?.toLowerCase() !== ctx.brandConfig.brand_name.toLowerCase() && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-caution-bg border border-caution/30 text-caution text-sm">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          <span>Showing cached data for <strong>{ctx.scanResult.brand_name}</strong> — click <strong>Scan</strong> to refresh for <strong>{ctx.brandConfig.brand_name}</strong>.</span>
+        </div>
+      )}
       {/* ── Sub-tab switcher ──────────────────────────────── */}
       <div className="flex gap-2 flex-wrap">
         {([

@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Globe, Link2, Check, Zap, ArrowRight, Minus, AlertCircle } from 'lucide-react'
+import { Globe, Link2, Check, Zap, ArrowRight, Minus, AlertCircle, AlertTriangle } from 'lucide-react'
 import { useUnified } from '../UnifiedContext'
 import { DonutChart, DataTable, formatNum, formatPct } from '../shared/ChartComponents'
 import { DOMAIN_TYPE_LABELS, SOURCE_TYPE_LABELS } from '../shared/constants'
@@ -80,6 +80,13 @@ export function CitationsTab() {
 
   return (
     <div className="space-y-6">
+      {/* ── Level 3: Stale data warning ────────────────── */}
+      {ctx.scanResult && ctx.scanResult.brand_name?.toLowerCase() !== ctx.brandConfig.brand_name.toLowerCase() && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-caution-bg border border-caution/30 text-caution text-sm">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          <span>Showing cached data for <strong>{ctx.scanResult.brand_name}</strong> — click <strong>Scan</strong> to refresh for <strong>{ctx.brandConfig.brand_name}</strong>.</span>
+        </div>
+      )}
       {/* ── Sub-tab selector ───────────────────────── */}
       <div className="flex gap-1 p-1 bg-surface-warm rounded-lg w-fit">
         {subTabs.map(tab => (

@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { ThumbsUp, ThumbsDown, Minus, Tag } from 'lucide-react'
+import { ThumbsUp, ThumbsDown, Minus, Tag, AlertTriangle } from 'lucide-react'
 import { useUnified } from '../UnifiedContext'
 import { DonutChart, formatPct } from '../shared/ChartComponents'
 
@@ -47,6 +47,13 @@ export function SentimentTab() {
 
   return (
     <div className="space-y-8">
+      {/* ── Level 3: Stale data warning ────────────────── */}
+      {ctx.scanResult && ctx.scanResult.brand_name?.toLowerCase() !== ctx.brandConfig.brand_name.toLowerCase() && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-caution-bg border border-caution/30 text-caution text-sm">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          <span>Showing cached data for <strong>{ctx.scanResult.brand_name}</strong> — click <strong>Scan</strong> to refresh for <strong>{ctx.brandConfig.brand_name}</strong>.</span>
+        </div>
+      )}
       {/* ── A) Scan Sentiment Bars ──────────────────── */}
       {scanSentiment && totalScanSentiment > 0 && (
         <div className="bg-surface rounded-xl border border-divider p-6">

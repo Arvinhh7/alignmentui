@@ -156,6 +156,13 @@ export function VisibilityTab() {
 
   return (
     <div className="space-y-6">
+      {/* ── Level 3: Stale data warning ────────────────── */}
+      {ctx.scanResult && ctx.scanResult.brand_name?.toLowerCase() !== ctx.brandConfig.brand_name.toLowerCase() && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-caution-bg border border-caution/30 text-caution text-sm">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          <span>Showing cached data for <strong>{ctx.scanResult.brand_name}</strong> — click <strong>Scan</strong> to refresh for <strong>{ctx.brandConfig.brand_name}</strong>.</span>
+        </div>
+      )}
       {/* ═══ Scan Progress ════════════════════════════ */}
       {ctx.isScanning && (
         <div className="bg-surface rounded-xl border border-divider p-5">
