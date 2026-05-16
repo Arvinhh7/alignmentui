@@ -7,6 +7,7 @@ import {
 import { useAuth } from '@/hooks/useAuth'
 import {
   api,
+  customersApi,
   notifyCreditUsed,
   MonitorScanResult,
   MonitorPrompt,
@@ -154,6 +155,10 @@ interface UnifiedState {
   isBatchDeleting: boolean
   batchConfirmStep: boolean
 
+  // Customer mode (admin)
+  activeCustomerId: string | null
+  customerHydrating: boolean
+
   // Tab
   activeTab: TabKey
   setActiveTab: (t: TabKey) => void
@@ -259,6 +264,10 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const [availableEngines, setAvailableEngines] = useState<string[]>(['chatgpt'])
   const [showGeneratePromptsModal, setShowGeneratePromptsModal] = useState(false)
 
+  // ── Customer mode ────────────────────────────────
+  const [activeCustomerId, setActiveCustomerId] = useState<string | null>(null)
+  const [customerHydrating, setCustomerHydrating] = useState(false)
+
   // ── Abort controllers ───────────────────────────
   const scanAbortRef = useRef<AbortController | null>(null)
   const scanTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -307,10 +316,22 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     }
   }, [filteredScanHistory])
 
-  // ═══ Load localStorage on mount ═══
+  // ═══ Load on mount: customer-mode or localStorage ═══
 
   useEffect(() => {
     try {
+      const params = new URLSearchParams(window.location.search)
+
+      // ── Phase 4: customer mode — hydrate from backend, skip localStorage ──
+      const cid = params.get('customer')
+      if (cid) {
+        setActiveCustomerId(cid)
+        // Remove param from URL so refreshes don't re-trigger but keep customer ID in state
+        window.history.replaceState({}, '', window.location.pathname)
+        return // skip localStorage hydration; backend effect handles the rest
+      }
+
+      // ── Normal localStorage hydration ─────────────────────────────────────
       const saved = localStorage.getItem(BRAND_CONFIG_KEY)
       if (saved) {
         const config = JSON.parse(saved) as BrandConfig
@@ -332,13 +353,47 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       if (savedDiscover) setDiscoverResult(JSON.parse(savedDiscover))
       const savedRecent = localStorage.getItem(RECENT_BRANDS_KEY)
       if (savedRecent) setRecentBrands(JSON.parse(savedRecent))
-      const params = new URLSearchParams(window.location.search)
       if (params.get('autoScan') === 'true' && !autoScanTriggered.current) {
         autoScanTriggered.current = true
         window.history.replaceState({}, '', window.location.pathname)
       }
     } catch { /* ignore */ }
   }, [])
+
+  // ═══ Phase 4: hydrate from backend when customer + user are both ready ═══
+
+  useEffect(() => {
+    if (!activeCustomerId || !user?.id) return
+    setCustomerHydrating(true)
+    customersApi.getLatest(activeCustomerId, user.id)
+      .then(data => {
+        const cfg = (data.customer.config_json ?? {}) as Partial<BrandConfig>
+        setBrandConfig({
+          brand_name:       data.customer.brand_name,
+          domain:           data.customer.domain,
+          keywords:         (cfg.keywords as string[])        ?? [],
+          competitors:      (cfg.competitors as string[])     ?? [],
+          one_liner:        (cfg.one_liner as string)         ?? '',
+          target_audience:  (cfg.target_audience as string)   ?? '',
+          target_market:    (cfg.target_market as string)     ?? '',
+          differentiation:  (cfg.differentiation as string)   ?? '',
+        })
+        setIsConfigured(true)
+        setShowConfig(false)
+
+        if (data.latest_scan) {
+          setScanResult(data.latest_scan as unknown as MonitorScanResult)
+        }
+        if (data.scan_history_summary?.length) {
+          setScanHistory(data.scan_history_summary as unknown as ScanHistoryEntry[])
+        }
+        if (data.latest_discover) {
+          setDiscoverResult(data.latest_discover as unknown as DiscoverResult)
+        }
+      })
+      .catch(err => console.warn('[UnifiedContext] customer hydration failed:', err))
+      .finally(() => setCustomerHydrating(false))
+  }, [activeCustomerId, user?.id])
 
   // ═══ Brand config handlers ═══════════════════════
 
@@ -462,7 +517,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     const activeCount = prompts.filter(p => p.is_active).length || 8
     scanTimerRef.current = setInterval(() => { setScanStep(prev => prev < activeCount ? prev + 1 : prev) }, 3000)
     try {
-      const res = await api.runMonitorScan({ brand_name: brandConfig.brand_name, domain: brandConfig.domain, keywords: brandConfig.keywords, competitors: brandConfig.competitors }, controller.signal, user?.id, isOnboarding)
+      const res = await api.runMonitorScan({ brand_name: brandConfig.brand_name, domain: brandConfig.domain, keywords: brandConfig.keywords, competitors: brandConfig.competitors, customer_id: activeCustomerId ?? undefined }, controller.signal, user?.id, isOnboarding)
       if (scanTimerRef.current) { clearInterval(scanTimerRef.current); scanTimerRef.current = null }
       if (res.error === '__ABORTED__') { setIsScanning(false); return }
       if (res.error) { setScanError(res.error) } else if (res.data) {
@@ -727,6 +782,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     promptFilter, setPromptFilter, filterTopic, setFilterTopic, filteredPrompts,
     selectedPromptIds, togglePromptSelect, toggleSelectAllPrompts,
     handleBatchDelete, cancelBatchDelete, isBatchDeleting, batchConfirmStep,
+    activeCustomerId, customerHydrating,
     activeTab, setActiveTab,
     citationsSubTab, setCitationsSubTab, competitorsSubTab, setCompetitorsSubTab,
     coMentionRoleFilter, setCoMentionRoleFilter,

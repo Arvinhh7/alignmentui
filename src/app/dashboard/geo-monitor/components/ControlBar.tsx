@@ -1,13 +1,33 @@
 'use client'
 
-import { Search, StopCircle, Pencil } from 'lucide-react'
+import { Search, StopCircle, Pencil, Briefcase, Loader2 } from 'lucide-react'
 import { useUnified } from './UnifiedContext'
+import Link from 'next/link'
 
 export function ControlBar() {
   const ctx = useUnified()
 
   return (
     <div className="bg-surface rounded-xl border border-divider p-4 flex flex-wrap items-center gap-4">
+      {/* Customer-mode badge — shown when viewing a customer's data */}
+      {ctx.activeCustomerId && (
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-caution-bg rounded-xl border border-[rgba(184,134,11,0.25)]">
+          {ctx.customerHydrating
+            ? <Loader2 className="w-3.5 h-3.5 text-caution animate-spin" />
+            : <Briefcase className="w-3.5 h-3.5 text-caution" />
+          }
+          <span className="text-xs font-semibold text-caution">
+            {ctx.customerHydrating ? 'Loading customer…' : 'Customer View'}
+          </span>
+          <Link
+            href="/dashboard/admin/customers"
+            className="text-[10px] font-bold text-caution/70 hover:text-caution underline underline-offset-2 transition-colors"
+          >
+            ← Customers
+          </Link>
+        </div>
+      )}
+
       {/* Brand badge */}
       {ctx.isConfigured && (
         <div className="flex items-center gap-2 px-3 py-1.5 bg-red-soft-bg rounded-xl border border-red-soft/30">

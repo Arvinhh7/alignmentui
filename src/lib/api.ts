@@ -1274,6 +1274,7 @@ class APIClient {
     competitors?: string[];
     prompt_ids?: string[];
     engines?: string[];
+    customer_id?: string;
   }, signal?: AbortSignal, userId?: string, isOnboarding?: boolean) {
     const params = new URLSearchParams();
     if (userId) params.set('user_id', userId);
