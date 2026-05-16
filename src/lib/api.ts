@@ -2997,3 +2997,149 @@ export const adminApi = {
     return r.json()
   },
 }
+
+// ─── Customer Management ───────────────────────────────────────────────────────
+
+export interface CustomerSummary {
+  id: string
+  owner_user_id: string
+  brand_name: string
+  domain: string
+  notes: string
+  last_scan_at: string | null
+  total_scans: number
+  is_archived: boolean
+  created_at: string
+  updated_at: string
+  latest_visibility_score: number | null
+  latest_scanned_at: string | null
+  latest_mentions_found: number | null
+  latest_citation_count: number | null
+}
+
+export interface CustomerDetail extends CustomerSummary {
+  config_json: Record<string, unknown>
+  recent_scans: Array<{
+    scan_id: string
+    scanned_at: string
+    visibility_score: number
+    mentions_found: number
+  }>
+}
+
+export interface CustomerLatest {
+  customer: CustomerDetail
+  latest_scan: Record<string, unknown> | null
+  latest_discover: Record<string, unknown> | null
+  scan_history_summary: Array<Record<string, unknown>>
+}
+
+export interface CustomerCreate {
+  brand_name: string
+  domain?: string
+  config_json?: Record<string, unknown>
+  notes?: string
+}
+
+export interface CustomerUpdate {
+  brand_name?: string
+  domain?: string
+  config_json?: Record<string, unknown>
+  notes?: string
+  is_archived?: boolean
+}
+
+export const customersApi = {
+  list: async (userId: string, includeArchived = false): Promise<CustomerSummary[]> => {
+    const r = await fetch(
+      `${API_BASE_URL}/api/customers?user_id=${encodeURIComponent(userId)}&include_archived=${includeArchived}`,
+    )
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({ detail: 'Failed to load customers' }))
+      throw new Error(err.detail ?? 'Failed to load customers')
+    }
+    return r.json()
+  },
+
+  create: async (userId: string, data: CustomerCreate): Promise<CustomerDetail> => {
+    const r = await fetch(
+      `${API_BASE_URL}/api/customers?user_id=${encodeURIComponent(userId)}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      },
+    )
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({ detail: 'Failed to create customer' }))
+      throw new Error(err.detail ?? 'Failed to create customer')
+    }
+    return r.json()
+  },
+
+  get: async (customerId: string, userId: string): Promise<CustomerDetail> => {
+    const r = await fetch(
+      `${API_BASE_URL}/api/customers/${encodeURIComponent(customerId)}?user_id=${encodeURIComponent(userId)}`,
+    )
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({ detail: 'Customer not found' }))
+      throw new Error(err.detail ?? 'Customer not found')
+    }
+    return r.json()
+  },
+
+  update: async (customerId: string, userId: string, data: CustomerUpdate): Promise<CustomerDetail> => {
+    const r = await fetch(
+      `${API_BASE_URL}/api/customers/${encodeURIComponent(customerId)}?user_id=${encodeURIComponent(userId)}`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      },
+    )
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({ detail: 'Failed to update customer' }))
+      throw new Error(err.detail ?? 'Failed to update customer')
+    }
+    return r.json()
+  },
+
+  archive: async (customerId: string, userId: string): Promise<{ ok: boolean }> => {
+    const r = await fetch(
+      `${API_BASE_URL}/api/customers/${encodeURIComponent(customerId)}?user_id=${encodeURIComponent(userId)}`,
+      { method: 'DELETE' },
+    )
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({ detail: 'Failed to archive customer' }))
+      throw new Error(err.detail ?? 'Failed to archive customer')
+    }
+    return r.json()
+  },
+
+  getLatest: async (customerId: string, userId: string): Promise<CustomerLatest> => {
+    const r = await fetch(
+      `${API_BASE_URL}/api/customers/${encodeURIComponent(customerId)}/latest?user_id=${encodeURIComponent(userId)}`,
+    )
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({ detail: 'Failed to load customer data' }))
+      throw new Error(err.detail ?? 'Failed to load customer data')
+    }
+    return r.json()
+  },
+
+  importScans: async (customerId: string, userId: string, scans: unknown[]): Promise<{ imported: number }> => {
+    const r = await fetch(
+      `${API_BASE_URL}/api/customers/${encodeURIComponent(customerId)}/import-scans?user_id=${encodeURIComponent(userId)}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scans }),
+      },
+    )
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({ detail: 'Import failed' }))
+      throw new Error(err.detail ?? 'Import failed')
+    }
+    return r.json()
+  },
+}
