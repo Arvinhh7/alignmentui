@@ -164,17 +164,23 @@ export function VisibilityTab() {
         </div>
       )}
       {/* ═══ Scan Progress ════════════════════════════ */}
-      {ctx.isScanning && (
+      {ctx.isScanning && !hasScanData && (
         <div className="bg-surface rounded-xl border border-divider p-5">
           <div className="flex items-center gap-3 mb-3">
             <Loader2 className="w-5 h-5 text-ink animate-spin" />
             <span className="text-sm font-medium text-ink-2">Scanning AI platforms...</span>
-            <span className="text-xs text-ink-3 ml-auto">Step {ctx.scanStep} of {ctx.prompts.filter(p => p.is_active).length || 8}</span>
+            <span className="text-xs text-ink-3 ml-auto">Running across 4 engines</span>
           </div>
           <div className="w-full h-2 bg-surface-warm rounded-full overflow-hidden">
-            <div className="h-full bg-ink rounded-full transition-all duration-700"
-              style={{ width: `${Math.min((ctx.scanStep / (ctx.prompts.filter(p => p.is_active).length || 8)) * 100, 100)}%` }} />
+            <div className="h-full bg-ink rounded-full transition-all duration-700 animate-pulse" style={{ width: '60%' }} />
           </div>
+        </div>
+      )}
+      {/* Compact re-scan banner when old data is visible */}
+      {ctx.isScanning && hasScanData && (
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface border border-divider text-sm text-ink-2">
+          <Loader2 className="w-3.5 h-3.5 text-ink animate-spin flex-shrink-0" />
+          <span>Re-scanning across 4 AI engines — results below are from the previous run</span>
         </div>
       )}
 
@@ -235,6 +241,14 @@ export function VisibilityTab() {
             bgColor={METRIC_COLORS.position.bgColor}
           />
         </div>
+      )}
+
+      {/* ═══ Per-Engine Visibility Breakdown ═══════════ */}
+      {hasScanData && ctx.scanResult!.per_engine_metrics && ctx.scanResult!.per_engine_metrics.length > 0 && (
+        <EngineBreakdown
+          engines={ctx.scanResult!.per_engine_metrics}
+          isScanning={ctx.isScanning}
+        />
       )}
 
       {/* ═══ P7: GEO Health Score ═══════════════════════ */}
@@ -466,6 +480,77 @@ export function VisibilityTab() {
           <p className="text-sm text-ink-3">Run a scan to see how AI platforms mention your brand.</p>
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Per-Engine Visibility Breakdown ─────────────────────────────────────────
+
+const ENGINE_META: Record<string, { label: string; color: string; bar: string }> = {
+  chatgpt:    { label: 'ChatGPT',    color: 'text-[#10a37f]', bar: 'bg-[#10a37f]' },
+  gemini:     { label: 'Gemini',     color: 'text-blue-600',  bar: 'bg-blue-500' },
+  claude:     { label: 'Claude',     color: 'text-amber-700', bar: 'bg-amber-500' },
+  perplexity: { label: 'Perplexity', color: 'text-purple-600',bar: 'bg-purple-500' },
+}
+
+const ENGINE_WEIGHTS: Record<string, number> = {
+  chatgpt: 0.40, gemini: 0.30, claude: 0.20, perplexity: 0.10,
+}
+
+interface EngineBreakdownProps {
+  engines: { platform: string; visibility_score: number; mentions_found: number; total_prompts: number }[]
+  isScanning: boolean
+}
+
+function EngineBreakdown({ engines, isScanning }: EngineBreakdownProps) {
+  // Sort: chatgpt → gemini → claude → perplexity
+  const order = ['chatgpt', 'gemini', 'claude', 'perplexity']
+  const sorted = [...engines].sort((a, b) => order.indexOf(a.platform) - order.indexOf(b.platform))
+
+  return (
+    <div className="bg-surface rounded-xl border border-divider p-5">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h4 className="text-sm font-semibold text-ink">Per-Engine Visibility</h4>
+          <p className="text-xs text-ink-3 mt-0.5">
+            Weighted score: ChatGPT ×0.40 · Gemini ×0.30 · Claude ×0.20 · Perplexity ×0.10
+          </p>
+        </div>
+        {isScanning && <span className="text-[10px] px-2 py-0.5 rounded bg-surface-warm text-ink-3 font-mono">cached</span>}
+      </div>
+
+      <div className="space-y-3.5">
+        {sorted.map(em => {
+          const meta = ENGINE_META[em.platform] ?? { label: em.platform, color: 'text-ink-2', bar: 'bg-ink-2' }
+          const weight = ENGINE_WEIGHTS[em.platform] ?? 0.05
+          const pct = Math.min(em.visibility_score, 100)
+
+          return (
+            <div key={em.platform}>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs font-semibold ${meta.color}`}>{meta.label}</span>
+                  <span className="text-[10px] text-ink-3 font-mono">×{weight.toFixed(2)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-ink-3 font-mono">
+                    {em.mentions_found}/{em.total_prompts} prompts
+                  </span>
+                  <span className="text-xs font-semibold font-mono text-ink w-10 text-right">
+                    {pct.toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+              <div className="w-full h-1.5 bg-surface-warm rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${meta.bar} rounded-full transition-all duration-700`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
