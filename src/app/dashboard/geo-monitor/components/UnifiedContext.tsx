@@ -109,6 +109,7 @@ interface UnifiedState {
   discoverEngine: string
   setDiscoverEngine: (engine: string) => void
   availableEngines: string[]
+  engineModels: Record<string, { quick: string; deep: string }>  // per-engine model names
   userRole: string | null
   handleRunDiscover: () => void
   handleRunDeepDiscover: () => void
@@ -263,6 +264,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const [discoverError, setDiscoverError] = useState('')
   const [discoverEngine, setDiscoverEngine] = useState('chatgpt')
   const [availableEngines, setAvailableEngines] = useState<string[]>(['chatgpt'])
+  const [engineModels, setEngineModels] = useState<Record<string, { quick: string; deep: string }>>({})
   const [showGeneratePromptsModal, setShowGeneratePromptsModal] = useState(false)
 
   // ── Customer mode ────────────────────────────────
@@ -505,6 +507,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     api.getAvailableEngines().then(res => {
       if (res.data?.engines?.length) setAvailableEngines(res.data.engines)
+      if (res.data?.models) setEngineModels(res.data.models)
     }).catch(() => { /* keep default */ })
   }, [])
 
@@ -795,7 +798,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     advancedMentions, isRunningAdvMentions, advMentionsError, handleRunAdvancedMentions, handleStopAdvMentions,
     intelReport, isGeneratingReport, reportError, handleGenerateReport, handleStopReport,
     multiBrandTrends, isLoadingTrends,
-    discoverResult, discoverResults, isRunningDiscover, isRunningDeepDiscover, discoverError, discoverEngine, setDiscoverEngine, availableEngines, userRole, handleRunDiscover, handleRunDeepDiscover, handleStopDiscover, showGeneratePromptsModal, setShowGeneratePromptsModal, handleBatchSavePrompts,
+    discoverResult, discoverResults, isRunningDiscover, isRunningDeepDiscover, discoverError, discoverEngine, setDiscoverEngine, availableEngines, engineModels, userRole, handleRunDiscover, handleRunDeepDiscover, handleStopDiscover, showGeneratePromptsModal, setShowGeneratePromptsModal, handleBatchSavePrompts,
     aeoUrl, setAeoUrl, aeoResult, aeoHistory, isRunningAeo, aeoError, handleRunAeo,
     prompts, isLoadingPrompts, loadPrompts, showAddPrompt, setShowAddPrompt,
     newPromptForm, setNewPromptForm, editingPrompt, setEditingPrompt,

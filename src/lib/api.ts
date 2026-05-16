@@ -1441,7 +1441,10 @@ class APIClient {
   }
 
   async getAvailableEngines() {
-    return this.request<{ engines: string[] }>('/api/monitor/engines');
+    return this.request<{
+      engines: string[]
+      models?: Record<string, { quick: string; deep: string }>
+    }>('/api/monitor/engines');
   }
 
   // ─── Phase 4.4: Export endpoints ─────────────────────

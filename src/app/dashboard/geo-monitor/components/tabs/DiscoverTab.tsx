@@ -29,11 +29,12 @@ const DISCOVER_ACTION: Record<string, {
 }
 
 // ── Phase 6: Engine definitions ──────────────────────
-const ENGINES: { key: string; label: string; desc: string }[] = [
-  { key: 'chatgpt',    label: 'ChatGPT',    desc: 'gpt-4o-mini-search-preview · Responses API + web_search_preview' },
-  { key: 'perplexity', label: 'Perplexity', desc: 'sonar · real-time citations, cost-efficient' },
-  { key: 'gemini',     label: 'Gemini',     desc: 'gemini-2.0-flash · Google Search grounding' },
-  { key: 'claude',     label: 'Claude',     desc: 'claude-sonnet · web_search tool' },
+// Model names are fetched live from /api/monitor/engines and shown in tooltips.
+const ENGINES: { key: string; label: string; fallbackDesc: string }[] = [
+  { key: 'chatgpt',    label: 'ChatGPT',    fallbackDesc: 'OpenAI · Responses API + web_search_preview' },
+  { key: 'perplexity', label: 'Perplexity', fallbackDesc: 'real-time citations' },
+  { key: 'gemini',     label: 'Gemini',     fallbackDesc: 'Google Search grounding' },
+  { key: 'claude',     label: 'Claude',     fallbackDesc: 'web_search tool' },
 ]
 
 // ── Source card ───────────────────────────────────────
@@ -170,6 +171,12 @@ export function DiscoverTab() {
             {result
               ? `${result.total_grounded_urls.toLocaleString()} grounded URLs · ${result.unique_domains} domains · ${result.engine_used}`
               : d.subtitle}
+            {/* Show active model name for the currently selected engine */}
+            {ctx.engineModels[ctx.discoverEngine] && (
+              <span className="ml-1 text-ink-3/70 font-mono text-[10px]">
+                · {ctx.engineModels[ctx.discoverEngine].quick}
+              </span>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
@@ -179,12 +186,20 @@ export function DiscoverTab() {
               const available = ctx.availableEngines.includes(eng.key)
               const selected = ctx.discoverEngine === eng.key
               const hasCached = !!ctx.discoverResults[eng.key]
+              const models = ctx.engineModels[eng.key]
+              // Build tooltip: live model names from backend, falling back to static desc
+              const modelDesc = models
+                ? `Quick Map: ${models.quick}\nDeep Scan: ${models.deep}`
+                : eng.fallbackDesc
+              const tooltip = available
+                ? (hasCached ? `${modelDesc}\n· has results` : modelDesc)
+                : d.engineNotAvailable
               return (
                 <button
                   key={eng.key}
                   onClick={() => available && ctx.setDiscoverEngine(eng.key)}
                   disabled={!available}
-                  title={available ? (hasCached ? `${eng.desc} · has results` : eng.desc) : d.engineNotAvailable}
+                  title={tooltip}
                   className={`relative px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
                     selected && available
                       ? 'bg-ink text-ink-inv shadow-sm'
