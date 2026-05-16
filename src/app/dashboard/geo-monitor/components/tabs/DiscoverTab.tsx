@@ -30,11 +30,11 @@ const DISCOVER_ACTION: Record<string, {
 
 // ── Phase 6: Engine definitions ──────────────────────
 // Model names are fetched live from /api/monitor/engines and shown in tooltips.
-const ENGINES: { key: string; label: string; fallbackDesc: string }[] = [
-  { key: 'chatgpt',    label: 'ChatGPT',    fallbackDesc: 'OpenAI · Responses API + web_search_preview' },
-  { key: 'perplexity', label: 'Perplexity', fallbackDesc: 'real-time citations' },
-  { key: 'gemini',     label: 'Gemini',     fallbackDesc: 'Google Search grounding' },
-  { key: 'claude',     label: 'Claude',     fallbackDesc: 'web_search tool' },
+const ENGINES: { key: string; label: string; fallbackDesc: string; logo: string }[] = [
+  { key: 'chatgpt',    label: 'ChatGPT',    fallbackDesc: 'OpenAI · Responses API + web_search_preview', logo: 'https://www.google.com/s2/favicons?domain=chatgpt.com&sz=32' },
+  { key: 'perplexity', label: 'Perplexity', fallbackDesc: 'real-time citations',                         logo: 'https://www.google.com/s2/favicons?domain=perplexity.ai&sz=32' },
+  { key: 'gemini',     label: 'Gemini',     fallbackDesc: 'Google Search grounding',                     logo: 'https://www.google.com/s2/favicons?domain=gemini.google.com&sz=32' },
+  { key: 'claude',     label: 'Claude',     fallbackDesc: 'web_search tool',                             logo: 'https://www.google.com/s2/favicons?domain=claude.ai&sz=32' },
 ]
 
 // ── Source card ───────────────────────────────────────
@@ -200,7 +200,7 @@ export function DiscoverTab() {
                   onClick={() => available && ctx.setDiscoverEngine(eng.key)}
                   disabled={!available}
                   title={tooltip}
-                  className={`relative px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                  className={`relative flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
                     selected && available
                       ? 'bg-ink text-ink-inv shadow-sm'
                       : available
@@ -208,6 +208,12 @@ export function DiscoverTab() {
                         : 'text-ink-3/40 cursor-not-allowed'
                   }`}
                 >
+                  <img
+                    src={eng.logo}
+                    alt=""
+                    className={`w-3.5 h-3.5 rounded-sm flex-shrink-0 ${selected && available ? 'brightness-0 invert' : ''}`}
+                    onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                  />
                   {eng.label}
                   {/* Green dot = this engine has cached results */}
                   {hasCached && !selected && (

@@ -495,11 +495,11 @@ export function VisibilityTab() {
 
 // ─── Per-Engine Visibility Breakdown ─────────────────────────────────────────
 
-const ENGINE_META: Record<string, { label: string; color: string; bar: string }> = {
-  chatgpt:    { label: 'ChatGPT',    color: 'text-[#10a37f]', bar: 'bg-[#10a37f]' },
-  gemini:     { label: 'Gemini',     color: 'text-blue-600',  bar: 'bg-blue-500' },
-  claude:     { label: 'Claude',     color: 'text-amber-700', bar: 'bg-amber-500' },
-  perplexity: { label: 'Perplexity', color: 'text-purple-600',bar: 'bg-purple-500' },
+const ENGINE_META: Record<string, { label: string; color: string; bar: string; logo: string }> = {
+  chatgpt:    { label: 'ChatGPT',    color: 'text-[#10a37f]', bar: 'bg-[#10a37f]', logo: 'https://www.google.com/s2/favicons?domain=chatgpt.com&sz=32' },
+  gemini:     { label: 'Gemini',     color: 'text-blue-600',  bar: 'bg-blue-500',  logo: 'https://www.google.com/s2/favicons?domain=gemini.google.com&sz=32' },
+  claude:     { label: 'Claude',     color: 'text-amber-700', bar: 'bg-amber-500', logo: 'https://www.google.com/s2/favicons?domain=claude.ai&sz=32' },
+  perplexity: { label: 'Perplexity', color: 'text-purple-600',bar: 'bg-purple-500',logo: 'https://www.google.com/s2/favicons?domain=perplexity.ai&sz=32' },
 }
 
 interface EngineBreakdownProps {
@@ -548,7 +548,15 @@ function EngineBreakdown({ engines, isScanning }: EngineBreakdownProps) {
           return (
             <div key={em.platform}>
               <div className="flex items-center justify-between mb-1">
-                <span className={`text-xs font-semibold ${meta.color}`}>{meta.label}</span>
+                <div className="flex items-center gap-2">
+                  <img
+                    src={meta.logo}
+                    alt={meta.label}
+                    className="w-4 h-4 rounded-sm flex-shrink-0"
+                    onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                  />
+                  <span className={`text-xs font-semibold ${meta.color}`}>{meta.label}</span>
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-ink-3 font-mono">
                     {em.mentions_found}/{em.total_prompts} prompts
