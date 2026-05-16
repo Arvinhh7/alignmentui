@@ -211,7 +211,7 @@ export function DiscoverTab() {
                   <img
                     src={eng.logo}
                     alt=""
-                    className={`w-3.5 h-3.5 rounded-sm flex-shrink-0 ${selected && available ? 'brightness-0 invert' : ''}`}
+                    className="w-3.5 h-3.5 rounded-sm flex-shrink-0"
                     onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
                   />
                   {eng.label}
