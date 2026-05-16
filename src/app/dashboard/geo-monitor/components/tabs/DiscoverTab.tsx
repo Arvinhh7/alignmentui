@@ -30,10 +30,10 @@ const DISCOVER_ACTION: Record<string, {
 
 // ── Phase 6: Engine definitions ──────────────────────
 const ENGINES: { key: string; label: string; desc: string }[] = [
-  { key: 'chatgpt',    label: 'ChatGPT',    desc: 'OpenAI Responses API + web_search_preview' },
-  { key: 'perplexity', label: 'Perplexity', desc: 'Sonar Pro with real-time citations' },
-  { key: 'gemini',     label: 'Gemini',     desc: 'Gemini 2.0 Flash + Grounding API' },
-  { key: 'claude',     label: 'Claude',     desc: 'Claude + web_search tool' },
+  { key: 'chatgpt',    label: 'ChatGPT',    desc: 'gpt-4o-mini-search-preview · Responses API + web_search_preview' },
+  { key: 'perplexity', label: 'Perplexity', desc: 'sonar · real-time citations, cost-efficient' },
+  { key: 'gemini',     label: 'Gemini',     desc: 'gemini-2.0-flash · Google Search grounding' },
+  { key: 'claude',     label: 'Claude',     desc: 'claude-sonnet · web_search tool' },
 ]
 
 // ── Source card ───────────────────────────────────────
