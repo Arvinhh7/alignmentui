@@ -17,16 +17,8 @@ export default function CustomersPage() {
   const [search, setSearch] = useState('')
   const [refreshing, setRefreshing] = useState(false)
 
-  // ── Access guard ──────────────────────────────────────────────────────────
-  if (role !== 'admin') {
-    return (
-      <div className="flex items-center justify-center h-full min-h-[300px]">
-        <p className="text-[rgba(250,245,236,0.4)] text-sm">Admin access required.</p>
-      </div>
-    )
-  }
-
   // ── Data loading ──────────────────────────────────────────────────────────
+  // NOTE: all hooks must be called before any conditional return (Rules of Hooks)
   const loadCustomers = useCallback(async (showSpinner = false) => {
     if (!user?.id) return
     if (showSpinner) setRefreshing(true)
@@ -46,6 +38,15 @@ export default function CustomersPage() {
   useEffect(() => {
     loadCustomers()
   }, [loadCustomers])
+
+  // ── Access guard (AFTER all hooks) ────────────────────────────────────────
+  if (role !== 'admin') {
+    return (
+      <div className="flex items-center justify-center h-full min-h-[300px]">
+        <p className="text-[rgba(250,245,236,0.4)] text-sm">Admin access required.</p>
+      </div>
+    )
+  }
 
   // ── Filtered list ─────────────────────────────────────────────────────────
   const filtered = customers.filter(c => {

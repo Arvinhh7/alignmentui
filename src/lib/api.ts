@@ -3059,7 +3059,9 @@ export const customersApi = {
       const err = await r.json().catch(() => ({ detail: 'Failed to load customers' }))
       throw new Error(err.detail ?? 'Failed to load customers')
     }
-    return r.json()
+    const data = await r.json()
+    // Backend wraps list in { customers: [...] }
+    return Array.isArray(data) ? data : (data.customers ?? [])
   },
 
   create: async (userId: string, data: CustomerCreate): Promise<CustomerDetail> => {
