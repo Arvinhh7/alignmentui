@@ -101,7 +101,8 @@ interface UnifiedState {
   isLoadingTrends: boolean
 
   // Discover
-  discoverResult: DiscoverResult | null
+  discoverResult: DiscoverResult | null           // derived: discoverResults[discoverEngine] ?? null
+  discoverResults: Record<string, DiscoverResult> // per-engine cache
   isRunningDiscover: boolean
   isRunningDeepDiscover: boolean
   discoverError: string
@@ -256,7 +257,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const [batchConfirmStep, setBatchConfirmStep] = useState(false)
 
   // ── Discover ─────────────────────────────────────
-  const [discoverResult, setDiscoverResult] = useState<DiscoverResult | null>(null)
+  const [discoverResults, setDiscoverResults] = useState<Record<string, DiscoverResult>>({})
   const [isRunningDiscover, setIsRunningDiscover] = useState(false)
   const [isRunningDeepDiscover, setIsRunningDeepDiscover] = useState(false)
   const [discoverError, setDiscoverError] = useState('')
@@ -350,7 +351,17 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       const savedAdvMentions = localStorage.getItem(ADV_MENTIONS_KEY)
       if (savedAdvMentions) setAdvancedMentions(JSON.parse(savedAdvMentions))
       const savedDiscover = localStorage.getItem(DISCOVER_RESULT_KEY)
-      if (savedDiscover) setDiscoverResult(JSON.parse(savedDiscover))
+      if (savedDiscover) {
+        const parsed = JSON.parse(savedDiscover)
+        // Handle legacy format (single DiscoverResult) vs new format (Record<engine, DiscoverResult>)
+        if (parsed && typeof parsed === 'object' && parsed.source_domains) {
+          // Old single-result format — restore under its actual engine key
+          const eng: string = parsed.engine_used ?? 'chatgpt'
+          setDiscoverResults({ [eng]: parsed })
+        } else if (parsed && typeof parsed === 'object') {
+          setDiscoverResults(parsed) // new per-engine map format
+        }
+      }
       const savedRecent = localStorage.getItem(RECENT_BRANDS_KEY)
       if (savedRecent) setRecentBrands(JSON.parse(savedRecent))
       if (params.get('autoScan') === 'true' && !autoScanTriggered.current) {
@@ -388,7 +399,9 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
           setScanHistory(data.scan_history_summary as unknown as ScanHistoryEntry[])
         }
         if (data.latest_discover) {
-          setDiscoverResult(data.latest_discover as unknown as DiscoverResult)
+          const dr = data.latest_discover as unknown as DiscoverResult
+          const eng = dr.engine_used ?? 'chatgpt'
+          setDiscoverResults({ [eng]: dr })
         }
       })
       .catch(err => console.warn('[UnifiedContext] customer hydration failed:', err))
@@ -452,7 +465,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       setGapResult(null)
       setAdvancedMentions(null)
       setIntelReport(null)
-      setDiscoverResult(null)
+      setDiscoverResults({})
       setMultiBrandTrends(null)
       // ── Level 2: Auto re-scan for the new brand ────────────────────────────
       autoScanTriggered.current = true
@@ -476,7 +489,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(DISCOVER_RESULT_KEY)
     setBrandConfig({ brand_name: '', domain: '', keywords: [], competitors: [], one_liner: '', target_audience: '', target_market: '', differentiation: '' })
     setIsConfigured(false); setShowConfig(true)
-    setScanResult(null); setScanHistory([]); setGapResult(null); setAdvancedMentions(null); setIntelReport(null); setDiscoverResult(null)
+    setScanResult(null); setScanHistory([]); setGapResult(null); setAdvancedMentions(null); setIntelReport(null); setDiscoverResults({})
   }
 
   // ═══ Scan handlers ═══════════════════════════════
@@ -707,8 +720,11 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       }, ctrl.signal, user?.id, userRole ?? undefined)
       if (res.error === '__ABORTED__') { setIsRunningDiscover(false); return }
       if (res.error) { setDiscoverError(res.error) } else if (res.data) {
-        setDiscoverResult(res.data)
-        localStorage.setItem(DISCOVER_RESULT_KEY, JSON.stringify(res.data))
+        setDiscoverResults(prev => {
+          const updated = { ...prev, [discoverEngine]: res.data! }
+          localStorage.setItem(DISCOVER_RESULT_KEY, JSON.stringify(updated))
+          return updated
+        })
         notifyCreditUsed()
       }
     } catch (e: any) { if (e.name !== 'AbortError') setDiscoverError(e.message || 'Discovery failed') }
@@ -736,8 +752,11 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       }, ctrl.signal, user?.id, userRole ?? undefined)
       if (res.error === '__ABORTED__') { setIsRunningDeepDiscover(false); return }
       if (res.error) { setDiscoverError(res.error) } else if (res.data) {
-        setDiscoverResult(res.data)
-        localStorage.setItem(DISCOVER_RESULT_KEY, JSON.stringify(res.data))
+        setDiscoverResults(prev => {
+          const updated = { ...prev, [discoverEngine]: res.data! }
+          localStorage.setItem(DISCOVER_RESULT_KEY, JSON.stringify(updated))
+          return updated
+        })
         notifyCreditUsed()
       }
     } catch (e: any) { if (e.name !== 'AbortError') setDiscoverError(e.message || 'Deep scan failed') }
@@ -760,6 +779,9 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     await loadPrompts()
   }
 
+  // ── Derived: current engine's result ────────────
+  const discoverResult = discoverResults[discoverEngine] ?? null
+
   // ═══ Context value ═══════════════════════════════
 
   const value: UnifiedState = {
@@ -773,7 +795,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     advancedMentions, isRunningAdvMentions, advMentionsError, handleRunAdvancedMentions, handleStopAdvMentions,
     intelReport, isGeneratingReport, reportError, handleGenerateReport, handleStopReport,
     multiBrandTrends, isLoadingTrends,
-    discoverResult, isRunningDiscover, isRunningDeepDiscover, discoverError, discoverEngine, setDiscoverEngine, availableEngines, userRole, handleRunDiscover, handleRunDeepDiscover, handleStopDiscover, showGeneratePromptsModal, setShowGeneratePromptsModal, handleBatchSavePrompts,
+    discoverResult, discoverResults, isRunningDiscover, isRunningDeepDiscover, discoverError, discoverEngine, setDiscoverEngine, availableEngines, userRole, handleRunDiscover, handleRunDeepDiscover, handleStopDiscover, showGeneratePromptsModal, setShowGeneratePromptsModal, handleBatchSavePrompts,
     aeoUrl, setAeoUrl, aeoResult, aeoHistory, isRunningAeo, aeoError, handleRunAeo,
     prompts, isLoadingPrompts, loadPrompts, showAddPrompt, setShowAddPrompt,
     newPromptForm, setNewPromptForm, editingPrompt, setEditingPrompt,

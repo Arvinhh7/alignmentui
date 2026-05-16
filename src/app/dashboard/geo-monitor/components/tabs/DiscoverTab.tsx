@@ -178,13 +178,14 @@ export function DiscoverTab() {
             {ENGINES.map(eng => {
               const available = ctx.availableEngines.includes(eng.key)
               const selected = ctx.discoverEngine === eng.key
+              const hasCached = !!ctx.discoverResults[eng.key]
               return (
                 <button
                   key={eng.key}
                   onClick={() => available && ctx.setDiscoverEngine(eng.key)}
                   disabled={!available}
-                  title={available ? eng.desc : d.engineNotAvailable}
-                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                  title={available ? (hasCached ? `${eng.desc} · has results` : eng.desc) : d.engineNotAvailable}
+                  className={`relative px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
                     selected && available
                       ? 'bg-ink text-ink-inv shadow-sm'
                       : available
@@ -193,6 +194,10 @@ export function DiscoverTab() {
                   }`}
                 >
                   {eng.label}
+                  {/* Green dot = this engine has cached results */}
+                  {hasCached && !selected && (
+                    <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-sage" />
+                  )}
                 </button>
               )
             })}
