@@ -25,13 +25,20 @@ export function VisibilityTab() {
   const ctx = useUnified()
 
   // ── Scan-derived KPIs ──────────────────────────────
-  const { scanVisibility, scanSov, scanMentions, scanProminence, scanCitations } = useMemo(() => {
+  const { scanVisibility, scanSov, scanMentions, scanProminence, scanCitations, topEngineLabel } = useMemo(() => {
     const scan = ctx.scanResult
-    if (!scan) return { scanVisibility: 0, scanSov: 0, scanMentions: 0, scanTotalPrompts: 0, scanProminence: 0, scanCitations: 0 }
+    if (!scan) return { scanVisibility: 0, scanSov: 0, scanMentions: 0, scanTotalPrompts: 0, scanProminence: 0, scanCitations: 0, topEngineLabel: '' }
     const mentioned = scan.mention_results.filter(m => m.mentioned)
     const prom = mentioned.length > 0
       ? (mentioned.reduce((sum, m) => sum + m.position_score, 0) / mentioned.length) * 100
       : 0
+    // visibility_score = max(per_engine_visibility) — identify the strongest engine
+    const ENGINE_LABELS: Record<string, string> = { chatgpt: 'ChatGPT', gemini: 'Gemini', claude: 'Claude', perplexity: 'Perplexity' }
+    let topLabel = ''
+    if (scan.per_engine_metrics && scan.per_engine_metrics.length > 0) {
+      const top = [...scan.per_engine_metrics].sort((a, b) => b.visibility_score - a.visibility_score)[0]
+      if (top && top.visibility_score > 0) topLabel = `in ${ENGINE_LABELS[top.platform] ?? top.platform}`
+    }
     return {
       scanVisibility: scan.visibility_score,
       scanSov: scan.share_of_voice?.[scan.brand_name] ?? 0,
@@ -40,6 +47,7 @@ export function VisibilityTab() {
       scanTotalPrompts: scan.total_prompts,
       scanProminence: prom,
       scanCitations: scan.source_domains?.reduce((s, d) => s + d.url_count, 0) ?? 0,
+      topEngineLabel: topLabel,
     }
   }, [ctx.scanResult])
 
@@ -191,6 +199,7 @@ export function VisibilityTab() {
             icon={<Eye className="w-5 h-5 text-ink-2" />}
             label="Visibility Score"
             value={formatPct(scanVisibility)}
+            subtitle={topEngineLabel || undefined}
             color={METRIC_COLORS.visibility.color}
             bgColor={METRIC_COLORS.visibility.bgColor}
             trend={ctx.metricTrends ? { delta: ctx.metricTrends.visibilityDelta, label: '%' } : undefined}
@@ -493,10 +502,6 @@ const ENGINE_META: Record<string, { label: string; color: string; bar: string }>
   perplexity: { label: 'Perplexity', color: 'text-purple-600',bar: 'bg-purple-500' },
 }
 
-const ENGINE_WEIGHTS: Record<string, number> = {
-  chatgpt: 0.40, gemini: 0.30, claude: 0.20, perplexity: 0.10,
-}
-
 interface EngineBreakdownProps {
   engines: { platform: string; visibility_score: number; mentions_found: number; total_prompts: number }[]
   isScanning: boolean
@@ -507,31 +512,43 @@ function EngineBreakdown({ engines, isScanning }: EngineBreakdownProps) {
   const order = ['chatgpt', 'gemini', 'claude', 'perplexity']
   const sorted = [...engines].sort((a, b) => order.indexOf(a.platform) - order.indexOf(b.platform))
 
+  // Engine Coverage: how many engines have at least one brand mention
+  const totalEngines = sorted.length
+  const coveredEngines = sorted.filter(em => em.mentions_found > 0).length
+  const coveragePct = totalEngines > 0 ? Math.round((coveredEngines / totalEngines) * 100) : 0
+
   return (
     <div className="bg-surface rounded-xl border border-divider p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h4 className="text-sm font-semibold text-ink">Per-Engine Visibility</h4>
-          <p className="text-xs text-ink-3 mt-0.5">
-            Weighted score: ChatGPT ×0.40 · Gemini ×0.30 · Claude ×0.20 · Perplexity ×0.10
-          </p>
+          <p className="text-xs text-ink-3 mt-0.5">Brand visibility per AI engine</p>
         </div>
         {isScanning && <span className="text-[10px] px-2 py-0.5 rounded bg-surface-warm text-ink-3 font-mono">cached</span>}
+      </div>
+
+      {/* Engine Coverage stat */}
+      <div className="flex items-center justify-between px-3 py-2.5 mb-4 bg-canvas rounded-lg border border-divider-light">
+        <div>
+          <p className="text-xs font-semibold text-ink">Engine Coverage</p>
+          <p className="text-[10px] text-ink-3 mt-0.5">Engines that mention your brand at least once</p>
+        </div>
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-base font-bold font-mono text-ink">{coveredEngines}</span>
+          <span className="text-xs text-ink-3 font-mono">of {totalEngines}</span>
+          <span className="text-xs text-ink-3 font-mono ml-1">({coveragePct}%)</span>
+        </div>
       </div>
 
       <div className="space-y-3.5">
         {sorted.map(em => {
           const meta = ENGINE_META[em.platform] ?? { label: em.platform, color: 'text-ink-2', bar: 'bg-ink-2' }
-          const weight = ENGINE_WEIGHTS[em.platform] ?? 0.05
           const pct = Math.min(em.visibility_score, 100)
 
           return (
             <div key={em.platform}>
               <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                  <span className={`text-xs font-semibold ${meta.color}`}>{meta.label}</span>
-                  <span className="text-[10px] text-ink-3 font-mono">×{weight.toFixed(2)}</span>
-                </div>
+                <span className={`text-xs font-semibold ${meta.color}`}>{meta.label}</span>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-ink-3 font-mono">
                     {em.mentions_found}/{em.total_prompts} prompts
