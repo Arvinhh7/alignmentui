@@ -65,7 +65,7 @@ export default function CustomersPage() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-surface p-6 md:p-8">
+    <div className="min-h-screen bg-canvas p-6 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
 
         {/* ── Header ───────────────────────────────────────────────────────── */}
@@ -73,9 +73,9 @@ export default function CustomersPage() {
           <div>
             <div className="flex items-center gap-2.5 mb-1">
               <Briefcase className="w-5 h-5 text-caution" />
-              <h1 className="text-xl font-bold text-ink-inv">Customers</h1>
+              <h1 className="text-xl font-bold text-ink">Customers</h1>
             </div>
-            <p className="text-sm text-[rgba(250,245,236,0.4)]">
+            <p className="text-sm text-ink-3">
               Manage brand monitoring for each of your customers.
             </p>
           </div>
@@ -86,14 +86,14 @@ export default function CustomersPage() {
               onClick={() => setIncludeArchived(v => !v)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition-colors ${
                 includeArchived
-                  ? 'bg-caution-bg text-caution border-[rgba(184,134,11,0.25)]'
-                  : 'text-[rgba(250,245,236,0.4)] border-[rgba(250,245,236,0.1)] hover:border-[rgba(250,245,236,0.2)] hover:text-ink-inv'
+                  ? 'bg-caution-bg text-caution border-caution/25'
+                  : 'text-ink-3 border-divider-light hover:border-divider hover:text-ink'
               }`}
             >
               <Archive className="w-3.5 h-3.5" />
               {includeArchived ? 'Hide Archived' : 'Show Archived'}
               {archivedCount > 0 && (
-                <span className="ml-0.5 text-[9px] font-bold px-1 py-0.5 bg-[rgba(250,245,236,0.08)] rounded-full">
+                <span className="ml-0.5 text-[9px] font-bold px-1 py-0.5 bg-surface-warm rounded-full">
                   {archivedCount}
                 </span>
               )}
@@ -103,7 +103,7 @@ export default function CustomersPage() {
             <button
               onClick={() => loadCustomers(true)}
               disabled={refreshing}
-              className="w-8 h-8 flex items-center justify-center rounded-xl text-[rgba(250,245,236,0.4)] border border-[rgba(250,245,236,0.1)] hover:text-ink-inv hover:border-[rgba(250,245,236,0.2)] disabled:opacity-40 transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-xl text-ink-3 border border-divider-light hover:text-ink hover:border-divider disabled:opacity-40 transition-colors"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
@@ -111,7 +111,7 @@ export default function CustomersPage() {
             {/* New Customer */}
             <button
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-ink-inv text-ink hover:bg-surface-muted transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-ink text-ink-inv hover:bg-ink-2 transition-colors"
             >
               <Plus className="w-4 h-4" />
               New Customer
@@ -122,15 +122,15 @@ export default function CustomersPage() {
         {/* ── Stats bar ────────────────────────────────────────────────────── */}
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
-            <span className="text-2xl font-bold text-ink-inv">{activeCount}</span>
-            <span className="text-sm text-[rgba(250,245,236,0.4)]">active</span>
+            <span className="text-2xl font-bold text-ink">{activeCount}</span>
+            <span className="text-sm text-ink-3">active</span>
           </div>
           {archivedCount > 0 && (
             <>
-              <div className="w-px h-4 bg-[rgba(250,245,236,0.1)]" />
+              <div className="w-px h-4 bg-divider-light" />
               <div className="flex items-center gap-1.5">
-                <span className="text-xl font-bold text-[rgba(250,245,236,0.3)]">{archivedCount}</span>
-                <span className="text-sm text-[rgba(250,245,236,0.25)]">archived</span>
+                <span className="text-xl font-bold text-ink-3">{archivedCount}</span>
+                <span className="text-sm text-ink-3">archived</span>
               </div>
             </>
           )}
@@ -139,20 +139,20 @@ export default function CustomersPage() {
         {/* ── Search ───────────────────────────────────────────────────────── */}
         {customers.length > 4 && (
           <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(250,245,236,0.3)]" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search by brand, domain, or notes…"
-              className="w-full max-w-sm bg-[rgba(250,245,236,0.04)] border border-[rgba(250,245,236,0.08)] rounded-xl pl-10 pr-4 py-2.5 text-sm text-ink-inv placeholder-[rgba(250,245,236,0.25)] focus:outline-none focus:border-[rgba(250,245,236,0.2)] transition-colors"
+              className="w-full max-w-sm bg-surface border border-divider-light rounded-xl pl-10 pr-4 py-2.5 text-sm text-ink placeholder-ink-3 focus:outline-none focus:border-divider transition-colors"
             />
           </div>
         )}
 
         {/* ── Error ────────────────────────────────────────────────────────── */}
         {error && (
-          <div className="px-4 py-3 rounded-xl bg-[rgba(201,86,75,0.08)] border border-[rgba(201,86,75,0.2)] text-red-soft text-sm">
+          <div className="px-4 py-3 rounded-xl bg-red-soft-bg border border-red-soft/30 text-red-soft text-sm">
             {error}
           </div>
         )}
@@ -163,7 +163,7 @@ export default function CustomersPage() {
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="h-52 bg-[rgba(250,245,236,0.03)] border border-[rgba(250,245,236,0.06)] rounded-2xl animate-pulse"
+                className="h-52 bg-surface-warm border border-divider-light rounded-2xl animate-pulse"
               />
             ))}
           </div>
@@ -172,28 +172,28 @@ export default function CustomersPage() {
         {/* ── Empty state ──────────────────────────────────────────────────── */}
         {!loading && filtered.length === 0 && !error && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-[rgba(250,245,236,0.04)] border border-[rgba(250,245,236,0.08)] flex items-center justify-center mb-4">
-              <Briefcase className="w-6 h-6 text-[rgba(250,245,236,0.2)]" />
+            <div className="w-14 h-14 rounded-2xl bg-surface border border-divider-light flex items-center justify-center mb-4">
+              <Briefcase className="w-6 h-6 text-ink-3" />
             </div>
             {search ? (
               <>
-                <p className="text-sm font-medium text-[rgba(250,245,236,0.5)]">No customers match &ldquo;{search}&rdquo;</p>
+                <p className="text-sm font-medium text-ink-3">No customers match &ldquo;{search}&rdquo;</p>
                 <button
                   onClick={() => setSearch('')}
-                  className="mt-2 text-xs text-[rgba(250,245,236,0.3)] hover:text-ink-inv underline underline-offset-2 transition-colors"
+                  className="mt-2 text-xs text-ink-3 hover:text-ink underline underline-offset-2 transition-colors"
                 >
                   Clear search
                 </button>
               </>
             ) : (
               <>
-                <p className="text-sm font-medium text-[rgba(250,245,236,0.5)]">No customers yet</p>
-                <p className="text-xs text-[rgba(250,245,236,0.3)] mt-1 mb-4">
+                <p className="text-sm font-medium text-ink-2">No customers yet</p>
+                <p className="text-xs text-ink-3 mt-1 mb-4">
                   Add your first customer to start monitoring their brand visibility.
                 </p>
                 <button
                   onClick={() => setShowModal(true)}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-ink-inv text-ink hover:bg-surface-muted transition-colors"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-ink text-ink-inv hover:bg-ink-2 transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                   New Customer
@@ -219,7 +219,7 @@ export default function CustomersPage() {
 
         {/* ── Refreshing overlay ───────────────────────────────────────────── */}
         {refreshing && !loading && (
-          <div className="fixed bottom-6 right-6 flex items-center gap-2 px-4 py-2.5 bg-ink border border-[rgba(250,245,236,0.1)] rounded-xl shadow-elevation-lg text-xs text-[rgba(250,245,236,0.5)]">
+          <div className="fixed bottom-6 right-6 flex items-center gap-2 px-4 py-2.5 bg-ink text-ink-inv border border-ink-2 rounded-xl shadow-lg text-xs">
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
             Refreshing…
           </div>
