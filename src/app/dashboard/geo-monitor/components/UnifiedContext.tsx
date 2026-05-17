@@ -33,6 +33,43 @@ import {
 } from './shared/constants'
 import { formatDate } from './shared/ChartComponents'
 
+// ─── Client-side domain re-classification ───────────────────────────────────
+// Re-classifies YOU/CORPORATE/COMPETITOR from brand config without a backend
+// round-trip. Applied after loading from localStorage and after API cache hits
+// so stale domain_type values don't persist across brand config changes.
+function applyBrandClassification(
+  result: DiscoverResult,
+  brandDomain: string,
+  competitors: string[],
+): DiscoverResult {
+  if (!result?.source_domains?.length) return result
+  const bd = brandDomain.toLowerCase().replace('www.', '').replace(/^https?:\/\//, '').split('/')[0]
+  const compSlugs = competitors.map(c => c.toLowerCase().replace(/[\s&.]/g, ''))
+
+  const recl = result.source_domains.map(item => {
+    const d = item.domain.toLowerCase()
+
+    // YOU / CORPORATE — owns this domain
+    if (bd && (d === bd || d.endsWith('.' + bd))) {
+      const corpPrefixes = ['help.', 'support.', 'us.', 'uk.', 'fr.', 'de.', 'jp.', 'au.', 'eu.', 'blog.', 'community.', 'shop.']
+      const isSubdomain = corpPrefixes.some(p => d.startsWith(p)) || d !== bd
+      return { ...item, domain_type: isSubdomain ? 'corporate' : 'you' }
+    }
+
+    // COMPETITOR — name appears in registered domain
+    const dSlug = d.replace(/\./g, '')
+    for (const slug of compSlugs) {
+      if (slug && dSlug.includes(slug)) {
+        return { ...item, domain_type: 'competitor' }
+      }
+    }
+
+    return item
+  })
+
+  return { ...result, source_domains: recl }
+}
+
 // ─── Tab type ────────────────────────────────────────
 
 export type TabKey =
@@ -355,13 +392,22 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       const savedDiscover = localStorage.getItem(DISCOVER_RESULT_KEY)
       if (savedDiscover) {
         const parsed = JSON.parse(savedDiscover)
+        // Re-classify YOU/CORPORATE/COMPETITOR using current brand config
+        // (stale localStorage results may have empty domain → everything was OTHER)
+        const savedConfig = saved ? (JSON.parse(saved) as BrandConfig) : null
+        const bd = savedConfig?.domain ?? ''
+        const comps = savedConfig?.competitors ?? []
         // Handle legacy format (single DiscoverResult) vs new format (Record<engine, DiscoverResult>)
         if (parsed && typeof parsed === 'object' && parsed.source_domains) {
           // Old single-result format — restore under its actual engine key
           const eng: string = parsed.engine_used ?? 'chatgpt'
-          setDiscoverResults({ [eng]: parsed })
+          setDiscoverResults({ [eng]: applyBrandClassification(parsed, bd, comps) })
         } else if (parsed && typeof parsed === 'object') {
-          setDiscoverResults(parsed) // new per-engine map format
+          const reClassified: Record<string, DiscoverResult> = {}
+          for (const [eng, res] of Object.entries(parsed)) {
+            reClassified[eng] = applyBrandClassification(res as DiscoverResult, bd, comps)
+          }
+          setDiscoverResults(reClassified)
         }
       }
       const savedRecent = localStorage.getItem(RECENT_BRANDS_KEY)
@@ -723,8 +769,9 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       }, ctrl.signal, user?.id, userRole ?? undefined)
       if (res.error === '__ABORTED__') { setIsRunningDiscover(false); return }
       if (res.error) { setDiscoverError(res.error) } else if (res.data) {
+        const classified = applyBrandClassification(res.data, brandConfig.domain, brandConfig.competitors)
         setDiscoverResults(prev => {
-          const updated = { ...prev, [discoverEngine]: res.data! }
+          const updated = { ...prev, [discoverEngine]: classified }
           localStorage.setItem(DISCOVER_RESULT_KEY, JSON.stringify(updated))
           return updated
         })
@@ -755,8 +802,9 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       }, ctrl.signal, user?.id, userRole ?? undefined)
       if (res.error === '__ABORTED__') { setIsRunningDeepDiscover(false); return }
       if (res.error) { setDiscoverError(res.error) } else if (res.data) {
+        const classified = applyBrandClassification(res.data, brandConfig.domain, brandConfig.competitors)
         setDiscoverResults(prev => {
-          const updated = { ...prev, [discoverEngine]: res.data! }
+          const updated = { ...prev, [discoverEngine]: classified }
           localStorage.setItem(DISCOVER_RESULT_KEY, JSON.stringify(updated))
           return updated
         })
