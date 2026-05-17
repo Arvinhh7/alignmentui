@@ -16,6 +16,7 @@ const ACTION_SIGNALS: Record<string, {
   corporate:     { icon: Check,        label: 'Your Source',      className: 'text-sage' },
   competitor:    { icon: Zap,          label: 'Compete Here',     className: 'text-caution' },
   editorial:     { icon: ArrowRight,   label: 'Invest Here',      className: 'text-ink-2' },
+  pr_wire:       { icon: ArrowRight,   label: 'Press Coverage',   className: 'text-purple-600' },
   reference:     { icon: ArrowRight,   label: 'Invest Here',      className: 'text-ink-2' },
   institutional: { icon: ArrowRight,   label: 'Invest Here',      className: 'text-ink-2' },
   ugc:           { icon: AlertCircle,  label: 'Community Signal', className: 'text-ink-3' },

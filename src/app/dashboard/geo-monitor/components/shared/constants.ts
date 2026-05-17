@@ -59,11 +59,13 @@ export const MENTION_TYPE_LABELS: Record<string, { label: string; color: string 
 export const DOMAIN_TYPE_LABELS: Record<string, { label: string; color: string; chartColor: string }> = {
   you: { label: 'You', color: 'bg-sage-bg text-sage', chartColor: '#4A7C59' },
   corporate: { label: 'Corporate', color: 'bg-sage-bg text-sage', chartColor: '#5E8B7E' },
-  editorial: { label: 'Editorial', color: 'bg-surface-warm text-ink-2', chartColor: '#4A6FA5' },
-  ugc: { label: 'UGC', color: 'bg-caution-bg text-caution', chartColor: '#B8860B' },
+  editorial: { label: 'Earned Media', color: 'bg-surface-warm text-ink-2', chartColor: '#4A6FA5' },
+  pr_wire: { label: 'PR Wire', color: 'bg-purple-50 text-purple-600', chartColor: '#7C3AED' },
+  ugc: { label: 'Social / UGC', color: 'bg-caution-bg text-caution', chartColor: '#B8860B' },
   competitor: { label: 'Competitor', color: 'bg-red-soft-bg text-red-soft', chartColor: '#B5453A' },
   reference: { label: 'Reference', color: 'bg-surface-warm text-ink-2', chartColor: '#7B5E96' },
-  institutional: { label: 'Institutional', color: 'bg-surface-warm text-ink-2', chartColor: '#0A0A0A' },
+  institutional: { label: 'Institution', color: 'bg-surface-warm text-ink-2', chartColor: '#0A0A0A' },
+  coupon: { label: 'Coupon', color: 'bg-surface-muted text-ink-3', chartColor: '#9CA3AF' },
   other: { label: 'Other', color: 'bg-surface-muted text-ink-3', chartColor: '#2D2B27' },
 }
 
@@ -90,10 +92,12 @@ export const POSITIONING_LABELS: Record<string, { label: string; color: string; 
 export const SOURCE_TYPE_LABELS: Record<string, { label: string; color: string }> = {
   you: { label: 'Your Website', color: 'text-sage' },
   corporate: { label: 'Corporate', color: 'text-sage' },
-  editorial: { label: 'Media / Editorial', color: 'text-ink-2' },
-  ugc: { label: 'Community / UGC', color: 'text-caution' },
+  editorial: { label: 'Earned Media', color: 'text-ink-2' },
+  pr_wire: { label: 'PR Wire', color: 'text-purple-600' },
+  ugc: { label: 'Social / UGC', color: 'text-caution' },
   reference: { label: 'Reference', color: 'text-ink-2' },
-  institutional: { label: 'Institutional', color: 'text-ink-2' },
+  institutional: { label: 'Institution', color: 'text-ink-2' },
+  coupon: { label: 'Coupon', color: 'text-ink-3' },
   other: { label: 'Other', color: 'text-ink-3' },
 }
 
