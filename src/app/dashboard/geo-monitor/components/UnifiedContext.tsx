@@ -830,6 +830,23 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     await loadPrompts()
   }
 
+  // ── Reactive re-classification when brandConfig changes ──────────────────
+  // Covers brand config loaded from API (customer portal) — those never write
+  // to BRAND_CONFIG_KEY localStorage, so the localStorage-load fix misses them.
+  // Runs whenever domain or competitors change, skips if no domain set.
+  useEffect(() => {
+    if (!brandConfig.domain && !brandConfig.competitors.length) return
+    setDiscoverResults(prev => {
+      const keys = Object.keys(prev)
+      if (!keys.length) return prev
+      const updated: Record<string, DiscoverResult> = {}
+      for (const [eng, res] of Object.entries(prev)) {
+        updated[eng] = applyBrandClassification(res, brandConfig.domain, brandConfig.competitors)
+      }
+      return updated
+    })
+  }, [brandConfig.domain, brandConfig.competitors])
+
   // ── Derived: current engine's result ────────────
   const discoverResult = discoverResults[discoverEngine] ?? null
 
