@@ -44,20 +44,37 @@ function applyBrandClassification(
   competitors: string[],
 ): DiscoverResult {
   if (!result?.source_domains?.length) return result
-  const bd = brandDomain.toLowerCase().replace('www.', '').replace(/^https?:\/\//, '').split('/')[0]
+
+  // Normalize: "https://us.ecoflow.com/" → "us.ecoflow.com"
+  const bd = brandDomain.toLowerCase()
+    .replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0].trim()
+
+  // Registered-domain family for sibling/parent detection.
+  // "us.ecoflow.com" → "ecoflow.com"  (works for .com/.io/.ai/etc.)
+  const bdParts = bd.split('.')
+  const bdRegistered = bdParts.length > 2 ? bdParts.slice(-2).join('.') : bd
+
   const compSlugs = competitors.map(c => c.toLowerCase().replace(/[\s&.]/g, ''))
 
   const recl = result.source_domains.map(item => {
     const d = item.domain.toLowerCase()
 
-    // YOU / CORPORATE — owns this domain
-    if (bd && (d === bd || d.endsWith('.' + bd))) {
-      const corpPrefixes = ['help.', 'support.', 'us.', 'uk.', 'fr.', 'de.', 'jp.', 'au.', 'eu.', 'blog.', 'community.', 'shop.']
-      const isSubdomain = corpPrefixes.some(p => d.startsWith(p)) || d !== bd
-      return { ...item, domain_type: isSubdomain ? 'corporate' : 'you' }
+    if (bd) {
+      // Rule 1: exact configured domain → YOU (geo-subdomains like us.* are YOU)
+      if (d === bd) return { ...item, domain_type: 'you' }
+
+      // Rule 2: sub-path of configured domain → CORPORATE
+      if (d.endsWith('.' + bd)) return { ...item, domain_type: 'corporate' }
+
+      // Rule 3: registered-domain family (parent + siblings) → CORPORATE
+      // e.g. bd="us.ecoflow.com" → bdRegistered="ecoflow.com"
+      // so ecoflow.com and uk.ecoflow.com both → CORPORATE
+      if (bdRegistered !== bd && (d === bdRegistered || d.endsWith('.' + bdRegistered))) {
+        return { ...item, domain_type: 'corporate' }
+      }
     }
 
-    // COMPETITOR — name appears in registered domain
+    // COMPETITOR — slug appears in registered domain
     const dSlug = d.replace(/\./g, '')
     for (const slug of compSlugs) {
       if (slug && dSlug.includes(slug)) {
