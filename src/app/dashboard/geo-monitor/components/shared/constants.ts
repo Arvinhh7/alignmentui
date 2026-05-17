@@ -249,6 +249,68 @@ export interface ScanHistoryEntry {
   engines_used?: string[]
 }
 
+// ─── Tag input helpers ─────────────────────────────────
+// Auto-split on common separators when user pastes/types multi-value strings.
+// Space is intentionally excluded — "Goal Zero" must stay one competitor.
+export const TAG_SEPARATORS = /[,;，；\n\t]+/
+
+export function splitTagInput(s: string): string[] {
+  return s.split(TAG_SEPARATORS).map(p => p.trim()).filter(Boolean)
+}
+
+// ─── Brand-self detection ──────────────────────────────
+// Extracts a comparable stem from brand name/domain so we can detect when a
+// "competitor" entry is really just a variant of the brand itself.
+export function brandSelfStem(brandName: string, brandDomain: string): string {
+  const nameStem = (brandName || '').toLowerCase().replace(/[\s&.,\-_'']/g, '')
+  if (nameStem.length >= 4) return nameStem
+
+  const cleaned = (brandDomain || '').toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .split('/')[0]
+  // For "us.ecoflow.com" / "ecoflow.co.uk" pick the longest alphabetic part
+  // that isn't a common TLD piece.
+  const TLD_LIKE = new Set(['com', 'net', 'org', 'co', 'uk', 'us', 'io', 'app', 'ai', 'dev', 'shop'])
+  const parts = cleaned.split('.').filter(p => p && !TLD_LIKE.has(p))
+  return parts.sort((a, b) => b.length - a.length)[0] ?? ''
+}
+
+export function isBrandSelfVariant(
+  candidate: string,
+  brandName: string,
+  brandDomain: string,
+): boolean {
+  const stem = brandSelfStem(brandName, brandDomain)
+  if (!stem || stem.length < 4) return false
+  const candSlug = (candidate || '').toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .split('/')[0]
+    .replace(/[\s&.,\-_'']/g, '')
+  return candSlug.includes(stem)
+}
+
+export interface BrandConfigLike {
+  brand_name: string
+  domain: string
+  keywords?: string[]
+  competitors?: string[]
+}
+
+// Clean a brand config in-place: split any stuck-together comma values and
+// drop brand-self variants from competitors. Idempotent.
+export function sanitizeBrandConfig<T extends BrandConfigLike>(cfg: T): T {
+  const expandTags = (arr?: string[]) =>
+    Array.from(new Set(
+      (arr ?? []).flatMap(t => splitTagInput(String(t ?? '')))
+    ))
+  const keywords = expandTags(cfg.keywords)
+  const competitorsRaw = expandTags(cfg.competitors)
+  const competitors = competitorsRaw.filter(c => !isBrandSelfVariant(c, cfg.brand_name, cfg.domain))
+  return { ...cfg, keywords, competitors }
+}
+
 export interface RecentBrandRecord {
   brand_name: string
   domain: string

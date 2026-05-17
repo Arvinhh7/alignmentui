@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Settings, Save, X, ChevronDown, Trash2 } from 'lucide-react'
 import { useUnified } from './UnifiedContext'
 import { TagInput } from './shared/ChartComponents'
+import { isBrandSelfVariant } from './shared/constants'
 
 export function BrandSetupPanel() {
   const ctx = useUnified()
@@ -80,7 +81,7 @@ export function BrandSetupPanel() {
           <TagInput
             value={ctx.brandConfig.keywords}
             onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, keywords: v })}
-            placeholder="Add keyword..."
+            placeholder="Add keyword (comma to add multiple)..."
             inputValue={keywordInput}
             onInputChange={setKeywordInput}
           />
@@ -92,9 +93,10 @@ export function BrandSetupPanel() {
           <TagInput
             value={ctx.brandConfig.competitors}
             onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, competitors: v })}
-            placeholder="Add competitor..."
+            placeholder="Add competitor (comma to add multiple)..."
             inputValue={competitorInput}
             onInputChange={setCompetitorInput}
+            validate={(tag) => !isBrandSelfVariant(tag, ctx.brandConfig.brand_name, ctx.brandConfig.domain)}
           />
         </div>
 

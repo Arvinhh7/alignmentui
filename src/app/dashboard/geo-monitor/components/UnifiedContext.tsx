@@ -27,6 +27,7 @@ import {
   RECENT_BRANDS_KEY,
   DISCOVER_RESULT_KEY,
   autoClassify,
+  sanitizeBrandConfig,
   type BrandConfig,
   type ScanHistoryEntry,
   type RecentBrandRecord,
@@ -374,7 +375,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       // ── Normal localStorage hydration ─────────────────────────────────────
       const saved = localStorage.getItem(BRAND_CONFIG_KEY)
       if (saved) {
-        const config = JSON.parse(saved) as BrandConfig
+        const config = sanitizeBrandConfig(JSON.parse(saved) as BrandConfig)
         if (config.brand_name) {
           setBrandConfig(config)
           setIsConfigured(true)
@@ -427,7 +428,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     customersApi.getLatest(activeCustomerId, user.id)
       .then(data => {
         const cfg = (data.customer.config_json ?? {}) as Partial<BrandConfig>
-        setBrandConfig({
+        setBrandConfig(sanitizeBrandConfig({
           brand_name:       data.customer.brand_name,
           domain:           data.customer.domain,
           keywords:         (cfg.keywords as string[])        ?? [],
@@ -436,7 +437,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
           target_audience:  (cfg.target_audience as string)   ?? '',
           target_market:    (cfg.target_market as string)     ?? '',
           differentiation:  (cfg.differentiation as string)   ?? '',
-        })
+        }))
         setIsConfigured(true)
         setShowConfig(false)
 
@@ -476,18 +477,22 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const clearRecentBrands = () => { localStorage.removeItem(RECENT_BRANDS_KEY); setRecentBrands([]) }
 
   const handleSaveConfig = (pendingKeyword = '', pendingCompetitor = '') => {
-    // Merge any still-typed (unsubmitted) text from TagInputs
+    // Merge any still-typed (unsubmitted) text from TagInputs.
+    // pendingKeyword/pendingCompetitor may contain comma-separated values
+    // (user typed multiple but didn't hit Enter) — sanitizeBrandConfig splits them.
     const kw = pendingKeyword.trim()
     const comp = pendingCompetitor.trim()
-    const mergedKeywords = kw && !brandConfig.keywords.includes(kw)
-      ? [...brandConfig.keywords, kw] : brandConfig.keywords
-    const mergedCompetitors = comp && !brandConfig.competitors.includes(comp)
-      ? [...brandConfig.competitors, comp] : brandConfig.competitors
-    const merged = { ...brandConfig, keywords: mergedKeywords, competitors: mergedCompetitors }
+    const mergedKeywords = kw ? [...brandConfig.keywords, kw] : brandConfig.keywords
+    const mergedCompetitors = comp ? [...brandConfig.competitors, comp] : brandConfig.competitors
+    const merged = sanitizeBrandConfig({
+      ...brandConfig,
+      keywords: mergedKeywords,
+      competitors: mergedCompetitors,
+    })
 
     if (!merged.brand_name.trim()) { setConfigError('Brand name is required'); return }
     setConfigError('')
-    if (kw || comp) setBrandConfig(merged)
+    setBrandConfig(merged)
 
     // ── Level 1: Detect brand change → read OLD brand BEFORE overwriting localStorage ──
     // The edit form updates brandConfig in real-time, so we can't rely on React state for "old" brand.

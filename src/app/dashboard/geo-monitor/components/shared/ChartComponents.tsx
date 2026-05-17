@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { MultiBrandTrendData as ApiMultiBrandTrendData, BrandTrendPoint } from '@/lib/api'
 import { X } from 'lucide-react'
 import type { ScanHistoryEntry } from './constants'
+import { TAG_SEPARATORS, splitTagInput } from './constants'
 
 // ─── Helpers ─────────────────────────────────────────
 
@@ -235,20 +236,53 @@ export function HorizontalBar({ label, value, max, color, icon }: {
 
 // ─── TagInput ────────────────────────────────────────
 
-export function TagInput({ value, onChange, placeholder, inputValue, onInputChange }: {
+export function TagInput({ value, onChange, placeholder, inputValue, onInputChange, validate }: {
   value: string[]
   onChange: (v: string[]) => void
   placeholder: string
   inputValue?: string        // controlled mode: parent owns the input text
   onInputChange?: (v: string) => void
+  // Return false to silently reject a tag (e.g. brand-self filter on competitors).
+  validate?: (tag: string) => boolean
 }) {
   const [internalInput, setInternalInput] = useState('')
+  const [rejectedHint, setRejectedHint] = useState<string | null>(null)
   const input = inputValue !== undefined ? inputValue : internalInput
   const setInput = onInputChange ?? setInternalInput
 
-  const addTag = () => {
-    const t = input.trim()
-    if (t && !value.includes(t)) { onChange([...value, t]); setInput('') }
+  // Accept tags into `value`; silently skips duplicates and validator-rejected ones.
+  const acceptTags = (candidates: string[]) => {
+    const updated = [...value]
+    let rejected: string | null = null
+    for (const raw of candidates) {
+      const t = raw.trim()
+      if (!t || updated.includes(t)) continue
+      if (validate && !validate(t)) { rejected = t; continue }
+      updated.push(t)
+    }
+    if (updated.length !== value.length) onChange(updated)
+    if (rejected) {
+      setRejectedHint(rejected)
+      window.setTimeout(() => setRejectedHint(null), 2500)
+    }
+  }
+
+  // Auto-split on separators in input — pasting or typing "A, B, C" yields 3 tags.
+  const handleInputChange = (raw: string) => {
+    if (!TAG_SEPARATORS.test(raw)) { setInput(raw); return }
+    const endsWithSep = TAG_SEPARATORS.test(raw[raw.length - 1] ?? '')
+    const parts = splitTagInput(raw)
+    const finishedParts = endsWithSep ? parts : parts.slice(0, -1)
+    const remaining = endsWithSep ? '' : (parts[parts.length - 1] ?? '')
+    acceptTags(finishedParts)
+    setInput(remaining)
+  }
+
+  const addTagFromInput = () => {
+    const parts = splitTagInput(input)
+    if (parts.length === 0) return
+    acceptTags(parts)
+    setInput('')
   }
   return (
     <div>
@@ -263,11 +297,17 @@ export function TagInput({ value, onChange, placeholder, inputValue, onInputChan
         ))}
       </div>
       <input
-        type="text" value={input} onChange={e => setInput(e.target.value)}
-        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }}
+        type="text" value={input} onChange={e => handleInputChange(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTagFromInput() } }}
+        onBlur={() => { if (input.trim()) addTagFromInput() }}
         placeholder={placeholder}
         className="w-full px-3 py-2 border border-divider rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
       />
+      {rejectedHint && (
+        <p className="mt-1 text-xs text-caution">
+          &quot;{rejectedHint}&quot; matches your brand and was skipped.
+        </p>
+      )}
     </div>
   )
 }
