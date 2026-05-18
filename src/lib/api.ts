@@ -394,6 +394,51 @@ export interface DiscoverResult {
   source_domains: DiscoverSourceItem[];
 }
 
+// ─── Dev Mode: EMA Policy Optimization ────────────────────────────────────
+
+export interface DevOptimizationConfig {
+  alpha: number;           // EMA learning rate 0.1-1.0
+  iterations: number;      // EMA iterations to simulate
+  static_weight: number;   // blend ratio for static vs policy score
+  estimated_minutes: number;
+  estimated_cost_usd: number;
+}
+
+export interface CTMCounts {
+  gaps: number;
+  threats: number;
+  amplifying: number;
+  bonus: number;
+  f1_alignment: number;    // F1@20 between discover top-20 and scan top-20
+}
+
+export interface PolicyEntry {
+  domain: string;
+  f_t: number;             // current EMA policy weight
+  reward: number;          // scan-derived reward signal
+  delta: number;           // f_t - reward (positive = over-estimated)
+  delta_pct: number;       // delta as % of f_t
+}
+
+export interface DevOptimizationRequest {
+  discover: DiscoverResult;
+  scan: MonitorScanResult;
+  config?: DevOptimizationConfig;
+}
+
+export interface DevOptimizationResult {
+  success: boolean;
+  iterations_run: number;
+  before: CTMCounts;
+  after: CTMCounts;
+  improvement_pct: number;       // F1@20 relative improvement %
+  gap_reduction_pct: number;
+  policy_entries: PolicyEntry[];  // top-30 domains sorted by |delta|
+  new_source_domains: DiscoverSourceItem[];  // re-ranked discover
+  reasoning: string;
+  applied: boolean;
+}
+
 // ─── Smart Prompts ─────────────────────────────────────────────────────────
 
 export interface SmartPromptEngineSource {
@@ -1494,6 +1539,22 @@ class APIClient {
       engines: string[]
       models?: Record<string, { quick: string; deep: string }>
     }>('/api/monitor/engines');
+  }
+
+  // ─── Dev Mode: EMA Policy Optimization ───────────────
+
+  async devOptimize(req: DevOptimizationRequest) {
+    return this.request<DevOptimizationResult>('/api/monitor/dev/optimize', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async devSuggestConfig(req: DevOptimizationRequest) {
+    return this.request<DevOptimizationConfig>('/api/monitor/dev/optimize/config', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
   }
 
   // ─── Phase 4.4: Export endpoints ─────────────────────

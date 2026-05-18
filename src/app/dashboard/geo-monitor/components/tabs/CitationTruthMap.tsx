@@ -1,11 +1,12 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { Globe, ExternalLink, ArrowRight, MapIcon } from 'lucide-react'
+import { useMemo, useState, useCallback } from 'react'
+import { Globe, ExternalLink, ArrowRight, MapIcon, FlaskConical } from 'lucide-react'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
-import type { DiscoverResult, MonitorScanResult, SourceDomainInfo } from '@/lib/api'
+import type { DiscoverResult, MonitorScanResult, SourceDomainInfo, DevOptimizationResult } from '@/lib/api'
 import { DASHBOARD_ROUTES } from '../shared/constants'
+import { DevModeModal } from '../DevMode/DevModeModal'
 
 // ── Types ─────────────────────────────────────────────
 
@@ -87,6 +88,13 @@ export function CitationTruthMap({ discoverResult, scanResult }: Props) {
   const { t } = useLanguage()
   const d = t.dashboard.discover.truthMap
   const [filter, setFilter] = useState<FilterKey>('all')
+  const [devModeOpen, setDevModeOpen] = useState(false)
+
+  const handleDevApply = useCallback((result: DevOptimizationResult) => {
+    // Caller (DiscoverTab) should handle applying the new source domains
+    // For now, log and show a toast — full integration in Phase 4
+    console.log('[DevMode] Applied optimization result:', result)
+  }, [])
 
   const rows = useMemo(() => computeCTM(discoverResult, scanResult), [discoverResult, scanResult])
 
@@ -123,12 +131,34 @@ export function CitationTruthMap({ discoverResult, scanResult }: Props) {
           <h4 className="text-sm font-semibold text-ink">{d.title}</h4>
           <p className="text-xs text-ink-3 mt-0.5">{d.subtitle}</p>
         </div>
-        {gapCount > 0 && (
-          <span className="text-xs px-2.5 py-1 rounded-full bg-red-soft-bg text-red-soft font-medium flex-shrink-0">
-            {d.gapSummary(gapCount)}
-          </span>
-        )}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {gapCount > 0 && (
+            <span className="text-xs px-2.5 py-1 rounded-full bg-red-soft-bg text-red-soft font-medium">
+              {d.gapSummary(gapCount)}
+            </span>
+          )}
+          {scanResult && (
+            <button
+              onClick={() => setDevModeOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-divider bg-surface text-xs font-medium text-ink-2 hover:bg-surface-warm hover:text-ink transition-colors"
+              title="Dev Mode — EMA Policy Optimization"
+            >
+              <FlaskConical className="w-3.5 h-3.5" />
+              Dev Mode
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Dev Mode Modal */}
+      {devModeOpen && scanResult && (
+        <DevModeModal
+          discover={discoverResult}
+          scan={scanResult}
+          onClose={() => setDevModeOpen(false)}
+          onApply={handleDevApply}
+        />
+      )}
 
       {/* Filter pills */}
       <div className="flex items-center gap-1.5 mb-4 flex-wrap">
