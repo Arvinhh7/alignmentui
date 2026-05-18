@@ -1510,6 +1510,7 @@ class APIClient {
     payload: {
       brand_name: string;
       domain?: string;
+      industry?: string;
       one_liner?: string;
       target_audience?: string;
       target_market?: string;

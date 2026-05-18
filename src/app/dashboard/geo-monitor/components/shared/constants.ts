@@ -222,15 +222,68 @@ export function resolveIntent(category: string): string {
   return OLD_CAT_TO_INTENT[category] || category
 }
 
+// ─── Industry list (P0: Brand Configuration) ───────────
+export const INDUSTRY_LIST = [
+  { value: '',                    label: 'Select industry...' },
+  { value: 'ecommerce_dtc',       label: 'E-commerce / DTC' },
+  { value: 'saas_b2b',           label: 'SaaS / B2B Software' },
+  { value: 'consumer_tech',       label: 'Consumer Tech / Hardware' },
+  { value: 'healthcare',          label: 'Healthcare / Medtech' },
+  { value: 'finance_fintech',     label: 'Finance / Fintech' },
+  { value: 'food_beverage',       label: 'Food & Beverage' },
+  { value: 'fashion_apparel',     label: 'Fashion & Apparel' },
+  { value: 'travel_hospitality',  label: 'Travel & Hospitality' },
+  { value: 'education_edtech',    label: 'Education / Edtech' },
+  { value: 'media_entertainment', label: 'Media & Entertainment' },
+  { value: 'real_estate',         label: 'Real Estate' },
+  { value: 'automotive',          label: 'Automotive' },
+  { value: 'energy_cleantech',    label: 'Energy / Cleantech' },
+  { value: 'manufacturing',       label: 'Manufacturing / Industrial' },
+  { value: 'professional_services', label: 'Professional Services' },
+  { value: 'nonprofit_gov',       label: 'Non-profit / Government' },
+  { value: 'other',               label: 'Other' },
+] as const
+
+// ─── Target countries (P0: Brand Configuration) ─────────
+export const TARGET_COUNTRIES = [
+  'Worldwide',
+  'United States',
+  'United Kingdom',
+  'Canada',
+  'Australia',
+  'Germany',
+  'France',
+  'Japan',
+  'China',
+  'Singapore',
+  'India',
+  'Brazil',
+  'South Korea',
+  'Netherlands',
+  'Sweden',
+  'Spain',
+  'Italy',
+  'Mexico',
+  'UAE',
+  'New Zealand',
+  'Other',
+] as const
+
+// ─── Competitor industry-mismatch terms ─────────────────
+// Used to warn when a competitor tag looks like an institution outside the brand's industry.
+export const EDU_INSTITUTION_TERMS = ['university', 'college', 'polytechnic', 'institute', 'academy', 'hochschule', 'école']
+export const GOV_INSTITUTION_TERMS = ['government', 'ministry', 'municipality', 'department of ', 'national agency']
+
 // ─── Types ─────────────────────────────────────────────
 export interface BrandConfig {
   brand_name: string
   domain: string
   keywords: string[]
   competitors: string[]
+  industry?: string        // e.g. "saas_b2b", "ecommerce_dtc" — from INDUSTRY_LIST
   one_liner?: string
   target_audience?: string
-  target_market?: string
+  target_market?: string   // displayed as "Target Country"; key kept for backward compat
   differentiation?: string
 }
 
@@ -316,6 +369,7 @@ export interface RecentBrandRecord {
   domain: string
   keywords: string[]
   competitors: string[]
+  industry?: string
   one_liner?: string
   target_audience?: string
   target_market?: string

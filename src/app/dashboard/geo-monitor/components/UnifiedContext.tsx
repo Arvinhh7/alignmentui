@@ -249,7 +249,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const [coMentionRoleFilter, setCoMentionRoleFilter] = useState<'all' | 'competitor' | 'complementary'>('all')
 
   // ── Brand config ────────────────────────────────
-  const [brandConfig, setBrandConfig] = useState<BrandConfig>({ brand_name: '', domain: '', keywords: [], competitors: [], one_liner: '', target_audience: '', target_market: '', differentiation: '' })
+  const [brandConfig, setBrandConfig] = useState<BrandConfig>({ brand_name: '', domain: '', keywords: [], competitors: [], industry: '', one_liner: '', target_audience: '', target_market: '', differentiation: '' })
   const [isConfigured, setIsConfigured] = useState(false)
   const [showConfig, setShowConfig] = useState(true)
   const [configError, setConfigError] = useState('')
@@ -450,6 +450,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
           domain:           data.customer.domain,
           keywords:         (cfg.keywords as string[])        ?? [],
           competitors:      (cfg.competitors as string[])     ?? [],
+          industry:         (cfg.industry as string)          ?? '',
           one_liner:        (cfg.one_liner as string)         ?? '',
           target_audience:  (cfg.target_audience as string)   ?? '',
           target_market:    (cfg.target_market as string)     ?? '',
@@ -488,7 +489,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   }, [brandConfig])
 
   const loadRecentBrand = (rec: RecentBrandRecord) => {
-    setBrandConfig({ brand_name: rec.brand_name, domain: rec.domain, keywords: rec.keywords, competitors: rec.competitors, one_liner: rec.one_liner ?? '', target_audience: rec.target_audience ?? '', target_market: rec.target_market ?? '', differentiation: rec.differentiation ?? '' })
+    setBrandConfig({ brand_name: rec.brand_name, domain: rec.domain, keywords: rec.keywords, competitors: rec.competitors, industry: rec.industry ?? '', one_liner: rec.one_liner ?? '', target_audience: rec.target_audience ?? '', target_market: rec.target_market ?? '', differentiation: rec.differentiation ?? '' })
   }
 
   const clearRecentBrands = () => { localStorage.removeItem(RECENT_BRANDS_KEY); setRecentBrands([]) }
@@ -544,7 +545,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     setIsConfigured(true); setShowConfig(false)
 
     // Save to recent brands with merged config (avoids stale closure in saveRecentBrand)
-    const entry: RecentBrandRecord = { brand_name: merged.brand_name.trim(), domain: merged.domain.trim(), keywords: merged.keywords, competitors: merged.competitors, one_liner: merged.one_liner, target_audience: merged.target_audience, target_market: merged.target_market, differentiation: merged.differentiation, usedAt: new Date().toISOString() }
+    const entry: RecentBrandRecord = { brand_name: merged.brand_name.trim(), domain: merged.domain.trim(), keywords: merged.keywords, competitors: merged.competitors, industry: merged.industry, one_liner: merged.one_liner, target_audience: merged.target_audience, target_market: merged.target_market, differentiation: merged.differentiation, usedAt: new Date().toISOString() }
     setRecentBrands(prev => {
       const filtered = prev.filter(r => !(r.brand_name === entry.brand_name && r.domain === entry.domain))
       const updated = [entry, ...filtered].slice(0, 10)
@@ -557,7 +558,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(BRAND_CONFIG_KEY); localStorage.removeItem(SCAN_RESULTS_KEY)
     localStorage.removeItem(SCAN_HISTORY_KEY); localStorage.removeItem(GAP_RESULTS_KEY); localStorage.removeItem(ADV_MENTIONS_KEY)
     localStorage.removeItem(DISCOVER_RESULT_KEY)
-    setBrandConfig({ brand_name: '', domain: '', keywords: [], competitors: [], one_liner: '', target_audience: '', target_market: '', differentiation: '' })
+    setBrandConfig({ brand_name: '', domain: '', keywords: [], competitors: [], industry: '', one_liner: '', target_audience: '', target_market: '', differentiation: '' })
     setIsConfigured(false); setShowConfig(true)
     setScanResult(null); setScanHistory([]); setGapResult(null); setAdvancedMentions(null); setIntelReport(null); setDiscoverResults({})
   }
@@ -780,6 +781,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       const res = await api.runDiscover({
         brand_name: brandConfig.brand_name,
         domain: brandConfig.domain,
+        industry: brandConfig.industry,
         one_liner: brandConfig.one_liner,
         target_audience: brandConfig.target_audience,
         target_market: brandConfig.target_market,
@@ -813,6 +815,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       const res = await api.runDiscover({
         brand_name: brandConfig.brand_name,
         domain: brandConfig.domain,
+        industry: brandConfig.industry,
         one_liner: brandConfig.one_liner,
         target_audience: brandConfig.target_audience,
         target_market: brandConfig.target_market,
