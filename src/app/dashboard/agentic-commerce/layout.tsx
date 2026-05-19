@@ -48,7 +48,7 @@ export default function AgenticCommerceLayout({ children }: { children: React.Re
             infrastructure — the Stripe for AI shopping.
           </p>
           <Link href="/dashboard/settings"
-            className="inline-block px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium rounded-xl transition-colors">
+            className="inline-block px-5 py-2 bg-[#C84B31] hover:bg-[#A33820] text-white text-sm font-medium rounded-xl transition-colors">
             Upgrade Plan →
           </Link>
         </div>
@@ -73,7 +73,7 @@ function AgenticCommerceShell({ children, pathname }: { children: React.ReactNod
             <Link key={item.href} href={item.href}
               className={`px-3 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors ${
                 isActive
-                  ? "border-purple-600 text-purple-700"
+                  ? "border-[#C84B31] text-[#A33820]"
                   : "border-transparent text-ink-2 hover:text-ink hover:border-divider"
               }`}>
               {item.label}

@@ -14,17 +14,18 @@ import {
   Package, CreditCard, Cpu, Radio,
 } from "lucide-react";
 
-// ── Design tokens (commerce accent = violet) ───────────────────────────────────
+// ── Design tokens (commerce accent = warm terracotta) ─────────────────────────
 const V = {
-  accent:      "#6D4AE8",
-  accentBg:    "#F0EEFF",
-  accentLight: "#EDE8FF",
-  accentBorder:"#C4B5FD",
+  accent:       "#C84B31",   // warm terracotta — Alignment AI accent token
+  accentBg:     "#FAF0EC",   // very light tint
+  accentLight:  "#F5DDD3",   // light tint
+  accentBorder: "#E5B5A4",   // border
+  accentDark:   "#A33820",   // hover / dark text
 };
-const DR = {                            // deep-red accent: Outer Ring + Layer 3 cards
-  accent:      "#991B1B",
-  accentBg:    "rgba(153,27,27,0.10)",
-  accentBorder:"rgba(153,27,27,0.40)",
+const DR = {                            // dark terracotta accent: Outer Ring + Layer 3 highlight cards
+  accent:      "#A33820",                // V.accentDark — darker emphasis variant
+  accentBg:    "rgba(163,56,32,0.10)",
+  accentBorder:"rgba(163,56,32,0.40)",
 };
 
 // ── Mock data ──────────────────────────────────────────────────────────────────
@@ -107,7 +108,7 @@ const AGENT_GEO: { country: string; customers: number; products: number }[] = [
 // Surface-level icon + tint (controls badge appearance in Live Feed + sort emoji in Customer Agents).
 const AGENT_META: Record<Surface, { Icon: typeof MessageCircle; color: string; bg: string; emoji: string }> = {
   "WhatsApp Bot": { Icon: MessageCircle, color: "#1a7a4c",  bg: "rgba(26,122,76,0.10)",  emoji: "💬"  },
-  "Phone OS":     { Icon: Smartphone,    color: "#6D4AE8",  bg: "rgba(109,74,232,0.10)", emoji: "📱"  },
+  "Phone OS":     { Icon: Smartphone,    color: "#5F7A8E",  bg: "rgba(95,122,142,0.10)", emoji: "📱"  },
   "Voice":        { Icon: Mic2,          color: "#d9a85c",  bg: "rgba(217,168,92,0.10)", emoji: "🎙️" },
   "Fashion AI":   { Icon: Shirt,         color: "#B5453A",  bg: "rgba(181,69,58,0.10)",  emoji: "👗"  },
   "Custom":       { Icon: Wrench,        color: "#9E9484",  bg: "rgba(158,148,132,0.10)", emoji: "🔧" },
@@ -458,8 +459,8 @@ export default function AgenticCommerceOverview() {
             <div className="divide-y divide-divider-light/50 overflow-hidden" style={{ maxHeight: 370 }}>
               {productsRanked.map((p, idx) => {
                 const isTop = idx === 0;
-                const DEEP_RED    = "#991B1B";   // tailwind red-800
-                const DEEP_RED_BG = "rgba(153, 27, 27, 0.14)";
+                const DEEP_RED    = "#A33820";   // dark terracotta (V.accentDark)
+                const DEEP_RED_BG = "rgba(163, 56, 32, 0.14)";
                 return (
                   <div
                     key={p.product}

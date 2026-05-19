@@ -134,7 +134,7 @@ console.log(tx.transaction_id, tx.settlement);
   return (
     <>
       {/* ── Hero: 30-sec Quick Start ──────────────────────────── */}
-      <section className="bg-gradient-to-br from-purple-50 to-surface border-2 border-purple-300 rounded-2xl p-6 space-y-5">
+      <section className="bg-gradient-to-br from-[#FAF0EC] to-surface border-2 border-[#E5B5A4] rounded-2xl p-6 space-y-5">
         <div className="flex items-start gap-3">
           <div className="text-3xl">🚀</div>
           <div>
@@ -150,13 +150,13 @@ console.log(tx.transaction_id, tx.settlement);
         </Step>
 
         <Step n={2} title="Use the sandbox key (no signup required)">
-          <div className="bg-purple-100 border border-purple-200 rounded-lg p-3 flex items-center justify-between gap-3">
-            <code className="text-xs font-mono text-purple-900 truncate">{SANDBOX_KEY}</code>
+          <div className="bg-[#F5DDD3] border border-[#E5B5A4] rounded-lg p-3 flex items-center justify-between gap-3">
+            <code className="text-xs font-mono text-[#702614] truncate">{SANDBOX_KEY}</code>
             <CopyButton text={SANDBOX_KEY} />
           </div>
           <p className="text-[11px] text-ink-3 mt-1.5">
             Rate-limited to 10 req/s, 1000 req/day. Apply for a production key at{" "}
-            <a href="mailto:agents@alignmenttech.ai" className="text-purple-600">agents@alignmenttech.ai</a>.
+            <a href="mailto:agents@alignmenttech.ai" className="text-[#C84B31]">agents@alignmenttech.ai</a>.
           </p>
         </Step>
 
@@ -168,9 +168,9 @@ console.log(tx.transaction_id, tx.settlement);
           <CodeBlock code={commitCode} language="typescript" />
         </Step>
 
-        <div className="flex items-center gap-3 pt-2 border-t border-purple-200">
+        <div className="flex items-center gap-3 pt-2 border-t border-[#E5B5A4]">
           <span className="text-xs text-ink-2">✅ Already running it?</span>
-          <a href="/dashboard/agentic-commerce/quotes" className="text-xs text-purple-600 font-medium hover:underline">
+          <a href="/dashboard/agentic-commerce/quotes" className="text-xs text-[#C84B31] font-medium hover:underline">
             See your live queries in Quote Log →
           </a>
         </div>
@@ -236,14 +236,14 @@ function BrandView() {
         ].map((s, i) => (
           <div key={s.n} className="flex items-center gap-2">
             {i > 0 && (
-              <div className={`h-px w-8 ${w.step > i ? "bg-emerald-500" : "bg-divider"}`} />
+              <div className={`h-px w-8 ${w.step > i ? "bg-[#FAF0EC]0" : "bg-divider"}`} />
             )}
             <div className="flex items-center gap-1.5">
               <div className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center transition-colors ${
                 w.step === s.n
-                  ? "bg-emerald-600 text-white"
+                  ? "bg-[#A33820] text-white"
                   : w.step > s.n
-                  ? "bg-emerald-100 text-emerald-700"
+                  ? "bg-[#F5DDD3] text-[#A33820]"
                   : "bg-surface-muted text-ink-3 border border-divider"
               }`}>
                 {w.step > s.n ? "✓" : s.n}
@@ -325,7 +325,7 @@ function BrandStep1({
   };
 
   return (
-    <section className="bg-gradient-to-br from-emerald-50 to-surface border-2 border-emerald-300 rounded-2xl p-6 space-y-6">
+    <section className="bg-gradient-to-br from-[#FAF0EC] to-surface border-2 border-[#E5B5A4] rounded-2xl p-6 space-y-6">
       <div className="flex items-start gap-3">
         <div className="text-3xl">🏪</div>
         <div>
@@ -345,12 +345,12 @@ function BrandStep1({
             onChange={(e) => { setDomain(e.target.value); setDetected(null); }}
             onKeyDown={(e) => e.key === "Enter" && detect()}
             placeholder="allbirds.com"
-            className="flex-1 text-sm border border-divider rounded-lg px-3 py-2.5 bg-surface focus:outline-none focus:ring-2 focus:ring-emerald-300 font-mono"
+            className="flex-1 text-sm border border-divider rounded-lg px-3 py-2.5 bg-surface focus:outline-none focus:ring-2 focus:ring-[#E5B5A4] font-mono"
           />
           <button
             onClick={detect}
             disabled={!domain || detecting}
-            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
+            className="px-4 py-2.5 bg-[#A33820] hover:bg-[#FAF0EC]0 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
           >
             {detecting ? "Detecting…" : "Auto-detect →"}
           </button>
@@ -359,16 +359,16 @@ function BrandStep1({
 
       {/* Detected preview */}
       {detecting && (
-        <div className="bg-surface border border-dashed border-emerald-300 rounded-xl p-4 flex items-center gap-3 animate-pulse">
-          <div className="w-10 h-10 rounded-lg bg-emerald-100" />
+        <div className="bg-surface border border-dashed border-[#E5B5A4] rounded-xl p-4 flex items-center gap-3 animate-pulse">
+          <div className="w-10 h-10 rounded-lg bg-[#F5DDD3]" />
           <div className="space-y-1.5">
-            <div className="h-3 w-24 bg-emerald-100 rounded" />
-            <div className="h-2.5 w-40 bg-emerald-50 rounded" />
+            <div className="h-3 w-24 bg-[#F5DDD3] rounded" />
+            <div className="h-2.5 w-40 bg-[#FAF0EC] rounded" />
           </div>
         </div>
       )}
       {detected && !detecting && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+        <div className="bg-[#FAF0EC] border border-[#E5B5A4] rounded-xl p-4">
           <div className="flex items-center gap-3 mb-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -381,7 +381,7 @@ function BrandStep1({
               <div className="font-semibold text-ink">{detected.name}</div>
               <div className="text-xs text-ink-2">{domain}</div>
             </div>
-            <div className="ml-auto text-xs text-emerald-700 font-medium bg-emerald-100 px-2 py-0.5 rounded-full">
+            <div className="ml-auto text-xs text-[#A33820] font-medium bg-[#F5DDD3] px-2 py-0.5 rounded-full">
               ✓ Detected
             </div>
           </div>
@@ -397,14 +397,14 @@ function BrandStep1({
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-ink-3 uppercase tracking-wider">Commission Rate</label>
-          <span className="text-sm font-bold text-emerald-700">{rate}%</span>
+          <span className="text-sm font-bold text-[#A33820]">{rate}%</span>
         </div>
         <input
           type="range"
           min={5} max={15} step={1}
           value={rate}
           onChange={(e) => setRate(Number(e.target.value))}
-          className="w-full accent-emerald-600"
+          className="w-full accent-[#C84B31]"
         />
         <div className="flex justify-between text-[10px] text-ink-3">
           <span>5% (volume tier)</span>
@@ -419,7 +419,7 @@ function BrandStep1({
       <button
         onClick={proceed}
         disabled={!domain || !detected}
-        className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-sm font-semibold rounded-xl transition-colors"
+        className="w-full py-2.5 bg-[#A33820] hover:bg-[#FAF0EC]0 disabled:opacity-40 text-white text-sm font-semibold rounded-xl transition-colors"
       >
         Continue — Connect your catalog →
       </button>
@@ -429,7 +429,7 @@ function BrandStep1({
 
 function DetectedField({ label, value, dim }: { label: string; value: string; dim?: boolean }) {
   return (
-    <div className="bg-white border border-emerald-100 rounded-lg p-2 space-y-0.5">
+    <div className="bg-white border border-[#F5DDD3] rounded-lg p-2 space-y-0.5">
       <div className="text-[10px] uppercase tracking-wider text-ink-3">{label}</div>
       <div className={`font-medium ${dim ? "text-ink-3 italic" : "text-ink"}`}>{value}</div>
     </div>
@@ -503,7 +503,7 @@ function BrandStep2({
   };
 
   return (
-    <section className="bg-gradient-to-br from-emerald-50 to-surface border-2 border-emerald-300 rounded-2xl p-6 space-y-5">
+    <section className="bg-gradient-to-br from-[#FAF0EC] to-surface border-2 border-[#E5B5A4] rounded-2xl p-6 space-y-5">
       <div className="flex items-start gap-3">
         <div className="text-3xl">📦</div>
         <div>
@@ -521,8 +521,8 @@ function BrandStep2({
             onClick={() => setSelected(o.id)}
             className={`text-left p-4 rounded-xl border-2 transition-all space-y-1 ${
               selected === o.id
-                ? "border-emerald-500 bg-emerald-50"
-                : "border-divider bg-surface hover:border-emerald-300"
+                ? "border-[#C84B31] bg-[#FAF0EC]"
+                : "border-divider bg-surface hover:border-[#E5B5A4]"
             }`}
           >
             <div className="flex items-center justify-between">
@@ -531,7 +531,7 @@ function BrandStep2({
                 <span className="text-sm font-semibold text-ink">{o.title}</span>
               </div>
               {o.badge && (
-                <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
+                <span className="text-[10px] bg-[#F5DDD3] text-[#A33820] px-2 py-0.5 rounded-full font-medium">
                   {o.badge}
                 </span>
               )}
@@ -543,7 +543,7 @@ function BrandStep2({
 
       {/* Extra fields for selected method */}
       {opt?.fields && (
-        <div className="space-y-3 pt-2 border-t border-emerald-200">
+        <div className="space-y-3 pt-2 border-t border-[#E5B5A4]">
           {opt.fields.map((f) => (
             <div key={f.key} className="space-y-1">
               <label className="text-xs font-medium text-ink-3">{f.label}</label>
@@ -551,7 +551,7 @@ function BrandStep2({
                 value={fieldVal[f.key] || ""}
                 onChange={(e) => setFieldVal({ ...fieldVal, [f.key]: e.target.value })}
                 placeholder={f.ph}
-                className="w-full text-sm border border-divider rounded-lg px-3 py-2 bg-surface focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                className="w-full text-sm border border-divider rounded-lg px-3 py-2 bg-surface focus:outline-none focus:ring-2 focus:ring-[#E5B5A4]"
               />
             </div>
           ))}
@@ -568,7 +568,7 @@ function BrandStep2({
         <button
           onClick={submit}
           disabled={!selected || submitting}
-          className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-sm font-semibold rounded-xl transition-colors"
+          className="flex-1 py-2.5 bg-[#A33820] hover:bg-[#FAF0EC]0 disabled:opacity-40 text-white text-sm font-semibold rounded-xl transition-colors"
         >
           {submitting ? "Submitting…" : "Start Enrichment →"}
         </button>
@@ -613,7 +613,7 @@ function BrandStep3({ w }: { w: BrandWizardState }) {
   }[w.catalogMethod || "crawl"];
 
   return (
-    <section className="bg-gradient-to-br from-emerald-50 to-surface border-2 border-emerald-300 rounded-2xl p-6 space-y-5">
+    <section className="bg-gradient-to-br from-[#FAF0EC] to-surface border-2 border-[#E5B5A4] rounded-2xl p-6 space-y-5">
       <div className="flex items-start gap-3">
         <div className="text-3xl">{allDone ? "🎉" : "⚙️"}</div>
         <div>
@@ -635,22 +635,22 @@ function BrandStep3({ w }: { w: BrandWizardState }) {
           const isCurrent = current === s.key;
           return (
             <div key={s.key} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
-              isDone    ? "bg-emerald-50 border-emerald-200"
-              : isCurrent ? "bg-amber-50 border-amber-200"
+              isDone    ? "bg-[#FAF0EC] border-[#E5B5A4]"
+              : isCurrent ? "bg-[#FBE5DA] border-[#DC8A6E]"
               : "bg-surface border-divider opacity-50"
             }`}>
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                isDone    ? "bg-emerald-500 text-white"
-                : isCurrent ? "bg-amber-400 text-white animate-pulse"
+                isDone    ? "bg-[#FAF0EC]0 text-white"
+                : isCurrent ? "bg-[#C84B31] text-white animate-pulse"
                 : "bg-surface-muted text-ink-3"
               }`}>
                 {isDone ? "✓" : isCurrent ? "…" : "·"}
               </div>
               <div className="flex-1 min-w-0">
-                <div className={`text-sm font-medium ${isDone ? "text-emerald-800" : isCurrent ? "text-amber-800" : "text-ink-3"}`}>
+                <div className={`text-sm font-medium ${isDone ? "text-[#702614]" : isCurrent ? "text-[#702614]" : "text-ink-3"}`}>
                   {s.label}
                   {s.key === "geo" && isDone && (
-                    <span className="ml-2 text-xs font-normal bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full">
+                    <span className="ml-2 text-xs font-normal bg-[#F5DDD3] text-[#A33820] px-1.5 py-0.5 rounded-full">
                       GEO Monitor ↗
                     </span>
                   )}
@@ -658,7 +658,7 @@ function BrandStep3({ w }: { w: BrandWizardState }) {
                 <div className="text-[11px] text-ink-3">{s.detail}</div>
               </div>
               {isCurrent && !isDone && (
-                <div className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-[#C84B31] border-t-transparent rounded-full animate-spin" />
               )}
             </div>
           );
@@ -675,16 +675,16 @@ function BrandStep3({ w }: { w: BrandWizardState }) {
       )}
 
       {allDone && (
-        <div className="bg-emerald-600 text-white rounded-xl p-4 flex items-center justify-between">
+        <div className="bg-[#A33820] text-white rounded-xl p-4 flex items-center justify-between">
           <div>
             <div className="font-semibold text-sm">Brand Agent is live</div>
-            <div className="text-emerald-100 text-xs mt-0.5">
+            <div className="text-[#F5DDD3] text-xs mt-0.5">
               Job ID: {w.enrichmentJobId} · Settlement T+7 via Stripe Connect
             </div>
           </div>
           <a
             href="/dashboard/agentic-commerce/quotes"
-            className="bg-white text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors"
+            className="bg-white text-[#A33820] text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-[#FAF0EC] transition-colors"
           >
             View incoming quotes →
           </a>
@@ -716,7 +716,7 @@ function ProtocolView() {
   return (
     <>
       {/* ── Hero: Agent-First ─────────────────────────────────── */}
-      <section className="bg-gradient-to-br from-amber-50 to-surface border-2 border-amber-300 rounded-2xl p-6 space-y-5">
+      <section className="bg-gradient-to-br from-[#FAF0EC] to-surface border-2 border-[#E5B5A4] rounded-2xl p-6 space-y-5">
         <div className="flex items-start gap-3">
           <div className="text-3xl">🤖</div>
           <div>
@@ -729,7 +729,7 @@ function ProtocolView() {
 
         <div className="bg-[#1a1a1a] rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <code className="text-amber-200 text-sm font-mono">{`curl ${agentJsonUrl}`}</code>
+            <code className="text-[#F5DDD3] text-sm font-mono">{`curl ${agentJsonUrl}`}</code>
             <CopyButton text={agentJsonUrl} dark />
           </div>
         </div>
@@ -739,7 +739,7 @@ function ProtocolView() {
           and a sandbox key. Drop the URL into your LLM context and implement the protocol in seconds.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-amber-200">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-[#DC8A6E]">
           <ManifestCard
             label="agent.json"
             sub="Discovery manifest"
@@ -841,7 +841,7 @@ function CopyButton({ text, dark = false }: { text: string; dark?: boolean }) {
       className={`text-[11px] font-medium px-2 py-1 rounded transition-colors ${
         dark
           ? "bg-white/10 text-white/80 hover:bg-white/20"
-          : "bg-purple-100 text-purple-700 hover:bg-purple-200"
+          : "bg-[#F5DDD3] text-[#A33820] hover:bg-[#E5B5A4]"
       }`}
     >
       {copied ? "✓ Copied" : "Copy"}
@@ -865,7 +865,7 @@ function EndpointTable({ endpoints }: { endpoints: { method: string; path: strin
             <tr key={e.path} className="border-b border-divider last:border-b-0">
               <td className="px-3 py-2">
                 <span className={`font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded ${
-                  e.method === "GET" ? "bg-blue-100 text-blue-700" : "bg-emerald-100 text-emerald-700"
+                  e.method === "GET" ? "bg-blue-100 text-blue-700" : "bg-[#F5DDD3] text-[#A33820]"
                 }`}>
                   {e.method}
                 </span>
@@ -896,11 +896,11 @@ function ManifestCard({ label, sub, href, color }: { label: string; sub: string;
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="bg-surface border border-divider hover:border-amber-400 rounded-xl p-3 transition-colors block"
+      className="bg-surface border border-divider hover:border-[#C84B31] rounded-xl p-3 transition-colors block"
     >
       <div className="font-mono text-sm font-semibold text-ink">{label}</div>
       <div className="text-[11px] text-ink-3 mt-0.5">{sub}</div>
-      <div className="text-[11px] text-amber-700 mt-1">Fetch →</div>
+      <div className="text-[11px] text-[#A33820] mt-1">Fetch →</div>
     </a>
   );
 }
@@ -911,12 +911,12 @@ function ResourceCard({ title, line, sub, href }: { title: string; line: string;
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="bg-surface border border-divider hover:border-purple-300 rounded-xl p-4 space-y-1 transition-colors block"
+      className="bg-surface border border-divider hover:border-[#E5B5A4] rounded-xl p-4 space-y-1 transition-colors block"
     >
       <div className="font-mono uppercase tracking-wider text-[10px] text-ink-3">{title}</div>
       <div className="font-semibold text-ink text-sm font-mono">{line}</div>
       <div className="text-ink-3 text-[11px]">{sub}</div>
-      <div className="text-purple-600 text-xs mt-1">Open →</div>
+      <div className="text-[#C84B31] text-xs mt-1">Open →</div>
     </a>
   );
 }
