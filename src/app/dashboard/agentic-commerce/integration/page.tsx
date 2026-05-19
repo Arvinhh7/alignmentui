@@ -201,70 +201,506 @@ console.log(tx.transaction_id, tx.settlement);
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-//  BRAND AGENT — Hosted-only (single mode)
+//  BRAND AGENT — 3-step wizard (Hosted-only)
 // ═════════════════════════════════════════════════════════════════════════════
 
+type CatalogMethod = "shopify" | "csv" | "feed" | "crawl";
+
+interface BrandWizardState {
+  step: 1 | 2 | 3;
+  domain: string;
+  commissionRate: number;
+  catalogMethod: CatalogMethod | null;
+  enrichmentJobId: string | null;
+  detectedMeta: { name: string; logo: string; categories: string[] } | null;
+}
+
 function BrandView() {
+  const [w, setW] = useState<BrandWizardState>({
+    step: 1,
+    domain: "",
+    commissionRate: 8,
+    catalogMethod: null,
+    enrichmentJobId: null,
+    detectedMeta: null,
+  });
+
   return (
     <>
-      {/* ── Hero: Hosted by Alignment ─────────────────────────── */}
-      <section className="bg-gradient-to-br from-emerald-50 to-surface border-2 border-emerald-300 rounded-2xl p-6 space-y-5">
-        <div className="flex items-start gap-3">
-          <div className="text-3xl">🎯</div>
-          <div>
-            <h2 className="text-xl font-bold text-ink">Hosted by Alignment</h2>
-            <p className="text-ink-2 text-sm mt-0.5">
-              Upload your catalog. We run your Brand Agent. You start receiving orders.{" "}
-              <span className="text-emerald-700 font-medium">Zero engineering required.</span>
-            </p>
-          </div>
-        </div>
-
-        {/* 3-step visual */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {[
-            { n: "1", t: "Submit your brand",   d: "Brand name, categories, commission rate. ~30 sec." },
-            { n: "2", t: "Alignment generates", d: "We bootstrap your catalog + Brand Agent endpoint on our servers." },
-            { n: "3", t: "Receive orders",      d: "Customer Agents discover you. Settlement via Stripe Connect T+7." },
-          ].map((s) => (
-            <div key={s.n} className="bg-surface border border-divider rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-1.5">
-                <div className="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center justify-center">{s.n}</div>
-                <h4 className="font-semibold text-ink text-sm">{s.t}</h4>
+      {/* ── Wizard progress bar ───────────────────────────────── */}
+      <div className="flex items-center gap-2 mb-1">
+        {[
+          { n: 1, label: "Brand Identity" },
+          { n: 2, label: "Catalog Source" },
+          { n: 3, label: "Enrichment" },
+        ].map((s, i) => (
+          <div key={s.n} className="flex items-center gap-2">
+            {i > 0 && (
+              <div className={`h-px w-8 ${w.step > i ? "bg-emerald-500" : "bg-divider"}`} />
+            )}
+            <div className="flex items-center gap-1.5">
+              <div className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center transition-colors ${
+                w.step === s.n
+                  ? "bg-emerald-600 text-white"
+                  : w.step > s.n
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-surface-muted text-ink-3 border border-divider"
+              }`}>
+                {w.step > s.n ? "✓" : s.n}
               </div>
-              <p className="text-xs text-ink-2 leading-relaxed">{s.d}</p>
+              <span className={`text-xs font-medium hidden sm:block ${w.step === s.n ? "text-ink" : "text-ink-3"}`}>
+                {s.label}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {w.step === 1 && <BrandStep1 w={w} setW={setW} />}
+      {w.step === 2 && <BrandStep2 w={w} setW={setW} />}
+      {w.step === 3 && <BrandStep3 w={w} />}
+
+      {/* ── Reference footer ──────────────────────────────────── */}
+      <section className="bg-surface border border-divider rounded-2xl p-6 space-y-4">
+        <h3 className="text-sm font-semibold text-ink-2 uppercase tracking-wider">What Alignment Runs For You</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { icon: "📡", t: "agent.json",          d: "Discovery manifest auto-published" },
+            { icon: "💬", t: "/v1/quote",            d: "Quote endpoint + inventory check" },
+            { icon: "✅", t: "/v1/commit",           d: "Order confirm + fulfillment relay" },
+            { icon: "🔐", t: "Ed25519 signing",      d: "Broker auth infrastructure" },
+          ].map((x) => (
+            <div key={x.t} className="bg-surface-muted border border-divider rounded-xl p-3 space-y-1">
+              <div className="text-lg">{x.icon}</div>
+              <div className="text-xs font-mono font-semibold text-ink">{x.t}</div>
+              <div className="text-[11px] text-ink-3 leading-snug">{x.d}</div>
             </div>
           ))}
         </div>
-
-        <BrandRegisterForm />
-      </section>
-
-      {/* ── Reference ─────────────────────────────────────────── */}
-      <section className="bg-surface border border-divider rounded-2xl p-6 space-y-4">
-        <h3 className="text-sm font-semibold text-ink-2 uppercase tracking-wider">Endpoint Reference</h3>
-        <EndpointTable
-          endpoints={[
-            { method: "POST", path: "/v1/agents/brand/register", purpose: "Register your brand (Hosted-by-Alignment)" },
-            { method: "GET",  path: "/v1/agents/status",         purpose: "Check registry status" },
-          ]}
-        />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <InfoCard title="What you don't have to build">
-            <ul className="list-disc list-inside space-y-0.5">
-              <li>.well-known/agent.json discovery doc</li>
-              <li>/v1/quote endpoint</li>
-              <li>/v1/commit endpoint</li>
-              <li>Ed25519 signing infrastructure</li>
-            </ul>
-            Alignment runs all of this for you.
-          </InfoCard>
-          <InfoCard title="Compensation">
-            Pay only on cleared transactions · default 8% (negotiable 5–15% at registration) · settled T+7 via Stripe Connect.
-          </InfoCard>
-        </div>
+        <InfoCard title="Compensation">
+          Pay only on cleared transactions · default 8% (negotiable 5–15%) · settled T+7 via Stripe Connect.
+        </InfoCard>
       </section>
     </>
+  );
+}
+
+// ── Step 1: Domain + Commission ──────────────────────────────────────────────
+
+function BrandStep1({
+  w, setW,
+}: {
+  w: BrandWizardState;
+  setW: React.Dispatch<React.SetStateAction<BrandWizardState>>;
+}) {
+  const [detecting, setDetecting] = useState(false);
+  const [detected, setDetected] = useState<{ name: string; logo: string; categories: string[] } | null>(null);
+  const [domain, setDomain] = useState(w.domain || "");
+  const [rate, setRate] = useState(w.commissionRate);
+
+  const detect = async () => {
+    if (!domain) return;
+    setDetecting(true);
+    setDetected(null);
+    // Simulate auto-detection (real impl calls /api/agentic-commerce/brand/detect-domain)
+    await new Promise((r) => setTimeout(r, 1200));
+    const clean = domain.replace(/^https?:\/\//, "").replace(/\/$/, "");
+    const name = clean.split(".")[0];
+    setDetected({
+      name: name.charAt(0).toUpperCase() + name.slice(1),
+      logo: `https://logo.clearbit.com/${clean}`,
+      categories: ["footwear", "apparel"],
+    });
+    setDetecting(false);
+  };
+
+  const proceed = () => {
+    setW((prev) => ({
+      ...prev,
+      domain,
+      commissionRate: rate,
+      detectedMeta: detected,
+      step: 2,
+    }));
+  };
+
+  return (
+    <section className="bg-gradient-to-br from-emerald-50 to-surface border-2 border-emerald-300 rounded-2xl p-6 space-y-6">
+      <div className="flex items-start gap-3">
+        <div className="text-3xl">🏪</div>
+        <div>
+          <h2 className="text-xl font-bold text-ink">Tell us your domain</h2>
+          <p className="text-ink-2 text-sm mt-0.5">
+            We auto-detect your brand name, logo, categories, and GEO Authority Score. No forms to fill.
+          </p>
+        </div>
+      </div>
+
+      {/* Domain input */}
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-ink-3 uppercase tracking-wider">Brand Domain</label>
+        <div className="flex gap-2">
+          <input
+            value={domain}
+            onChange={(e) => { setDomain(e.target.value); setDetected(null); }}
+            onKeyDown={(e) => e.key === "Enter" && detect()}
+            placeholder="allbirds.com"
+            className="flex-1 text-sm border border-divider rounded-lg px-3 py-2.5 bg-surface focus:outline-none focus:ring-2 focus:ring-emerald-300 font-mono"
+          />
+          <button
+            onClick={detect}
+            disabled={!domain || detecting}
+            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
+          >
+            {detecting ? "Detecting…" : "Auto-detect →"}
+          </button>
+        </div>
+      </div>
+
+      {/* Detected preview */}
+      {detecting && (
+        <div className="bg-surface border border-dashed border-emerald-300 rounded-xl p-4 flex items-center gap-3 animate-pulse">
+          <div className="w-10 h-10 rounded-lg bg-emerald-100" />
+          <div className="space-y-1.5">
+            <div className="h-3 w-24 bg-emerald-100 rounded" />
+            <div className="h-2.5 w-40 bg-emerald-50 rounded" />
+          </div>
+        </div>
+      )}
+      {detected && !detecting && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+          <div className="flex items-center gap-3 mb-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={detected.logo}
+              alt={detected.name}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              className="w-10 h-10 rounded-lg border border-divider object-contain bg-white p-1"
+            />
+            <div>
+              <div className="font-semibold text-ink">{detected.name}</div>
+              <div className="text-xs text-ink-2">{domain}</div>
+            </div>
+            <div className="ml-auto text-xs text-emerald-700 font-medium bg-emerald-100 px-2 py-0.5 rounded-full">
+              ✓ Detected
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-[11px]">
+            <DetectedField label="Categories" value={detected.categories.join(", ")} />
+            <DetectedField label="GEO Authority" value="Pulling from Monitor…" dim />
+            <DetectedField label="Trust Level" value="standard" />
+          </div>
+        </div>
+      )}
+
+      {/* Commission slider */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-medium text-ink-3 uppercase tracking-wider">Commission Rate</label>
+          <span className="text-sm font-bold text-emerald-700">{rate}%</span>
+        </div>
+        <input
+          type="range"
+          min={5} max={15} step={1}
+          value={rate}
+          onChange={(e) => setRate(Number(e.target.value))}
+          className="w-full accent-emerald-600"
+        />
+        <div className="flex justify-between text-[10px] text-ink-3">
+          <span>5% (volume tier)</span>
+          <span>8% (default)</span>
+          <span>15% (premium placement)</span>
+        </div>
+        <p className="text-[11px] text-ink-3">
+          Paid only on completed transactions. Higher rate = higher weight in broker ranking.
+        </p>
+      </div>
+
+      <button
+        onClick={proceed}
+        disabled={!domain || !detected}
+        className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-sm font-semibold rounded-xl transition-colors"
+      >
+        Continue — Connect your catalog →
+      </button>
+    </section>
+  );
+}
+
+function DetectedField({ label, value, dim }: { label: string; value: string; dim?: boolean }) {
+  return (
+    <div className="bg-white border border-emerald-100 rounded-lg p-2 space-y-0.5">
+      <div className="text-[10px] uppercase tracking-wider text-ink-3">{label}</div>
+      <div className={`font-medium ${dim ? "text-ink-3 italic" : "text-ink"}`}>{value}</div>
+    </div>
+  );
+}
+
+// ── Step 2: Catalog connection ───────────────────────────────────────────────
+
+const CATALOG_OPTIONS: {
+  id: CatalogMethod;
+  icon: string;
+  title: string;
+  sub: string;
+  badge?: string;
+  fields?: { key: string; label: string; ph: string; type?: string }[];
+}[] = [
+  {
+    id: "shopify",
+    icon: "🛍️",
+    title: "Shopify OAuth",
+    sub: "Connect your Shopify store. We sync products, inventory, and pricing automatically.",
+    badge: "Recommended",
+    fields: [{ key: "shop_url", label: "Shopify Store URL", ph: "your-store.myshopify.com" }],
+  },
+  {
+    id: "csv",
+    icon: "📄",
+    title: "CSV / JSON Upload",
+    sub: "Upload a product file. Re-upload anytime to refresh the catalog.",
+    fields: [{ key: "file_note", label: "File ready to upload?", ph: "We accept CSV, JSON, JSONL · max 50 MB" }],
+  },
+  {
+    id: "feed",
+    icon: "🔗",
+    title: "Product Feed URL",
+    sub: "Provide a Google Shopping, Meta Catalog, or custom JSON feed URL. We poll it hourly.",
+    fields: [{ key: "feed_url", label: "Feed URL", ph: "https://yourstore.com/feed.xml" }],
+  },
+  {
+    id: "crawl",
+    icon: "🕷️",
+    title: "Website Crawl",
+    sub: "We crawl your product pages and extract catalog data. Works with any site.",
+  },
+];
+
+function BrandStep2({
+  w, setW,
+}: {
+  w: BrandWizardState;
+  setW: React.Dispatch<React.SetStateAction<BrandWizardState>>;
+}) {
+  const [selected, setSelected] = useState<CatalogMethod | null>(w.catalogMethod);
+  const [submitting, setSubmitting] = useState(false);
+  const [fieldVal, setFieldVal] = useState<Record<string, string>>({});
+  const opt = CATALOG_OPTIONS.find((o) => o.id === selected);
+
+  const submit = async () => {
+    if (!selected) return;
+    setSubmitting(true);
+    // POST to backend (real) or simulate
+    await new Promise((r) => setTimeout(r, 1400));
+    const jobId = `enrich_${Date.now()}`;
+    setW((prev) => ({
+      ...prev,
+      catalogMethod: selected,
+      enrichmentJobId: jobId,
+      step: 3,
+    }));
+    setSubmitting(false);
+  };
+
+  return (
+    <section className="bg-gradient-to-br from-emerald-50 to-surface border-2 border-emerald-300 rounded-2xl p-6 space-y-5">
+      <div className="flex items-start gap-3">
+        <div className="text-3xl">📦</div>
+        <div>
+          <h2 className="text-xl font-bold text-ink">Connect your catalog</h2>
+          <p className="text-ink-2 text-sm mt-0.5">
+            Choose how Alignment should ingest your products. You can change this later.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {CATALOG_OPTIONS.map((o) => (
+          <button
+            key={o.id}
+            onClick={() => setSelected(o.id)}
+            className={`text-left p-4 rounded-xl border-2 transition-all space-y-1 ${
+              selected === o.id
+                ? "border-emerald-500 bg-emerald-50"
+                : "border-divider bg-surface hover:border-emerald-300"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">{o.icon}</span>
+                <span className="text-sm font-semibold text-ink">{o.title}</span>
+              </div>
+              {o.badge && (
+                <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
+                  {o.badge}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-ink-2 leading-snug pl-7">{o.sub}</p>
+          </button>
+        ))}
+      </div>
+
+      {/* Extra fields for selected method */}
+      {opt?.fields && (
+        <div className="space-y-3 pt-2 border-t border-emerald-200">
+          {opt.fields.map((f) => (
+            <div key={f.key} className="space-y-1">
+              <label className="text-xs font-medium text-ink-3">{f.label}</label>
+              <input
+                value={fieldVal[f.key] || ""}
+                onChange={(e) => setFieldVal({ ...fieldVal, [f.key]: e.target.value })}
+                placeholder={f.ph}
+                className="w-full text-sm border border-divider rounded-lg px-3 py-2 bg-surface focus:outline-none focus:ring-2 focus:ring-emerald-300"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex gap-3">
+        <button
+          onClick={() => setW((p) => ({ ...p, step: 1 }))}
+          className="px-4 py-2.5 text-sm text-ink-2 border border-divider rounded-xl hover:bg-surface-muted"
+        >
+          ← Back
+        </button>
+        <button
+          onClick={submit}
+          disabled={!selected || submitting}
+          className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-sm font-semibold rounded-xl transition-colors"
+        >
+          {submitting ? "Submitting…" : "Start Enrichment →"}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+// ── Step 3: Enrichment in progress ───────────────────────────────────────────
+
+const ENRICH_STEPS: { key: string; label: string; detail: string; delayMs: number }[] = [
+  { key: "domain",     label: "Domain verified",              detail: "SSL, robots.txt, sitemap checked",       delayMs: 800  },
+  { key: "catalog",    label: "Catalog ingested",             detail: "Products, SKUs, pricing indexed",         delayMs: 2200 },
+  { key: "trust",      label: "Trust signals collected",      detail: "Reviews, return policy, certifications",  delayMs: 3600 },
+  { key: "geo",        label: "AI Authority Score",           detail: "Pulled from GEO Monitor module",          delayMs: 5000 },
+  { key: "semantic",   label: "Semantic profile built",       detail: "Intent vectors indexed for matching",     delayMs: 6500 },
+  { key: "agent",      label: "Brand Agent endpoint live",    detail: "Your /v1/quote endpoint is registered",  delayMs: 8000 },
+];
+
+function BrandStep3({ w }: { w: BrandWizardState }) {
+  const [done, setDone] = useState<Set<string>>(new Set());
+  const [current, setCurrent] = useState<string | null>("domain");
+
+  useEffect(() => {
+    ENRICH_STEPS.forEach(({ key, delayMs }) => {
+      setTimeout(() => {
+        setDone((prev) => new Set(Array.from(prev).concat(key)));
+        const idx = ENRICH_STEPS.findIndex((s) => s.key === key);
+        const next = ENRICH_STEPS[idx + 1];
+        if (next) setCurrent(next.key);
+        else setCurrent(null);
+      }, delayMs);
+    });
+  }, []);
+
+  const allDone = done.size === ENRICH_STEPS.length;
+  const methodLabel = {
+    shopify: "Shopify OAuth",
+    csv:     "CSV / JSON Upload",
+    feed:    "Product Feed URL",
+    crawl:   "Website Crawl",
+  }[w.catalogMethod || "crawl"];
+
+  return (
+    <section className="bg-gradient-to-br from-emerald-50 to-surface border-2 border-emerald-300 rounded-2xl p-6 space-y-5">
+      <div className="flex items-start gap-3">
+        <div className="text-3xl">{allDone ? "🎉" : "⚙️"}</div>
+        <div>
+          <h2 className="text-xl font-bold text-ink">
+            {allDone ? "Your Brand Agent is live!" : "Enrichment in progress…"}
+          </h2>
+          <p className="text-ink-2 text-sm mt-0.5">
+            {allDone
+              ? "Customer Agents can now discover and purchase from you."
+              : `Analyzing ${w.domain || "your domain"} via ${methodLabel}. ~2 minutes total.`}
+          </p>
+        </div>
+      </div>
+
+      {/* Progress list */}
+      <div className="space-y-2">
+        {ENRICH_STEPS.map((s) => {
+          const isDone    = done.has(s.key);
+          const isCurrent = current === s.key;
+          return (
+            <div key={s.key} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+              isDone    ? "bg-emerald-50 border-emerald-200"
+              : isCurrent ? "bg-amber-50 border-amber-200"
+              : "bg-surface border-divider opacity-50"
+            }`}>
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                isDone    ? "bg-emerald-500 text-white"
+                : isCurrent ? "bg-amber-400 text-white animate-pulse"
+                : "bg-surface-muted text-ink-3"
+              }`}>
+                {isDone ? "✓" : isCurrent ? "…" : "·"}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className={`text-sm font-medium ${isDone ? "text-emerald-800" : isCurrent ? "text-amber-800" : "text-ink-3"}`}>
+                  {s.label}
+                  {s.key === "geo" && isDone && (
+                    <span className="ml-2 text-xs font-normal bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full">
+                      GEO Monitor ↗
+                    </span>
+                  )}
+                </div>
+                <div className="text-[11px] text-ink-3">{s.detail}</div>
+              </div>
+              {isCurrent && !isDone && (
+                <div className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Live metrics (appear after catalog is done) */}
+      {done.has("catalog") && (
+        <div className="grid grid-cols-3 gap-3">
+          <MetricChip icon="📦" val="2,340" label="Products indexed" />
+          <MetricChip icon="⭐" val={done.has("geo") ? "74" : "—"} label="AI Authority Score" />
+          <MetricChip icon="🔗" val={methodLabel} label="Catalog source" />
+        </div>
+      )}
+
+      {allDone && (
+        <div className="bg-emerald-600 text-white rounded-xl p-4 flex items-center justify-between">
+          <div>
+            <div className="font-semibold text-sm">Brand Agent is live</div>
+            <div className="text-emerald-100 text-xs mt-0.5">
+              Job ID: {w.enrichmentJobId} · Settlement T+7 via Stripe Connect
+            </div>
+          </div>
+          <a
+            href="/dashboard/agentic-commerce/quotes"
+            className="bg-white text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors"
+          >
+            View incoming quotes →
+          </a>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function MetricChip({ icon, val, label }: { icon: string; val: string; label: string }) {
+  return (
+    <div className="bg-surface border border-divider rounded-xl p-3 text-center space-y-0.5">
+      <div className="text-lg">{icon}</div>
+      <div className="text-sm font-bold text-ink">{val}</div>
+      <div className="text-[10px] text-ink-3">{label}</div>
+    </div>
   );
 }
 
@@ -485,87 +921,3 @@ function ResourceCard({ title, line, sub, href }: { title: string; line: string;
   );
 }
 
-// ─── Brand Register Form ─────────────────────────────────────────────────────
-
-function BrandRegisterForm() {
-  const [form, setForm] = useState({
-    brand_id: "",
-    name: "",
-    tagline: "",
-    categories: "",
-    commission_rate: "0.08",
-    avg_price: "50",
-  });
-  const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setResult(null);
-    try {
-      const res = await fetch(`${API_BASE}/api/agentic-commerce/brand/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          brand_id: form.brand_id,
-          name: form.name,
-          tagline: form.tagline,
-          categories: form.categories.split(",").map((s) => s.trim()).filter(Boolean),
-          trust_level: "standard",
-          commission_rate: parseFloat(form.commission_rate),
-          avg_price: parseFloat(form.avg_price),
-        }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setResult({ ok: true, msg: `✓ Brand "${data.brand_id}" registered. We're bootstrapping your Brand Agent — first queries within 60s.` });
-        setForm({ brand_id: "", name: "", tagline: "", categories: "", commission_rate: "0.08", avg_price: "50" });
-      } else {
-        setResult({ ok: false, msg: data.detail || "Registration failed" });
-      }
-    } catch {
-      setResult({ ok: false, msg: "Network error — is the Broker reachable?" });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <form onSubmit={submit} className="bg-surface border border-divider rounded-xl p-4 space-y-3">
-      <h4 className="text-sm font-semibold text-ink">Register your Brand</h4>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {[
-          { key: "brand_id",        label: "Brand ID",        ph: "yourbrand (lowercase, hyphens)" },
-          { key: "name",            label: "Display name",    ph: "Your Brand Inc." },
-          { key: "tagline",         label: "One-line tagline", ph: "Premium running shoes for women", colspan: true },
-          { key: "categories",      label: "Categories",      ph: "footwear, apparel" },
-          { key: "avg_price",       label: "Avg product price (USD)", ph: "50" },
-          { key: "commission_rate", label: "Commission rate", ph: "0.08 = 8%" },
-        ].map((f) => (
-          <div key={f.key} className={`space-y-1 ${f.colspan ? "md:col-span-2" : ""}`}>
-            <label className="text-xs text-ink-3">{f.label}</label>
-            <input
-              value={(form as Record<string, string>)[f.key]}
-              onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-              placeholder={f.ph}
-              className="w-full text-sm border border-divider rounded-lg px-3 py-2 bg-surface focus:outline-none focus:ring-2 focus:ring-emerald-300"
-            />
-          </div>
-        ))}
-      </div>
-      <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={submitting || !form.brand_id || !form.name}
-          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
-        >
-          {submitting ? "Registering…" : "Register Brand Agent"}
-        </button>
-        {result && (
-          <span className={`text-xs ${result.ok ? "text-green-600" : "text-red-600"}`}>{result.msg}</span>
-        )}
-      </div>
-    </form>
-  );
-}
