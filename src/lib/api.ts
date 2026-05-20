@@ -2920,6 +2920,9 @@ export interface ProxyAnalytics {
   geo_distribution: { country: string; visit_count: number; bot_count: number; referral_count: number }[]
   recent_visits: Record<string, unknown>[]
   data_source: string
+  /** SDK-detected referrals (document.referrer, more accurate than Worker HTTP Referer) */
+  sdk_ai_referrals?: number
+  sdk_referral_sources?: ProxyReferralSource[]
 }
 
 export const proxyApi = {

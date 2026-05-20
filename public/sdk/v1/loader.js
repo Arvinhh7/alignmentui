@@ -60,23 +60,55 @@
   }
 
   // ── AI referral detection ─────────────────────────────────────────────────
-  var AI_REFERRER_DOMAINS = [
-    'chatgpt.com', 'chat.openai.com', 'openai.com',
-    'claude.ai', 'anthropic.com',
-    'perplexity.ai',
-    'bard.google.com', 'gemini.google.com',
-    'copilot.microsoft.com', 'bing.com',
-    'you.com', 'phind.com', 'kagi.com',
-  ];
+  // Mirrors the AI_REFERRER_SOURCES map in the Cloudflare Worker (index.ts)
+  var AI_REFERRER_SOURCES = {
+    // USA
+    'chatgpt.com': 'ChatGPT', 'chat.openai.com': 'ChatGPT',
+    'claude.ai': 'Claude',
+    'perplexity.ai': 'Perplexity',
+    'gemini.google.com': 'Gemini', 'bard.google.com': 'Gemini', 'ai.google.com': 'Gemini',
+    'copilot.microsoft.com': 'Copilot', 'bing.com': 'Bing AI',
+    'grok.com': 'Grok', 'x.ai': 'Grok',
+    'meta.ai': 'Meta AI',
+    'you.com': 'You.com',
+    'cohere.com': 'Cohere',
+    'kagi.com': 'Kagi',
+    'phind.com': 'Phind',
+    'pi.ai': 'Pi',
+    'writer.com': 'Writer',
+    'search.brave.com': 'Brave',
+    // China
+    'chat.deepseek.com': 'DeepSeek', 'deepseek.com': 'DeepSeek',
+    'doubao.com': 'Doubao',
+    'kimi.moonshot.cn': 'Kimi', 'kimi.ai': 'Kimi',
+    'tongyi.aliyun.com': 'Tongyi', 'qwen.aliyun.com': 'Tongyi',
+    'yiyan.baidu.com': 'Baidu AI',
+    'xinghuo.xfyun.cn': 'Xinghuo',
+    'chatglm.cn': 'Zhipu AI',
+    'hunyuan.tencent.com': 'Hunyuan',
+    'baichuan-ai.com': 'Baichuan',
+    'minimax.chat': 'MiniMax',
+    // Europe
+    'chat.mistral.ai': 'Le Chat', 'mistral.ai': 'Mistral AI',
+    'deepl.com': 'DeepL',
+    // Korea
+    'clova.ai': 'Clova X', 'naver.com': 'Clova X', 'kakao.com': 'Kakao i',
+    // Russia
+    'ya.ru': 'Yandex AI', 'yandex.ru': 'Yandex AI',
+    'sber.ru': 'GigaChat', 'gigachat.sber.ru': 'GigaChat',
+    // Browser
+    'arc.net': 'Arc Browser',
+  };
 
   function detectAiReferral() {
     try {
       var ref = document.referrer;
       if (!ref) return null;
       var refHost = new URL(ref).hostname.replace(/^www\./, '');
-      for (var i = 0; i < AI_REFERRER_DOMAINS.length; i++) {
-        if (refHost === AI_REFERRER_DOMAINS[i] || refHost.endsWith('.' + AI_REFERRER_DOMAINS[i])) {
-          return AI_REFERRER_DOMAINS[i];
+      var domains = Object.keys(AI_REFERRER_SOURCES);
+      for (var i = 0; i < domains.length; i++) {
+        if (refHost === domains[i] || refHost.endsWith('.' + domains[i])) {
+          return { domain: domains[i], source: AI_REFERRER_SOURCES[domains[i]] };
         }
       }
     } catch (e) { /* ignore */ }
@@ -175,9 +207,12 @@
 
     log('Bootstrap', { pageType: pageType, productHandle: productHandle, aiReferrer: aiReferrer });
 
-    // 1. Report AI referral immediately
+    // 1. Report AI referral immediately (once per session)
     if (aiReferrer && !sessionStorage.getItem('ageo_ref_reported')) {
-      reportTelemetry('ai_referral', { referrer_domain: aiReferrer });
+      reportTelemetry('ai_referral', {
+        referrer_domain: aiReferrer.domain,
+        referrer_source: aiReferrer.source,
+      });
       try { sessionStorage.setItem('ageo_ref_reported', '1'); } catch (e) { /* ignore */ }
     }
 

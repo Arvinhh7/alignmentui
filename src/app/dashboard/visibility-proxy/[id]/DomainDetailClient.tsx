@@ -986,7 +986,11 @@ function AnalyticsTab({
     </div>
   )
 
-  const totalAiTraffic = (analytics.total_ai_visits ?? 0) + (analytics.ai_referral_visits ?? 0)
+  // Merge Worker referrals (HTTP Referer) + SDK referrals (document.referrer)
+  const workerReferrals = analytics.ai_referral_visits ?? 0
+  const sdkReferrals = analytics.sdk_ai_referrals ?? 0
+  const totalAiReferrals = workerReferrals + sdkReferrals
+  const totalAiTraffic = (analytics.total_ai_visits ?? 0) + totalAiReferrals
 
   // Merge bots by canonical platform name to avoid duplicate bars
   // (e.g. GPTBot + OAI-Search both → "ChatGPT")
@@ -1001,7 +1005,17 @@ function AnalyticsTab({
     .map(([name, visit_count]) => ({ name, visit_count }))
     .sort((a, b) => b.visit_count - a.visit_count)
 
-  const referralSources = [...(analytics.ai_referral_sources ?? [])].sort((a, b) => b.visit_count - a.visit_count)
+  // Merge Worker + SDK referral sources by name, deduplicate
+  const referralSourceMap: Record<string, number> = {}
+  for (const s of (analytics.ai_referral_sources ?? [])) {
+    referralSourceMap[s.source] = (referralSourceMap[s.source] ?? 0) + s.visit_count
+  }
+  for (const s of (analytics.sdk_referral_sources ?? [])) {
+    referralSourceMap[s.source] = (referralSourceMap[s.source] ?? 0) + s.visit_count
+  }
+  const referralSources = Object.entries(referralSourceMap)
+    .map(([source, visit_count]) => ({ source, visit_count }))
+    .sort((a, b) => b.visit_count - a.visit_count)
   const referralLandingPages = [...(analytics.top_referral_landing_pages ?? [])].sort((a, b) => b.visit_count - a.visit_count)
 
   // AI Platform Intelligence: merge bots + referrals by canonical platform name
@@ -1010,7 +1024,7 @@ function AnalyticsTab({
   const identifiedCrawls = platformIntel.reduce((s, p) => s + p.crawls, 0)
   const identifiedReferrals = platformIntel.reduce((s, p) => s + p.referrals, 0)
   const otherCrawls = (analytics.total_ai_visits ?? 0) - identifiedCrawls
-  const otherReferrals = (analytics.ai_referral_visits ?? 0) - identifiedReferrals
+  const otherReferrals = totalAiReferrals - identifiedReferrals
 
   return (
     <div className="flex gap-6 items-start">
@@ -1104,7 +1118,7 @@ function AnalyticsTab({
           <div className="bg-surface border border-divider-light rounded-2xl p-4">
             <div className="text-xs text-ink-3 mb-1">AI REFERRAL</div>
             <div className="text-2xl font-bold text-sage">
-              {(analytics.ai_referral_visits ?? 0).toLocaleString()}
+              {totalAiReferrals.toLocaleString()}
             </div>
             <div className="text-xs text-ink-3 mt-0.5">
               {referralSources.length > 0
