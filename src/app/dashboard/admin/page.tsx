@@ -314,6 +314,15 @@ function CopyButton({ value, size = 'sm' }: { value: string; size?: 'xs' | 'sm' 
   )
 }
 
+/** Canonical shop = lowercase plain hostname (no scheme, no trailing slash) */
+function normalizeShop(input: string): string {
+  let s = input.trim().replace(/\/$/, '')
+  if (s.startsWith('http://') || s.startsWith('https://')) {
+    try { s = new URL(s).hostname } catch { /* keep as-is */ }
+  }
+  return s.toLowerCase()
+}
+
 function TokenManagement() {
   const [tokens, setTokens] = useState<ProxyToken[]>([])
   const [loading, setLoading] = useState(false)
@@ -323,6 +332,10 @@ function TokenManagement() {
   const [newLabel, setNewLabel] = useState('')
   const [creating, setCreating] = useState(false)
   const [newToken, setNewToken] = useState<string | null>(null)
+
+  // Live-normalized preview (shown when input diverges from canonical form)
+  const shopPreview = newShop.trim() ? normalizeShop(newShop) : ''
+  const shopNeedsNormalization = !!newShop.trim() && shopPreview !== newShop.trim()
   // Search & filter
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'revoked'>('all')
@@ -433,12 +446,22 @@ function TokenManagement() {
       <section className="bg-surface rounded-2xl border border-divider p-6 space-y-4">
         <h2 className="text-lg font-semibold text-ink">New Client Token</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <input
-            placeholder="redmagic.gg"
-            value={newShop} onChange={(e) => setNewShop(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-            className="px-4 py-2.5 border border-divider rounded-xl text-sm focus:ring-2 focus:ring-ink/10 focus:border-ink outline-none"
-          />
+          <div className="flex flex-col gap-1">
+            <input
+              placeholder="redmagic.gg"
+              value={newShop} onChange={(e) => setNewShop(e.target.value)}
+              onBlur={() => { if (newShop.trim()) setNewShop(normalizeShop(newShop)) }}
+              onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+              className={`px-4 py-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-ink/10 focus:border-ink outline-none ${
+                shopNeedsNormalization ? 'border-amber-400' : 'border-divider'
+              }`}
+            />
+            {shopNeedsNormalization && (
+              <p className="text-[11px] text-amber-700 px-1">
+                → will be stored as <code className="font-mono">{shopPreview}</code>
+              </p>
+            )}
+          </div>
           <select value={newTier} onChange={(e) => setNewTier(e.target.value)}
             className="px-4 py-2.5 border border-divider rounded-xl text-sm focus:ring-2 focus:ring-ink/10 focus:border-ink outline-none bg-white">
             <option value="build">Build — 60 req/min (testing)</option>
