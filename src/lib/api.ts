@@ -2923,6 +2923,8 @@ export interface ProxyAnalytics {
   /** SDK-detected referrals (document.referrer, more accurate than Worker HTTP Referer) */
   sdk_ai_referrals?: number
   sdk_referral_sources?: ProxyReferralSource[]
+  /** SDK landing pages: pages where humans from AI platforms first landed (document.referrer-detected) */
+  sdk_referral_landing_pages?: { path: string; visit_count: number }[]
 }
 
 export const proxyApi = {

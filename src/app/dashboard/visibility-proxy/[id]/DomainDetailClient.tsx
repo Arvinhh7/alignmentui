@@ -1016,7 +1016,17 @@ function AnalyticsTab({
   const referralSources = Object.entries(referralSourceMap)
     .map(([source, visit_count]) => ({ source, visit_count }))
     .sort((a, b) => b.visit_count - a.visit_count)
-  const referralLandingPages = [...(analytics.top_referral_landing_pages ?? [])].sort((a, b) => b.visit_count - a.visit_count)
+  // Merge Worker landing pages (HTTP Referer) + SDK landing pages (document.referrer) by path
+  const landingPageMap: Record<string, number> = {}
+  for (const p of (analytics.top_referral_landing_pages ?? [])) {
+    landingPageMap[p.path] = (landingPageMap[p.path] ?? 0) + p.visit_count
+  }
+  for (const p of (analytics.sdk_referral_landing_pages ?? [])) {
+    landingPageMap[p.path] = (landingPageMap[p.path] ?? 0) + p.visit_count
+  }
+  const referralLandingPages = Object.entries(landingPageMap)
+    .map(([path, visit_count]) => ({ path, visit_count }))
+    .sort((a, b) => b.visit_count - a.visit_count)
 
   // AI Platform Intelligence: merge bots + referrals by canonical platform name
   const platformIntel = buildPlatformIntel(analytics)
@@ -1242,7 +1252,7 @@ function AnalyticsTab({
               AI Platforms Sending You Traffic
             </h3>
             <span className="text-xs bg-surface-muted text-ink-2 px-2 py-0.5 rounded-full font-medium">
-              Total AI referrals — {rangeLabel.toLowerCase()}: {(analytics.ai_referral_visits ?? 0).toLocaleString()}
+              Total AI referrals — {rangeLabel.toLowerCase()}: {totalAiReferrals.toLocaleString()}
             </span>
           </div>
           <p className="text-xs text-ink-3 mb-3">Visitors who arrived at your site after an AI platform recommended you.</p>
@@ -1252,7 +1262,7 @@ function AnalyticsTab({
             <div className="space-y-2.5">
               {referralSources.map(src => {
                 const meta = getPlatformMeta(src.source)
-                const total = (analytics.ai_referral_visits ?? 1) || 1
+                const total = totalAiReferrals || 1
                 const pct = Math.round((src.visit_count / total) * 100)
                 return (
                   <div key={src.source} className="flex items-center gap-3">
@@ -1338,7 +1348,7 @@ function AnalyticsTab({
               {(() => {
                 const pages = referralLandingPages.slice(0, 8)
                 const displayedSum = pages.reduce((s, p) => s + p.visit_count, 0)
-                const totalReferrals = analytics.ai_referral_visits ?? 0
+                const totalReferrals = totalAiReferrals
                 const otherCount = totalReferrals - displayedSum
                 if (pages.length === 0 && otherCount <= 0) return (
                   <p className="text-xs text-ink-3 italic">Appears once AI platforms send visitors.</p>

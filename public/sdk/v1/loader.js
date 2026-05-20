@@ -293,10 +293,14 @@
       });
     }
 
-    // 4. Report page view
-    reportTelemetry('page_view', {
-      product_handle: productHandle,
-    });
+    // 4. Report page view — only for AI-referred sessions (entry page or any page in same session)
+    var isAiSession = aiReferrer || sessionStorage.getItem('ageo_ref_reported');
+    if (isAiSession) {
+      reportTelemetry('page_view', {
+        product_handle: productHandle,
+        is_ai_referred: true,
+      });
+    }
   }
 
   // Bootstrap after DOM ready
