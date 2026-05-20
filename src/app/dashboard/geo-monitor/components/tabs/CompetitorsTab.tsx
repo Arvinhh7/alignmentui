@@ -120,6 +120,19 @@ function BrandLabel({
   )
 }
 
+// ─── Search-force preamble (stripped for display) ────
+// Mirrors backend monitor_service._SEARCH_FORCE_PREAMBLE — prepended to
+// high-intent prompts at scan time. We strip it so Prompt SOV rows match
+// the clean templates shown in the Prompts module.
+const SEARCH_FORCE_PREAMBLE =
+  'Search the web for current, real sources before answering. Only cite URLs that you actually find through search. '
+
+function stripPreamble(text: string): string {
+  return text.startsWith(SEARCH_FORCE_PREAMBLE)
+    ? text.slice(SEARCH_FORCE_PREAMBLE.length)
+    : text
+}
+
 // ─── Sub-type label map ───────────────────────────────
 const SUB_TYPE_LABELS: Record<string, string> = {
   primary_recommendation: 'Primary Rec',
@@ -507,7 +520,7 @@ function PromptSOVTab({
                 return (
                   <tr key={i} className="hover:bg-surface-warm transition-colors">
                     <td className="px-4 py-3 text-xs text-ink-2 max-w-[220px]">
-                      <p className="line-clamp-2" title={entry.prompt_text}>{entry.prompt_text}</p>
+                      <p className="line-clamp-2" title={stripPreamble(entry.prompt_text)}>{stripPreamble(entry.prompt_text)}</p>
                     </td>
                     {orderedBrands.map(brand => {
                       const bw = entry.brand_weights.find(w => w.brand === brand)
