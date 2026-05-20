@@ -190,13 +190,7 @@
       page_url: window.location.href,
       timestamp_ms: Date.now(),
     }, extra || {});
-    // Use sendBeacon for unload events, fetch otherwise
-    var url = API_BASE + '/v1/sdk/telemetry';
-    if (navigator.sendBeacon && eventType === 'page_view') {
-      navigator.sendBeacon(url, JSON.stringify(payload));
-    } else {
-      apiFetch('/v1/sdk/telemetry', 'POST', payload).catch(function () { /* silent */ });
-    }
+    apiFetch('/v1/sdk/telemetry', 'POST', payload).catch(function () { /* silent */ });
   }
 
   // ── Main bootstrap ────────────────────────────────────────────────────────
