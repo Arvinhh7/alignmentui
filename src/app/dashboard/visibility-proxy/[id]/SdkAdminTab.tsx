@@ -176,8 +176,11 @@ export default function SdkAdminTab({ domain, userId }: SdkAdminTabProps) {
   const probeTheme = async () => {
     setProbeStatus('running')
     setProbe(null)
+    // Probe origin (Shopify store) — that's where the snippet is installed.
+    // Fall back to custom domain if no origin.
+    const probeTarget = originHost ?? customDomain
     try {
-      const result = await adminApi.probeTheme(customDomain)
+      const result = await adminApi.probeTheme(probeTarget)
       setProbe(result)
     } catch (err) {
       setProbe({
@@ -334,7 +337,7 @@ export default function SdkAdminTab({ domain, userId }: SdkAdminTabProps) {
               </button>
             </div>
             <p className="text-[11px] text-ink-3 leading-relaxed">
-              Fetches <code className="bg-canvas px-1 py-0.5 rounded">{customDomain}</code> and checks if the SDK snippet is in the HTML.
+              Fetches <code className="bg-canvas px-1 py-0.5 rounded">{originHost ?? customDomain}</code> and checks if the SDK snippet is in the HTML.
             </p>
             {probe && (
               <div className="mt-2 space-y-1 text-[11px]">
