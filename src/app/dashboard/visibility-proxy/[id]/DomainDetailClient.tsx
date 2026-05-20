@@ -1106,7 +1106,12 @@ function AnalyticsTab({
             <div className="text-2xl font-bold text-sage">
               {(analytics.ai_referral_visits ?? 0).toLocaleString()}
             </div>
-            <div className="text-xs text-ink-3 mt-0.5">clicks from AI platforms</div>
+            <div className="text-xs text-ink-3 mt-0.5">
+              {referralSources.length > 0
+                ? `from ${referralSources.slice(0, 2).map(s => `${s.source} (${s.visit_count})`).join(', ')}`
+                : 'clicks from AI platforms'
+              }
+            </div>
           </div>
         </div>
 
@@ -1150,10 +1155,11 @@ function AnalyticsTab({
             </div>
             <p className="text-xs text-ink-3 mb-3">{chartSubtitle}</p>
             <ResponsiveContainer width="100%" height={180}>
-              <LineChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+              <LineChart data={chartData} margin={{ top: 4, right: 32, bottom: 0, left: -20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#2D2B27' }} tickFormatter={(v: string) => v.slice(5)} />
-                <YAxis tick={{ fontSize: 10, fill: '#2D2B27' }} />
+                <YAxis yAxisId="left" tick={{ fontSize: 10, fill: '#2D2B27' }} />
+                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: '#4A7B5C' }} width={28} />
                 <Tooltip
                   contentStyle={{ fontSize: 12, borderRadius: 8 }}
                   labelFormatter={(l: string) => `Date: ${l}`}
@@ -1167,15 +1173,15 @@ function AnalyticsTab({
                     return [`${value.toLocaleString()}${dailyStr}`, name]
                   }}
                 />
-                <Line type="monotone" dataKey="total" stroke="#9E9484" strokeWidth={1.5} dot={false} name="Total" />
-                <Line type="monotone" dataKey="ai_visits" stroke="#000000" strokeWidth={2} dot={false} name="AI Bots" />
-                <Line type="monotone" dataKey="ai_referrals" stroke="#4A7B5C" strokeWidth={2} dot={false} name="AI Referrals" />
+                <Line yAxisId="left" type="monotone" dataKey="total" stroke="#9E9484" strokeWidth={1.5} dot={false} name="Total" />
+                <Line yAxisId="left" type="monotone" dataKey="ai_visits" stroke="#000000" strokeWidth={2} dot={false} name="AI Bots" />
+                <Line yAxisId="right" type="monotone" dataKey="ai_referrals" stroke="#4A7B5C" strokeWidth={2} dot={false} name="AI Referrals" />
               </LineChart>
             </ResponsiveContainer>
             <div className="flex items-center gap-4 mt-2 justify-end">
               <span className="flex items-center gap-1 text-xs text-ink-3"><span className="w-3 h-0.5 bg-surface-muted inline-block" />Total</span>
               <span className="flex items-center gap-1 text-xs text-ink-2"><span className="w-3 h-0.5 bg-ink inline-block" />AI Bots</span>
-              <span className="flex items-center gap-1 text-xs text-sage"><span className="w-3 h-0.5 bg-sage inline-block" />AI Referrals</span>
+              <span className="flex items-center gap-1 text-xs text-sage"><span className="w-3 h-0.5 bg-sage inline-block" />AI Referrals (right axis)</span>
             </div>
           </div>
           )
