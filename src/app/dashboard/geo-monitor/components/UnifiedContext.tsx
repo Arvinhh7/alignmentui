@@ -223,10 +223,8 @@ interface UnifiedState {
   // Sub-tabs
   citationsSubTab: 'sources_overview' | 'url_detail'
   setCitationsSubTab: (v: 'sources_overview' | 'url_detail') => void
-  competitorsSubTab: 'co_mention' | 'competitor_sov' | 'by_platform'
-  setCompetitorsSubTab: (v: 'co_mention' | 'competitor_sov' | 'by_platform') => void
-  coMentionRoleFilter: 'all' | 'competitor' | 'complementary'
-  setCoMentionRoleFilter: (v: 'all' | 'competitor' | 'complementary') => void
+  competitorsSubTab: 'overall_sov' | 'prompt_sov' | 'sourcing_sov'
+  setCompetitorsSubTab: (v: 'overall_sov' | 'prompt_sov' | 'sourcing_sov') => void
 }
 
 const UnifiedContext = createContext<UnifiedState | null>(null)
@@ -245,8 +243,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   // ── Tab ─────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<TabKey>('visibility')
   const [citationsSubTab, setCitationsSubTab] = useState<'sources_overview' | 'url_detail'>('sources_overview')
-  const [competitorsSubTab, setCompetitorsSubTab] = useState<'co_mention' | 'competitor_sov' | 'by_platform'>('co_mention')
-  const [coMentionRoleFilter, setCoMentionRoleFilter] = useState<'all' | 'competitor' | 'complementary'>('all')
+  const [competitorsSubTab, setCompetitorsSubTab] = useState<'overall_sov' | 'prompt_sov' | 'sourcing_sov'>('overall_sov')
 
   // ── Brand config ────────────────────────────────
   const [brandConfig, setBrandConfig] = useState<BrandConfig>({ brand_name: '', domain: '', keywords: [], competitors: [], industry: '', one_liner: '', target_audience: '', target_market: '', differentiation: '' })
@@ -900,7 +897,6 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     activeCustomerId, customerHydrating,
     activeTab, setActiveTab,
     citationsSubTab, setCitationsSubTab, competitorsSubTab, setCompetitorsSubTab,
-    coMentionRoleFilter, setCoMentionRoleFilter,
   }
 
   return <UnifiedContext.Provider value={value}>{children}</UnifiedContext.Provider>

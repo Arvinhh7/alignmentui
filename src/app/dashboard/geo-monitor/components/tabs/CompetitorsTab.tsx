@@ -1,440 +1,482 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Users, Award, Shield, Target, Monitor, AlertTriangle } from 'lucide-react'
+import { Shield, Target, AlertTriangle, BarChart2, Hash, Globe } from 'lucide-react'
 import { useUnified } from '../UnifiedContext'
-import { MetricCard, DonutChart, HorizontalBar, formatPct, formatNum } from '../shared/ChartComponents'
-import { POSITIONING_LABELS, RELATIONSHIP_COLORS, COMP_POSITION_COLORS } from '../shared/constants'
+import { DonutChart, formatPct } from '../shared/ChartComponents'
+import type { WeightedSOVData, PromptSOVEntry, DomainSOVEntry } from '@/lib/api'
 
+// ─── Brand color palette ──────────────────────────────
+const BRAND_COLORS = [
+  '#000000', '#4A6FA5', '#4A7C59', '#B8860B', '#7B5E96',
+  '#C0392B', '#2980B9', '#16A085', '#D35400', '#8E44AD',
+]
+
+function getBrandColor(brand: string, brandList: string[]): string {
+  const idx = brandList.indexOf(brand)
+  return BRAND_COLORS[idx % BRAND_COLORS.length] ?? '#888'
+}
+
+// ─── Sub-type label map ───────────────────────────────
+const SUB_TYPE_LABELS: Record<string, string> = {
+  primary_recommendation: 'Primary Rec',
+  alternative_option: 'Alternative',
+  feature_highlight: 'Feature',
+  use_case: 'Use Case',
+  industry_context: 'Industry',
+  comparison: 'Comparison',
+  passing_reference: 'Passing',
+  warning_caution: 'Caution',
+  historical: 'Historical',
+  not_mentioned: '—',
+}
+
+// ─── Weight badge ─────────────────────────────────────
+function WeightBadge({ weight }: { weight: number }) {
+  const pct = Math.round(weight * 100)
+  const color =
+    pct >= 80 ? 'bg-sage-bg text-sage' :
+    pct >= 50 ? 'bg-canvas text-ink-2' :
+    pct >= 20 ? 'bg-surface-warm text-ink-3' :
+    'bg-red-soft-bg text-red-soft'
+  return (
+    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold ${color}`}>
+      {pct}
+    </span>
+  )
+}
+
+// ─── SOV bar row ──────────────────────────────────────
+function SOVBar({ brand, share, maxShare, color }: { brand: string; share: number; maxShare: number; color: string }) {
+  const barPct = maxShare > 0 ? Math.min((share / maxShare) * 100, 100) : 0
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-32 flex-shrink-0 text-sm font-medium text-ink truncate" title={brand}>{brand}</div>
+      <div className="flex-1 h-2.5 bg-surface-warm rounded-full overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-700"
+          style={{ width: `${barPct}%`, backgroundColor: color }}
+        />
+      </div>
+      <div className="w-16 text-right font-mono text-sm font-semibold text-ink">{formatPct(share)}</div>
+    </div>
+  )
+}
+
+// ─── Main component ───────────────────────────────────
 export function CompetitorsTab() {
   const ctx = useUnified()
-  const { scanResult, brandConfig, advancedMentions } = ctx
+  const { scanResult, brandConfig } = ctx
 
-  // ── co_mention: filtered brands ────────────────────────
-  const filteredBrands = useMemo(() => {
-    if (!scanResult?.suggested_brands) return []
-    if (ctx.coMentionRoleFilter === 'all') return scanResult.suggested_brands
-    if (ctx.coMentionRoleFilter === 'competitor') {
-      return scanResult.suggested_brands.filter(b => b.is_competitor || b.relationship === 'competitive')
-    }
-    return scanResult.suggested_brands.filter(b => b.relationship === 'complementary')
-  }, [scanResult?.suggested_brands, ctx.coMentionRoleFilter])
-
-  // ── competitor_sov: sorted competitors ─────────────────
-  const sortedCompetitors = useMemo(() => {
-    if (!scanResult?.competitor_comparison) return []
-    return [...scanResult.competitor_comparison].sort((a, b) => b.visibility_pct - a.visibility_pct)
-  }, [scanResult?.competitor_comparison])
-
-  const maxVisibility = useMemo(
-    () => Math.max(...(sortedCompetitors.map(c => c.visibility_pct)), 1),
-    [sortedCompetitors],
-  )
-
-  // ── SOV donut segments ─────────────────────────────────
-  const sovSegments = useMemo(() => {
-    if (!scanResult?.share_of_voice) return []
-    const colors = ['#000000', '#4A6FA5', '#4A7C59', '#B8860B', '#7B5E96', '#0A0A0A']
-    return Object.entries(scanResult.share_of_voice).map(([name, pct], i) => ({
-      label: name,
-      value: pct,
-      color: name === brandConfig.brand_name ? '#000000' : colors[(i + 1) % colors.length],
-    }))
-  }, [scanResult?.share_of_voice, brandConfig.brand_name])
-
-  // ── No data state ──────────────────────────────────────
+  // No data state
   if (!scanResult) {
     return (
       <div className="text-center py-16 text-ink-3">
         <Shield className="w-12 h-12 mx-auto mb-3 opacity-40" />
         <p className="text-sm font-medium">Run a scan first</p>
-        <p className="text-xs mt-1">Competitor analysis will appear here after your first scan.</p>
+        <p className="text-xs mt-1">Competitor SOV analysis will appear here after your first scan.</p>
       </div>
     )
   }
 
-  // ── By-platform data (derived from scan results) ────────────────────
-  const platformRows = useMemo(() => {
-    if (!ctx.scanResult?.competitor_comparison?.length) return []
-    const byPlatform: Record<string, { visibility: number; count: number }> = {}
-    for (const comp of ctx.scanResult.competitor_comparison) {
-      const platform = 'All Platforms'
-      if (!byPlatform[platform]) byPlatform[platform] = { visibility: 0, count: 0 }
-      byPlatform[platform].visibility += comp.visibility_pct
-      byPlatform[platform].count += 1
+  // Ordered brand list for consistent color assignment
+  const orderedBrands = useMemo(() => {
+    const wsov = scanResult.weighted_sov
+    if (wsov?.overall_sov) {
+      // Sort by descending share; own brand first if tied
+      return Object.entries(wsov.overall_sov)
+        .sort(([a, aShare], [b, bShare]) => {
+          if (Math.abs(aShare - bShare) < 0.01) {
+            if (a === brandConfig.brand_name) return -1
+            if (b === brandConfig.brand_name) return 1
+          }
+          return bShare - aShare
+        })
+        .map(([brand]) => brand)
     }
-    return Object.entries(byPlatform).map(([platform, d]) => ({
-      platform,
-      visibility: d.count > 0 ? d.visibility / d.count : 0,
-      sov: 0,
-      mentions: 0,
-      avgPosition: 0,
-    })).sort((a, b) => b.visibility - a.visibility)
-  }, [ctx.scanResult])
+    return [brandConfig.brand_name, ...brandConfig.competitors]
+  }, [scanResult.weighted_sov, brandConfig])
 
-  const maxPlatformVis = useMemo(() => Math.max(...platformRows.map(r => r.visibility), 1), [platformRows])
+  const wsov: WeightedSOVData | undefined = scanResult.weighted_sov
+
+  // Fallback: if no weighted_sov (old scan), derive simple SOV from share_of_voice
+  const overallSov: Record<string, number> = wsov?.overall_sov ?? scanResult.share_of_voice ?? {}
+  const maxShare = Math.max(...Object.values(overallSov), 0.01)
+
+  // Donut chart segments
+  const sovSegments = useMemo(() =>
+    orderedBrands
+      .filter(b => (overallSov[b] ?? 0) > 0)
+      .map((b, i) => ({
+        label: b,
+        value: overallSov[b] ?? 0,
+        color: getBrandColor(b, orderedBrands),
+      })),
+    [orderedBrands, overallSov],
+  )
 
   return (
     <div className="space-y-6">
-      {/* ── Level 3: Stale data warning ────────────────── */}
-      {ctx.scanResult && ctx.scanResult.brand_name?.toLowerCase() !== ctx.brandConfig.brand_name.toLowerCase() && (
+      {/* ── Stale data warning ───────────────────────────── */}
+      {scanResult.brand_name?.toLowerCase() !== brandConfig.brand_name.toLowerCase() && (
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-caution-bg border border-caution/30 text-caution text-sm">
           <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-          <span>Showing cached data for <strong>{ctx.scanResult.brand_name}</strong> — click <strong>Scan</strong> to refresh for <strong>{ctx.brandConfig.brand_name}</strong>.</span>
+          <span>Showing cached data for <strong>{scanResult.brand_name}</strong> — click <strong>Scan</strong> to refresh.</span>
         </div>
       )}
-      {/* ── Sub-tab switcher ──────────────────────────────── */}
+
+      {/* ── Sub-tab switcher ─────────────────────────────── */}
       <div className="flex gap-2 flex-wrap">
         {([
-          { key: 'co_mention' as const, label: 'Brand Co-Mentions' },
-          { key: 'competitor_sov' as const, label: 'Competitor SOV' },
-          { key: 'by_platform' as const, label: 'By Platform' },
-        ]).map(tab => (
+          { key: 'overall_sov' as const, label: 'Overall SOV', icon: Target },
+          { key: 'prompt_sov' as const, label: 'Prompt SOV', icon: Hash },
+          { key: 'sourcing_sov' as const, label: 'Sourcing SOV', icon: Globe },
+        ]).map(({ key, label, icon: Icon }) => (
           <button
-            key={tab.key}
-            onClick={() => ctx.setCompetitorsSubTab(tab.key as any)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              ctx.competitorsSubTab === tab.key
+            key={key}
+            onClick={() => ctx.setCompetitorsSubTab(key)}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              ctx.competitorsSubTab === key
                 ? 'bg-ink text-ink-inv border border-ink'
                 : 'bg-canvas text-ink-3 hover:bg-surface-muted border border-transparent'
             }`}
           >
-            {tab.label}
+            <Icon className="w-3.5 h-3.5" />
+            {label}
           </button>
         ))}
       </div>
 
-      {/* ═══ co_mention sub-tab ═══════════════════════════ */}
-      {ctx.competitorsSubTab === 'co_mention' && (
-        <div className="space-y-6">
-          {/* ── Filter pills ─────────────────────────────── */}
-          <div className="flex gap-2">
-            {([
-              { key: 'all' as const, label: 'All Brands' },
-              { key: 'competitor' as const, label: 'Competitors' },
-              { key: 'complementary' as const, label: 'Complementary' },
-            ]).map(f => (
-              <button
-                key={f.key}
-                onClick={() => ctx.setCoMentionRoleFilter(f.key)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                  ctx.coMentionRoleFilter === f.key
-                    ? 'bg-ink text-ink-inv'
-                    : 'bg-surface-warm text-ink-3 hover:bg-surface-muted'
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
+      {/* ═══ Overall SOV ═══════════════════════════════════ */}
+      {ctx.competitorsSubTab === 'overall_sov' && (
+        <OverallSOVTab
+          overallSov={overallSov}
+          orderedBrands={orderedBrands}
+          maxShare={maxShare}
+          sovSegments={sovSegments}
+          brandName={brandConfig.brand_name}
+        />
+      )}
 
-          {/* ── Brand co-mention cards ───────────────────── */}
-          {filteredBrands.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredBrands.map((brand, i) => {
-                const rel = RELATIONSHIP_COLORS[brand.relationship] || RELATIONSHIP_COLORS.neutral
-                const pos = POSITIONING_LABELS[brand.is_competitor ? 'challenger' : 'unknown'] || POSITIONING_LABELS.unknown
-                return (
-                  <div key={i} className="bg-surface rounded-xl border border-divider p-5 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between mb-3">
-                      <h4 className="text-sm font-semibold text-ink">{brand.name}</h4>
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${rel.color}`}>
-                        {rel.icon} {rel.label}
-                      </span>
-                    </div>
+      {/* ═══ Prompt SOV ════════════════════════════════════ */}
+      {ctx.competitorsSubTab === 'prompt_sov' && (
+        <PromptSOVTab
+          perPrompt={wsov?.per_prompt ?? []}
+          orderedBrands={orderedBrands}
+          brandName={brandConfig.brand_name}
+        />
+      )}
 
-                    <div className="flex items-center gap-2 mb-3">
-                      <Users className="w-4 h-4 text-ink-3" />
-                      <span className="text-sm text-ink-2">
-                        Co-mentioned <span className="font-bold text-ink">{brand.co_occurrence_count}</span> times
-                      </span>
-                    </div>
+      {/* ═══ Sourcing SOV ══════════════════════════════════ */}
+      {ctx.competitorsSubTab === 'sourcing_sov' && (
+        <SourcingSOVTab
+          perDomain={wsov?.per_domain ?? []}
+          orderedBrands={orderedBrands}
+          brandName={brandConfig.brand_name}
+        />
+      )}
+    </div>
+  )
+}
 
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${pos.color}`}>
-                        {pos.icon} {pos.label}
-                      </span>
-                    </div>
-
-                    {brand.co_occurrence_rate > 0 && (
-                      <div className="mt-2">
-                        <div className="flex justify-between text-xs text-ink-3 mb-1">
-                          <span>Co-occurrence Rate</span>
-                          <span className="font-mono font-medium">{formatPct(brand.co_occurrence_rate)}</span>
-                        </div>
-                        <div className="h-1.5 bg-surface-warm rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-ink transition-all duration-700"
-                            style={{ width: `${Math.min(brand.co_occurrence_rate, 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-ink-3 text-sm">No co-mentioned brands found for this filter.</div>
-          )}
-
-          {/* ── Advanced context clusters ────────────────── */}
-          {advancedMentions?.context_clusters && advancedMentions.context_clusters.length > 0 && (
-            <div className="bg-surface rounded-xl border border-divider p-5">
-              <h4 className="text-sm font-semibold text-ink-2 mb-4">Context Clusters</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {advancedMentions.context_clusters.map((cluster, i) => (
-                  <div
-                    key={i}
-                    className={`rounded-lg border p-4 ${
-                      cluster.is_positive_topic
-                        ? 'bg-sage-bg border-sage/30'
-                        : 'bg-red-soft-bg border-red-soft/30'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-ink">{cluster.topic}</span>
-                      <span className="text-xs font-mono text-ink-3">{cluster.mention_count} mentions</span>
-                    </div>
-                    <div className="text-xs text-ink-3 mb-2">
-                      Avg sentiment: <span className={`font-medium ${cluster.avg_sentiment >= 0 ? 'text-sage' : 'text-red-soft'}`}>
-                        {cluster.avg_sentiment.toFixed(2)}
-                      </span>
-                    </div>
-                    {cluster.sample_phrases.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {cluster.sample_phrases.slice(0, 3).map((phrase, j) => (
-                          <span key={j} className="px-2 py-0.5 bg-surface/70 rounded text-xs text-ink-2 border border-divider-light">
-                            {phrase}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
+// ─── Overall SOV sub-tab ──────────────────────────────
+function OverallSOVTab({
+  overallSov, orderedBrands, maxShare, sovSegments, brandName,
+}: {
+  overallSov: Record<string, number>
+  orderedBrands: string[]
+  maxShare: number
+  sovSegments: { label: string; value: number; color: string }[]
+  brandName: string
+}) {
+  return (
+    <div className="space-y-6">
+      {/* ── KPI cards ──────────────────────────────────── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        {orderedBrands.slice(0, 6).map(brand => {
+          const share = overallSov[brand] ?? 0
+          const isOwn = brand === brandName
+          const color = getBrandColor(brand, orderedBrands)
+          return (
+            <div key={brand} className={`rounded-xl border p-4 ${isOwn ? 'bg-canvas border-ink/20' : 'bg-surface border-divider'}`}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-ink-3 truncate max-w-[80%]" title={brand}>{brand}</span>
+                {isOwn && <span className="text-[10px] px-1.5 py-0.5 bg-surface-warm text-ink-2 rounded-full font-semibold">You</span>}
+              </div>
+              <div className="flex items-end gap-1">
+                <span className="text-2xl font-bold tabular-nums" style={{ color }}>{share.toFixed(1)}</span>
+                <span className="text-sm text-ink-3 mb-0.5">%</span>
+              </div>
+              <div className="mt-2 h-1.5 bg-surface-warm rounded-full overflow-hidden">
+                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(share / maxShare * 100, 100)}%`, backgroundColor: color }} />
               </div>
             </div>
-          )}
+          )
+        })}
+      </div>
+
+      {/* ── Donut chart ────────────────────────────────── */}
+      {sovSegments.length > 0 && (
+        <div className="bg-surface rounded-xl border border-divider p-5">
+          <h4 className="text-sm font-semibold text-ink-2 mb-4 flex items-center gap-2">
+            <Target className="w-4 h-4 text-ink-3" />
+            Weighted Share of Voice
+            <span className="text-xs text-ink-3 font-normal">(position × prominence)</span>
+          </h4>
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <DonutChart segments={sovSegments} centerLabel="SOV" size={180} />
+            {/* Legend */}
+            <div className="space-y-2 flex-1 min-w-0">
+              {orderedBrands.filter(b => (overallSov[b] ?? 0) > 0).map(brand => (
+                <div key={brand} className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: getBrandColor(brand, orderedBrands) }} />
+                  <span className="text-xs text-ink-2 truncate flex-1">{brand}</span>
+                  <span className="text-xs font-mono font-semibold text-ink">{formatPct(overallSov[brand] ?? 0)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
-      {/* ═══ competitor_sov sub-tab ═══════════════════════ */}
-      {ctx.competitorsSubTab === 'competitor_sov' && (
-        <div className="space-y-6">
-          {/* ── Brand Ranking Table ──────────────────────── */}
-          <div className="bg-surface rounded-xl border border-divider p-5">
-            <h4 className="text-sm font-semibold text-ink-2 mb-4 flex items-center gap-2">
-              <Award className="w-4 h-4 text-caution" />
-              Brand Ranking
-            </h4>
-            {sortedCompetitors.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-canvas">
-                      <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Rank</th>
-                      <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Brand</th>
-                      <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">Visibility %</th>
-                      <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">Mention Quality</th>
-                      <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Position</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-divider-light">
-                    {sortedCompetitors.map((comp, i) => {
-                      const isOwnBrand = comp.name.toLowerCase() === brandConfig.brand_name.toLowerCase()
-                      const posConfig = COMP_POSITION_COLORS[comp.positioning?.toLowerCase()] || null
+      {/* ── Ranked bar chart ────────────────────────────── */}
+      <div className="bg-surface rounded-xl border border-divider p-5">
+        <h4 className="text-sm font-semibold text-ink-2 mb-4 flex items-center gap-2">
+          <BarChart2 className="w-4 h-4 text-ink-3" />
+          Brand Ranking
+        </h4>
+        <div className="space-y-3">
+          {orderedBrands
+            .filter(b => (overallSov[b] ?? 0) > 0 || b === orderedBrands[0])
+            .map(brand => (
+              <SOVBar
+                key={brand}
+                brand={brand}
+                share={overallSov[brand] ?? 0}
+                maxShare={maxShare}
+                color={getBrandColor(brand, orderedBrands)}
+              />
+            ))}
+        </div>
+      </div>
+
+      {/* ── Weight legend ───────────────────────────────── */}
+      <div className="bg-canvas rounded-xl border border-divider-light p-4">
+        <p className="text-xs text-ink-3 font-medium mb-2">How weights are calculated</p>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-3">
+          <span><strong className="text-ink-2">Position weight</strong> = 1 / log₂(rank+1) — DCG; unranked prose = 1.0</span>
+          <span><strong className="text-ink-2">Prominence weight</strong>: primary rec 1.0 → passing ref 0.2</span>
+          <span><strong className="text-ink-2">SOV</strong> = Σ brand_weight / Σ all_weights</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Prompt SOV sub-tab ───────────────────────────────
+function PromptSOVTab({
+  perPrompt, orderedBrands, brandName,
+}: {
+  perPrompt: PromptSOVEntry[]
+  orderedBrands: string[]
+  brandName: string
+}) {
+  if (!perPrompt.length) {
+    return (
+      <div className="bg-surface rounded-xl border border-divider p-8 text-center">
+        <Hash className="w-10 h-10 text-ink-3 mx-auto mb-3 opacity-40" />
+        <p className="text-sm font-medium text-ink-3 mb-1">No prompt-level data</p>
+        <p className="text-xs text-ink-3">Run a new scan to see weighted SOV per prompt.</p>
+      </div>
+    )
+  }
+
+  // Deduplicate prompts (multiple engines → merge weights by averaging)
+  const promptMap = useMemo(() => {
+    const map = new Map<string, PromptSOVEntry>()
+    for (const entry of perPrompt) {
+      if (!map.has(entry.prompt_text)) {
+        map.set(entry.prompt_text, entry)
+      } else {
+        // Merge brand_weights for same prompt (multiple engines)
+        const existing = map.get(entry.prompt_text)!
+        for (const bw of entry.brand_weights) {
+          const found = existing.brand_weights.find(e => e.brand === bw.brand)
+          if (found) {
+            found.weight = Math.max(found.weight, bw.weight)  // take best engine result
+          } else {
+            existing.brand_weights.push({ ...bw })
+          }
+        }
+        existing.total_weight = existing.brand_weights.reduce((s, b) => s + b.weight, 0)
+      }
+    }
+    return map
+  }, [perPrompt])
+
+  const entries = Array.from(promptMap.values())
+
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-ink-3">
+        Each row is one prompt. Columns show each brand&apos;s weighted contribution to that prompt.
+        Higher = mentioned earlier in the list <em>and</em> as a stronger recommendation.
+      </p>
+
+      <div className="bg-surface rounded-xl border border-divider overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-canvas border-b border-divider">
+                <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left min-w-[200px]">Prompt</th>
+                {orderedBrands.map(b => (
+                  <th key={b} className="px-3 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-center min-w-[90px]">
+                    <span className="flex items-center justify-center gap-1">
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: getBrandColor(b, orderedBrands) }} />
+                      <span className="truncate max-w-[70px]" title={b}>{b}</span>
+                    </span>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-divider-light">
+              {entries.map((entry, i) => {
+                const rowTotal = entry.total_weight
+                return (
+                  <tr key={i} className="hover:bg-surface-warm transition-colors">
+                    <td className="px-4 py-3 text-xs text-ink-2 max-w-[220px]">
+                      <p className="line-clamp-2" title={entry.prompt_text}>{entry.prompt_text}</p>
+                    </td>
+                    {orderedBrands.map(brand => {
+                      const bw = entry.brand_weights.find(w => w.brand === brand)
+                      const share = bw && rowTotal > 0 ? bw.weight / rowTotal * 100 : 0
+                      const isOwn = brand === brandName
                       return (
-                        <tr key={i} className={`transition-colors ${isOwnBrand ? 'bg-canvas' : 'hover:bg-surface-warm'}`}>
-                          <td className="px-4 py-3 text-sm font-mono font-bold text-ink-3">#{i + 1}</td>
-                          <td className="px-4 py-3 text-sm">
-                            <span className={`font-medium ${isOwnBrand ? 'text-ink' : 'text-ink'}`}>
-                              {comp.name}
-                            </span>
-                            {isOwnBrand && (
-                              <span className="ml-2 text-[10px] px-1.5 py-0.5 bg-surface-warm text-ink-2 rounded-full font-semibold">You</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-right font-mono font-medium">{formatPct(comp.visibility_pct)}</td>
-                          <td className="px-4 py-3 text-sm text-right font-mono">{comp.avg_position_score?.toFixed(1) ?? '—'}</td>
-                          <td className="px-4 py-3 text-sm">
-                            {posConfig ? (
-                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${posConfig.bg} ${posConfig.text}`}>
-                                {posConfig.label}
-                              </span>
-                            ) : (
-                              <span className="text-xs text-ink-3">{comp.positioning || '—'}</span>
-                            )}
-                          </td>
-                        </tr>
+                        <td key={brand} className={`px-3 py-3 text-center ${isOwn ? 'bg-canvas/60' : ''}`}>
+                          {bw && bw.weight > 0 ? (
+                            <div className="flex flex-col items-center gap-0.5">
+                              <span className="font-mono font-semibold text-xs text-ink">{formatPct(share)}</span>
+                              <WeightBadge weight={bw.weight} />
+                              <span className="text-[10px] text-ink-3">{SUB_TYPE_LABELS[bw.sub_type] ?? bw.sub_type}</span>
+                            </div>
+                          ) : (
+                            <span className="text-ink-3 text-xs">—</span>
+                          )}
+                        </td>
                       )
                     })}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-center py-6 text-sm text-ink-3">No competitor data available.</div>
-            )}
-          </div>
-
-          {/* ── SOV Donut Chart ──────────────────────────── */}
-          {sovSegments.length > 0 && (
-            <div className="bg-surface rounded-xl border border-divider p-5">
-              <h4 className="text-sm font-semibold text-ink-2 mb-4 flex items-center gap-2">
-                <Target className="w-4 h-4 text-ink-3" />
-                Share of Voice
-              </h4>
-              <div className="flex justify-center">
-                <DonutChart segments={sovSegments} centerLabel="SOV" size={180} />
-              </div>
-            </div>
-          )}
-
-          {/* ── Competitive Position Bars ────────────────── */}
-          {sortedCompetitors.length > 0 && (
-            <div className="bg-surface rounded-xl border border-divider p-5">
-              <h4 className="text-sm font-semibold text-ink-2 mb-4 flex items-center gap-2">
-                <Shield className="w-4 h-4 text-ink-2" />
-                Competitive Position
-              </h4>
-              <div className="space-y-3">
-                {sortedCompetitors.map((comp, i) => {
-                  const posKey = comp.positioning?.toLowerCase() || ''
-                  const posConfig = COMP_POSITION_COLORS[posKey]
-                  const barColor = posConfig?.bg || 'bg-ink-3'
-                  return (
-                    <HorizontalBar
-                      key={i}
-                      label={comp.name}
-                      value={Math.round(comp.visibility_pct)}
-                      max={Math.round(maxVisibility)}
-                      color={barColor}
-                      icon={posConfig?.label?.split(' ')[0] || ''}
-                    />
-                  )
-                })}
-              </div>
-            </div>
-          )}
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
 
-      {/* ═══ by_platform sub-tab ════════════════════════ */}
-      {ctx.competitorsSubTab === ('by_platform' as any) && (
-        <div className="space-y-6">
-          {platformRows.length > 0 ? (
-            <>
-              {/* Share of Voice by Platform */}
-              <div className="bg-surface rounded-xl border border-divider p-5">
-                <h4 className="text-sm font-semibold text-ink-2 mb-4 flex items-center gap-2">
-                  <Monitor className="w-4 h-4 text-ink-2" />
-                  Visibility by AI Platform
-                </h4>
-                <div className="flex items-center gap-4 pb-2 border-b border-divider-light mb-1">
-                  <div className="w-28 text-xs font-medium text-ink-3 uppercase tracking-wider">Platform</div>
-                  <div className="flex-1 text-xs font-medium text-ink-3 uppercase tracking-wider">Score</div>
-                  <div className="w-18 text-right text-xs font-medium text-ink-3 uppercase tracking-wider">Visibility</div>
-                  <div className="w-14 text-right text-xs font-medium text-ink-3 uppercase tracking-wider">SOV</div>
-                  <div className="w-18 text-right text-xs font-medium text-ink-3 uppercase tracking-wider">Mentions</div>
-                  <div className="w-18 text-right text-xs font-medium text-ink-3 uppercase tracking-wider">Avg Pos</div>
-                </div>
-                {platformRows.map((row, i) => {
-                  const barPct = maxPlatformVis > 0 ? Math.min((row.visibility / maxPlatformVis) * 100, 100) : 0
-                  const barColor = row.visibility >= 60 ? 'bg-sage' : row.visibility >= 30 ? 'bg-ink-2' : 'bg-caution'
-                  return (
-                    <div key={i} className="flex items-center gap-4 py-2.5 border-b border-divider-light last:border-0">
-                      <div className="w-28 flex-shrink-0">
-                        <span className="text-sm font-medium text-ink capitalize">{row.platform}</span>
-                      </div>
-                      <div className="flex-1">
-                        <div className="h-2 bg-surface-warm rounded-full overflow-hidden">
-                          <div className={`h-full rounded-full ${barColor} transition-all duration-700`} style={{ width: `${barPct}%` }} />
-                        </div>
-                      </div>
-                      <div className="w-18 text-right font-mono text-sm font-medium text-ink">{formatPct(row.visibility)}</div>
-                      <div className="w-14 text-right font-mono text-xs text-ink-3">{formatPct(row.sov)}</div>
-                      <div className="w-18 text-right font-mono text-xs text-ink-3">{formatNum(row.mentions, 0)}</div>
-                      <div className="w-18 text-right font-mono text-xs text-ink-3">{formatNum(row.avgPosition)}</div>
-                    </div>
-                  )
-                })}
-              </div>
+      <p className="text-xs text-ink-3">
+        Weight badge = <span className="font-mono">pos_weight × prom_weight × 100</span>.
+        Share % = brand weight / row total.
+      </p>
+    </div>
+  )
+}
 
-              {/* Average Position by Platform */}
-              <div className="bg-surface rounded-xl border border-divider p-5">
-                <h4 className="text-sm font-semibold text-ink-2 mb-4 flex items-center gap-2">
-                  <Target className="w-4 h-4 text-ink-2" />
-                  Average Position by Platform
-                  <span className="text-xs text-ink-3 font-normal">(lower = mentioned earlier in response)</span>
-                </h4>
-                <div className="space-y-3">
-                  {platformRows.map((row, i) => {
-                    const maxPos = Math.max(...platformRows.map(r => r.avgPosition), 1)
-                    return (
-                      <div key={i} className="flex items-center gap-4">
-                        <div className="w-28 flex-shrink-0 text-sm text-ink-2 capitalize">{row.platform}</div>
-                        <div className="flex-1 h-2 bg-surface-warm rounded-full overflow-hidden">
-                          <div className="h-full rounded-full bg-ink-2 transition-all duration-700"
-                            style={{ width: `${Math.min((row.avgPosition / maxPos) * 100, 100)}%` }} />
-                        </div>
-                        <div className="w-16 text-right font-mono text-sm text-ink-2">{formatNum(row.avgPosition)}</div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
+// ─── Sourcing SOV sub-tab ─────────────────────────────
+function SourcingSOVTab({
+  perDomain, orderedBrands, brandName,
+}: {
+  perDomain: DomainSOVEntry[]
+  orderedBrands: string[]
+  brandName: string
+}) {
+  if (!perDomain.length) {
+    return (
+      <div className="bg-surface rounded-xl border border-divider p-8 text-center">
+        <Globe className="w-10 h-10 text-ink-3 mx-auto mb-3 opacity-40" />
+        <p className="text-sm font-medium text-ink-3 mb-1">No sourcing data</p>
+        <p className="text-xs text-ink-3">Run a scan with citation-enabled engines to see domain-level SOV.</p>
+      </div>
+    )
+  }
 
-              {/* Platform comparison table */}
-              <div className="bg-surface rounded-xl border border-divider p-5">
-                <h4 className="text-sm font-semibold text-ink-2 mb-4 flex items-center gap-2">
-                  <Award className="w-4 h-4 text-caution" />
-                  Platform Comparison
-                </h4>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="bg-canvas">
-                        <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Platform</th>
-                        <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">Visibility</th>
-                        <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">Share of Voice</th>
-                        <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">Mentions</th>
-                        <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">Avg Position</th>
-                        <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Signal</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-divider-light">
-                      {platformRows.map((row, i) => {
-                        const signal = row.visibility >= 60 ? { label: 'Strong', color: 'bg-sage-bg text-sage' }
-                          : row.visibility >= 30 ? { label: 'Moderate', color: 'bg-caution-bg text-caution' }
-                          : { label: 'Weak', color: 'bg-red-soft-bg text-red-soft' }
-                        return (
-                          <tr key={i} className="hover:bg-surface-warm transition-colors">
-                            <td className="px-4 py-3 text-sm font-medium text-ink capitalize">{row.platform}</td>
-                            <td className="px-4 py-3 text-sm text-right font-mono font-medium">{formatPct(row.visibility)}</td>
-                            <td className="px-4 py-3 text-sm text-right font-mono text-ink-2">{formatPct(row.sov)}</td>
-                            <td className="px-4 py-3 text-sm text-right font-mono text-ink-2">{formatNum(row.mentions, 0)}</td>
-                            <td className="px-4 py-3 text-sm text-right font-mono text-ink-2">{formatNum(row.avgPosition)}</td>
-                            <td className="px-4 py-3">
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${signal.color}`}>
-                                {signal.label}
-                              </span>
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="bg-surface rounded-xl border border-divider p-8 text-center">
-              <Monitor className="w-10 h-10 text-ink-3 mx-auto mb-3 opacity-40" />
-              <p className="text-sm font-medium text-ink-3 mb-1">No platform data available</p>
-              <p className="text-xs text-ink-3">Run a scan to see how your brand performs across different AI platforms.</p>
-            </div>
-          )}
+  // Top 15 domains by total weight
+  const topDomains = perDomain.slice(0, 15)
+
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-ink-3">
+        Which AI citation sources drive brand visibility — and for whom.
+        Share = brand&apos;s weighted share of mentions from that domain.
+      </p>
+
+      <div className="bg-surface rounded-xl border border-divider overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-canvas border-b border-divider">
+                <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left min-w-[160px]">Source Domain</th>
+                {orderedBrands.map(b => (
+                  <th key={b} className="px-3 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-center min-w-[90px]">
+                    <span className="flex items-center justify-center gap-1">
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: getBrandColor(b, orderedBrands) }} />
+                      <span className="truncate max-w-[70px]" title={b}>{b}</span>
+                    </span>
+                  </th>
+                ))}
+                <th className="px-3 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">Signal</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-divider-light">
+              {topDomains.map((row, i) => {
+                const ownShare = row.brand_sov[brandName] ?? 0
+                const signal = ownShare >= 50
+                  ? { label: 'Strong', cls: 'bg-sage-bg text-sage' }
+                  : ownShare >= 20
+                  ? { label: 'Moderate', cls: 'bg-caution-bg text-caution' }
+                  : { label: 'Weak', cls: 'bg-red-soft-bg text-red-soft' }
+                return (
+                  <tr key={i} className="hover:bg-surface-warm transition-colors">
+                    <td className="px-4 py-3 text-xs font-medium text-ink max-w-[180px]">
+                      <span className="truncate block" title={row.domain}>{row.domain}</span>
+                    </td>
+                    {orderedBrands.map(brand => {
+                      const share = row.brand_sov[brand] ?? 0
+                      const isOwn = brand === brandName
+                      return (
+                        <td key={brand} className={`px-3 py-3 text-center ${isOwn ? 'bg-canvas/60' : ''}`}>
+                          {share > 0 ? (
+                            <div className="flex flex-col items-center">
+                              <span className="font-mono font-semibold text-sm text-ink">{formatPct(share)}</span>
+                              <div className="mt-1 w-12 h-1 bg-surface-warm rounded-full overflow-hidden">
+                                <div
+                                  className="h-full rounded-full transition-all"
+                                  style={{ width: `${Math.min(share, 100)}%`, backgroundColor: getBrandColor(brand, orderedBrands) }}
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-ink-3 text-xs">—</span>
+                          )}
+                        </td>
+                      )
+                    })}
+                    <td className="px-3 py-3 text-right">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${signal.cls}`}>
+                        {signal.label}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
+
+      <p className="text-xs text-ink-3">
+        Showing top {topDomains.length} citation sources by total weighted signal.
+        Signal = own brand share from that source: ≥50% = Strong, ≥20% = Moderate.
+      </p>
     </div>
   )
 }

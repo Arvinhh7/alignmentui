@@ -299,6 +299,36 @@ export interface CompetitorVisibility {
   positioning: string;
 }
 
+// ── Sprint 5: Weighted SOV ──────────────────────────────
+
+export interface PerPromptBrandWeight {
+  brand: string;
+  weight: number;
+  sub_type: string;
+  ordinal_rank?: number | null;
+  is_own_brand: boolean;
+}
+
+export interface PromptSOVEntry {
+  prompt_text: string;
+  brand_weights: PerPromptBrandWeight[];
+  total_weight: number;
+  cited_domains: string[];
+}
+
+export interface DomainSOVEntry {
+  domain: string;
+  brand_sov: Record<string, number>;   // brand → share %
+  total_weight: number;
+}
+
+export interface WeightedSOVData {
+  overall_sov: Record<string, number>;  // brand → weighted share %
+  overall_raw: Record<string, number>;  // brand → raw weight sum
+  per_prompt: PromptSOVEntry[];
+  per_domain: DomainSOVEntry[];
+}
+
 export interface SentimentBreakdown {
   positive: number;
   neutral: number;
@@ -517,6 +547,8 @@ export interface MonitorScanResult {
   // Metric improvements
   total_executions?: number;
   avg_ordinal_rank?: number | null;
+  // Sprint 5: Weighted SOV
+  weighted_sov?: WeightedSOVData;
 }
 
 export interface PromptMetrics {
