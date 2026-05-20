@@ -3098,6 +3098,28 @@ export interface DomainCheckResult {
   checks_detail: DomainCheckDetail[]
 }
 
+export interface ProxyTokenInfo {
+  token: string
+  shop: string
+  tier: string
+  status: 'active' | 'revoked'
+  label?: string
+  created_at: string
+  revoked_at?: string | null
+}
+
+export interface ThemeProbeResult {
+  installed: boolean
+  shop_id_present: boolean
+  token_present: boolean
+  shop_id_value: string | null
+  token_preview: string | null
+  url: string
+  host: string
+  status_code: number
+  error?: string
+}
+
 export const adminApi = {
   checkDomain: async (domain: string, userId: string): Promise<DomainCheckResult> => {
     const r = await fetch(
@@ -3112,6 +3134,41 @@ export const adminApi = {
       const err = await r.json().catch(() => ({ detail: '检测请求失败' }))
       throw new Error(err.detail ?? '检测请求失败')
     }
+    return r.json()
+  },
+
+  listProxyTokens: async (shop?: string): Promise<ProxyTokenInfo[]> => {
+    const url = shop
+      ? `${API_BASE_URL}/api/admin/proxy-tokens?shop=${encodeURIComponent(shop)}`
+      : `${API_BASE_URL}/api/admin/proxy-tokens`
+    const r = await fetch(url)
+    if (!r.ok) throw new Error('Failed to list proxy tokens')
+    const data = await r.json()
+    return data.tokens ?? []
+  },
+
+  createProxyToken: async (
+    shop: string,
+    tier: 'build' | 'optimize' | 'insight' = 'optimize',
+    label?: string,
+  ): Promise<ProxyTokenInfo> => {
+    const r = await fetch(`${API_BASE_URL}/api/admin/proxy-tokens`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ shop, tier, label: label ?? '' }),
+    })
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({ detail: 'Failed to create token' }))
+      throw new Error(err.detail ?? 'Failed to create token')
+    }
+    return r.json()
+  },
+
+  probeTheme: async (domain: string): Promise<ThemeProbeResult> => {
+    const r = await fetch(
+      `${API_BASE_URL}/api/admin/probe-theme?domain=${encodeURIComponent(domain)}`,
+    )
+    if (!r.ok) throw new Error('Failed to probe theme')
     return r.json()
   },
 }
