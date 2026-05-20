@@ -143,9 +143,20 @@ export function highlightBrand(text: string, brand: string): React.ReactNode {
   )
 }
 
+// Mirrors backend monitor_service._SEARCH_FORCE_PREAMBLE
+const _SEARCH_FORCE_PREAMBLE =
+  'Search the web for current, real sources before answering. ' +
+  'Only cite URLs that you actually find through search. '
+
 export function displayPrompt(text: string, brandName?: string): string {
-  if (!text.includes('{brand}')) return text
-  return text.replace(/\{brand\}/gi, brandName || 'Your Brand')
+  // Strip backend instruction preamble — it's a scan-time directive to the AI engine,
+  // not part of the user-facing query and should never appear in the UI.
+  let result = text.startsWith(_SEARCH_FORCE_PREAMBLE)
+    ? text.slice(_SEARCH_FORCE_PREAMBLE.length)
+    : text
+  if (result.includes('{brand}'))
+    result = result.replace(/\{brand\}/gi, brandName || 'Your Brand')
+  return result
 }
 
 // ─── MetricCard ──────────────────────────────────────

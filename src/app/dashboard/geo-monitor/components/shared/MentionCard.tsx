@@ -12,6 +12,26 @@ import {
 } from './constants'
 import { highlightBrand, displayPrompt, stripMarkdown } from './ChartComponents'
 
+/** Extract favicon URL from any cited URL using Google S2 service. */
+function citedFavicon(url: string): string {
+  try {
+    return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=16`
+  } catch {
+    return ''
+  }
+}
+
+/** Shorten a URL for display: show host + first path segment only. */
+function shortUrl(url: string): string {
+  try {
+    const u = new URL(url)
+    const seg = u.pathname.split('/').filter(Boolean)[0]
+    return u.hostname + (seg ? `/${seg}…` : '')
+  } catch {
+    return url
+  }
+}
+
 export function MentionCard({ mention, brandName, index }: {
   mention: ScanMention; brandName: string; index: number
 }) {
@@ -73,11 +93,14 @@ export function MentionCard({ mention, brandName, index }: {
                 <div className="mt-3">
                   <p className="text-xs font-medium text-ink-3 mb-1.5">Key Phrases:</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {mention.key_phrases.map((kp, i) => (
-                      <span key={i} className="text-xs px-2 py-1 bg-surface-warm text-ink-2 rounded-lg">
-                        {kp.length > 80 ? kp.slice(0, 80) + '...' : kp}
-                      </span>
-                    ))}
+                    {mention.key_phrases.map((kp, i) => {
+                      const clean = stripMarkdown(kp)
+                      return (
+                        <span key={i} className="text-xs px-2 py-1 bg-surface-warm text-ink-2 rounded-lg">
+                          {clean.length > 80 ? clean.slice(0, 80) + '…' : clean}
+                        </span>
+                      )
+                    })}
                   </div>
                 </div>
               )}
@@ -95,13 +118,26 @@ export function MentionCard({ mention, brandName, index }: {
               )}
               {mention.cited_urls?.length > 0 && (
                 <div className="mt-3">
-                  <p className="text-xs font-medium text-ink-3 mb-1.5 flex items-center gap-1"><Link2 className="w-3 h-3" /> Cited URLs:</p>
+                  <p className="text-xs font-medium text-ink-3 mb-1.5 flex items-center gap-1">
+                    <Link2 className="w-3 h-3" /> Cited URLs:
+                  </p>
                   <div className="space-y-1">
-                    {mention.cited_urls.map((url, i) => (
-                      <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-ink-2 hover:text-ink hover:underline truncate">
-                        <ExternalLink className="w-3 h-3 flex-shrink-0" />{url}
-                      </a>
-                    ))}
+                    {mention.cited_urls.map((url, i) => {
+                      const favicon = citedFavicon(url)
+                      return (
+                        <a key={i} href={url} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-xs text-ink-2 hover:text-ink group"
+                          title={url}
+                        >
+                          {favicon
+                            ? <img src={favicon} className="w-3.5 h-3.5 flex-shrink-0 rounded-sm" alt="" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                            : <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                          }
+                          <span className="truncate group-hover:underline">{shortUrl(url)}</span>
+                          <ExternalLink className="w-2.5 h-2.5 flex-shrink-0 opacity-0 group-hover:opacity-50 transition-opacity" />
+                        </a>
+                      )
+                    })}
                   </div>
                 </div>
               )}
@@ -114,16 +150,25 @@ export function MentionCard({ mention, brandName, index }: {
                 <p className="text-sm text-ink-2 whitespace-pre-wrap leading-relaxed">{highlightBrand(mention.response_text, brandName)}</p>
               </div>
               <div className="mt-3 grid grid-cols-3 gap-3">
+                {/* List Rank: ordinal position in AI's numbered list (meaningful) */}
                 <div className="bg-surface-warm rounded-lg p-3 text-center">
-                  <p className="text-lg font-bold font-mono text-ink-2">{mention.position !== null && mention.position !== undefined ? `#${mention.position}` : '—'}</p>
-                  <p className="text-xs text-ink-2">Position</p>
+                  <p className="text-lg font-bold font-mono text-ink-2">
+                    {mention.ordinal_rank != null ? `#${mention.ordinal_rank}` : '—'}
+                  </p>
+                  <p className="text-xs text-ink-2">List Rank</p>
                 </div>
-                <div className="bg-sage-bg rounded-lg p-3 text-center">
-                  <p className="text-lg font-bold font-mono text-sage">{(mention.position_score * 100).toFixed(0)}%</p>
-                  <p className="text-xs text-sage">Position Score</p>
+                {/* Prominence: how the AI positioned the brand in this response */}
+                <div className="bg-surface-warm rounded-lg p-3 text-center flex flex-col items-center justify-center gap-1">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold leading-tight ${subInfo.color}`}>
+                    {subInfo.label}
+                  </span>
+                  <p className="text-xs text-ink-2">Prominence</p>
                 </div>
+                {/* Sentiment score */}
                 <div className="bg-surface-warm rounded-lg p-3 text-center">
-                  <p className="text-lg font-bold font-mono text-ink-2">{mention.sentiment_score > 0 ? '+' : ''}{mention.sentiment_score.toFixed(2)}</p>
+                  <p className={`text-lg font-bold font-mono ${mention.sentiment_score > 0 ? 'text-sage' : mention.sentiment_score < 0 ? 'text-red-soft' : 'text-ink-2'}`}>
+                    {mention.sentiment_score > 0 ? '+' : ''}{mention.sentiment_score.toFixed(2)}
+                  </p>
                   <p className="text-xs text-ink-2">Sentiment</p>
                 </div>
               </div>
@@ -176,11 +221,22 @@ export function MentionCard({ mention, brandName, index }: {
                         <span className="text-[10px] text-ink-3/70 ml-1">→ your citation gap (PR / content targets)</span>
                       </p>
                       <div className="space-y-1">
-                        {mention.cited_urls.slice(0, 5).map((url, i) => (
-                          <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-ink-2 hover:text-ink hover:underline truncate">
-                            <ExternalLink className="w-3 h-3 flex-shrink-0" />{url}
-                          </a>
-                        ))}
+                        {mention.cited_urls.slice(0, 5).map((url, i) => {
+                          const favicon = citedFavicon(url)
+                          return (
+                            <a key={i} href={url} target="_blank" rel="noopener noreferrer"
+                              className="flex items-center gap-1.5 text-xs text-ink-2 hover:text-ink group"
+                              title={url}
+                            >
+                              {favicon
+                                ? <img src={favicon} className="w-3.5 h-3.5 flex-shrink-0 rounded-sm" alt="" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                                : <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                              }
+                              <span className="truncate group-hover:underline">{shortUrl(url)}</span>
+                              <ExternalLink className="w-2.5 h-2.5 flex-shrink-0 opacity-0 group-hover:opacity-50 transition-opacity" />
+                            </a>
+                          )
+                        })}
                         {mention.cited_urls.length > 5 && (
                           <p className="text-[10px] text-ink-3 italic">+{mention.cited_urls.length - 5} more</p>
                         )}
@@ -195,11 +251,14 @@ export function MentionCard({ mention, brandName, index }: {
                         <span className="text-[10px] text-ink-3/70 ml-1">→ your content angle must hit these framings</span>
                       </p>
                       <div className="flex flex-wrap gap-1.5">
-                        {mention.key_phrases.slice(0, 6).map((kp, i) => (
-                          <span key={i} className="text-xs px-2 py-1 bg-surface-warm text-ink-2 rounded-lg">
-                            {kp.length > 60 ? kp.slice(0, 60) + '...' : kp}
-                          </span>
-                        ))}
+                        {mention.key_phrases.slice(0, 6).map((kp, i) => {
+                          const clean = stripMarkdown(kp)
+                          return (
+                            <span key={i} className="text-xs px-2 py-1 bg-surface-warm text-ink-2 rounded-lg">
+                              {clean.length > 60 ? clean.slice(0, 60) + '…' : clean}
+                            </span>
+                          )
+                        })}
                       </div>
                     </div>
                   )}
