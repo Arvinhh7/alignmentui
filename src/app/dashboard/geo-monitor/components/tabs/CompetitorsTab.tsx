@@ -115,6 +115,9 @@ export function CompetitorsTab() {
     [orderedBrands, overallSov],
   )
 
+  // Detect old scan without weighted_sov (pre-Sprint 5)
+  const hasWeightedSov = !!wsov
+
   return (
     <div className="space-y-6">
       {/* ── Stale data warning ───────────────────────────── */}
@@ -122,6 +125,17 @@ export function CompetitorsTab() {
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-caution-bg border border-caution/30 text-caution text-sm">
           <AlertTriangle className="w-4 h-4 flex-shrink-0" />
           <span>Showing cached data for <strong>{scanResult.brand_name}</strong> — click <strong>Scan</strong> to refresh.</span>
+        </div>
+      )}
+
+      {/* ── Old scan banner (no weighted_sov) ──────────── */}
+      {!hasWeightedSov && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface border border-divider text-ink-3 text-sm">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0 text-caution" />
+          <span>
+            <strong className="text-ink-2">Prompt SOV</strong> and <strong className="text-ink-2">Sourcing SOV</strong> require a new scan — this result predates weighted SOV.
+            Overall SOV is showing a simple count-based fallback.
+          </span>
         </div>
       )}
 
@@ -286,7 +300,9 @@ function PromptSOVTab({
       <div className="bg-surface rounded-xl border border-divider p-8 text-center">
         <Hash className="w-10 h-10 text-ink-3 mx-auto mb-3 opacity-40" />
         <p className="text-sm font-medium text-ink-3 mb-1">No prompt-level data</p>
-        <p className="text-xs text-ink-3">Run a new scan to see weighted SOV per prompt.</p>
+        <p className="text-xs text-ink-3">
+          This scan predates weighted SOV. Click <strong>Scan</strong> to run a fresh scan and populate per-prompt data.
+        </p>
       </div>
     )
   }
@@ -394,7 +410,9 @@ function SourcingSOVTab({
       <div className="bg-surface rounded-xl border border-divider p-8 text-center">
         <Globe className="w-10 h-10 text-ink-3 mx-auto mb-3 opacity-40" />
         <p className="text-sm font-medium text-ink-3 mb-1">No sourcing data</p>
-        <p className="text-xs text-ink-3">Run a scan with citation-enabled engines to see domain-level SOV.</p>
+        <p className="text-xs text-ink-3">
+          This scan predates weighted SOV, or no citation URLs were returned. Click <strong>Scan</strong> to generate domain-level data.
+        </p>
       </div>
     )
   }
