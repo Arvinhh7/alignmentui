@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Shield, Target, AlertTriangle, BarChart2, Hash, Globe } from 'lucide-react'
+import { Shield, Target, AlertTriangle, Hash, Globe } from 'lucide-react'
 import { useUnified } from '../UnifiedContext'
 import { DonutChart, formatPct } from '../shared/ChartComponents'
 import type { WeightedSOVData, PromptSOVEntry, DomainSOVEntry } from '@/lib/api'
@@ -371,7 +371,7 @@ function OverallSOVTab({
         })}
       </div>
 
-      {/* ── Donut + legend ─────────────────────────────── */}
+      {/* ── Donut (left) + Brand leaderboard bars (right) — merged single chunk ── */}
       {sovSegments.length > 0 && (
         <div className="bg-surface rounded-xl border border-divider p-5">
           <h4 className="text-sm font-semibold text-ink-2 mb-4 flex items-center gap-2">
@@ -379,49 +379,29 @@ function OverallSOVTab({
             Weighted Share of Voice
             <span className="text-xs text-ink-3 font-normal">(position × prominence)</span>
           </h4>
-          <div className="flex flex-col sm:flex-row items-center gap-6">
-            <DonutChart segments={sovSegments} centerLabel="SOV" size={180} />
-            {/* Legend with logo + name + % */}
-            <div className="space-y-2.5 flex-1 min-w-0">
-              {orderedBrands.filter(b => (overallSov[b] ?? 0) > 0).map(brand => {
-                const color = getBrandColor(brand, orderedBrands)
-                const faviconDomain = brandDomainMap[brand] ?? guessBrandDomain(brand)
-                return (
-                  <div key={brand} className="flex items-center gap-2 min-w-0">
-                    <BrandAvatar faviconDomain={faviconDomain} brand={brand} color={color} size={18} />
-                    <span className="text-xs text-ink-2 truncate flex-1" title={brand}>{brand}</span>
-                    <span className="text-xs font-mono font-semibold text-ink flex-shrink-0">
-                      {formatPct(overallSov[brand] ?? 0)}
-                    </span>
-                  </div>
-                )
-              })}
+          <div className="flex flex-col sm:flex-row items-start gap-6">
+            {/* Left: donut */}
+            <div className="flex-shrink-0 flex items-center justify-center">
+              <DonutChart segments={sovSegments} centerLabel="SOV" size={160} />
+            </div>
+            {/* Right: leaderboard bars — replaces the separate "Brand Ranking" block */}
+            <div className="flex-1 min-w-0 space-y-3 self-center">
+              {orderedBrands
+                .filter(b => (overallSov[b] ?? 0) > 0 || b === orderedBrands[0])
+                .map(brand => (
+                  <SOVBar
+                    key={brand}
+                    brand={brand}
+                    share={overallSov[brand] ?? 0}
+                    maxShare={maxShare}
+                    color={getBrandColor(brand, orderedBrands)}
+                    faviconDomain={brandDomainMap[brand] ?? guessBrandDomain(brand)}
+                  />
+                ))}
             </div>
           </div>
         </div>
       )}
-
-      {/* ── Brand Ranking bars ──────────────────────────── */}
-      <div className="bg-surface rounded-xl border border-divider p-5">
-        <h4 className="text-sm font-semibold text-ink-2 mb-4 flex items-center gap-2">
-          <BarChart2 className="w-4 h-4 text-ink-3" />
-          Brand Ranking
-        </h4>
-        <div className="space-y-3">
-          {orderedBrands
-            .filter(b => (overallSov[b] ?? 0) > 0 || b === orderedBrands[0])
-            .map(brand => (
-              <SOVBar
-                key={brand}
-                brand={brand}
-                share={overallSov[brand] ?? 0}
-                maxShare={maxShare}
-                color={getBrandColor(brand, orderedBrands)}
-                faviconDomain={brandDomainMap[brand] ?? guessBrandDomain(brand)}
-              />
-            ))}
-        </div>
-      </div>
 
       {/* ── Weight legend ───────────────────────────────── */}
       <div className="bg-canvas rounded-xl border border-divider-light p-4">
