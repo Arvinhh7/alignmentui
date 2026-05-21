@@ -311,6 +311,7 @@ export interface PerPromptBrandWeight {
 
 export interface PromptSOVEntry {
   prompt_text: string;
+  prompt_intent: string;   // info_cognition | solution_explore | comparison_decision | action_choice
   brand_weights: PerPromptBrandWeight[];
   total_weight: number;
   cited_domains: string[];

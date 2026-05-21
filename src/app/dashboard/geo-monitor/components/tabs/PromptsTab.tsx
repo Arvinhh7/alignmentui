@@ -298,7 +298,6 @@ export function PromptsTab() {
                     </button>
                   </th>
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Template</th>
-                  <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Category</th>
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Intent</th>
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">Visibility Rate</th>
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">Avg Position</th>
@@ -310,8 +309,6 @@ export function PromptsTab() {
               <tbody className="divide-y divide-divider-light">
                 {displayPrompts.map(prompt => {
                   const isSelected = ctx.selectedPromptIds.has(prompt.id)
-                  const catColor = CATEGORY_COLORS[prompt.category] || 'bg-surface-muted text-ink-3'
-                  const catLabel = CATEGORY_LABEL_MAP[prompt.category] || prompt.category
                   const intentConfig = INTENT_COLORS[prompt.intent] || INTENT_COLORS[prompt.category]
                   const mentionRate = prompt.mention_rate ?? 0
                   const avgPos = prompt.last_position_score
@@ -336,13 +333,6 @@ export function PromptsTab() {
                       <td className="px-4 py-3 text-sm text-ink max-w-[300px]">
                         <span title={prompt.template}>
                           {prompt.template.length > 60 ? prompt.template.slice(0, 60) + '...' : prompt.template}
-                        </span>
-                      </td>
-
-                      {/* Category */}
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${catColor}`}>
-                          {catLabel}
                         </span>
                       </td>
 

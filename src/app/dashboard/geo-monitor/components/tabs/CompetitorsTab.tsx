@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { Shield, Target, AlertTriangle, Hash, Globe } from 'lucide-react'
 import { useUnified } from '../UnifiedContext'
 import { DonutChart, formatPct } from '../shared/ChartComponents'
+import { INTENT_COLORS } from '../shared/constants'
 import type { WeightedSOVData, PromptSOVEntry, DomainSOVEntry } from '@/lib/api'
 
 // ─── Brand color palette ──────────────────────────────
@@ -474,6 +475,7 @@ function PromptSOVTab({
             <thead>
               <tr className="bg-canvas border-b border-divider">
                 <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left min-w-[200px]">Prompt</th>
+                <th className="px-3 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left min-w-[130px]">Intent</th>
                 {orderedBrands.map(brand => {
                   const color = getBrandColor(brand, orderedBrands)
                   const faviconDomain = brandDomainMap[brand] ?? guessBrandDomain(brand)
@@ -501,6 +503,14 @@ function PromptSOVTab({
                   <tr key={i} className="hover:bg-surface-warm transition-colors">
                     <td className="px-4 py-3 text-xs text-ink-2 max-w-[220px]">
                       <p className="line-clamp-2" title={stripPreamble(entry.prompt_text)}>{stripPreamble(entry.prompt_text)}</p>
+                    </td>
+                    <td className="px-3 py-3">
+                      {(() => {
+                        const ic = INTENT_COLORS[entry.prompt_intent]
+                        return ic
+                          ? <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold ${ic.color}`}>{ic.label}</span>
+                          : <span className="text-[10px] text-ink-3">—</span>
+                      })()}
                     </td>
                     {orderedBrands.map(brand => {
                       const bw = entry.brand_weights.find(w => w.brand === brand)
