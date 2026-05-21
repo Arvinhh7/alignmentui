@@ -86,7 +86,13 @@ export function PromptsTab() {
               {ctx.brandConfig.brand_name}
             </span>
           )}
-          <span className="text-sm text-ink-3">{ctx.prompts.length} prompts</span>
+          <span className="text-sm text-ink-3">
+            {ctx.filteredPrompts.length}
+            {ctx.promptFilter !== 'all' && (
+              <span className="text-ink-3/60"> / {ctx.prompts.length} total</span>
+            )}
+            {' '}prompts
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <button

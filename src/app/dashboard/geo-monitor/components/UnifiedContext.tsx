@@ -843,9 +843,12 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     setIsRunningDeepDiscover(false)
   }
 
-  const handleBatchSavePrompts = async (prompts: import('@/lib/api').SmartPrompt[]) => {
-    const existing = new Set(filteredPrompts.map(p => p.template.trim().toLowerCase()))
-    const toSave = prompts.filter(p => !existing.has(p.template.trim().toLowerCase()))
+  const handleBatchSavePrompts = async (newPrompts: import('@/lib/api').SmartPrompt[]) => {
+    // Dedup against ALL saved prompts (active + inactive), not just the active-filter view.
+    // Using the outer `prompts` state (MonitorPrompt[]) — the parameter was renamed to
+    // avoid shadowing, which previously caused inactive duplicates to bypass the check.
+    const existing = new Set(prompts.map(p => p.template.trim().toLowerCase()))
+    const toSave = newPrompts.filter(p => !existing.has(p.template.trim().toLowerCase()))
     await Promise.all(
       toSave.map(p => api.createMonitorPrompt({ template: p.template, category: p.intent }))
     )
