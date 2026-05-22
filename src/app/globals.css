@@ -463,6 +463,11 @@ body {
   animation: shimmer 2s infinite;
 }
 
+/* Dash flow — animates query "energy" along the broker network lines */
+@keyframes dash-flow {
+  to { stroke-dashoffset: -12; }
+}
+
 /* Fade in up */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }

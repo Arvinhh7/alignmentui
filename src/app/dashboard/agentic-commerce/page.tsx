@@ -6,10 +6,11 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 
 const AgentsWorldMap = dynamic(() => import("@/components/AgentsWorldMap"), { ssr: false });
+const BrokerNetwork = dynamic(() => import("@/components/BrokerNetwork"), { ssr: false });
 import {
   Zap, ShoppingCart, TrendingUp, ArrowRight, Activity,
   MessageCircle, Smartphone, Mic2, Shirt, Wrench,
-  Store, Globe, Shield, CheckCircle, Circle,
+  Store, Globe, CheckCircle,
   ChevronRight, AlertCircle, BarChart2, RefreshCw,
   Package, CreditCard, Cpu, Radio,
 } from "lucide-react";
@@ -59,14 +60,6 @@ const CUSTOMER_AGENTS: { key: string; name: string; surface: Surface; region: st
 
 const CUSTOMER_AGENT_BY_KEY: Record<string, typeof CUSTOMER_AGENTS[number]> =
   Object.fromEntries(CUSTOMER_AGENTS.map(ca => [ca.key, ca]));
-
-const PROTOCOL_STEPS = [
-  { icon: Shield,       id: "01", title: "Identity",   sub: "Agent presents signed credentials",    color: "#1a7a4c" },
-  { icon: Globe,        id: "02", title: "Query",      sub: "\"Find me X under $Y, ships in Z\"",   color: V.accent  },
-  { icon: BarChart2,    id: "03", title: "Quote",      sub: "Brand agents return ranked offers",     color: "#d9a85c" },
-  { icon: CheckCircle,  id: "04", title: "Commit",     sub: "Consumer agent selects & confirms",    color: "#1a7a4c" },
-  { icon: CreditCard,   id: "05", title: "Settlement", sub: "Alignment clears USDC, brands paid",   color: V.accent  },
-];
 
 // Product-brand pairs — bound so the feed never shows a mismatched combo
 const LIVE_CATALOG: { product: string; brand: string }[] = [
@@ -360,6 +353,9 @@ export default function AgenticCommerceOverview() {
         </div>
       </div>
 
+      {/* ── Broker network (live topology) ─────────────────────────────── */}
+      <BrokerNetwork />
+
       {/* ── Live Activity ─────────────────────────────────────────────── */}
       <div className="space-y-3">
         {/* Unified header — single streaming indicator + pause control for both panels */}
@@ -501,46 +497,6 @@ export default function AgenticCommerceOverview() {
 
       {/* ── Global Agents Distribution map ─────────────────────────────── */}
       <AgentsWorldMap data={AGENT_GEO} />
-
-      {/* ── Protocol flow ──────────────────────────────────────────────── */}
-      <div className="bg-surface border border-divider-light rounded-2xl shadow-elevation-sm p-6">
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h2 className="font-semibold text-ink flex items-center gap-2">
-              <Globe className="w-4 h-4 text-ink-2" />
-              The Alignment Protocol — 5 steps
-            </h2>
-            <p className="text-xs text-ink-3 mt-0.5">Open spec built on MCP · transparent · no hidden ranking</p>
-          </div>
-          <Link href="/dashboard/agentic-commerce/integration?role=protocol"
-            className="text-xs text-ink-2 hover:text-ink flex items-center gap-1 transition-colors">
-            Read spec <ChevronRight className="w-3 h-3" />
-          </Link>
-        </div>
-        <div className="flex items-stretch gap-0">
-          {PROTOCOL_STEPS.map((step, i) => {
-            const Icon = step.icon;
-            return (
-              <div key={step.id} className="flex items-center flex-1 min-w-0">
-                <div className="flex-1 bg-canvas border border-divider-light rounded-xl p-4 text-center space-y-1.5">
-                  <div className="flex items-center justify-center mx-auto w-8 h-8 rounded-lg"
-                    style={{ backgroundColor: step.color + "18" }}>
-                    <Icon className="w-4 h-4" style={{ color: step.color }} />
-                  </div>
-                  <div className="text-[10px] font-mono text-ink-3">{step.id}</div>
-                  <div className="text-xs font-bold text-ink">{step.title}</div>
-                  <p className="text-[10px] text-ink-3 leading-snug hidden md:block">{step.sub}</p>
-                </div>
-                {i < PROTOCOL_STEPS.length - 1 && (
-                  <div className="flex-shrink-0 px-1">
-                    <ArrowRight className="w-3.5 h-3.5 text-ink-3" />
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
 
       {/* ── Why queries fail ──────────────────────────────────────────── */}
       <div className="bg-surface border border-divider-light rounded-2xl shadow-elevation-sm p-6 space-y-4">
