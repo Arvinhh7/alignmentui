@@ -71,6 +71,22 @@ async function fetchUserProfile(userId: string): Promise<{ role: UserRole; permi
 
 const REMEMBER_KEY = 'alignment_remember_session';
 
+// ── Preview mode: bypass Supabase auth so Claude Preview sandbox can reach the
+//    dashboard without making any calls to supabase.co (which is blocked).
+//    Enable by adding NEXT_PUBLIC_PREVIEW_MODE=true to .env.local.
+//    Never set this in production — the env var is stripped at build time.
+const _IS_PREVIEW = process.env.NEXT_PUBLIC_PREVIEW_MODE === 'true';
+const _PREVIEW_USER = _IS_PREVIEW ? {
+  id: 'preview-user-id', email: 'test@alignment.ai',
+  app_metadata: {}, user_metadata: {}, aud: 'authenticated',
+  created_at: new Date().toISOString(),
+} as unknown as import('@supabase/supabase-js').User : null;
+const _PREVIEW_SESSION = _IS_PREVIEW ? {
+  access_token: 'preview-mode-bypass', refresh_token: '',
+  expires_in: 86400, expires_at: 9999999999, token_type: 'bearer',
+  user: _PREVIEW_USER!,
+} as unknown as import('@supabase/supabase-js').Session : null;
+
 export function useAuth() {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
@@ -83,6 +99,13 @@ export function useAuth() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // ── Preview bypass: skip all Supabase network calls ──
+    if (_IS_PREVIEW) {
+      setAuthFromSession(_PREVIEW_SESSION);
+      setAuthState({ user: _PREVIEW_USER, session: _PREVIEW_SESSION, isLoading: false, isAuthenticated: true, role: 'admin', permissions: {} });
+      return;
+    }
+
     const supabase = getSupabase();
     if (!supabase) {
       setAuthState({ user: null, session: null, isLoading: false, isAuthenticated: false, role: null, permissions: {} });

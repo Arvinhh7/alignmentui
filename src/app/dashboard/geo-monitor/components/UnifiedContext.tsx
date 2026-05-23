@@ -237,6 +237,24 @@ export function useUnified() {
 
 // ─── Provider ────────────────────────────────────────
 
+// ── Preview mode: auto-load preset brand config from env vars ──────────────
+// Set NEXT_PUBLIC_PREVIEW_MODE=true + NEXT_PUBLIC_PREVIEW_BRAND_* in .env.local.
+// Never set these in production — stripped at build time.
+const _PREVIEW_BRAND: BrandConfig | null =
+  process.env.NEXT_PUBLIC_PREVIEW_MODE === 'true'
+    ? {
+        brand_name:      process.env.NEXT_PUBLIC_PREVIEW_BRAND_NAME      || 'RedMagic',
+        domain:          process.env.NEXT_PUBLIC_PREVIEW_BRAND_DOMAIN     || 'https://global.redmagic.gg/',
+        one_liner:       process.env.NEXT_PUBLIC_PREVIEW_BRAND_ONELINER   || '',
+        target_market:   process.env.NEXT_PUBLIC_PREVIEW_BRAND_MARKET     || 'UAE',
+        industry:        'Consumer Electronics',
+        target_audience: 'Competitive mobile gamers aged 18–35',
+        differentiation: 'Active turbo fan cooling (22,000 RPM) vs passive cooling competitors',
+        keywords:        ['best gaming phone UAE', 'gaming phone with cooling fan', 'best phone for PUBG Mobile'],
+        competitors:     ['ASUS ROG Phone 9 Pro', 'Samsung Galaxy S25 Ultra', 'iQOO 13', 'POCO F7 Ultra'],
+      }
+    : null
+
 export function UnifiedProvider({ children }: { children: ReactNode }) {
   const { user, role: userRole } = useAuth()
 
@@ -246,9 +264,11 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const [competitorsSubTab, setCompetitorsSubTab] = useState<'overall_sov' | 'prompt_sov' | 'sourcing_sov'>('overall_sov')
 
   // ── Brand config ────────────────────────────────
-  const [brandConfig, setBrandConfig] = useState<BrandConfig>({ brand_name: '', domain: '', keywords: [], competitors: [], industry: '', one_liner: '', target_audience: '', target_market: '', differentiation: '' })
-  const [isConfigured, setIsConfigured] = useState(false)
-  const [showConfig, setShowConfig] = useState(true)
+  const [brandConfig, setBrandConfig] = useState<BrandConfig>(
+    _PREVIEW_BRAND ?? { brand_name: '', domain: '', keywords: [], competitors: [], industry: '', one_liner: '', target_audience: '', target_market: '', differentiation: '' }
+  )
+  const [isConfigured, setIsConfigured] = useState(_PREVIEW_BRAND !== null)
+  const [showConfig, setShowConfig] = useState(_PREVIEW_BRAND === null)
   const [configError, setConfigError] = useState('')
   const [recentBrands, setRecentBrands] = useState<RecentBrandRecord[]>([])
 

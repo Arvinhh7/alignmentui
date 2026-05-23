@@ -299,6 +299,7 @@ export function PromptsTab() {
                   </th>
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Template</th>
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Intent</th>
+                  <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Baseline</th>
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">Visibility Rate</th>
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">Avg Position</th>
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Sentiment</th>
@@ -345,6 +346,29 @@ export function PromptsTab() {
                         ) : (
                           <span className="text-xs text-ink-3">{prompt.intent || '—'}</span>
                         )}
+                      </td>
+
+                      {/* Baseline status */}
+                      <td className="px-4 py-3">
+                        {(() => {
+                          const bs = prompt.baseline_status
+                          if (!bs) return <span className="text-[11px] text-ink-3">—</span>
+                          if (bs === 'recommended') return (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sage/15 text-sage">
+                              ✦ Recommended
+                            </span>
+                          )
+                          if (bs === 'mentioned') return (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-caution/15 text-caution">
+                              ◎ Mentioned
+                            </span>
+                          )
+                          return (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-soft/15 text-red-soft">
+                              ✕ Missing
+                            </span>
+                          )
+                        })()}
                       </td>
 
                       {/* Visibility Rate */}

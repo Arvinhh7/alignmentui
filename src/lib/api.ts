@@ -234,6 +234,9 @@ export interface MonitorPrompt {
   // Historical metrics
   scan_count: number;
   mention_rate: number;   // Visibility % over scan history
+  // Baseline status — set once on first scan, frozen after
+  // "missing" | "mentioned" | "recommended" | null (not yet scanned)
+  baseline_status?: string | null;
   // Prompt metadata
   tags: string[];
   location: string;
