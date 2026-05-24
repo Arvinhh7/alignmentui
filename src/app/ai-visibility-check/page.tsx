@@ -7,7 +7,7 @@ import Footer from '@/components/Footer'
 import type { AuditResult, AuditCheck } from '@/lib/audit'
 import {
   Shield, Layers, FileText, AlertOctagon, Brain,
-  CheckCircle, AlertTriangle, XCircle,
+  CheckCircle, AlertTriangle, XCircle, MinusCircle,
   ChevronDown, ChevronUp,
   type LucideIcon,
 } from 'lucide-react'
@@ -68,8 +68,9 @@ function cleanCheckName(name: string): string {
 }
 
 function checkRowClass(status: string): string {
-  if (status === 'pass')    return 'border-divider-light bg-surface'
-  if (status === 'warning') return 'border-caution/30 bg-caution-bg/40'
+  if (status === 'pass')     return 'border-divider-light bg-surface'
+  if (status === 'optional') return 'border-divider-light bg-canvas/60'
+  if (status === 'warning')  return 'border-caution/30 bg-caution-bg/40'
   return 'border-red-soft/30 bg-red-soft-bg/40'
 }
 
@@ -161,9 +162,10 @@ function ScoreRing({ score, level }: { score: number; level: string }) {
 }
 
 function StatusIcon({ status }: { status: string }) {
-  if (status === 'pass')    return <CheckCircle    className="w-4 h-4 text-sage      flex-shrink-0" />
-  if (status === 'warning') return <AlertTriangle  className="w-4 h-4 text-caution   flex-shrink-0" />
-  return                           <XCircle        className="w-4 h-4 text-red-soft  flex-shrink-0" />
+  if (status === 'pass')     return <CheckCircle    className="w-4 h-4 text-sage      flex-shrink-0" />
+  if (status === 'optional') return <MinusCircle    className="w-4 h-4 text-ink-3     flex-shrink-0" />
+  if (status === 'warning')  return <AlertTriangle  className="w-4 h-4 text-caution   flex-shrink-0" />
+  return                            <XCircle        className="w-4 h-4 text-red-soft  flex-shrink-0" />
 }
 
 function CheckAccordion({ dimId, checks }: { dimId: string; checks: AuditCheck[] }) {

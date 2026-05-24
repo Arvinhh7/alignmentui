@@ -20,6 +20,7 @@ import {
   Eye, BookOpen, ShieldCheck, AlertCircle, RefreshCw, BarChart3,
   Lock, Wrench, Bot, FileCode, ChevronDown, ChevronUp, Building2,
   Timer, Wand2, Copy, CheckCheck, Terminal, AlertCircle as AlertCircleIcon,
+  MinusCircle,
 } from 'lucide-react'
 
 // ─── URL Validation ─────────────────────────────────────
@@ -103,7 +104,7 @@ function storeAuditContext(url: string, breakdown: ZoneBreakdown) {
       ...breakdown.yellow_checks,
       ...breakdown.green_checks,
     ]
-    const failingChecks = allChecks.filter(c => c.status !== 'pass')
+    const failingChecks = allChecks.filter(c => c.status !== 'pass' && c.status !== 'optional')
     const ctx: AuditOptContext = {
       url,
       timestamp: new Date().toISOString(),
@@ -607,14 +608,16 @@ function DimensionCard({ dimension, icon, label, index, t }: {
                 <div key={i} className={`text-sm py-1.5 px-3 rounded-lg flex items-start gap-2 ${
                   detail.startsWith('✅') ? 'bg-sage-bg text-sage' :
                   detail.startsWith('⚠️') ? 'bg-caution-bg text-caution' :
-                  detail.startsWith('❌') ? 'bg-red-soft-bg text-red-soft' : 'text-ink-2'
+                  detail.startsWith('❌') ? 'bg-red-soft-bg text-red-soft' :
+                  detail.startsWith('◽') ? 'bg-canvas/60 text-ink-3' : 'text-ink-2'
                 }`}>
                   <span className="flex-shrink-0 mt-0.5">
                     {detail.startsWith('✅') ? <CheckCircle className="w-4 h-4 text-sage" /> :
                      detail.startsWith('⚠️') ? <AlertTriangle className="w-4 h-4 text-caution" /> :
-                     detail.startsWith('❌') ? <XCircle className="w-4 h-4 text-red-soft" /> : null}
+                     detail.startsWith('❌') ? <XCircle className="w-4 h-4 text-red-soft" /> :
+                     detail.startsWith('◽') ? <MinusCircle className="w-4 h-4 text-ink-3" /> : null}
                   </span>
-                  <span>{detail.replace(/^[✅⚠️❌]\s*/, '')}</span>
+                  <span>{detail.replace(/^[✅⚠️❌◽]\s*/, '')}</span>
                 </div>
               ))}
             </div>
@@ -1127,6 +1130,8 @@ function ZoneCheckRow({
 
   const statusIcon = check.status === 'pass'
     ? <CheckCircle className="w-4 h-4 text-sage flex-shrink-0" />
+    : check.status === 'optional'
+    ? <MinusCircle className="w-4 h-4 text-ink-3 flex-shrink-0" />
     : check.status === 'warning'
     ? <AlertTriangle className="w-4 h-4 text-caution flex-shrink-0" />
     : <XCircle className="w-4 h-4 text-red-soft flex-shrink-0" />
@@ -1152,6 +1157,7 @@ function ZoneCheckRow({
   return (
     <div className={`rounded-lg border overflow-hidden transition-all ${
       check.status === 'pass' ? 'border-divider-light bg-surface' :
+      check.status === 'optional' ? 'border-divider-light bg-canvas/60' :
       check.status === 'warning' ? 'border-caution/30 bg-caution-bg/40' :
       'border-red-soft/30 bg-red-soft-bg/40'
     }`}>
@@ -1217,8 +1223,8 @@ function ZoneCheckRow({
             </div>
           )}
 
-          {/* Fix Pipeline (Phase 4) — show for failing checks when user is logged in */}
-          {check.status !== 'pass' && userId && siteUrl && (
+          {/* Fix Pipeline (Phase 4) — show for failing checks only (optional/bonus checks excluded) */}
+          {check.status !== 'pass' && check.status !== 'optional' && userId && siteUrl && (
             <div className="pt-1">
               {!showFixPanel ? (
                 <button
@@ -1683,10 +1689,11 @@ function UnifiedDimensionCard({
   }
 
   const passCount = checks.filter(c => c.status === 'pass').length
-  const failCount = checks.filter(c => c.status !== 'pass').length
-  const greenFail = checks.filter(c => c.zone === 'green' && c.status !== 'pass').length
-  const yellowFail = checks.filter(c => c.zone === 'yellow' && c.status !== 'pass').length
-  const redFail = checks.filter(c => c.zone === 'red' && c.status !== 'pass').length
+  // 'optional' = emerging-protocol bonus opportunity — never counted as a failing issue
+  const failCount = checks.filter(c => c.status !== 'pass' && c.status !== 'optional').length
+  const greenFail = checks.filter(c => c.zone === 'green' && c.status !== 'pass' && c.status !== 'optional').length
+  const yellowFail = checks.filter(c => c.zone === 'yellow' && c.status !== 'pass' && c.status !== 'optional').length
+  const redFail = checks.filter(c => c.zone === 'red' && c.status !== 'pass' && c.status !== 'optional').length
 
   const statusLabel = score >= 85 ? 'Excellent' : score >= 65 ? 'Good' : score >= 45 ? 'Needs Work' : 'Poor'
   const statusColor = score >= 85 ? 'bg-sage-bg text-sage' : score >= 65 ? 'bg-surface-warm text-ink-2' : score >= 45 ? 'bg-caution-bg text-caution' : 'bg-red-soft-bg text-red-soft'

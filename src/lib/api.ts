@@ -114,7 +114,7 @@ export interface ZoneCheck {
   id: string;
   name: string;
   zone: 'green' | 'yellow' | 'red';
-  status: 'pass' | 'warning' | 'fail';
+  status: 'pass' | 'warning' | 'fail' | 'optional';
   detail: string;
   fix_available: boolean;
   fix_type: 'auto' | 'ai_draft' | 'manual_required';
