@@ -175,6 +175,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
       items: [
         { href: '/dashboard/overview',    icon: LayoutDashboard, labelKey: 'overviewNav',    permissionKey: 'overview' },
         { href: '/dashboard/geo-monitor', icon: TrendingUp,      labelKey: 'answerEngineNav', permissionKey: 'geo-monitor' },
+        { href: '/dashboard/gci',         icon: Activity,        labelKey: 'GCI' as never,    permissionKey: 'overview' },
       ],
     },
     {
