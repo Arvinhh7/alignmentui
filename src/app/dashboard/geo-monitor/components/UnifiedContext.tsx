@@ -412,7 +412,13 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       const cid = params.get('customer') || (_IS_PREVIEW ? _PREVIEW_CUSTOMER_ID : null)
       if (cid) {
         setActiveCustomerId(cid)
-        // Remove param from URL so refreshes don't re-trigger but keep customer ID in state
+        // Capture autoScan BEFORE the early return — the backend hydration effect
+        // sets isConfigured after loading the customer, which then triggers the
+        // autoScan watcher (line ~659). This is how onboarding → first scan works.
+        if (params.get('autoScan') === 'true' && !autoScanTriggered.current) {
+          autoScanTriggered.current = true
+        }
+        // Remove params from URL so refreshes don't re-trigger
         window.history.replaceState({}, '', window.location.pathname)
         return // skip localStorage hydration; backend effect handles the rest
       }

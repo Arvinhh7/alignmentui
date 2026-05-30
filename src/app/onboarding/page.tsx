@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { api } from '@/lib/api'
+import { api, customersApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 import { getSupabase } from '@/lib/supabase'
 import {
@@ -396,7 +396,29 @@ export default function OnboardingPage() {
       brandDescTags: selectedTopicNames, competitorTags: compNames, strategy: null,
     }))
 
-    // Create (or reuse) the Brand record so GA4 Attribution can bind to it
+    // ── Step 1: Create a Customer record (the canonical tenant for this brand) ──
+    // This is the source of truth: every prompt and scan is bound to this customer_id.
+    let customerId: string | null = null
+    try {
+      if (user?.id) {
+        const customer = await customersApi.create(user.id, {
+          brand_name: bn,
+          domain: du || undefined,
+          config_json: {
+            keywords:        selectedTopicNames,
+            competitors:     compNames,
+            industry:        '',
+            one_liner:       '',
+            target_audience: '',
+            target_market:   '',
+            differentiation: '',
+          },
+        })
+        customerId = customer.id
+      }
+    } catch { /* non-critical — fall back to old flow */ }
+
+    // ── Step 2: Also create (or reuse) the Brand record for GA4 Attribution ──
     try {
       if (user?.id) {
         const existingBrands = await api.getBrands()
@@ -414,13 +436,16 @@ export default function OnboardingPage() {
       }
     } catch { /* non-critical, continue */ }
 
+    // ── Step 3: Create prompts scoped to the new customer ────────────────────
     const allPrompts = Object.values(topicPrompts).flat().filter(p => p.selected && p.prompt_text.trim())
     try {
-      const existingRes = await api.getMonitorPrompts()
-      const existingSet = new Set((existingRes.data || []).map(ep => ep.template.trim().toLowerCase()))
-      const uniqueNew = allPrompts.filter(p => !existingSet.has(p.prompt_text.trim().toLowerCase()))
-      for (const p of uniqueNew.slice(0, 30)) {
-        await api.createMonitorPrompt({ template: p.prompt_text, category: p.intent })
+      if (customerId) {
+        const existingRes = await api.getMonitorPrompts(false, customerId)
+        const existingSet = new Set((existingRes.data || []).map(ep => ep.template.trim().toLowerCase()))
+        const uniqueNew = allPrompts.filter(p => !existingSet.has(p.prompt_text.trim().toLowerCase()))
+        for (const p of uniqueNew.slice(0, 30)) {
+          await api.createMonitorPrompt({ template: p.prompt_text, category: p.intent, customer_id: customerId })
+        }
       }
     } catch { /* ignore */ }
 
@@ -434,7 +459,11 @@ export default function OnboardingPage() {
       }
     } catch { /* continue */ }
 
-    router.push('/dashboard/geo-monitor?autoScan=true')
+    // ── Step 4: Redirect into Monitor with customer context + autoScan ────────
+    const redirectUrl = customerId
+      ? `/dashboard/geo-monitor?customer=${customerId}&autoScan=true`
+      : '/dashboard/geo-monitor?autoScan=true'
+    router.push(redirectUrl)
   }, [brandName, brandUrl, selectedTopicNames, selectedCompetitors, topicPrompts, router, user])
 
   // ─── Add custom items ──────────────────────────────
