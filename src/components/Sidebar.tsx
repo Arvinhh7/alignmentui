@@ -12,7 +12,7 @@ import {
   LogOut, Settings, Wrench, PanelLeftClose, PanelLeft,
   Sparkles, ExternalLink, HelpCircle, Home, ChevronRight, CreditCard,
   LineChart, LayoutDashboard, Search, MessageSquare,
-  BookOpen, TrendingUp, Database, X, Globe, Users, ShoppingCart, Briefcase, ArrowRightLeft,
+  BookOpen, TrendingUp, Database, X, Globe, Users, ShoppingCart, Briefcase,
 } from 'lucide-react'
 
 const SIDEBAR_KEY = 'sidebar_expanded'
@@ -213,7 +213,6 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
   const adminOnlyItems: NavItem[] = [
     { href: '/dashboard/admin',                icon: Wrench,          labelKey: 'Admin Panel' as never },
     { href: '/dashboard/admin/customers',      icon: Briefcase,       labelKey: 'Customers' as never, matchPrefix: true },
-    { href: '/dashboard/admin/migrate',        icon: ArrowRightLeft,  labelKey: 'Migrate Data' as never },
     { href: '/dashboard/admin/domain-checker', icon: Search,          labelKey: 'Domain Checker' as never },
     { href: '/dashboard/admin/team',           icon: Users,           labelKey: 'Team Management' as never },
   ]

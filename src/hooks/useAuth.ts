@@ -76,8 +76,11 @@ const REMEMBER_KEY = 'alignment_remember_session';
 //    Enable by adding NEXT_PUBLIC_PREVIEW_MODE=true to .env.local.
 //    Never set this in production — the env var is stripped at build time.
 const _IS_PREVIEW = process.env.NEXT_PUBLIC_PREVIEW_MODE === 'true';
+// Use a REAL owner UUID so owner-scoped APIs (customers, prompts) work in preview.
+// Falls back to a non-UUID placeholder if not set (those APIs will then 404).
+const _PREVIEW_USER_ID = process.env.NEXT_PUBLIC_PREVIEW_USER_ID || 'preview-user-id';
 const _PREVIEW_USER = _IS_PREVIEW ? {
-  id: 'preview-user-id', email: 'test@alignment.ai',
+  id: _PREVIEW_USER_ID, email: 'test@alignment.ai',
   app_metadata: {}, user_metadata: {}, aud: 'authenticated',
   created_at: new Date().toISOString(),
 } as unknown as import('@supabase/supabase-js').User : null;

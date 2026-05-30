@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import FeatureLink from '@/components/FeatureLink'
 import { useAuth } from '@/hooks/useAuth'
-import { api, MonitorPrompt, CreditBalance } from '@/lib/api'
+import { api, MonitorPrompt, CreditBalance, customersApi, CustomerSummary } from '@/lib/api'
 import { useToast } from '@/components/Toast'
 import { PromptsTableSkeleton } from '@/components/Skeleton'
 import {
@@ -78,16 +78,6 @@ const SUB_TYPE_LABELS: Record<string, { label: string; icon: string; color: stri
   not_mentioned:          { label: 'Not Mentioned',          icon: '❌', color: 'bg-red-soft-bg text-red-soft' },
 }
 
-const BRAND_CONFIG_KEY = 'alignment_monitor_brand_config'
-
-function getBrandName(): string {
-  if (typeof window === 'undefined') return ''
-  try {
-    const raw = localStorage.getItem(BRAND_CONFIG_KEY)
-    return raw ? JSON.parse(raw).brand_name || '' : ''
-  } catch { return '' }
-}
-
 // ─── Stats Banner ─────────────────────────────────────────────────────────────
 function StatBanner({ label, value, sub, color }: { label: string; value: string | number; sub?: string; color: string }) {
   return (
@@ -117,6 +107,10 @@ export default function PromptsPage() {
   const [credits, setCredits] = useState<CreditBalance | null>(null)
   const [brandName, setBrandName] = useState('')
 
+  // ── Per-customer scoping (prompts belong to exactly one customer) ──
+  const [customers, setCustomers] = useState<CustomerSummary[]>([])
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>('')
+
   // Form state
   const [showAdd, setShowAdd] = useState(false)
   const [newTemplate, setNewTemplate] = useState('')
@@ -134,13 +128,25 @@ export default function PromptsPage() {
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  // ── Load data ────────────────────────────────────────────────────────────────
+  // ── Load the customer list, auto-select the first ──
+  useEffect(() => {
+    if (!user?.id) return
+    customersApi.list(user.id, false)
+      .then(list => {
+        setCustomers(list)
+        setSelectedCustomerId(prev => prev || (list[0]?.id ?? ''))
+      })
+      .catch(() => setCustomers([]))
+  }, [user?.id])
+
+  // ── Load prompts for the selected customer ──
   const loadData = useCallback(async () => {
     setIsLoading(true)
-    setBrandName(getBrandName())
+    const selected = customers.find(c => c.id === selectedCustomerId)
+    setBrandName(selected?.brand_name ?? '')
     try {
       const [promptsRes, creditsRes] = await Promise.allSettled([
-        api.getMonitorPrompts(false),
+        selectedCustomerId ? api.getMonitorPrompts(false, selectedCustomerId) : Promise.resolve({ data: [] as MonitorPrompt[] }),
         user?.id ? api.getCredits(user.id) : Promise.resolve({ data: null }),
       ])
       if (promptsRes.status === 'fulfilled' && promptsRes.value.data) {
@@ -154,7 +160,7 @@ export default function PromptsPage() {
     } catch { /* non-critical */ } finally {
       setIsLoading(false)
     }
-  }, [user?.id])
+  }, [user?.id, selectedCustomerId, customers])
 
   useEffect(() => { loadData() }, [loadData])
 
@@ -186,10 +192,11 @@ export default function PromptsPage() {
   // ── CRUD handlers ─────────────────────────────────────────────────────────────
   const handleAdd = async () => {
     if (!newTemplate.trim()) return
+    if (!selectedCustomerId) { toast.error('Select a customer first'); return }
     setIsSaving(true)
     try {
       const category = autoClassify(newTemplate)
-      const res = await api.createMonitorPrompt({ template: newTemplate.trim(), category })
+      const res = await api.createMonitorPrompt({ template: newTemplate.trim(), category, customer_id: selectedCustomerId })
       if (res.error) { toast.error('Failed to add', res.error); return }
       if (res.data) {
         setPrompts(prev => {
@@ -272,8 +279,21 @@ export default function PromptsPage() {
             <h1 className="text-2xl font-bold text-ink">Prompts</h1>
             <p className="text-ink-3 text-sm mt-1">
               Discovery-oriented queries that drive your AI visibility scans
-              {brandName && <> · <span className="font-semibold text-ink-2">{brandName}</span></>}
             </p>
+            {/* Customer selector — prompts belong to one customer */}
+            <div className="flex items-center gap-2 mt-3">
+              <span className="text-[12px] text-ink-3">Customer:</span>
+              <select
+                value={selectedCustomerId}
+                onChange={e => setSelectedCustomerId(e.target.value)}
+                className="text-[13px] font-semibold text-ink bg-surface border border-divider rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-ink/10 cursor-pointer"
+              >
+                {customers.length === 0 && <option value="">No customers yet</option>}
+                {customers.map(c => (
+                  <option key={c.id} value={c.id}>{c.brand_name}{c.domain ? ` · ${c.domain}` : ''}</option>
+                ))}
+              </select>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             {credits && (

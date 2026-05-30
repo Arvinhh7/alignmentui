@@ -1353,11 +1353,13 @@ class APIClient {
 
   // ─── GEO Performance Monitor endpoints ─────────────
 
-  async getMonitorPrompts(activeOnly: boolean = false) {
-    return this.request<MonitorPrompt[]>(`/api/monitor/prompts?active_only=${activeOnly}`);
+  async getMonitorPrompts(activeOnly: boolean = false, customerId?: string) {
+    // Prompts are per-customer. Without a customerId the backend returns [].
+    const cid = customerId ? `&customer_id=${encodeURIComponent(customerId)}` : '';
+    return this.request<MonitorPrompt[]>(`/api/monitor/prompts?active_only=${activeOnly}${cid}`);
   }
 
-  async createMonitorPrompt(data: { template: string; category?: string; description?: string }) {
+  async createMonitorPrompt(data: { template: string; category?: string; description?: string; customer_id?: string }) {
     return this.request<MonitorPrompt>('/api/monitor/prompts', {
       method: 'POST',
       body: JSON.stringify(data),

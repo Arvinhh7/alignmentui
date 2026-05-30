@@ -255,6 +255,10 @@ const _PREVIEW_BRAND: BrandConfig | null =
       }
     : null
 
+const _IS_PREVIEW = process.env.NEXT_PUBLIC_PREVIEW_MODE === 'true'
+// Preview lands on this real customer so prompts/scan hydrate with real data.
+const _PREVIEW_CUSTOMER_ID = process.env.NEXT_PUBLIC_PREVIEW_CUSTOMER_ID || null
+
 export function UnifiedProvider({ children }: { children: ReactNode }) {
   const { user, role: userRole } = useAuth()
 
@@ -351,6 +355,10 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const reportAbortRef = useRef<AbortController | null>(null)
   const discoverAbortRef = useRef<AbortController | null>(null)
   const autoScanTriggered = useRef(false)
+  // Guard so the mount-init runs exactly once. React 18 StrictMode double-invokes
+  // effects in dev; without this the 2nd run reads the (already-stripped) URL and
+  // the preview-default fallback would clobber the real ?customer= selection.
+  const mountInitDone = useRef(false)
 
   // ── Filtered prompts ────────────────────────────
   const filteredPrompts = useMemo(() => {
@@ -394,11 +402,14 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   // ═══ Load on mount: customer-mode or localStorage ═══
 
   useEffect(() => {
+    if (mountInitDone.current) return  // StrictMode guard — run once
+    mountInitDone.current = true
     try {
       const params = new URLSearchParams(window.location.search)
 
       // ── Phase 4: customer mode — hydrate from backend, skip localStorage ──
-      const cid = params.get('customer')
+      // Preview falls back to a default customer so the demo lands on real data.
+      const cid = params.get('customer') || (_IS_PREVIEW ? _PREVIEW_CUSTOMER_ID : null)
       if (cid) {
         setActiveCustomerId(cid)
         // Remove param from URL so refreshes don't re-trigger but keep customer ID in state
@@ -583,10 +594,12 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   // ═══ Scan handlers ═══════════════════════════════
 
   const loadPrompts = useCallback(async () => {
+    // Prompts are per-customer — no active customer means nothing to show.
+    if (!activeCustomerId) { setPrompts([]); return }
     setIsLoadingPrompts(true)
-    try { const res = await api.getMonitorPrompts(); if (res.data) setPrompts(res.data) } catch { /* ignore */ }
+    try { const res = await api.getMonitorPrompts(false, activeCustomerId); if (res.data) setPrompts(res.data) } catch { /* ignore */ }
     setIsLoadingPrompts(false)
-  }, [])
+  }, [activeCustomerId])
 
   useEffect(() => { loadPrompts() }, [loadPrompts])
 
@@ -740,9 +753,10 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     if (!newPromptForm.template.trim()) return
     setPromptError('')
     if (isDuplicatePrompt(newPromptForm.template)) { setPromptError('Prompt already exists.'); return }
+    if (!activeCustomerId) { setPromptError('Select a customer first.'); return }
     try {
       const { category } = autoClassify(newPromptForm.template)
-      const res = await api.createMonitorPrompt({ template: newPromptForm.template, category })
+      const res = await api.createMonitorPrompt({ template: newPromptForm.template, category, customer_id: activeCustomerId })
       if (res.error) { setPromptError(res.error); return }
       await loadPrompts(); setNewPromptForm({ template: '' }); setShowAddPrompt(false)
     } catch (e: any) { setPromptError(e.message) }
@@ -769,7 +783,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const handleDeletePrompt = async (id: string) => {
     setPrompts(prev => prev.filter(p => p.id !== id))
     await api.deleteMonitorPrompt(id)
-    try { const res = await api.getMonitorPrompts(); if (res.data) setPrompts(res.data) } catch { /* ignore */ }
+    await loadPrompts()
   }
 
   const togglePromptSelect = (id: string) => { setSelectedPromptIds(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next }); setBatchConfirmStep(false) }
@@ -781,7 +795,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     setPrompts(prev => prev.filter(p => !selectedPromptIds.has(p.id)))
     setSelectedPromptIds(new Set()); setBatchConfirmStep(false); setIsBatchDeleting(true)
     try { await api.batchDeleteMonitorPrompts(idsToDelete) } catch { /* ignore */ }
-    try { const res = await api.getMonitorPrompts(); if (res.data) setPrompts(res.data) } catch { /* ignore */ }
+    await loadPrompts()
     setIsBatchDeleting(false)
   }
   const cancelBatchDelete = () => { setBatchConfirmStep(false) }
@@ -867,10 +881,11 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     // Dedup against ALL saved prompts (active + inactive), not just the active-filter view.
     // Using the outer `prompts` state (MonitorPrompt[]) — the parameter was renamed to
     // avoid shadowing, which previously caused inactive duplicates to bypass the check.
+    if (!activeCustomerId) return
     const existing = new Set(prompts.map(p => p.template.trim().toLowerCase()))
     const toSave = newPrompts.filter(p => !existing.has(p.template.trim().toLowerCase()))
     await Promise.all(
-      toSave.map(p => api.createMonitorPrompt({ template: p.template, category: p.intent }))
+      toSave.map(p => api.createMonitorPrompt({ template: p.template, category: p.intent, customer_id: activeCustomerId }))
     )
     await loadPrompts()
   }
