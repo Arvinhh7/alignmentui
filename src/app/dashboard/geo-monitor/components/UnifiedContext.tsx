@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth'
 import {
   api,
   customersApi,
+  CustomerSummary,
   notifyCreditUsed,
   MonitorScanResult,
   MonitorPrompt,
@@ -26,6 +27,7 @@ import {
   ADV_MENTIONS_KEY,
   RECENT_BRANDS_KEY,
   DISCOVER_RESULT_KEY,
+  ACTIVE_CUSTOMER_KEY,
   autoClassify,
   sanitizeBrandConfig,
   type BrandConfig,
@@ -215,6 +217,8 @@ interface UnifiedState {
   // Customer mode (admin)
   activeCustomerId: string | null
   customerHydrating: boolean
+  customers: CustomerSummary[]
+  switchCustomer: (customerId: string) => void
 
   // Tab
   activeTab: TabKey
@@ -346,6 +350,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   // ── Customer mode ────────────────────────────────
   const [activeCustomerId, setActiveCustomerId] = useState<string | null>(null)
   const [customerHydrating, setCustomerHydrating] = useState(false)
+  const [customers, setCustomers] = useState<CustomerSummary[]>([])
 
   // ── Abort controllers ───────────────────────────
   const scanAbortRef = useRef<AbortController | null>(null)
@@ -409,9 +414,14 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
 
       // ── Phase 4: customer mode — hydrate from backend, skip localStorage ──
       // Preview falls back to a default customer so the demo lands on real data.
-      const cid = params.get('customer') || (_IS_PREVIEW ? _PREVIEW_CUSTOMER_ID : null)
+      // Priority: explicit ?customer= param > last-selected (localStorage) > preview default.
+      // The localStorage fallback makes the dropdown selection survive page refresh.
+      const cid = params.get('customer')
+        || (typeof window !== 'undefined' ? localStorage.getItem(ACTIVE_CUSTOMER_KEY) : null)
+        || (_IS_PREVIEW ? _PREVIEW_CUSTOMER_ID : null)
       if (cid) {
         setActiveCustomerId(cid)
+        if (typeof window !== 'undefined') localStorage.setItem(ACTIVE_CUSTOMER_KEY, cid)
         // Capture autoScan BEFORE the early return — the backend hydration effect
         // sets isConfigured after loading the customer, which then triggers the
         // autoScan watcher (line ~659). This is how onboarding → first scan works.
@@ -476,6 +486,17 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!activeCustomerId || !user?.id) return
     setCustomerHydrating(true)
+
+    // Clear the previous customer's results FIRST so switching to a customer
+    // with no scan/discover yet doesn't briefly show the old customer's data.
+    setScanResult(null)
+    setScanHistory([])
+    setGapResult(null)
+    setAdvancedMentions(null)
+    setIntelReport(null)
+    setDiscoverResults({})
+    setMultiBrandTrends(null)
+
     customersApi.getLatest(activeCustomerId, user.id)
       .then(data => {
         const cfg = (data.customer.config_json ?? {}) as Partial<BrandConfig>
@@ -508,6 +529,21 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       .catch(err => console.warn('[UnifiedContext] customer hydration failed:', err))
       .finally(() => setCustomerHydrating(false))
   }, [activeCustomerId, user?.id])
+
+  // ═══ Load the customer list for the header dropdown switcher ═══
+  useEffect(() => {
+    if (!user?.id) return
+    customersApi.list(user.id, false)
+      .then(setCustomers)
+      .catch(() => setCustomers([]))
+  }, [user?.id])
+
+  // ═══ Switch to another customer (dropdown) — instant, no navigation ═══
+  const switchCustomer = useCallback((customerId: string) => {
+    if (!customerId || customerId === activeCustomerId) return
+    if (typeof window !== 'undefined') localStorage.setItem(ACTIVE_CUSTOMER_KEY, customerId)
+    setActiveCustomerId(customerId)  // triggers hydration effect (clears + loads new data)
+  }, [activeCustomerId])
 
   // ═══ Brand config handlers ═══════════════════════
 
@@ -938,7 +974,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     promptFilter, setPromptFilter, filterTopic, setFilterTopic, filteredPrompts,
     selectedPromptIds, togglePromptSelect, toggleSelectAllPrompts,
     handleBatchDelete, cancelBatchDelete, isBatchDeleting, batchConfirmStep,
-    activeCustomerId, customerHydrating,
+    activeCustomerId, customerHydrating, customers, switchCustomer,
     activeTab, setActiveTab,
     citationsSubTab, setCitationsSubTab, competitorsSubTab, setCompetitorsSubTab,
   }

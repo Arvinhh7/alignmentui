@@ -24,6 +24,8 @@ export const GAP_RESULTS_KEY = 'alignment_monitor_gap_results'
 export const ADV_MENTIONS_KEY = 'alignment_monitor_adv_mentions'
 export const RECENT_BRANDS_KEY = 'geo_monitor_recent_brands'
 export const DISCOVER_RESULT_KEY = 'alignment_geo_discover_result'
+// Active customer for the Monitor dropdown switcher — survives page refresh
+export const ACTIVE_CUSTOMER_KEY = 'alignment_monitor_active_customer'
 
 // ─── Color maps ────────────────────────────────────────
 export const METRIC_COLORS = {

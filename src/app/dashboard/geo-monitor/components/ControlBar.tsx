@@ -1,45 +1,115 @@
 'use client'
 
-import { Search, StopCircle, Pencil, Briefcase, Loader2 } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Search, StopCircle, Pencil, Loader2, ChevronDown, Plus, Check } from 'lucide-react'
 import { useUnified } from './UnifiedContext'
 import Link from 'next/link'
+
+/**
+ * Customer switcher dropdown — the primary way to move between customers'
+ * Engine Insights. Selecting a customer instantly re-hydrates all data
+ * (visibility, prompts, discover, …) without navigating away.
+ */
+function CustomerSwitcher() {
+  const ctx = useUnified()
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [open])
+
+  const activeName = ctx.brandConfig.brand_name || 'Select customer'
+
+  return (
+    <div ref={ref} className="relative">
+      <div className="flex items-center gap-2 px-3 py-1.5 bg-red-soft-bg rounded-xl border border-red-soft/30">
+        <button
+          onClick={() => setOpen(v => !v)}
+          className="flex items-center gap-1.5 text-sm font-semibold text-ink hover:text-ink/80 transition-colors"
+        >
+          {ctx.customerHydrating
+            ? <Loader2 className="w-3.5 h-3.5 text-caution animate-spin" />
+            : null}
+          {activeName}
+          <ChevronDown className={`w-3.5 h-3.5 text-ink-3 transition-transform ${open ? 'rotate-180' : ''}`} />
+        </button>
+        <button
+          onClick={() => ctx.setShowConfig(!ctx.showConfig)}
+          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-700 text-white hover:bg-red-800 active:bg-red-900 transition-colors shadow-sm"
+        >
+          <Pencil className="w-3 h-3" />
+          Edit
+        </button>
+      </div>
+
+      {open && (
+        <div className="absolute left-0 top-full mt-1.5 w-64 bg-surface border border-divider rounded-xl shadow-lg z-30 overflow-hidden">
+          <div className="px-3 py-2 text-[10px] font-bold text-ink-3 uppercase tracking-wider border-b border-divider-light">
+            Switch customer
+          </div>
+          <div className="max-h-72 overflow-y-auto py-1">
+            {ctx.customers.length === 0 ? (
+              <div className="px-3 py-3 text-xs text-ink-3">No customers yet.</div>
+            ) : (
+              ctx.customers.map(c => {
+                const isActive = c.id === ctx.activeCustomerId
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => { ctx.switchCustomer(c.id); setOpen(false) }}
+                    className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-left hover:bg-surface-warm transition-colors ${isActive ? 'bg-surface-warm' : ''}`}
+                  >
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold text-ink truncate">{c.brand_name}</div>
+                      {c.domain && <div className="text-[10px] text-ink-3 truncate">{c.domain}</div>}
+                    </div>
+                    {isActive && <Check className="w-3.5 h-3.5 text-sage flex-shrink-0" />}
+                  </button>
+                )
+              })
+            )}
+          </div>
+          <Link
+            href="/dashboard/admin/customers"
+            className="flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold text-ink-2 hover:bg-surface-warm border-t border-divider-light transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Manage customers
+          </Link>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export function ControlBar() {
   const ctx = useUnified()
 
   return (
     <div className="bg-surface rounded-xl border border-divider p-4 flex flex-wrap items-center gap-4">
-      {/* Customer-mode badge — shown when viewing a customer's data */}
-      {ctx.activeCustomerId && (
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-caution-bg rounded-xl border border-[rgba(184,134,11,0.25)]">
-          {ctx.customerHydrating
-            ? <Loader2 className="w-3.5 h-3.5 text-caution animate-spin" />
-            : <Briefcase className="w-3.5 h-3.5 text-caution" />
-          }
-          <span className="text-xs font-semibold text-caution">
-            {ctx.customerHydrating ? 'Loading customer…' : 'Customer View'}
-          </span>
-          <Link
-            href="/dashboard/admin/customers"
-            className="text-[10px] font-bold text-caution/70 hover:text-caution underline underline-offset-2 transition-colors"
-          >
-            ← Customers
-          </Link>
-        </div>
-      )}
-
-      {/* Brand badge */}
-      {ctx.isConfigured && (
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-red-soft-bg rounded-xl border border-red-soft/30">
-          <span className="text-sm font-semibold text-ink">{ctx.brandConfig.brand_name}</span>
-          <button
-            onClick={() => ctx.setShowConfig(!ctx.showConfig)}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-700 text-white hover:bg-red-800 active:bg-red-900 transition-colors shadow-sm"
-          >
-            <Pencil className="w-3 h-3" />
-            Edit
-          </button>
-        </div>
+      {/* Customer switcher (dropdown) — shown in customer mode */}
+      {ctx.activeCustomerId ? (
+        <CustomerSwitcher />
+      ) : (
+        /* Standalone brand badge — when not in customer mode */
+        ctx.isConfigured && (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-red-soft-bg rounded-xl border border-red-soft/30">
+            <span className="text-sm font-semibold text-ink">{ctx.brandConfig.brand_name}</span>
+            <button
+              onClick={() => ctx.setShowConfig(!ctx.showConfig)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-700 text-white hover:bg-red-800 active:bg-red-900 transition-colors shadow-sm"
+            >
+              <Pencil className="w-3 h-3" />
+              Edit
+            </button>
+          </div>
+        )
       )}
 
       {/* Date presets */}
