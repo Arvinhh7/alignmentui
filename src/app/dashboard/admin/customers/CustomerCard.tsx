@@ -7,6 +7,7 @@ import {
   Archive, MoreVertical, TrendingUp,
 } from 'lucide-react'
 import { CustomerSummary, customersApi } from '@/lib/api'
+import { BrandLogo } from '@/components/BrandLogo'
 
 interface CustomerCardProps {
   customer: CustomerSummary
@@ -64,18 +65,22 @@ export default function CustomerCard({ customer, userId, onArchived }: CustomerC
         archiving ? 'opacity-50 pointer-events-none' : ''
       }`}
     >
-      {/* Top row: brand name + menu */}
+      {/* Top row: logo + brand name + menu */}
       <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-ink truncate leading-tight">
-            {customer.brand_name}
-          </h3>
-          {customer.domain && (
-            <div className="flex items-center gap-1 mt-0.5">
-              <Globe className="w-3 h-3 text-ink-3 flex-shrink-0" />
-              <span className="text-[11px] text-ink-3 truncate">{customer.domain}</span>
-            </div>
-          )}
+        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+          {/* Official brand logo (Clearbit → favicon → initials) */}
+          <BrandLogo domain={customer.domain} name={customer.brand_name} size={40} />
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-semibold text-ink truncate leading-tight">
+              {customer.brand_name}
+            </h3>
+            {customer.domain && (
+              <div className="flex items-center gap-1 mt-0.5">
+                <Globe className="w-3 h-3 text-ink-3 flex-shrink-0" />
+                <span className="text-[11px] text-ink-3 truncate">{customer.domain}</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Kebab menu */}

@@ -9,7 +9,19 @@
  *   3. Letter circle      — brand initial on brand color         (zero-dependency)
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+// ─── Domain helpers (for the explicit `domain` prop, e.g. customers) ───────────
+/** "https://global.redmagic.gg/" → "global.redmagic.gg" */
+function toHost(raw?: string | null): string {
+  if (!raw) return "";
+  return raw.trim().replace(/^https?:\/\//i, "").replace(/^www\./i, "").split("/")[0].trim().toLowerCase();
+}
+/** "global.redmagic.gg" → "redmagic.gg" (registrable domain for Clearbit) */
+function rootDomain(host: string): string {
+  const parts = host.split(".").filter(Boolean);
+  return parts.length <= 2 ? host : parts.slice(-2).join(".");
+}
 
 // ─── Brand registry ───────────────────────────────────────────────────────────
 export const BRAND_META: Record<
@@ -33,20 +45,23 @@ export const BRAND_META: Record<
 
 // ─── Logo sources ─────────────────────────────────────────────────────────────
 // Mirrors the pattern used in DiscoverTab.tsx (geo-monitor module).
-function logoSrcs(domain: string): string[] {
+function logoSrcs(host: string): string[] {
   return [
-    // 1. Clearbit — high-res brand logos for well-known companies
-    `https://logo.clearbit.com/${domain}`,
-    // 2. Google s2/favicons — the same reliable endpoint DiscoverTab uses;
-    //    sz=64 gives a sharp icon at up to 40px display size.
-    `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+    // 1. Clearbit — high-res brand logos (uses the registrable domain)
+    `https://logo.clearbit.com/${rootDomain(host)}`,
+    // 2. Google s2/favicons — very reliable; works with the full host.
+    //    sz=128 gives a sharp icon at typical 24–40px display sizes.
+    `https://www.google.com/s2/favicons?domain=${host}&sz=128`,
   ];
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 interface BrandLogoProps {
-  brandId: string;
-  /** Display name — used for the letter fallback initial if brandId not in registry */
+  /** Registry lookup (Agentic Commerce demo brands). Optional. */
+  brandId?: string;
+  /** Explicit domain (customers) — takes precedence over the registry. */
+  domain?: string | null;
+  /** Display name — used for the letter fallback initial */
   name?: string;
   /** Diameter in pixels (default 32) */
   size?: number;
@@ -55,17 +70,22 @@ interface BrandLogoProps {
 
 export function BrandLogo({
   brandId,
+  domain,
   name,
   size = 32,
   className = "",
 }: BrandLogoProps) {
-  const meta   = BRAND_META[brandId];
+  const meta   = brandId ? BRAND_META[brandId] : undefined;
   const bg     = meta?.color  ?? "#6D4AE8";
-  const letter = meta?.initial ?? (name ?? brandId).charAt(0).toUpperCase();
-  const srcs   = meta ? logoSrcs(meta.domain) : [];
+  const letter = (name ?? meta?.name ?? brandId ?? "?").charAt(0).toUpperCase();
+  // Explicit domain prop wins (customers); else fall back to the registry domain.
+  const host   = toHost(domain) || meta?.domain || "";
+  const srcs   = host ? logoSrcs(host) : [];
 
   // attempt = index into srcs; when >= srcs.length → letter-only fallback
   const [attempt, setAttempt] = useState(0);
+  // Reset the source chain when the brand/domain changes (e.g. switching customers)
+  useEffect(() => { setAttempt(0); }, [host]);
   const currentSrc = attempt < srcs.length ? srcs[attempt] : null;
 
   return (
