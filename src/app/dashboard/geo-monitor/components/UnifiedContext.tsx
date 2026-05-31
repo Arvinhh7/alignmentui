@@ -518,7 +518,23 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
           setScanResult(data.latest_scan as unknown as MonitorScanResult)
         }
         if (data.scan_history_summary?.length) {
-          setScanHistory(data.scan_history_summary as unknown as ScanHistoryEntry[])
+          // Normalize backend rows → ScanHistoryEntry. The /latest endpoint
+          // returns raw monitor_scans columns (scanned_at, sentiment_positive),
+          // but the charts expect `date` / `positive_pct`. Without this mapping
+          // entry.date is undefined and fmtDate(...).split('T') crashes the page.
+          const normalized: ScanHistoryEntry[] = (data.scan_history_summary as unknown[]).map((row) => {
+            const r = row as Record<string, unknown>
+            return {
+              scan_id:          String(r.scan_id ?? ''),
+              date:             String(r.date ?? r.scanned_at ?? ''),
+              visibility_score: Number(r.visibility_score ?? 0),
+              mentions_found:   Number(r.mentions_found ?? 0),
+              total_prompts:    Number(r.total_prompts ?? 0),
+              citation_count:   Number(r.citation_count ?? 0),
+              positive_pct:     Number(r.positive_pct ?? r.sentiment_positive ?? 0),
+            }
+          }).filter(e => e.date)  // drop any row without a usable date
+          setScanHistory(normalized)
         }
         if (data.latest_discover) {
           const dr = data.latest_discover as unknown as DiscoverResult

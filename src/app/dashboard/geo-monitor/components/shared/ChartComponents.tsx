@@ -431,7 +431,8 @@ export function ScanHistoryTrendChart({ data }: { data: ScanHistoryEntry[] }) {
   const labelIndices: number[] = []
   if (data.length <= maxLabels) data.forEach((_, i) => labelIndices.push(i))
   else for (let i = 0; i < maxLabels; i++) labelIndices.push(Math.round(i * (data.length - 1) / (maxLabels - 1)))
-  const fmtDate = (s: string) => {
+  const fmtDate = (s: string | undefined | null) => {
+    if (!s || typeof s !== 'string') return ''
     const p = s.split('T')[0].split('-')
     if (p.length === 3) {
       const m = parseInt(p[1])
@@ -476,6 +477,7 @@ export function UnifiedTrendChart({ data, brandName, scanHistory }: {
     dateMap[pt.date][pt.brand_name] = pt
   }
   for (const entry of scanHistory) {
+    if (!entry.date || typeof entry.date !== 'string') continue  // guard: malformed history row
     const d = entry.date.split('T')[0]
     if (!dateMap[d]) dateMap[d] = {}
     if (!dateMap[d][brandName]) {
@@ -502,7 +504,8 @@ export function UnifiedTrendChart({ data, brandName, scanHistory }: {
   if (dates.length <= maxLabels) dates.forEach((_, i) => labelIndices.push(i))
   else for (let i = 0; i < maxLabels; i++) labelIndices.push(Math.round(i * (dates.length - 1) / (maxLabels - 1)))
 
-  const fmtDate = (s: string) => {
+  const fmtDate = (s: string | undefined | null) => {
+    if (!s || typeof s !== 'string') return ''
     const p = s.split('-')
     if (p.length === 3) {
       const m = parseInt(p[1])
