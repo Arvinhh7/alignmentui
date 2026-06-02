@@ -542,6 +542,26 @@ export interface ScanJobStatus {
     scanned_at: string;
   } | null;
 }
+// Warehouse summary — pre-aggregated, no scan needed ──────────────────────────
+export interface WarehouseSummary {
+  has_data: boolean
+  history: Array<{
+    scan_id: string
+    date: string
+    visibility_score: number
+    mentions_found: number
+    total_prompts: number
+    citation_count: number
+    positive_pct: number
+    engines_used?: string[]
+  }>
+  latest_metrics: {
+    visibility_score: number
+    avg_rank: number | null
+    last_day: string
+  } | null
+  last_refreshed: string | null
+}
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface MonitorScanResult {
@@ -1454,6 +1474,14 @@ class APIClient {
 
   async getScanJob(jobId: string) {
     return this.request<ScanJobStatus>(`/api/monitor/scan/${encodeURIComponent(jobId)}`);
+  }
+
+  // ── Warehouse summary — reads pre-aggregated data, 0 scan cost ──────────────
+  async getWarehouseSummary(brandName: string, days = 30) {
+    const params = new URLSearchParams()
+    params.set('brand_name', brandName)
+    params.set('days', String(days))
+    return this.request<WarehouseSummary>(`/api/monitor/warehouse/summary?${params}`)
   }
 
   async runAEOScore(url: string, userId?: string) {

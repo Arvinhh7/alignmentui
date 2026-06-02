@@ -9,6 +9,7 @@ import {
   api,
   customersApi,
   CustomerSummary,
+  WarehouseSummary,
   notifyCreditUsed,
   MonitorScanResult,
   MonitorPrompt,
@@ -219,6 +220,9 @@ interface UnifiedState {
   customerHydrating: boolean
   customers: CustomerSummary[]
   switchCustomer: (customerId: string) => void
+  // Warehouse pre-loaded data (no scan needed, reads agg_brand_daily)
+  warehouseLoaded: boolean
+  lastRefreshed: string | null
 
   // Tab
   activeTab: TabKey
@@ -351,6 +355,8 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const [activeCustomerId, setActiveCustomerId] = useState<string | null>(null)
   const [customerHydrating, setCustomerHydrating] = useState(false)
   const [customers, setCustomers] = useState<CustomerSummary[]>([])
+  const [warehouseLoaded, setWarehouseLoaded] = useState(false)
+  const [lastRefreshed, setLastRefreshed] = useState<string | null>(null)
 
   // ── Abort controllers ───────────────────────────
   const scanAbortRef = useRef<AbortController | null>(null)
@@ -545,6 +551,41 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       })
       .catch(err => console.warn('[UnifiedContext] customer hydration failed:', err))
       .finally(() => setCustomerHydrating(false))
+
+    // ── Warehouse pre-load: fetch aggregated data so dashboard shows
+    //    historical data IMMEDIATELY without requiring a manual scan.
+    //    Runs in parallel with getLatest, fills scanHistory from agg_brand_daily.
+    customersApi.getLatest(activeCustomerId, user.id)
+      .then(data => {
+        // Only load warehouse if we don't already have scan history from the
+        // /latest endpoint (scan history from real scans is more accurate).
+        const brandName = data.customer?.brand_name
+        if (!brandName) return
+        return api.getWarehouseSummary(brandName, 30)
+      })
+      .then(whResp => {
+        if (!whResp?.data?.has_data) return
+        const wh = whResp.data
+        // Merge warehouse history into scanHistory IF it's richer than what
+        // /latest returned (agg covers full 30 days; /latest only 30 raw scans).
+        // Use agg data as the baseline; real scan results sit on top.
+        setScanHistory(prev => {
+          if (prev.length >= (wh.history?.length ?? 0)) return prev  // real data wins
+          return (wh.history ?? []).map(h => ({
+            scan_id:          h.scan_id,
+            date:             h.date,
+            visibility_score: h.visibility_score,
+            mentions_found:   h.mentions_found,
+            total_prompts:    h.total_prompts,
+            citation_count:   h.citation_count,
+            positive_pct:     h.positive_pct,
+            engines_used:     h.engines_used,
+          } as ScanHistoryEntry))
+        })
+        setLastRefreshed(wh.last_refreshed ?? null)
+        setWarehouseLoaded(true)
+      })
+      .catch(() => { /* warehouse load is non-critical */ })
   }, [activeCustomerId, user?.id])
 
   // ═══ Load the customer list for the header dropdown switcher ═══
@@ -1070,6 +1111,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     selectedPromptIds, togglePromptSelect, toggleSelectAllPrompts,
     handleBatchDelete, cancelBatchDelete, isBatchDeleting, batchConfirmStep,
     activeCustomerId, customerHydrating, customers, switchCustomer,
+    warehouseLoaded, lastRefreshed,
     activeTab, setActiveTab,
     citationsSubTab, setCitationsSubTab, competitorsSubTab, setCompetitorsSubTab,
   }
