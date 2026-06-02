@@ -515,6 +515,35 @@ export interface SmartPromptGenerateResponse {
 
 // ─── Monitor scan result ───────────────────────────────────────────────────
 
+// A′-1: async scan job types ─────────────────────────────────────────────────
+export interface ScanJobEnqueued {
+  job_id: string;
+  status: 'queued';
+  message: string;
+}
+
+export interface ScanJobStatus {
+  job_id: string;
+  status: 'queued' | 'running' | 'done' | 'failed' | 'cancelled';
+  progress: number;          // 0-100
+  total_prompts: number | null;
+  done_prompts: number;
+  brand_name: string | null;
+  error: string | null;
+  queued_at: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  result_summary: {
+    scan_id: string;
+    visibility_score: number;
+    total_prompts: number;
+    mentions_found: number;
+    citation_count: number;
+    scanned_at: string;
+  } | null;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 export interface MonitorScanResult {
   scan_id: string;
   brand_name: string;
@@ -1399,6 +1428,9 @@ class APIClient {
     });
   }
 
+  // ── A′-1 async scan API ─────────────────────────────────────────────────────
+  // POST /scan now returns HTTP 202 + {job_id} immediately (never blocks).
+  // Poll GET /scan/{job_id} for status; full result loads via customer hydration.
   async runMonitorScan(data: {
     brand_name: string;
     domain?: string;
@@ -1412,11 +1444,16 @@ class APIClient {
     if (userId) params.set('user_id', userId);
     if (isOnboarding) params.set('is_onboarding', 'true');
     const qs = params.toString();
-    return this.request<MonitorScanResult>(`/api/monitor/scan${qs ? '?' + qs : ''}`, {
+    // Returns {job_id, status, message} with HTTP 202 — caller must poll getScanJob()
+    return this.request<ScanJobEnqueued>(`/api/monitor/scan${qs ? '?' + qs : ''}`, {
       method: 'POST',
       body: JSON.stringify(data),
       signal,
     });
+  }
+
+  async getScanJob(jobId: string) {
+    return this.request<ScanJobStatus>(`/api/monitor/scan/${encodeURIComponent(jobId)}`);
   }
 
   async runAEOScore(url: string, userId?: string) {

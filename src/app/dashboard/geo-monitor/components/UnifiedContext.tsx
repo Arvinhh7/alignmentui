@@ -355,6 +355,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   // ── Abort controllers ───────────────────────────
   const scanAbortRef = useRef<AbortController | null>(null)
   const scanTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const scanJobPollRef = useRef<ReturnType<typeof setInterval> | null>(null)  // A′-2: job polling
   const gapAbortRef = useRef<AbortController | null>(null)
   const advMentionsAbortRef = useRef<AbortController | null>(null)
   const reportAbortRef = useRef<AbortController | null>(null)
@@ -681,36 +682,114 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     advMentionsAbortRef.current = null; setIsRunningAdvMentions(false)
   }
 
+  // ── A′-2: async scan with job_id polling ─────────────────────────────────
+  // POST /scan → 202 + {job_id} → poll GET /scan/{job_id} every 2s
+  // When done: re-hydrate from customer backend (full scan result already persisted by worker)
   const handleRunScan = async (isOnboarding?: boolean) => {
     if (!brandConfig.brand_name) return
+
+    // Cancel any previous scan
+    if (scanJobPollRef.current) { clearInterval(scanJobPollRef.current); scanJobPollRef.current = null }
     scanAbortRef.current?.abort()
-    const controller = new AbortController()
-    scanAbortRef.current = controller
+
     setIsScanning(true); setScanError(''); setScanStep(0)
-    const activeCount = prompts.filter(p => p.is_active).length || 8
-    scanTimerRef.current = setInterval(() => { setScanStep(prev => prev < activeCount ? prev + 1 : prev) }, 3000)
-    try {
-      const res = await api.runMonitorScan({ brand_name: brandConfig.brand_name, domain: brandConfig.domain, keywords: brandConfig.keywords, competitors: brandConfig.competitors, customer_id: activeCustomerId ?? undefined }, controller.signal, user?.id, isOnboarding)
-      if (scanTimerRef.current) { clearInterval(scanTimerRef.current); scanTimerRef.current = null }
-      if (res.error === '__ABORTED__') { setIsScanning(false); return }
-      if (res.error) { setScanError(res.error) } else if (res.data) {
-        setScanResult(res.data); localStorage.setItem(SCAN_RESULTS_KEY, JSON.stringify(res.data))
-        // Notify Overview page to reload with latest scan data
-        window.dispatchEvent(new CustomEvent('scanCompleted'))
-        const _mentioned = res.data.mention_results.filter(m => m.mentioned)
-        const _prominence = _mentioned.length > 0 ? Math.round((_mentioned.reduce((s, m) => s + m.position_score, 0) / _mentioned.length) * 100) : 0
-        const _citShare = Math.round(res.data.source_domains.find(d => d.domain_type === 'you')?.frequency_pct ?? 0)
-        const _sovPct = Math.round(res.data.share_of_voice?.[brandConfig.brand_name] ?? 0)
-        const entry: ScanHistoryEntry = { scan_id: res.data.scan_id, date: res.data.scanned_at, visibility_score: res.data.visibility_score, mentions_found: res.data.mentions_found, total_prompts: res.data.total_prompts, citation_count: res.data.citation_count, positive_pct: res.data.sentiment_breakdown.positive_pct, prominence_score: _prominence, citation_share: _citShare, sov_pct: _sovPct, citation_authority: res.data.citation_authority_score ?? 0, engines_used: res.data.engines_used ?? ['chatgpt'] }
-        const newHist = [...scanHistory, entry].slice(-30); setScanHistory(newHist); localStorage.setItem(SCAN_HISTORY_KEY, JSON.stringify(newHist))
+
+    // 1. Enqueue scan — returns immediately with job_id (HTTP 202)
+    const enqueueRes = await api.runMonitorScan(
+      { brand_name: brandConfig.brand_name, domain: brandConfig.domain,
+        keywords: brandConfig.keywords, competitors: brandConfig.competitors,
+        customer_id: activeCustomerId ?? undefined },
+      undefined, user?.id, isOnboarding
+    )
+    if (enqueueRes.error) {
+      setScanError(enqueueRes.error)
+      setIsScanning(false)
+      return
+    }
+    const jobId = enqueueRes.data?.job_id
+    if (!jobId) { setScanError('Failed to start scan'); setIsScanning(false); return }
+
+    // 2. Poll job status every 2s
+    const totalPrompts = prompts.filter(p => p.is_active).length || 8
+    scanJobPollRef.current = setInterval(async () => {
+      const jobRes = await api.getScanJob(jobId)
+      if (!jobRes.data) return
+
+      const { status, progress, error } = jobRes.data
+
+      // Update visual progress bar from real server progress
+      setScanStep(Math.round((progress / 100) * totalPrompts))
+
+      if (status === 'failed') {
+        if (scanJobPollRef.current) { clearInterval(scanJobPollRef.current); scanJobPollRef.current = null }
+        setScanError(error || 'Scan failed in worker')
+        setIsScanning(false)
+        return
+      }
+
+      if (status === 'done') {
+        if (scanJobPollRef.current) { clearInterval(scanJobPollRef.current); scanJobPollRef.current = null }
+
+        // 3. Re-hydrate full result from backend (worker persisted it to Supabase)
+        try {
+          if (activeCustomerId && user?.id) {
+            // Customer mode: reload via getLatest which returns full scan
+            const latest = await customersApi.getLatest(activeCustomerId, user.id)
+            if (latest.latest_scan) {
+              const fullScan = latest.latest_scan as unknown as MonitorScanResult
+              setScanResult(fullScan)
+              localStorage.setItem(SCAN_RESULTS_KEY, JSON.stringify(fullScan))
+              window.dispatchEvent(new CustomEvent('scanCompleted'))
+
+              // Build history entry from full scan data
+              const _mentioned = fullScan.mention_results?.filter(m => m.mentioned) ?? []
+              const _prominence = _mentioned.length > 0
+                ? Math.round((_mentioned.reduce((s, m) => s + m.position_score, 0) / _mentioned.length) * 100) : 0
+              const _citShare = Math.round(fullScan.source_domains?.find(d => d.domain_type === 'you')?.frequency_pct ?? 0)
+              const _sovPct = Math.round(fullScan.share_of_voice?.[brandConfig.brand_name] ?? 0)
+              const entry: ScanHistoryEntry = {
+                scan_id: fullScan.scan_id, date: fullScan.scanned_at,
+                visibility_score: fullScan.visibility_score,
+                mentions_found: fullScan.mentions_found, total_prompts: fullScan.total_prompts,
+                citation_count: fullScan.citation_count,
+                positive_pct: fullScan.sentiment_breakdown?.positive_pct ?? 0,
+                prominence_score: _prominence, citation_share: _citShare, sov_pct: _sovPct,
+                citation_authority: fullScan.citation_authority_score ?? 0,
+                engines_used: fullScan.engines_used ?? ['chatgpt'],
+              }
+              setScanHistory(prev => [...prev, entry].slice(-30))
+            }
+          } else {
+            // Standalone mode: fetch latest from history endpoint
+            const histRes = await api.getMonitorHistory(brandConfig.brand_name)
+            const latest = histRes.data?.[0]
+            if (latest) {
+              setScanResult(latest)
+              localStorage.setItem(SCAN_RESULTS_KEY, JSON.stringify(latest))
+              window.dispatchEvent(new CustomEvent('scanCompleted'))
+            }
+          }
+        } catch (hydrateErr) {
+          console.warn('[Scan] Result hydration failed, using result_summary', hydrateErr)
+        }
+
+        setScanStep(totalPrompts)
         if (!isOnboarding) notifyCreditUsed()
         await loadPrompts()
         autoTriggerAdvancedMentions()
+        setIsScanning(false)
       }
-    } catch (e: any) { if (scanTimerRef.current) { clearInterval(scanTimerRef.current); scanTimerRef.current = null }; if (e.name !== 'AbortError') setScanError(e.message || 'Scan failed') }
-    scanAbortRef.current = null; setIsScanning(false)
+    }, 2000)
   }
-  const handleStopScan = () => { scanAbortRef.current?.abort(); scanAbortRef.current = null; if (scanTimerRef.current) { clearInterval(scanTimerRef.current); scanTimerRef.current = null }; setIsScanning(false); setScanStep(0) }
+
+  const handleStopScan = () => {
+    // Cancel polling — the actual worker job continues in the background
+    // (fire-and-forget; a future enhancement can send a cancel signal to the worker)
+    if (scanJobPollRef.current) { clearInterval(scanJobPollRef.current); scanJobPollRef.current = null }
+    scanAbortRef.current?.abort(); scanAbortRef.current = null
+    if (scanTimerRef.current) { clearInterval(scanTimerRef.current); scanTimerRef.current = null }
+    setIsScanning(false); setScanStep(0)
+  }
 
   // ── Auto-scan from onboarding ───────────────────
   useEffect(() => {
