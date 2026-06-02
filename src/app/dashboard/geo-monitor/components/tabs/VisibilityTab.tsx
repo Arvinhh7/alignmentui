@@ -27,7 +27,8 @@ export function VisibilityTab() {
   // ── Scan-derived KPIs ──────────────────────────────
   const { scanVisibility, scanSov, scanMentions, scanProminence, scanCitations, topEngineLabel } = useMemo(() => {
     const scan = ctx.scanResult
-    if (!scan) return { scanVisibility: 0, scanSov: 0, scanMentions: 0, scanTotalPrompts: 0, scanProminence: 0, scanCitations: 0, topEngineLabel: '' }
+    // Guard: scan may be {} (R2 placeholder row) before the full result is loaded
+    if (!scan || !scan.mention_results) return { scanVisibility: 0, scanSov: 0, scanMentions: 0, scanTotalPrompts: 0, scanProminence: 0, scanCitations: 0, topEngineLabel: '' }
     const mentioned = scan.mention_results.filter(m => m.mentioned)
     const prom = mentioned.length > 0
       ? (mentioned.reduce((sum, m) => sum + m.position_score, 0) / mentioned.length) * 100
