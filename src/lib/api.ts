@@ -1646,6 +1646,18 @@ class APIClient {
     }>('/api/monitor/engines');
   }
 
+  /**
+   * Persist an expensive analysis result so it survives logout/refresh.
+   * analysisType: 'gap' | 'intel' | 'advanced_mentions'
+   * Fire-and-forget — non-fatal if it fails (result still shows in-session).
+   */
+  async saveAnalysisCache(customerId: string, analysisType: string, resultJson: unknown) {
+    return this.request<{ ok: boolean }>('/api/monitor/analysis-cache', {
+      method: 'POST',
+      body: JSON.stringify({ customer_id: customerId, analysis_type: analysisType, result_json: resultJson }),
+    });
+  }
+
   // ─── Dev Mode: EMA Policy Optimization ───────────────
 
   async devOptimize(req: DevOptimizationRequest) {

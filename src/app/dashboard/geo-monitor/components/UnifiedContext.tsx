@@ -556,6 +556,13 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
             setDiscoverResults({ [eng]: dr })
           }
         }
+        // Restore cached analyses (gap / intel / advanced_mentions) — Phase 4
+        const ac = (data as unknown as { analysis_cache?: Record<string, unknown> }).analysis_cache
+        if (ac && typeof ac === 'object') {
+          if (ac.gap)               setGapResult(ac.gap as GapAnalysisResult)
+          if (ac.intel)             setIntelReport(ac.intel as CompetitiveIntelReport)
+          if (ac.advanced_mentions) setAdvancedMentions(ac.advanced_mentions as AdvancedMentionAnalysis)
+        }
       })
       .catch(err => console.warn('[UnifiedContext] customer hydration failed:', err))
       .finally(() => setCustomerHydrating(false))
@@ -656,8 +663,31 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     const newBrand = merged.brand_name.trim().toLowerCase()
     const brandChanged = isConfigured && savedBrand && savedBrand !== newBrand
 
-    // Now persist the new config
+    // Now persist the new config (localStorage = fast local cache)
     localStorage.setItem(BRAND_CONFIG_KEY, JSON.stringify(merged))
+
+    // ── Persist config_json to DB so it survives logout (customer mode) ──
+    // The customer record is the source of truth that getLatest() re-hydrates
+    // from on next login. Without this, config_json stays {} and every field
+    // except brand_name/domain is lost on logout.
+    if (activeCustomerId && user?.id) {
+      customersApi.update(activeCustomerId, user.id, {
+        brand_name: merged.brand_name.trim(),
+        domain:     merged.domain.trim(),
+        config_json: {
+          keywords:        merged.keywords,
+          competitors:     merged.competitors,
+          industry:        merged.industry,
+          one_liner:       merged.one_liner,
+          target_audience: merged.target_audience,
+          target_market:   merged.target_market,
+          differentiation: merged.differentiation,
+        },
+      }).catch(err => {
+        console.error('[UnifiedContext] config persist to DB failed:', err)
+        setConfigError('Saved locally but failed to sync to server — click Save again to retry.')
+      })
+    }
 
     if (brandChanged) {
       // Clear all result caches from localStorage
@@ -726,7 +756,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     try {
       const res = await api.runAdvancedMentionAnalysis({ brand_name: brandConfig.brand_name, domain: brandConfig.domain, keywords: brandConfig.keywords, competitors: brandConfig.competitors }, ctrl.signal, user?.id)
       if (res.error === '__ABORTED__') { setIsRunningAdvMentions(false); return }
-      if (res.error) { setAdvMentionsError(res.error) } else if (res.data) { setAdvancedMentions(res.data); localStorage.setItem(ADV_MENTIONS_KEY, JSON.stringify(res.data)) }
+      if (res.error) { setAdvMentionsError(res.error) } else if (res.data) { setAdvancedMentions(res.data); localStorage.setItem(ADV_MENTIONS_KEY, JSON.stringify(res.data)); if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'advanced_mentions', res.data).catch(() => {}) }
     } catch (e: any) { if (e.name !== 'AbortError') setAdvMentionsError(e.message || 'Auto advanced analysis failed') }
     advMentionsAbortRef.current = null; setIsRunningAdvMentions(false)
   }
@@ -873,7 +903,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     try {
       const res = await api.runGapAnalysis({ brand_name: brandConfig.brand_name, domain: brandConfig.domain, keywords: brandConfig.keywords, competitors: brandConfig.competitors }, controller.signal, user?.id)
       if (res.error === '__ABORTED__') { setIsRunningGap(false); return }
-      if (res.error) { setGapError(res.error) } else if (res.data) { setGapResult(res.data); localStorage.setItem(GAP_RESULTS_KEY, JSON.stringify(res.data)); notifyCreditUsed() }
+      if (res.error) { setGapError(res.error) } else if (res.data) { setGapResult(res.data); localStorage.setItem(GAP_RESULTS_KEY, JSON.stringify(res.data)); if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'gap', res.data).catch(() => {}); notifyCreditUsed() }
     } catch (e: any) { if (e.name !== 'AbortError') setGapError(e.message || 'Gap analysis failed') }
     gapAbortRef.current = null; setIsRunningGap(false)
   }
@@ -889,7 +919,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     try {
       const res = await api.runAdvancedMentionAnalysis({ brand_name: brandConfig.brand_name, domain: brandConfig.domain, keywords: brandConfig.keywords, competitors: brandConfig.competitors }, controller.signal, user?.id)
       if (res.error === '__ABORTED__') { setIsRunningAdvMentions(false); return }
-      if (res.error) { setAdvMentionsError(res.error) } else if (res.data) { setAdvancedMentions(res.data); localStorage.setItem(ADV_MENTIONS_KEY, JSON.stringify(res.data)); notifyCreditUsed() }
+      if (res.error) { setAdvMentionsError(res.error) } else if (res.data) { setAdvancedMentions(res.data); localStorage.setItem(ADV_MENTIONS_KEY, JSON.stringify(res.data)); if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'advanced_mentions', res.data).catch(() => {}); notifyCreditUsed() }
     } catch (e: any) { if (e.name !== 'AbortError') setAdvMentionsError(e.message || 'Analysis failed') }
     advMentionsAbortRef.current = null; setIsRunningAdvMentions(false)
   }
@@ -906,7 +936,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     try {
       const res = await api.generateIntelReport({ brand_name: brandConfig.brand_name, domain: brandConfig.domain, keywords: brandConfig.keywords, competitors: brandConfig.competitors }, controller.signal, user?.id)
       if (res.error === '__ABORTED__') { setIsGeneratingReport(false); return }
-      if (res.error) { setReportError(res.error) } else if (res.data) { setIntelReport(res.data); notifyCreditUsed() }
+      if (res.error) { setReportError(res.error) } else if (res.data) { setIntelReport(res.data); if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'intel', res.data).catch(() => {}); notifyCreditUsed() }
     } catch (e: any) { if (e.name !== 'AbortError') setReportError(e.message || 'Report generation failed') }
     reportAbortRef.current = null; setIsGeneratingReport(false)
   }
