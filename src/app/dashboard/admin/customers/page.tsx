@@ -4,11 +4,12 @@ import { useState, useEffect, useCallback } from 'react'
 import { Plus, RefreshCw, Archive, Search, Loader2, Briefcase } from 'lucide-react'
 import { customersApi, CustomerSummary } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
+import { hasFeatureAccess } from '@/lib/featurePermissions'
 import CustomerCard from './CustomerCard'
 import NewCustomerModal from './NewCustomerModal'
 
 export default function CustomersPage() {
-  const { user, role } = useAuth()
+  const { user, role, permissions } = useAuth()
   const [customers, setCustomers] = useState<CustomerSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -40,10 +41,12 @@ export default function CustomersPage() {
   }, [loadCustomers])
 
   // ── Access guard (AFTER all hooks) ────────────────────────────────────────
-  if (role !== 'admin') {
+  // Admin always; staff only if granted the 'customers' permission in Team Management.
+  // (FeatureGate also enforces this upstream — kept here as defence-in-depth.)
+  if (!hasFeatureAccess(role, permissions, 'customers')) {
     return (
       <div className="flex items-center justify-center h-full min-h-[300px]">
-        <p className="text-[rgba(250,245,236,0.4)] text-sm">Admin access required.</p>
+        <p className="text-ink-3 text-sm">You don&apos;t have access to Customers. Contact your administrator.</p>
       </div>
     )
   }
