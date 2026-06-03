@@ -201,20 +201,23 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
   ]
 
   // Advanced features — admin sees all; staff sees permitted ones only
+  // RULE: any item here with a permissionKey can be delegated to staff via Team Management.
   const advancedFeatureItems: NavItem[] = [
-    { href: '/dashboard/geo-optimization', icon: Zap,       labelKey: 'geoOptimizationNav',              permissionKey: 'geo-optimization' },
-    { href: '/dashboard/geo-distribution',   icon: Share2,    labelKey: 'geoDistributionNav',                permissionKey: 'geo-distribution' },
-    { href: '/dashboard/ga4-attribution',    icon: LineChart, labelKey: 'GA4 Attribution' as never,          permissionKey: 'ga4-attribution' },
-    { href: '/dashboard/ops',                icon: Activity,  labelKey: 'Managed Service' as never, matchPrefix: true, permissionKey: 'ops' },
-    { href: '/dashboard/agentic-commerce',   icon: ShoppingCart, labelKey: 'agenticCommerceNav' as never, matchPrefix: true, permissionKey: 'agentic-commerce' },
+    { href: '/dashboard/geo-optimization',    icon: Zap,          labelKey: 'geoOptimizationNav',                  permissionKey: 'geo-optimization' },
+    { href: '/dashboard/geo-distribution',    icon: Share2,       labelKey: 'geoDistributionNav',                  permissionKey: 'geo-distribution' },
+    { href: '/dashboard/ga4-attribution',     icon: LineChart,    labelKey: 'GA4 Attribution' as never,            permissionKey: 'ga4-attribution' },
+    { href: '/dashboard/ops',                 icon: Activity,     labelKey: 'Managed Service' as never,    matchPrefix: true, permissionKey: 'ops' },
+    { href: '/dashboard/agentic-commerce',    icon: ShoppingCart, labelKey: 'agenticCommerceNav' as never, matchPrefix: true, permissionKey: 'agentic-commerce' },
+    // Admin sub-pages that can be delegated to staff via Team Management permissions
+    { href: '/dashboard/admin/customers',     icon: Briefcase,    labelKey: 'Customers' as never,          matchPrefix: true, permissionKey: 'customers' },
   ]
 
-  // Admin-only items (never shown to staff)
+  // Admin-only items — NEVER delegatable to staff; always role=admin only.
+  // Do NOT put items here if they should be assignable in Team Management.
   const adminOnlyItems: NavItem[] = [
-    { href: '/dashboard/admin',                icon: Wrench,          labelKey: 'Admin Panel' as never },
-    { href: '/dashboard/admin/customers',      icon: Briefcase,       labelKey: 'Customers' as never, matchPrefix: true },
-    { href: '/dashboard/admin/domain-checker', icon: Search,          labelKey: 'Domain Checker' as never },
-    { href: '/dashboard/admin/team',           icon: Users,           labelKey: 'Team Management' as never },
+    { href: '/dashboard/admin',                icon: Wrench, labelKey: 'Admin Panel' as never },
+    { href: '/dashboard/admin/domain-checker', icon: Search, labelKey: 'Domain Checker' as never },
+    { href: '/dashboard/admin/team',           icon: Users,  labelKey: 'Team Management' as never },
   ]
 
   // Combine for the "Admin" section (amber-styled, admin only)
