@@ -25,6 +25,7 @@ export type FeatureKey =
   | 'ga4-attribution'
   | 'ops'
   | 'agentic-commerce'
+  | 'customers'
 
 export interface FeatureInfo {
   key: FeatureKey
@@ -47,6 +48,7 @@ export const FEATURES: Record<FeatureKey, FeatureInfo> = {
   'ga4-attribution':  { key: 'ga4-attribution',  label: 'GA4 Attribution',       path: '/dashboard/ga4-attribution' },
   'ops':              { key: 'ops',              label: 'Managed Service',       path: '/dashboard/ops' },
   'agentic-commerce': { key: 'agentic-commerce', label: 'Agentic Commerce',      path: '/dashboard/agentic-commerce' },
+  'customers':        { key: 'customers',        label: 'Customers',             path: '/dashboard/admin/customers' },
 }
 
 /**
@@ -63,7 +65,10 @@ export function featureFromPath(path: string): FeatureKey | null {
   // Special case: bare /dashboard or /dashboard/ → treat as overview
   if (path === '/dashboard' || path === '/dashboard/') return 'overview'
 
-  // Skip admin and settings pages — they have their own role-based gating.
+  // Admin sub-pages that ARE feature-gated (must be checked BEFORE the admin blanket skip below)
+  if (path === '/dashboard/admin/customers' || path.startsWith('/dashboard/admin/customers/')) return 'customers'
+
+  // Skip other admin and settings pages — they have their own role-based gating.
   if (path.startsWith('/dashboard/admin/')) return null
   if (path.startsWith('/dashboard/settings')) return null
 
