@@ -1,10 +1,56 @@
 'use client'
 
 import { useState } from 'react'
-import { MultiBrandTrendData as ApiMultiBrandTrendData, BrandTrendPoint } from '@/lib/api'
+import { MultiBrandTrendData as ApiMultiBrandTrendData } from '@/lib/api'
 import { X } from 'lucide-react'
 import type { ScanHistoryEntry } from './constants'
 import { TAG_SEPARATORS, splitTagInput } from './constants'
+
+// ─── ECharts tree-shaking imports ────────────────────────────────────
+import ReactEChartsCore from 'echarts-for-react/lib/core'
+import * as echartsCore from 'echarts/core'
+import { LineChart as EChartsLineChart } from 'echarts/charts'
+import {
+  GridComponent,
+  TooltipComponent as EChartsTooltipCmp,
+  LegendComponent as EChartsLegendCmp,
+} from 'echarts/components'
+import { CanvasRenderer as EChartsCanvasRenderer } from 'echarts/renderers'
+
+echartsCore.use([
+  EChartsLineChart,
+  GridComponent,
+  EChartsTooltipCmp,
+  EChartsLegendCmp,
+  EChartsCanvasRenderer,
+])
+
+// ─── Chart color palette ──────────────────────────────────────────────
+const CHART_YOU_COLOR = '#C84B31'          // terracotta — user's brand
+const CHART_COMPETITOR_COLORS = [
+  '#4A6FA5',   // steel blue
+  '#16A34A',   // emerald
+  '#7C3AED',   // violet
+  '#D97706',   // amber
+  '#0891B2',   // teal
+  '#BE185D',   // rose
+]
+const CHART_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+
+function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r},${g},${b},${alpha})`
+}
+
+function fmtDateLabel(s: string): string {
+  const parts = s.split('-')
+  if (parts.length < 3) return s
+  const m = parseInt(parts[1])
+  const d = parseInt(parts[2])
+  return `${CHART_MONTHS[m - 1]} ${d}`
+}
 
 // ─── Helpers ─────────────────────────────────────────
 
@@ -413,179 +459,284 @@ export function TrendLineChart({ data, label, color = '#000000' }: {
 // ─── ScanHistoryTrendChart ───────────────────────────
 
 export function ScanHistoryTrendChart({ data }: { data: ScanHistoryEntry[] }) {
-  if (data.length === 0) return <div className="text-center py-8 text-ink-3 text-sm">No scan history yet. Run multiple scans to see trends.</div>
-  const W = 640, H = 180, PX = 40, PY = 16, plotW = W - PX - 40, plotH = H - PY - 34
-  // Fixed 0–100% Y axis so axis is stable and curves never show phantom > 100% values
-  const yMax = 100
-  const yTicks = [0, 25, 50, 75, 100]
-  const pts = data.map((d, i) => {
-    const clamped = Math.max(0, Math.min(100, d.visibility_score))
-    return {
-      x: PX + (data.length > 1 ? (i / (data.length - 1)) * plotW : plotW / 2),
-      y: PY + plotH - (clamped / yMax) * plotH,
-      vis: clamped,
-      date: d.date,
-    }
-  })
-  const curvePath = catmullRomPath(pts)
-  const maxLabels = Math.min(10, data.length)
-  const labelIndices: number[] = []
-  if (data.length <= maxLabels) data.forEach((_, i) => labelIndices.push(i))
-  else for (let i = 0; i < maxLabels; i++) labelIndices.push(Math.round(i * (data.length - 1) / (maxLabels - 1)))
-  const fmtDate = (s: string | undefined | null) => {
-    if (!s || typeof s !== 'string') return ''
-    const p = s.split('T')[0].split('-')
-    if (p.length === 3) {
-      const m = parseInt(p[1])
-      const d = parseInt(p[2])
-      return `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m - 1]} ${d}`
-    }
-    return s
+  if (data.length === 0) {
+    return (
+      <div className="text-center py-8 text-ink-3 text-sm">
+        No scan history yet. Run multiple scans to see trends.
+      </div>
+    )
   }
-  const lastPt = pts[pts.length - 1]
+
+  // Normalize dates to YYYY-MM-DD, sort chronologically
+  const sorted = [...data]
+    .filter(e => !!e.date)
+    .sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''))
+
+  const dates = sorted.map(e => (e.date ?? '').split('T')[0])
+  const values = sorted.map(e => Math.max(0, Math.min(100, e.visibility_score)))
+
+  const option = {
+    backgroundColor: 'transparent',
+    animation: true,
+    animationDuration: 500,
+    grid: { left: 44, right: 64, top: 16, bottom: 36 },
+    xAxis: {
+      type: 'category',
+      data: dates,
+      boundaryGap: false,
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { show: false },
+      axisLabel: {
+        color: '#8C8070',
+        fontSize: 11,
+        interval: dates.length > 10 ? Math.floor(dates.length / 6) : 0,
+        showMaxLabel: true,
+        formatter: (val: string) => fmtDateLabel(val),
+      },
+    },
+    yAxis: {
+      type: 'value',
+      min: 0,
+      max: 100,
+      splitNumber: 4,
+      splitLine: { lineStyle: { color: '#E8E2DA', width: 0.8 } },
+      axisLabel: { color: '#8C8070', fontSize: 11, formatter: '{value}%' },
+      axisLine: { show: false },
+      axisTick: { show: false },
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'line', lineStyle: { color: '#C8BFB0', type: 'dashed', width: 1.5 } },
+      backgroundColor: '#FFFFFF',
+      borderColor: '#E8E2DA',
+      borderWidth: 1,
+      padding: [10, 14],
+      extraCssText: 'box-shadow:0 4px 16px rgba(0,0,0,0.08);border-radius:8px;',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      formatter: (params: any[]) => {
+        if (!params?.[0]) return ''
+        const p = params[0]
+        return `<div style="font-size:11px;color:#8C8070;margin-bottom:4px;font-weight:500;">${fmtDateLabel(String(p.name))}</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:${CHART_YOU_COLOR};display:inline-block;flex-shrink:0;"></span>
+            <span style="color:#2D2B27;">Visibility Score</span>
+            <span style="font-weight:700;color:${CHART_YOU_COLOR};font-family:ui-monospace,monospace;margin-left:auto;padding-left:16px;">${Number(p.value).toFixed(1)}%</span>
+          </div>`
+      },
+    },
+    series: [{
+      type: 'line',
+      data: values,
+      smooth: 0.35,
+      showSymbol: false,
+      symbol: 'circle',
+      symbolSize: 6,
+      lineStyle: { color: CHART_YOU_COLOR, width: 2.5 },
+      itemStyle: { color: CHART_YOU_COLOR },
+      areaStyle: {
+        color: {
+          type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+          colorStops: [
+            { offset: 0, color: hexToRgba(CHART_YOU_COLOR, 0.22) },
+            { offset: 0.75, color: hexToRgba(CHART_YOU_COLOR, 0.04) },
+            { offset: 1, color: hexToRgba(CHART_YOU_COLOR, 0) },
+          ],
+        },
+      },
+      endLabel: {
+        show: true,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        formatter: (p: any) => `${Number(p.value).toFixed(1)}%`,
+        color: CHART_YOU_COLOR,
+        fontSize: 11,
+        fontWeight: '700',
+      },
+    }],
+  }
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
-      <defs><clipPath id="sh-clip"><rect x={PX} y={PY} width={plotW} height={plotH} /></clipPath></defs>
-      {yTicks.map(v => (
-        <g key={v}>
-          <line x1={PX} y1={PY + plotH - (v / yMax) * plotH} x2={W - 40} y2={PY + plotH - (v / yMax) * plotH} stroke="#C8BFB0" strokeWidth="0.7" />
-          <text x={PX - 6} y={PY + plotH - (v / yMax) * plotH + 3.5} textAnchor="end" fill="#2D2B27" fontSize="9" fontFamily="-apple-system, system-ui, sans-serif">{v}%</text>
-        </g>
-      ))}
-      {labelIndices.map(i => (
-        <text key={i} x={pts[i].x} y={H - 3} textAnchor="middle" fill="#2D2B27" fontSize="9" fontFamily="-apple-system, system-ui, sans-serif">{fmtDate(data[i].date)}</text>
-      ))}
-      <path d={curvePath} fill="none" stroke="#000000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" clipPath="url(#sh-clip)" />
-      {lastPt && (
-        <text x={lastPt.x + 6} y={lastPt.y + 3.5} fill="#000000" fontSize="10" fontWeight="600" fontFamily="-apple-system, system-ui, sans-serif">{lastPt.vis}%</text>
-      )}
-    </svg>
+    <ReactEChartsCore
+      echarts={echartsCore}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      option={option as any}
+      style={{ height: '240px', width: '100%' }}
+      notMerge={true}
+    />
   )
 }
 
-// ─── UnifiedTrendChart (multi-brand with hover) ──────
+// ─── UnifiedTrendChart (multi-brand, ECharts) ────────
 
 export type MultiBrandTrendData = ApiMultiBrandTrendData
 
 export function UnifiedTrendChart({ data, brandName, scanHistory }: {
   data: ApiMultiBrandTrendData; brandName: string; scanHistory: ScanHistoryEntry[]
 }) {
-  const [hoveredBrand, setHoveredBrand] = useState<string | null>(null)
-  const [hoverX, setHoverX] = useState<number | null>(null)
+  // ── 1. Merge & normalize: all dates → YYYY-MM-DD (no duplicates) ──
+  const dateMap: Record<string, Record<string, number>> = {}
 
-  const dateMap: Record<string, Record<string, BrandTrendPoint>> = {}
   for (const pt of data.data_points) {
-    if (!dateMap[pt.date]) dateMap[pt.date] = {}
-    dateMap[pt.date][pt.brand_name] = pt
+    if (!pt.date) continue
+    const date = pt.date.split('T')[0]           // normalize ISO → date-only
+    if (!dateMap[date]) dateMap[date] = {}
+    if (dateMap[date][pt.brand_name] === undefined) {
+      dateMap[date][pt.brand_name] = Math.max(0, Math.min(100, pt.visibility_score))
+    }
   }
   for (const entry of scanHistory) {
-    if (!entry.date || typeof entry.date !== 'string') continue  // guard: malformed history row
-    const d = entry.date.split('T')[0]
-    if (!dateMap[d]) dateMap[d] = {}
-    if (!dateMap[d][brandName]) {
-      dateMap[d][brandName] = { brand_name: brandName, date: d, visibility_score: entry.visibility_score, mention_quality_avg: 0, sentiment_avg: 0, mention_count: entry.mentions_found }
+    if (!entry.date || typeof entry.date !== 'string') continue
+    const date = entry.date.split('T')[0]
+    if (!dateMap[date]) dateMap[date] = {}
+    if (dateMap[date][brandName] === undefined) {
+      dateMap[date][brandName] = Math.max(0, Math.min(100, entry.visibility_score))
     }
   }
+
   const dates = Object.keys(dateMap).sort()
-  if (dates.length === 0) return <div className="text-center py-8 text-ink-3 text-sm">No trend data available yet.</div>
+  if (dates.length === 0) {
+    return <div className="text-center py-8 text-ink-3 text-sm">No trend data available yet.</div>
+  }
 
   const brands = data.brands.length > 0 ? data.brands : [brandName]
-  const BRAND_COLORS = ['#000000', '#4A6FA5', '#0A0A0A', '#B8860B', '#7B5E96', '#2D2B27', '#4A7C59', '#B5453A']
-  // Reduced height (260→200) so the chart is less dominant in the layout
-  const W = 640, H = 200, PX = 40, PY = 16, plotW = W - PX - 40, plotH = H - PY - 34
-  const getBrandColor = (brand: string, idx: number) => brand === brandName ? '#000000' : BRAND_COLORS[idx % BRAND_COLORS.length]
+  const competitors = brands.filter(b => b !== brandName)
 
-  // Always use 0–100 range so the Y axis is stable and never exceeds 100%.
-  // catmullRom curves can mathematically overshoot — a clipPath clips them.
-  const yMax = 100
-  const yTicks = [0, 25, 50, 75, 100]
-
-  const maxLabels = Math.min(10, dates.length)
-  const labelIndices: number[] = []
-  if (dates.length <= maxLabels) dates.forEach((_, i) => labelIndices.push(i))
-  else for (let i = 0; i < maxLabels; i++) labelIndices.push(Math.round(i * (dates.length - 1) / (maxLabels - 1)))
-
-  const fmtDate = (s: string | undefined | null) => {
-    if (!s || typeof s !== 'string') return ''
-    const p = s.split('-')
-    if (p.length === 3) {
-      const m = parseInt(p[1])
-      const d = parseInt(p[2])
-      return `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m - 1]} ${d}`
-    }
-    return s
+  const getBrandColor = (brand: string): string => {
+    if (brand === brandName) return CHART_YOU_COLOR
+    const idx = competitors.indexOf(brand)
+    return CHART_COMPETITOR_COLORS[idx % CHART_COMPETITOR_COLORS.length]
   }
 
-  const toX = (i: number) => PX + (dates.length > 1 ? (i / (dates.length - 1)) * plotW : plotW / 2)
-  // Clamp input to [0, yMax] before computing Y so catmullRom overshoots don't
-  // escape the plot area even before the SVG clipPath catches them.
-  const toY = (v: number) => PY + plotH - (Math.max(0, Math.min(yMax, v)) / yMax) * plotH
-
-  const brandCurves = brands.map((brand, bIdx) => {
-    const color = getBrandColor(brand, bIdx)
-    const pts = dates.map((date, i) => {
-      const vis = Math.max(0, Math.min(100, dateMap[date]?.[brand]?.visibility_score || 0))
-      return { x: toX(i), y: toY(vis), vis }
-    })
-    return { brand, color, pts, bIdx }
+  // ── 2. Build ECharts series ────────────────────────────────────────
+  const series = brands.map(brand => {
+    const color = getBrandColor(brand)
+    const isOwn = brand === brandName
+    const values = dates.map(date => dateMap[date]?.[brand] ?? 0)
+    return {
+      name: brand,
+      type: 'line',
+      smooth: 0.35,
+      showSymbol: false,
+      symbol: 'circle',
+      symbolSize: 6,
+      data: values,
+      lineStyle: { color, width: isOwn ? 2.5 : 1.8 },
+      itemStyle: { color },
+      areaStyle: {
+        color: {
+          type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+          colorStops: [
+            { offset: 0,    color: hexToRgba(color, isOwn ? 0.22 : 0.12) },
+            { offset: 0.8,  color: hexToRgba(color, 0.03) },
+            { offset: 1,    color: hexToRgba(color, 0) },
+          ],
+        },
+      },
+      emphasis: {
+        focus: 'series',
+        lineStyle: { width: isOwn ? 3 : 2.5 },
+        itemStyle: { borderWidth: 2 },
+      },
+      endLabel: {
+        show: true,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        formatter: (p: any) => `${Number(p.value).toFixed(1)}%`,
+        color,
+        fontSize: 11,
+        fontWeight: '700',
+      },
+    }
   })
 
-  const clipId = 'trend-clip'
+  // ── 3. ECharts option ─────────────────────────────────────────────
+  const option = {
+    backgroundColor: 'transparent',
+    animation: true,
+    animationDuration: 600,
+    animationEasing: 'cubicOut',
+    grid: { left: 44, right: 68, top: 16, bottom: 36 },
+    xAxis: {
+      type: 'category',
+      data: dates,
+      boundaryGap: false,
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { show: false },
+      axisLabel: {
+        color: '#8C8070',
+        fontSize: 11,
+        interval: dates.length > 10 ? Math.floor(dates.length / 7) : 0,
+        showMaxLabel: true,
+        formatter: (val: string) => fmtDateLabel(val),
+      },
+    },
+    yAxis: {
+      type: 'value',
+      min: 0,
+      max: 100,
+      splitNumber: 4,
+      splitLine: { lineStyle: { color: '#E8E2DA', width: 0.8 } },
+      axisLabel: { color: '#8C8070', fontSize: 11, formatter: '{value}%' },
+      axisLine: { show: false },
+      axisTick: { show: false },
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'line',
+        lineStyle: { color: '#C8BFB0', type: 'dashed', width: 1.5 },
+      },
+      backgroundColor: '#FFFFFF',
+      borderColor: '#E8E2DA',
+      borderWidth: 1,
+      padding: [10, 14],
+      extraCssText: 'box-shadow:0 4px 16px rgba(0,0,0,0.08);border-radius:8px;',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      formatter: (params: any[]) => {
+        if (!params?.length) return ''
+        const date = fmtDateLabel(String(params[0].name))
+        // Sort brands by value descending for readability
+        const sorted = [...params].sort((a, b) => Number(b.value) - Number(a.value))
+        let html = `<div style="font-size:11px;color:#8C8070;font-weight:500;margin-bottom:6px;">${date}</div>`
+        for (const p of sorted) {
+          const isMine = p.seriesName === brandName
+          html += `<div style="display:flex;align-items:center;gap:8px;margin:3px 0;">
+            <span style="width:8px;height:8px;border-radius:50%;background:${p.color};display:inline-block;flex-shrink:0;"></span>
+            <span style="flex:1;color:#2D2B27;${isMine ? 'font-weight:600;' : ''}">${p.seriesName}${isMine ? '&nbsp;<span style="font-size:9px;background:#FAF0EC;color:#C84B31;padding:1px 5px;border-radius:999px;font-weight:600;">You</span>' : ''}</span>
+            <span style="font-weight:700;color:${p.color};font-family:ui-monospace,monospace;min-width:42px;text-align:right;">${Number(p.value).toFixed(1)}%</span>
+          </div>`
+        }
+        return html
+      },
+    },
+    legend: { show: false },   // custom legend pills below
+    series,
+  }
 
   return (
     <div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet"
-        onMouseMove={e => { const r = (e.target as SVGElement).closest('svg')?.getBoundingClientRect(); if (r) setHoverX(((e.clientX - r.left) / r.width) * W) }}
-        onMouseLeave={() => setHoverX(null)}>
-        {/* Clip all curve paths to the plot area so catmullRom overshoots are invisible */}
-        <defs>
-          <clipPath id={clipId}>
-            <rect x={PX} y={PY} width={plotW} height={plotH} />
-          </clipPath>
-        </defs>
-        {yTicks.map(v => (
-          <g key={v}>
-            <line x1={PX} y1={toY(v)} x2={W - 40} y2={toY(v)} stroke="#C8BFB0" strokeWidth="0.7" />
-            <text x={PX - 6} y={toY(v) + 3.5} textAnchor="end" fill="#2D2B27" fontSize="9" fontFamily="-apple-system, system-ui, sans-serif">{v}%</text>
-          </g>
-        ))}
-        {labelIndices.map(i => (
-          <text key={i} x={toX(i)} y={H - 3} textAnchor="middle" fill="#2D2B27" fontSize="9" fontFamily="-apple-system, system-ui, sans-serif">{fmtDate(dates[i])}</text>
-        ))}
-        {hoverX !== null && hoverX >= PX && hoverX <= PX + plotW && (
-          <line x1={hoverX} y1={PY} x2={hoverX} y2={PY + plotH} stroke="#C8BFB0" strokeWidth="0.8" strokeDasharray="3 3" />
-        )}
-        {brandCurves.map(({ brand, color, pts, bIdx }) => {
-          const isHovered = hoveredBrand === brand
-          const isAnyHovered = hoveredBrand !== null
-          const isDimmed = isAnyHovered && !isHovered
-          const isOwn = brand === brandName
-          const opacity = isDimmed ? 0.1 : 1
-          const strokeW = isHovered ? 2.8 : isOwn && !isAnyHovered ? 2.2 : 1.5
-          const curve = catmullRomPath(pts)
-          const lastPt = pts[pts.length - 1]
-          return (
-            <g key={bIdx} style={{ opacity, transition: 'opacity 0.4s ease' }}>
-              <path d={curve} fill="none" stroke={color} strokeWidth={strokeW} strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'stroke-width 0.3s ease' }} clipPath={`url(#${clipId})`} />
-              {!isDimmed && lastPt && (
-                <text x={lastPt.x + 6} y={lastPt.y + 3.5} fill={color} fontSize="10" fontWeight="600" fontFamily="-apple-system, system-ui, sans-serif">{lastPt.vis}%</text>
-              )}
-            </g>
-          )
-        })}
-      </svg>
+      <ReactEChartsCore
+        echarts={echartsCore}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        option={option as any}
+        style={{ height: '260px', width: '100%' }}
+        notMerge={true}
+      />
+      {/* ── Brand legend pills ───────────────────────────── */}
       <div className="flex flex-wrap gap-2 mt-3 justify-center">
         {brands.map((brand, i) => {
-          const color = getBrandColor(brand, i)
-          const isHovered = hoveredBrand === brand
+          const color = getBrandColor(brand)
           const isOwn = brand === brandName
           return (
-            <button key={i} onMouseEnter={() => setHoveredBrand(brand)} onMouseLeave={() => setHoveredBrand(null)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border ${isHovered ? 'shadow-md scale-[1.06] border-divider bg-surface' : 'border-divider-light bg-canvas hover:bg-surface hover:border-divider'}`}>
+            <div key={i} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-divider-light bg-canvas">
               <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
               <span className={isOwn ? 'text-ink font-semibold' : 'text-ink-2'}>{brand}</span>
-              {isOwn && <span className="text-[8px] px-1 py-px bg-surface-warm text-ink-2 rounded-full font-semibold">You</span>}
-            </button>
+              {isOwn && (
+                <span className="text-[8px] px-1.5 py-px rounded-full font-semibold" style={{ background: '#FAF0EC', color: '#C84B31' }}>
+                  You
+                </span>
+              )}
+            </div>
           )
         })}
       </div>
