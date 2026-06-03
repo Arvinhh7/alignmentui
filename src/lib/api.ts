@@ -1622,6 +1622,7 @@ class APIClient {
       competitors?: string[];
       engines?: string[];
       deep?: boolean;
+      customer_id?: string;  // persists result to discover_results table
     },
     signal?: AbortSignal,
     userId?: string,

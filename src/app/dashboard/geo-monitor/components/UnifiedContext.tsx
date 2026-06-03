@@ -544,9 +544,17 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
           setScanHistory(normalized)
         }
         if (data.latest_discover) {
-          const dr = data.latest_discover as unknown as DiscoverResult
-          const eng = dr.engine_used ?? 'chatgpt'
-          setDiscoverResults({ [eng]: dr })
+          // New format: { results_by_engine: { chatgpt: DiscoverResult, ... } }
+          // Old format (backwards-compat): a DiscoverResult directly
+          const ld = data.latest_discover as unknown as Record<string, unknown>
+          if (ld.results_by_engine && typeof ld.results_by_engine === 'object') {
+            const byEngine = ld.results_by_engine as Record<string, DiscoverResult>
+            setDiscoverResults(prev => ({ ...prev, ...byEngine }))
+          } else {
+            const dr = data.latest_discover as unknown as DiscoverResult
+            const eng = dr.engine_used ?? 'chatgpt'
+            setDiscoverResults({ [eng]: dr })
+          }
         }
       })
       .catch(err => console.warn('[UnifiedContext] customer hydration failed:', err))
@@ -999,6 +1007,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
         competitors: brandConfig.competitors,
         engines: [discoverEngine],
         deep: false,
+        customer_id: activeCustomerId ?? undefined,  // persist to discover_results table
       }, ctrl.signal, user?.id, userRole ?? undefined)
       if (res.error === '__ABORTED__') { setIsRunningDiscover(false); return }
       if (res.error) { setDiscoverError(res.error) } else if (res.data) {
@@ -1033,6 +1042,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
         competitors: brandConfig.competitors,
         engines: [discoverEngine],
         deep: true,
+        customer_id: activeCustomerId ?? undefined,  // persist to discover_results table
       }, ctrl.signal, user?.id, userRole ?? undefined)
       if (res.error === '__ABORTED__') { setIsRunningDeepDiscover(false); return }
       if (res.error) { setDiscoverError(res.error) } else if (res.data) {
