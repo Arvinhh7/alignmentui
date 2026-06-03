@@ -107,7 +107,9 @@ export function BrandSetupPanel() {
     })
   }, [ctx.brandConfig.competitors, ctx.brandConfig.industry])
 
-  if (!ctx.showConfig) return null
+  // Don't show the config panel while customer data is loading — prevents a
+  // 1-2s flash of an empty form before the DB-hydrated config arrives.
+  if (!ctx.showConfig || ctx.customerHydrating) return null
 
   return (
     <div className="bg-surface rounded-xl border border-divider overflow-hidden">

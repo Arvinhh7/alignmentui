@@ -414,18 +414,19 @@ export function TrendLineChart({ data, label, color = '#000000' }: {
 
 export function ScanHistoryTrendChart({ data }: { data: ScanHistoryEntry[] }) {
   if (data.length === 0) return <div className="text-center py-8 text-ink-3 text-sm">No scan history yet. Run multiple scans to see trends.</div>
-  const W = 640, H = 220, PX = 40, PY = 16, plotW = W - PX - 40, plotH = H - PY - 34
-  const maxVis = Math.max(...data.map(d => d.visibility_score), 10)
-  const yMax = Math.ceil(maxVis / 10) * 10 + 5
-  const yStep = yMax <= 30 ? 5 : yMax <= 60 ? 10 : 15
-  const yTicks: number[] = []
-  for (let v = 0; v <= yMax; v += yStep) yTicks.push(v)
-  const pts = data.map((d, i) => ({
-    x: PX + (data.length > 1 ? (i / (data.length - 1)) * plotW : plotW / 2),
-    y: PY + plotH - (d.visibility_score / yMax) * plotH,
-    vis: d.visibility_score,
-    date: d.date,
-  }))
+  const W = 640, H = 180, PX = 40, PY = 16, plotW = W - PX - 40, plotH = H - PY - 34
+  // Fixed 0–100% Y axis so axis is stable and curves never show phantom > 100% values
+  const yMax = 100
+  const yTicks = [0, 25, 50, 75, 100]
+  const pts = data.map((d, i) => {
+    const clamped = Math.max(0, Math.min(100, d.visibility_score))
+    return {
+      x: PX + (data.length > 1 ? (i / (data.length - 1)) * plotW : plotW / 2),
+      y: PY + plotH - (clamped / yMax) * plotH,
+      vis: clamped,
+      date: d.date,
+    }
+  })
   const curvePath = catmullRomPath(pts)
   const maxLabels = Math.min(10, data.length)
   const labelIndices: number[] = []
@@ -444,6 +445,7 @@ export function ScanHistoryTrendChart({ data }: { data: ScanHistoryEntry[] }) {
   const lastPt = pts[pts.length - 1]
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+      <defs><clipPath id="sh-clip"><rect x={PX} y={PY} width={plotW} height={plotH} /></clipPath></defs>
       {yTicks.map(v => (
         <g key={v}>
           <line x1={PX} y1={PY + plotH - (v / yMax) * plotH} x2={W - 40} y2={PY + plotH - (v / yMax) * plotH} stroke="#C8BFB0" strokeWidth="0.7" />
@@ -453,7 +455,7 @@ export function ScanHistoryTrendChart({ data }: { data: ScanHistoryEntry[] }) {
       {labelIndices.map(i => (
         <text key={i} x={pts[i].x} y={H - 3} textAnchor="middle" fill="#2D2B27" fontSize="9" fontFamily="-apple-system, system-ui, sans-serif">{fmtDate(data[i].date)}</text>
       ))}
-      <path d={curvePath} fill="none" stroke="#000000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={curvePath} fill="none" stroke="#000000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" clipPath="url(#sh-clip)" />
       {lastPt && (
         <text x={lastPt.x + 6} y={lastPt.y + 3.5} fill="#000000" fontSize="10" fontWeight="600" fontFamily="-apple-system, system-ui, sans-serif">{lastPt.vis}%</text>
       )}
@@ -489,15 +491,14 @@ export function UnifiedTrendChart({ data, brandName, scanHistory }: {
 
   const brands = data.brands.length > 0 ? data.brands : [brandName]
   const BRAND_COLORS = ['#000000', '#4A6FA5', '#0A0A0A', '#B8860B', '#7B5E96', '#2D2B27', '#4A7C59', '#B5453A']
-  const W = 640, H = 260, PX = 40, PY = 16, plotW = W - PX - 40, plotH = H - PY - 34
+  // Reduced height (260→200) so the chart is less dominant in the layout
+  const W = 640, H = 200, PX = 40, PY = 16, plotW = W - PX - 40, plotH = H - PY - 34
   const getBrandColor = (brand: string, idx: number) => brand === brandName ? '#000000' : BRAND_COLORS[idx % BRAND_COLORS.length]
 
-  const allVis = brands.flatMap(brand => dates.map(date => dateMap[date]?.[brand]?.visibility_score || 0))
-  const maxVis = Math.max(...allVis, 10)
-  const yMax = Math.ceil(maxVis / 10) * 10 + 5
-  const yTicks: number[] = []
-  const yStep = yMax <= 30 ? 5 : yMax <= 60 ? 10 : yMax <= 100 ? 15 : 25
-  for (let v = 0; v <= yMax; v += yStep) yTicks.push(v)
+  // Always use 0–100 range so the Y axis is stable and never exceeds 100%.
+  // catmullRom curves can mathematically overshoot — a clipPath clips them.
+  const yMax = 100
+  const yTicks = [0, 25, 50, 75, 100]
 
   const maxLabels = Math.min(10, dates.length)
   const labelIndices: number[] = []
@@ -516,22 +517,32 @@ export function UnifiedTrendChart({ data, brandName, scanHistory }: {
   }
 
   const toX = (i: number) => PX + (dates.length > 1 ? (i / (dates.length - 1)) * plotW : plotW / 2)
-  const toY = (v: number) => PY + plotH - (v / yMax) * plotH
+  // Clamp input to [0, yMax] before computing Y so catmullRom overshoots don't
+  // escape the plot area even before the SVG clipPath catches them.
+  const toY = (v: number) => PY + plotH - (Math.max(0, Math.min(yMax, v)) / yMax) * plotH
 
   const brandCurves = brands.map((brand, bIdx) => {
     const color = getBrandColor(brand, bIdx)
     const pts = dates.map((date, i) => {
-      const vis = dateMap[date]?.[brand]?.visibility_score || 0
+      const vis = Math.max(0, Math.min(100, dateMap[date]?.[brand]?.visibility_score || 0))
       return { x: toX(i), y: toY(vis), vis }
     })
     return { brand, color, pts, bIdx }
   })
+
+  const clipId = 'trend-clip'
 
   return (
     <div>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet"
         onMouseMove={e => { const r = (e.target as SVGElement).closest('svg')?.getBoundingClientRect(); if (r) setHoverX(((e.clientX - r.left) / r.width) * W) }}
         onMouseLeave={() => setHoverX(null)}>
+        {/* Clip all curve paths to the plot area so catmullRom overshoots are invisible */}
+        <defs>
+          <clipPath id={clipId}>
+            <rect x={PX} y={PY} width={plotW} height={plotH} />
+          </clipPath>
+        </defs>
         {yTicks.map(v => (
           <g key={v}>
             <line x1={PX} y1={toY(v)} x2={W - 40} y2={toY(v)} stroke="#C8BFB0" strokeWidth="0.7" />
@@ -555,7 +566,7 @@ export function UnifiedTrendChart({ data, brandName, scanHistory }: {
           const lastPt = pts[pts.length - 1]
           return (
             <g key={bIdx} style={{ opacity, transition: 'opacity 0.4s ease' }}>
-              <path d={curve} fill="none" stroke={color} strokeWidth={strokeW} strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'stroke-width 0.3s ease' }} />
+              <path d={curve} fill="none" stroke={color} strokeWidth={strokeW} strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'stroke-width 0.3s ease' }} clipPath={`url(#${clipId})`} />
               {!isDimmed && lastPt && (
                 <text x={lastPt.x + 6} y={lastPt.y + 3.5} fill={color} fontSize="10" fontWeight="600" fontFamily="-apple-system, system-ui, sans-serif">{lastPt.vis}%</text>
               )}
