@@ -1,41 +1,43 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { Suspense } from 'react'
-import { Loader2, BarChart3, Eye, MessageSquare, Link2, ThumbsUp, Users, Target, Tag, ShoppingCart, UserCircle2, Compass } from 'lucide-react'
-import { useLanguage } from '@/lib/LanguageContext'
+import { Loader2, BarChart3, Tag, Compass, FlaskConical } from 'lucide-react'
 import { UnifiedProvider, useUnified, type TabKey } from './components/UnifiedContext'
 import { ControlBar } from './components/ControlBar'
 import { BrandSetupPanel } from './components/BrandSetupPanel'
-import { VisibilityTab } from './components/tabs/VisibilityTab'
+import { PromptEngineeringTab } from './components/tabs/PromptEngineeringTab'
 
-const TabLoader = () => <div className="flex items-center justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-ink-3" /></div>
+const TabLoader = () => (
+  <div className="flex items-center justify-center py-12">
+    <Loader2 className="w-5 h-5 animate-spin text-ink-3" />
+  </div>
+)
 
+const PromptsTab  = dynamic(() => import('./components/tabs/PromptsTab').then(m => ({ default: m.PromptsTab })),   { loading: TabLoader })
 const DiscoverTab = dynamic(() => import('./components/tabs/DiscoverTab').then(m => ({ default: m.DiscoverTab })), { loading: TabLoader })
-const MentionsTab = dynamic(() => import('./components/tabs/MentionsTab').then(m => ({ default: m.MentionsTab })), { loading: TabLoader })
-const CitationsTab = dynamic(() => import('./components/tabs/CitationsTab').then(m => ({ default: m.CitationsTab })), { loading: TabLoader })
-const SentimentTab = dynamic(() => import('./components/tabs/SentimentTab').then(m => ({ default: m.SentimentTab })), { loading: TabLoader })
-const CompetitorsTab = dynamic(() => import('./components/tabs/CompetitorsTab').then(m => ({ default: m.CompetitorsTab })), { loading: TabLoader })
-const GapAnalysisTab = dynamic(() => import('./components/tabs/GapAnalysisTab').then(m => ({ default: m.GapAnalysisTab })), { loading: TabLoader })
-const PromptsTab = dynamic(() => import('./components/tabs/PromptsTab').then(m => ({ default: m.PromptsTab })), { loading: TabLoader })
-const ShoppingTab = dynamic(() => import('./components/tabs/ShoppingTab').then(m => ({ default: m.ShoppingTab })), { loading: TabLoader })
-const PersonasTab = dynamic(() => import('./components/tabs/PersonasTab').then(m => ({ default: m.PersonasTab })), { loading: TabLoader })
 
-function DashboardContent() {
-  const { t } = useLanguage()
+function MonitoringContent() {
   const ctx = useUnified()
 
-  const tabs: { key: TabKey; label: string; icon: React.ReactNode; badge?: string }[] = [
-    { key: 'visibility', label: 'Visibility', icon: <Eye className="w-4 h-4" /> },
-    { key: 'discover',   label: 'Discover',   icon: <Compass className="w-4 h-4" />, badge: ctx.discoverResult ? `${ctx.discoverResult.unique_domains}` : undefined },
-    { key: 'prompts', label: 'Prompts', icon: <Tag className="w-4 h-4" />, badge: ctx.prompts.length ? `${ctx.prompts.filter(p => p.is_active).length}` : undefined },
-    { key: 'mentions', label: 'Mentions', icon: <MessageSquare className="w-4 h-4" /> },
-    { key: 'citations', label: 'Citations', icon: <Link2 className="w-4 h-4" /> },
-    { key: 'sentiment', label: 'Sentiment', icon: <ThumbsUp className="w-4 h-4" /> },
-    { key: 'competitors', label: 'Competitors', icon: <Users className="w-4 h-4" />, badge: ctx.scanResult?.suggested_brands?.length ? `${ctx.scanResult.suggested_brands.length}` : undefined },
-    { key: 'gap_analysis', label: 'Gap Analysis', icon: <Target className="w-4 h-4" />, badge: ctx.gapResult ? `${ctx.gapResult.overall_gap_score}` : undefined },
-    { key: 'shopping', label: 'Shopping', icon: <ShoppingCart className="w-4 h-4" /> },
-    { key: 'personas', label: 'Personas', icon: <UserCircle2 className="w-4 h-4" /> },
+  const tabs: { key: TabKey; label: string; icon: React.ReactNode; badge?: string; isBeta?: boolean }[] = [
+    {
+      key: 'prompts',
+      label: 'Prompts',
+      icon: <Tag className="w-4 h-4" />,
+      badge: ctx.prompts.length ? `${ctx.prompts.filter(p => p.is_active).length}` : undefined,
+    },
+    {
+      key: 'discover',
+      label: 'Fan-Out',
+      icon: <Compass className="w-4 h-4" />,
+      badge: ctx.discoverResult ? `${ctx.discoverResult.unique_domains}` : undefined,
+    },
+    {
+      key: 'ai_research',
+      label: 'Prompt Engineering',
+      icon: <FlaskConical className="w-4 h-4" />,
+      isBeta: true,
+    },
   ]
 
   return (
@@ -47,33 +49,34 @@ function DashboardContent() {
             <BarChart3 className="w-5 h-5 text-sage" />
           </div>
           <div>
-            <h1 className="heading-dash">{t.dashboard.geoMonitor}</h1>
-            <p className="text-sm text-ink-3">{t.dashboard.geoMonitorDesc}</p>
+            <h1 className="heading-dash">Monitoring</h1>
+            <p className="text-sm text-ink-3">Prompt tracking, Fan-Out analysis, and AI research</p>
           </div>
         </div>
       </div>
 
       <div className="p-6 space-y-6">
-        {/* Brand Setup */}
         <BrandSetupPanel />
-
-        {/* Control Bar */}
         <ControlBar />
 
-        {/* Error */}
         {ctx.scanError && (
-          <div className="bg-red-soft-bg border border-red-soft/30 rounded-xl p-4 flex items-center gap-3">
+          <div className="bg-red-soft-bg border border-red-soft/30 rounded-xl p-4">
             <span className="text-sm text-red-soft">{ctx.scanError}</span>
           </div>
         )}
 
-        {/* Tab Navigation */}
+        {/* Tab bar */}
         <div className="flex items-center gap-1 bg-surface border border-divider-light rounded-xl p-1 overflow-x-auto">
           {tabs.map(tab => (
-            <button key={tab.key} onClick={() => ctx.setActiveTab(tab.key)}
+            <button
+              key={tab.key}
+              onClick={() => ctx.setActiveTab(tab.key)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                ctx.activeTab === tab.key ? 'bg-ink text-ink-inv shadow-sm' : 'text-ink-2 hover:bg-surface-warm'
-              }`}>
+                ctx.activeTab === tab.key
+                  ? 'bg-ink text-ink-inv shadow-sm'
+                  : 'text-ink-2 hover:bg-surface-warm'
+              }`}
+            >
               {tab.icon}
               {tab.label}
               {tab.badge && (
@@ -81,21 +84,19 @@ function DashboardContent() {
                   ctx.activeTab === tab.key ? 'bg-[rgba(250,245,236,0.2)] text-ink-inv' : 'bg-surface-muted text-ink-3'
                 }`}>{tab.badge}</span>
               )}
+              {tab.isBeta && (
+                <span className="text-[8px] font-bold px-1.5 py-0.5 bg-[rgba(100,180,255,0.1)] text-[rgba(100,180,255,0.75)] border border-[rgba(100,180,255,0.2)] rounded-full">
+                  Beta
+                </span>
+              )}
             </button>
           ))}
         </div>
 
-        {/* Tab Content */}
-        {ctx.activeTab === 'visibility' && <VisibilityTab />}
-        {ctx.activeTab === 'discover' && <DiscoverTab />}
-        {ctx.activeTab === 'prompts' && <PromptsTab />}
-        {ctx.activeTab === 'mentions' && <MentionsTab />}
-        {ctx.activeTab === 'citations' && <CitationsTab />}
-        {ctx.activeTab === 'sentiment' && <SentimentTab />}
-        {ctx.activeTab === 'competitors' && <CompetitorsTab />}
-        {ctx.activeTab === 'gap_analysis' && <GapAnalysisTab />}
-        {ctx.activeTab === 'shopping' && <ShoppingTab />}
-        {ctx.activeTab === 'personas' && <PersonasTab />}
+        {/* Tab content */}
+        {ctx.activeTab === 'prompts'     && <PromptsTab />}
+        {ctx.activeTab === 'discover'    && <DiscoverTab />}
+        {ctx.activeTab === 'ai_research' && <PromptEngineeringTab />}
       </div>
     </div>
   )
@@ -104,7 +105,7 @@ function DashboardContent() {
 export default function GeoMonitorPage() {
   return (
     <UnifiedProvider>
-      <DashboardContent />
+      <MonitoringContent />
     </UnifiedProvider>
   )
 }

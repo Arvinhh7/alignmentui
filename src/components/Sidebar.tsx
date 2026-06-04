@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useAuth, type UserRole, type PermissionsMap } from '@/hooks/useAuth'
 import { api, CreditBalance } from '@/lib/api'
+import { SidebarCustomerSwitcher } from '@/components/SidebarCustomerSwitcher'
 import {
   ShieldCheck, Zap, PenTool, Share2, BarChart3, Activity,
   LogOut, Settings, Wrench, PanelLeftClose, PanelLeft,
@@ -323,6 +324,15 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         )}
       </div>
 
+      {/* ── Customer / Workspace switcher (GEOly-style, under the logo) ────── */}
+      <div className="mt-3">
+        <SidebarCustomerSwitcher
+          expanded={expanded}
+          mobileOpen={mobileOpen}
+          onRequestExpand={() => { setExpandedPref(true); try { localStorage.setItem(SIDEBAR_KEY, 'true') } catch {} }}
+        />
+      </div>
+
       {/* ── Global Search ─────────────────────────────────────────────────── */}
       <div className={`mt-3 ${(expanded || mobileOpen) ? 'px-3' : 'px-2 flex justify-center'}`} ref={searchRef}>
         {(expanded || mobileOpen) ? (
@@ -401,7 +411,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
           <div key={group.labelKey} className="mb-1">
             {(expanded || mobileOpen) && (
               <div className="px-1 mb-1">
-                <span className="text-[9px] font-bold text-[rgba(250,245,236,0.25)] uppercase tracking-widest">
+                <span className="text-[10px] font-semibold text-[rgba(250,245,236,0.5)] uppercase tracking-[0.05em]">
                   {getLabel(group.labelKey)}
                 </span>
               </div>
@@ -483,7 +493,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
           <div className="mt-1">
             {(expanded || mobileOpen) && (
               <div className="px-1 mb-1">
-                <span className="text-[9px] font-bold text-[rgba(250,245,236,0.25)] uppercase tracking-widest">Manage</span>
+                <span className="text-[10px] font-semibold text-[rgba(250,245,236,0.5)] uppercase tracking-[0.05em]">Manage</span>
               </div>
             )}
             {!expanded && !mobileOpen && <div className="w-full h-px bg-[rgba(250,245,236,0.06)] my-2" />}
@@ -533,7 +543,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
           <div className="mt-1">
             {(expanded || mobileOpen) && (
               <div className="px-1 mb-1">
-                <span className="text-[9px] font-bold text-[rgba(250,245,236,0.25)] uppercase tracking-widest">Manage</span>
+                <span className="text-[10px] font-semibold text-[rgba(250,245,236,0.5)] uppercase tracking-[0.05em]">Manage</span>
               </div>
             )}
             {!expanded && !mobileOpen && <div className="w-full h-px bg-[rgba(250,245,236,0.06)] my-2" />}

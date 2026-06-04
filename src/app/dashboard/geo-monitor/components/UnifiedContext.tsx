@@ -29,11 +29,15 @@ import {
   RECENT_BRANDS_KEY,
   DISCOVER_RESULT_KEY,
   ACTIVE_CUSTOMER_KEY,
+  ACTIVE_CUSTOMER_EVENT,
+  CUSTOMER_CACHE_KEY,
+  SNAPSHOTS_KEY,
   autoClassify,
   sanitizeBrandConfig,
   type BrandConfig,
   type ScanHistoryEntry,
   type RecentBrandRecord,
+  type ReportSnapshot,
 } from './shared/constants'
 import { formatDate } from './shared/ChartComponents'
 
@@ -95,7 +99,7 @@ function applyBrandClassification(
 
 export type TabKey =
   | 'visibility' | 'discover' | 'prompts' | 'mentions' | 'citations' | 'sentiment'
-  | 'competitors' | 'gap_analysis' | 'shopping' | 'personas'
+  | 'competitors' | 'gap_analysis' | 'shopping' | 'personas' | 'ai_research'
 
 // ─── Context shape ───────────────────────────────────
 
@@ -148,6 +152,11 @@ interface UnifiedState {
   advMentionsError: string
   handleRunAdvancedMentions: () => void
   handleStopAdvMentions: () => void
+
+  // AI Research (Deep Research simulation) — persisted via monitor_analysis_cache('ai_research')
+  aiResearchResult: Record<string, unknown> | null
+  saveAiResearch: (result: Record<string, unknown>) => void
+  clearAiResearch: () => void
 
   intelReport: CompetitiveIntelReport | null
   isGeneratingReport: boolean
@@ -223,6 +232,10 @@ interface UnifiedState {
   // Warehouse pre-loaded data (no scan needed, reads agg_brand_daily)
   warehouseLoaded: boolean
   lastRefreshed: string | null
+
+  // Report snapshots — frozen metric sets saved by user for client reporting
+  savedSnapshots: ReportSnapshot[]
+  saveSnapshot: (name?: string) => ReportSnapshot
 
   // Tab
   activeTab: TabKey
@@ -315,6 +328,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const [isRunningAdvMentions, setIsRunningAdvMentions] = useState(false)
   const [advMentionsError, setAdvMentionsError] = useState('')
   const [intelReport, setIntelReport] = useState<CompetitiveIntelReport | null>(null)
+  const [aiResearchResult, setAiResearchResult] = useState<Record<string, unknown> | null>(null)
   const [isGeneratingReport, setIsGeneratingReport] = useState(false)
   const [reportError, setReportError] = useState('')
   const [multiBrandTrends, setMultiBrandTrends] = useState<MultiBrandTrendData | null>(null)
@@ -357,6 +371,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const [customers, setCustomers] = useState<CustomerSummary[]>([])
   const [warehouseLoaded, setWarehouseLoaded] = useState(false)
   const [lastRefreshed, setLastRefreshed] = useState<string | null>(null)
+  const [savedSnapshots, setSavedSnapshots] = useState<ReportSnapshot[]>([])
 
   // ── Abort controllers ───────────────────────────
   const scanAbortRef = useRef<AbortController | null>(null)
@@ -428,7 +443,25 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
         || (_IS_PREVIEW ? _PREVIEW_CUSTOMER_ID : null)
       if (cid) {
         setActiveCustomerId(cid)
-        if (typeof window !== 'undefined') localStorage.setItem(ACTIVE_CUSTOMER_KEY, cid)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(ACTIVE_CUSTOMER_KEY, cid)
+          // Tell the global sidebar switcher which customer we landed on
+          window.dispatchEvent(new CustomEvent(ACTIVE_CUSTOMER_EVENT, { detail: cid }))
+        }
+        // ④ Pre-fill brand name from cache so new tabs show the brand instantly
+        // (no "Loading..." flash — backend hydration overwrites when it completes)
+        try {
+          const nameCache: Record<string, { brand_name: string; domain: string }> =
+            JSON.parse(localStorage.getItem(CUSTOMER_CACHE_KEY) || '{}')
+          if (nameCache[cid]) {
+            setBrandConfig(prev => ({
+              ...prev,
+              brand_name: nameCache[cid].brand_name,
+              domain: nameCache[cid].domain || prev.domain,
+            }))
+            setIsConfigured(true)
+          }
+        } catch { /* cache miss is safe to ignore */ }
         // Capture autoScan BEFORE the early return — the backend hydration effect
         // sets isConfigured after loading the customer, which then triggers the
         // autoScan watcher (line ~659). This is how onboarding → first scan works.
@@ -481,6 +514,8 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       }
       const savedRecent = localStorage.getItem(RECENT_BRANDS_KEY)
       if (savedRecent) setRecentBrands(JSON.parse(savedRecent))
+      const savedSnaps = localStorage.getItem(SNAPSHOTS_KEY)
+      if (savedSnaps) setSavedSnapshots(JSON.parse(savedSnaps))
       if (params.get('autoScan') === 'true' && !autoScanTriggered.current) {
         autoScanTriggered.current = true
         window.history.replaceState({}, '', window.location.pathname)
@@ -501,6 +536,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     setGapResult(null)
     setAdvancedMentions(null)
     setIntelReport(null)
+    setAiResearchResult(null)
     setDiscoverResults({})
     setMultiBrandTrends(null)
 
@@ -520,6 +556,16 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
         }))
         setIsConfigured(true)
         setShowConfig(false)
+        // ④ Write brand name to cache so future new tabs show it immediately
+        try {
+          const nameCache: Record<string, { brand_name: string; domain: string }> =
+            JSON.parse(localStorage.getItem(CUSTOMER_CACHE_KEY) || '{}')
+          nameCache[activeCustomerId!] = {
+            brand_name: data.customer.brand_name,
+            domain:     data.customer.domain,
+          }
+          localStorage.setItem(CUSTOMER_CACHE_KEY, JSON.stringify(nameCache))
+        } catch { /* non-critical */ }
 
         if (data.latest_scan) {
           setScanResult(data.latest_scan as unknown as MonitorScanResult)
@@ -562,6 +608,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
           if (ac.gap)               setGapResult(ac.gap as GapAnalysisResult)
           if (ac.intel)             setIntelReport(ac.intel as CompetitiveIntelReport)
           if (ac.advanced_mentions) setAdvancedMentions(ac.advanced_mentions as AdvancedMentionAnalysis)
+          if (ac.ai_research)       setAiResearchResult(ac.ai_research as Record<string, unknown>)
         }
       })
       .catch(err => console.warn('[UnifiedContext] customer hydration failed:', err))
@@ -615,8 +662,71 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const switchCustomer = useCallback((customerId: string) => {
     if (!customerId || customerId === activeCustomerId) return
     if (typeof window !== 'undefined') localStorage.setItem(ACTIVE_CUSTOMER_KEY, customerId)
+    // ④ Pre-cache brand name from the already-loaded customers list so the new
+    // tab shows it immediately without waiting for the backend hydration round-trip.
+    const found = customers.find(c => c.id === customerId)
+    if (found) {
+      try {
+        const cache: Record<string, { brand_name: string; domain: string }> =
+          JSON.parse(localStorage.getItem(CUSTOMER_CACHE_KEY) || '{}')
+        cache[customerId] = { brand_name: found.brand_name, domain: found.domain }
+        localStorage.setItem(CUSTOMER_CACHE_KEY, JSON.stringify(cache))
+      } catch { /* non-critical */ }
+    }
     setActiveCustomerId(customerId)  // triggers hydration effect (clears + loads new data)
-  }, [activeCustomerId])
+    // Notify the global sidebar switcher (lives outside this provider)
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent(ACTIVE_CUSTOMER_EVENT, { detail: customerId }))
+    }
+  }, [activeCustomerId, customers])
+
+  // ═══ React to customer switches from the global sidebar switcher ═══
+  // The sidebar lives outside UnifiedProvider, so it signals via a window
+  // event. We only adopt the new id (the sidebar already wrote localStorage);
+  // setActiveCustomerId then triggers the hydration effect. No re-dispatch →
+  // no loop.
+  useEffect(() => {
+    const onExternalSwitch = (e: Event) => {
+      const id = (e as CustomEvent<string>).detail
+      if (id) setActiveCustomerId(prev => (prev === id ? prev : id))
+    }
+    window.addEventListener(ACTIVE_CUSTOMER_EVENT, onExternalSwitch as EventListener)
+    return () => window.removeEventListener(ACTIVE_CUSTOMER_EVENT, onExternalSwitch as EventListener)
+  }, [])
+
+  // ═══ Report snapshot ═══════════════════════════════
+  const saveSnapshot = useCallback((name?: string): ReportSnapshot => {
+    const label = name?.trim() ||
+      `${brandConfig.brand_name} — ${new Date().toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: 'numeric' })}`
+    const latest = scanHistory[scanHistory.length - 1]
+    const snapshot: ReportSnapshot = {
+      id: (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : String(Date.now()),
+      name: label,
+      brand_name: brandConfig.brand_name,
+      domain:     brandConfig.domain,
+      created_at: new Date().toISOString(),
+      date_range: { preset: datePreset, start: startDate, end: endDate },
+      metrics: {
+        visibility_score: (scanResult as unknown as Record<string, number> | null)?.visibility_score
+          ?? latest?.visibility_score,
+        mentions_found:   (scanResult as unknown as Record<string, number> | null)?.mentions_found
+          ?? latest?.mentions_found,
+        total_prompts:    (scanResult as unknown as Record<string, number> | null)?.total_prompts
+          ?? latest?.total_prompts,
+        citation_count:   (scanResult as unknown as Record<string, number> | null)?.citation_count
+          ?? latest?.citation_count,
+        positive_pct:     latest?.positive_pct,
+      },
+    }
+    setSavedSnapshots(prev => {
+      const updated = [snapshot, ...prev]
+      try { localStorage.setItem(SNAPSHOTS_KEY, JSON.stringify(updated)) } catch { /* storage full */ }
+      return updated
+    })
+    return snapshot
+  }, [brandConfig, datePreset, startDate, endDate, scanResult, scanHistory])
 
   // ═══ Brand config handlers ═══════════════════════
 
@@ -726,7 +836,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(DISCOVER_RESULT_KEY)
     setBrandConfig({ brand_name: '', domain: '', keywords: [], competitors: [], industry: '', one_liner: '', target_audience: '', target_market: '', differentiation: '' })
     setIsConfigured(false); setShowConfig(true)
-    setScanResult(null); setScanHistory([]); setGapResult(null); setAdvancedMentions(null); setIntelReport(null); setDiscoverResults({})
+    setScanResult(null); setScanHistory([]); setGapResult(null); setAdvancedMentions(null); setIntelReport(null); setAiResearchResult(null); setDiscoverResults({})
   }
 
   // ═══ Scan handlers ═══════════════════════════════
@@ -942,6 +1052,14 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   }
   const handleStopReport = () => { reportAbortRef.current?.abort(); reportAbortRef.current = null; setIsGeneratingReport(false) }
 
+  // ═══ AI Research persistence (same 4-step contract as gap/intel) ═══
+  // Save → DB (monitor_analysis_cache 'ai_research'); hydrated by getLatest on load.
+  const saveAiResearch = useCallback((result: Record<string, unknown>) => {
+    setAiResearchResult(result)
+    if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'ai_research', result).catch(() => {})
+  }, [activeCustomerId])
+  const clearAiResearch = useCallback(() => setAiResearchResult(null), [])
+
   // ═══ AEO ═════════════════════════════════════════
 
   const handleRunAeo = async () => {
@@ -1140,6 +1258,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     gapResult, isRunningGap, gapError, handleRunGapAnalysis, handleStopGapAnalysis,
     advancedMentions, isRunningAdvMentions, advMentionsError, handleRunAdvancedMentions, handleStopAdvMentions,
     intelReport, isGeneratingReport, reportError, handleGenerateReport, handleStopReport,
+    aiResearchResult, saveAiResearch, clearAiResearch,
     multiBrandTrends, isLoadingTrends,
     discoverResult, discoverResults, isRunningDiscover, isRunningDeepDiscover, discoverError, discoverEngine, setDiscoverEngine, availableEngines, engineModels, userRole, handleRunDiscover, handleRunDeepDiscover, handleStopDiscover, showGeneratePromptsModal, setShowGeneratePromptsModal, handleBatchSavePrompts,
     aeoUrl, setAeoUrl, aeoResult, aeoHistory, isRunningAeo, aeoError, handleRunAeo,
@@ -1152,6 +1271,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     handleBatchDelete, cancelBatchDelete, isBatchDeleting, batchConfirmStep,
     activeCustomerId, customerHydrating, customers, switchCustomer,
     warehouseLoaded, lastRefreshed,
+    savedSnapshots, saveSnapshot,
     activeTab, setActiveTab,
     citationsSubTab, setCitationsSubTab, competitorsSubTab, setCompetitorsSubTab,
   }

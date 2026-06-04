@@ -26,6 +26,31 @@ export const RECENT_BRANDS_KEY = 'geo_monitor_recent_brands'
 export const DISCOVER_RESULT_KEY = 'alignment_geo_discover_result'
 // Active customer for the Monitor dropdown switcher — survives page refresh
 export const ACTIVE_CUSTOMER_KEY = 'alignment_monitor_active_customer'
+// Same-tab pub/sub: dispatched on window whenever the active customer changes
+// (from the sidebar switcher or from inside UnifiedContext). Lets the global
+// sidebar switcher and the engine-page context stay in sync without a shared
+// React provider. detail = the new customer id (string).
+export const ACTIVE_CUSTOMER_EVENT = 'alignment:active-customer-changed'
+// Customer name cache: {customerId → {brand_name, domain}} — pre-fills header instantly on new tab
+export const CUSTOMER_CACHE_KEY = 'alignment_monitor_customer_cache'
+// Frozen report snapshots — metrics locked at save time, never overwritten by new scans
+export const SNAPSHOTS_KEY = 'alignment_monitor_report_snapshots'
+
+export interface ReportSnapshot {
+  id: string
+  name: string
+  brand_name: string
+  domain: string
+  created_at: string
+  date_range: { preset: string; start: string; end: string }
+  metrics: {
+    visibility_score?: number
+    mentions_found?: number
+    total_prompts?: number
+    citation_count?: number
+    positive_pct?: number
+  }
+}
 
 // ─── Color maps ────────────────────────────────────────
 export const METRIC_COLORS = {
@@ -152,12 +177,12 @@ export const INTENT_CONTENT_MAP: Record<string, { type: string; label: string; u
 export const CATEGORY_LABEL_MAP: Record<string, string> = {
   info_cognition: 'Info Cognition',
   solution_explore: 'Solution Explore',
-  comparison_decision: 'Compare & Decide',
+  comparison_decision: 'Comparison Decision',
   action_choice: 'Action Choice',
   recommendation: 'Action Choice',
-  comparison: 'Compare & Decide',
+  comparison: 'Comparison Decision',
   information: 'Info Cognition',
-  review: 'Compare & Decide',
+  review: 'Comparison Decision',
   howto: 'Action Choice',
 }
 
