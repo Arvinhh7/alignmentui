@@ -5,6 +5,73 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 /**
+ * fetch wrapper with timeout + automatic retry for transient backend outages.
+ *
+ * Why: on every deploy the Railway backend restarts for ~1-2 min. A bare
+ * fetch() has no timeout, so during that window the UI hangs on a loading
+ * skeleton until the request finally resolves (2-3 min). This wrapper times
+ * each attempt out and retries GETs with backoff, so the moment the backend
+ * is back the next retry succeeds — recovery in seconds, not minutes.
+ *
+ * SAFETY: only idempotent methods (GET/HEAD) are retried. POST/PATCH/DELETE
+ * run exactly once to avoid double-submits. A caller-provided AbortSignal is
+ * honored and is never retried through.
+ */
+export async function fetchWithRetry(
+  input: string,
+  init: RequestInit = {},
+  opts: { timeoutMs?: number; budgetMs?: number; maxDelayMs?: number; baseDelayMs?: number } = {},
+): Promise<Response> {
+  const { timeoutMs = 10000, budgetMs = 90000, maxDelayMs = 5000, baseDelayMs = 1000 } = opts;
+  const method = (init.method || 'GET').toUpperCase();
+  // Only idempotent reads retry. Mutations run exactly once (no double-submit).
+  const retryable = method === 'GET' || method === 'HEAD';
+  const callerSignal = init.signal as AbortSignal | undefined;
+  const deadline = Date.now() + (retryable ? budgetMs : 0);
+  let attempt = 0;
+  let lastErr: unknown;
+
+  for (;;) {
+    const controller = new AbortController();
+    let timedOut = false;
+    const onCallerAbort = () => controller.abort();
+    if (callerSignal) {
+      if (callerSignal.aborted) controller.abort();
+      else callerSignal.addEventListener('abort', onCallerAbort, { once: true });
+    }
+    const timer = setTimeout(() => { timedOut = true; controller.abort(); }, timeoutMs);
+    try {
+      const res = await fetch(input, { ...init, signal: controller.signal });
+      clearTimeout(timer);
+      callerSignal?.removeEventListener('abort', onCallerAbort);
+      // 502/503/504 = backend mid-restart / gateway not ready → retry within budget
+      if ([502, 503, 504].includes(res.status) && retryable && Date.now() < deadline) {
+        await new Promise(r => setTimeout(r, Math.min(maxDelayMs, baseDelayMs * 2 ** attempt)));
+        attempt++;
+        continue;
+      }
+      return res;
+    } catch (err) {
+      clearTimeout(timer);
+      callerSignal?.removeEventListener('abort', onCallerAbort);
+      // Caller aborted (not our timeout) → propagate immediately, never retry
+      if (callerSignal?.aborted && !timedOut) throw err;
+      lastErr = err;
+      // Keep retrying transient failures (connection refused / timeout) until
+      // the time budget is exhausted, with exponential backoff capped at maxDelayMs.
+      // Covers the full Railway redeploy window so the moment the backend is
+      // back, the next retry succeeds — recovery in seconds, not minutes.
+      if (retryable && Date.now() < deadline) {
+        await new Promise(r => setTimeout(r, Math.min(maxDelayMs, baseDelayMs * 2 ** attempt)));
+        attempt++;
+        continue;
+      }
+      throw lastErr instanceof Error ? lastErr : new Error('Network request failed after retries');
+    }
+  }
+}
+
+/**
  * Dispatch a browser event to notify the SubscriptionBanner to refresh credits.
  * Call this after any operation that consumes credits.
  */
@@ -1226,7 +1293,7 @@ class APIClient {
         Object.assign(headers, existingHeaders);
       }
 
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      const response = await fetchWithRetry(`${this.baseUrl}${endpoint}`, {
         ...options,
         headers,
       });
@@ -3344,7 +3411,7 @@ export interface CustomerUpdate {
 
 export const customersApi = {
   list: async (userId: string, includeArchived = false): Promise<CustomerSummary[]> => {
-    const r = await fetch(
+    const r = await fetchWithRetry(
       `${API_BASE_URL}/api/customers?user_id=${encodeURIComponent(userId)}&include_archived=${includeArchived}`,
     )
     if (!r.ok) {
@@ -3373,7 +3440,7 @@ export const customersApi = {
   },
 
   get: async (customerId: string, userId: string): Promise<CustomerDetail> => {
-    const r = await fetch(
+    const r = await fetchWithRetry(
       `${API_BASE_URL}/api/customers/${encodeURIComponent(customerId)}?user_id=${encodeURIComponent(userId)}`,
     )
     if (!r.ok) {
@@ -3412,7 +3479,7 @@ export const customersApi = {
   },
 
   getLatest: async (customerId: string, userId: string): Promise<CustomerLatest> => {
-    const r = await fetch(
+    const r = await fetchWithRetry(
       `${API_BASE_URL}/api/customers/${encodeURIComponent(customerId)}/latest?user_id=${encodeURIComponent(userId)}`,
     )
     if (!r.ok) {
