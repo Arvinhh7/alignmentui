@@ -13,6 +13,7 @@ import {
   Sparkles, ExternalLink, HelpCircle, Home, ChevronRight, CreditCard,
   LineChart, LayoutDashboard, Search, MessageSquare,
   BookOpen, TrendingUp, Database, X, Globe, Users, ShoppingCart, Briefcase,
+  Compass, Bot, Megaphone, Plug, Cpu, Link2,
 } from 'lucide-react'
 
 const SIDEBAR_KEY = 'sidebar_expanded'
@@ -48,8 +49,11 @@ interface NavItem {
   matchPrefix?: boolean
   badge?: string
   isNew?: boolean
+  isBeta?: boolean
   /** Permission key used to filter items for staff accounts */
   permissionKey?: string
+  /** Renders a mini sub-section divider + label before this item */
+  sectionLabel?: string
 }
 
 interface NavGroup {
@@ -168,59 +172,58 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
     if (ok) router.push('/login')
   }
 
-  // ── Navigation groups ──────────────────────────────────────────────────
+  // ── Navigation groups (4-pillar IA: Insights / Actions / Assistant / Manage) ──
   const navGroups: NavGroup[] = [
     {
-      labelKey: 'navGroupAnalytics',
+      labelKey: 'navGroupInsights',
       items: [
-        { href: '/dashboard/overview',    icon: LayoutDashboard, labelKey: 'overviewNav',    permissionKey: 'overview' },
-        { href: '/dashboard/geo-monitor', icon: TrendingUp,      labelKey: 'answerEngineNav', permissionKey: 'geo-monitor' },
-        { href: '/dashboard/gci',         icon: Activity,        labelKey: 'GCI' as never,    permissionKey: 'overview' },
+        { href: '/dashboard/explore',   icon: Compass,      labelKey: 'exploreNav',   isBeta: true },
+        { href: '/dashboard/ai-search', icon: TrendingUp,   labelKey: 'aiSearchNav',  isNew: true },
+        { href: '/dashboard/sources',   icon: Link2,        labelKey: 'sourcesNav',   isNew: true },
+        { href: '/dashboard/shopping',  icon: ShoppingCart, labelKey: 'shoppingNav',  isNew: true },
+        { href: '/dashboard/ads',       icon: Megaphone,    labelKey: 'adsNav',       isNew: true },
+        { href: '/dashboard/gci',       icon: Activity,     labelKey: 'GCI' as never, permissionKey: 'overview' },
       ],
     },
     {
-      labelKey: 'navGroupAction',
+      labelKey: 'navGroupActions',
       items: [
-        { href: '/dashboard/geo-audit',   icon: ShieldCheck, labelKey: 'geoAuditNav',             permissionKey: 'geo-audit' },
-        { href: '/dashboard/geo-content', icon: PenTool,     labelKey: 'geoContentNav',           permissionKey: 'geo-content' },
+        { href: '/dashboard/geo-monitor', icon: BarChart3, labelKey: 'monitoringNav', permissionKey: 'geo-monitor' },
+        { href: '/dashboard/analysis',    icon: LineChart,  labelKey: 'analysisNav',  isNew: true },
       ],
     },
     {
-      labelKey: 'navGroupContext',
+      labelKey: 'navGroupAssistant',
       items: [
-        { href: '/dashboard/prompts',   icon: MessageSquare, labelKey: 'promptsNav', badge: promptCount > 0 ? String(promptCount) : undefined, permissionKey: 'prompts' },
-        { href: '/dashboard/brand-hub', icon: Database,      labelKey: 'brandNav',                                                             permissionKey: 'brand-hub' },
-      ],
-    },
-    {
-      labelKey: 'navGroupProxy',
-      items: [
-        { href: '/dashboard/visibility-proxy', icon: Globe, labelKey: 'visibilityProxyNav', matchPrefix: true, isNew: true, permissionKey: 'visibility-proxy' },
+        { href: '/dashboard/geo-content',      icon: Bot,        labelKey: 'agentNav',          permissionKey: 'geo-content' },
+        { href: '/dashboard/geo-audit',        icon: ShieldCheck, labelKey: 'webInfraNav',       permissionKey: 'geo-audit' },
+        { href: '/dashboard/brand-hub',        icon: Database,   labelKey: 'brandNav',           permissionKey: 'brand-hub' },
+        { href: '/dashboard/visibility-proxy', icon: Plug,       labelKey: 'visibilityProxyNav', permissionKey: 'visibility-proxy', matchPrefix: true, isNew: true, sectionLabel: 'Integrations' },
+        { href: '/dashboard/ga4-attribution',  icon: LineChart,  labelKey: 'GA4 Attribution' as never, permissionKey: 'ga4-attribution' },
+        { href: '/dashboard/mcp-integration',  icon: Cpu,        labelKey: 'mcpIntegrationNav', isBeta: true },
       ],
     },
   ]
 
-  // Advanced features — admin sees all; staff sees permitted ones only
-  // RULE: any item here with a permissionKey can be delegated to staff via Team Management.
+  // ── Manage section: Operations (delegatable) + Admin (admin-only) ──────
+  // RULE: any item with a permissionKey can be assigned to staff via Team Management.
   const advancedFeatureItems: NavItem[] = [
-    { href: '/dashboard/geo-optimization',    icon: Zap,          labelKey: 'geoOptimizationNav',                  permissionKey: 'geo-optimization' },
-    { href: '/dashboard/geo-distribution',    icon: Share2,       labelKey: 'geoDistributionNav',                  permissionKey: 'geo-distribution' },
-    { href: '/dashboard/ga4-attribution',     icon: LineChart,    labelKey: 'GA4 Attribution' as never,            permissionKey: 'ga4-attribution' },
-    { href: '/dashboard/ops',                 icon: Activity,     labelKey: 'Managed Service' as never,    matchPrefix: true, permissionKey: 'ops' },
-    { href: '/dashboard/agentic-commerce',    icon: ShoppingCart, labelKey: 'agenticCommerceNav' as never, matchPrefix: true, permissionKey: 'agentic-commerce' },
-    // Admin sub-pages that can be delegated to staff via Team Management permissions
-    { href: '/dashboard/admin/customers',     icon: Briefcase,    labelKey: 'Customers' as never,          matchPrefix: true, permissionKey: 'customers' },
+    // ── Operations sub-section ─────────────────────────────────────────
+    { href: '/dashboard/geo-distribution', icon: Share2,       labelKey: 'geoDistributionNav',          permissionKey: 'geo-distribution',  sectionLabel: 'Operations' },
+    { href: '/dashboard/agentic-commerce', icon: ShoppingCart, labelKey: 'agenticCommerceNav' as never, permissionKey: 'agentic-commerce',  matchPrefix: true },
+    // ── Admin sub-section (delegatable) ───────────────────────────────
+    { href: '/dashboard/admin/customers',  icon: Briefcase,    labelKey: 'Customers' as never,          permissionKey: 'customers',         matchPrefix: true, sectionLabel: 'Admin' },
   ]
 
-  // Admin-only items — NEVER delegatable to staff; always role=admin only.
-  // Do NOT put items here if they should be assignable in Team Management.
+  // Admin-only items — NEVER delegatable to staff.
   const adminOnlyItems: NavItem[] = [
-    { href: '/dashboard/admin',                icon: Wrench, labelKey: 'Admin Panel' as never },
-    { href: '/dashboard/admin/domain-checker', icon: Search, labelKey: 'Domain Checker' as never },
-    { href: '/dashboard/admin/team',           icon: Users,  labelKey: 'Team Management' as never },
+    { href: '/dashboard/ops',                  icon: Activity, labelKey: 'Managed Service' as never, matchPrefix: true },
+    { href: '/dashboard/admin',                icon: Wrench,   labelKey: 'Admin Panel' as never },
+    { href: '/dashboard/admin/domain-checker', icon: Search,   labelKey: 'Domain Checker' as never },
+    { href: '/dashboard/admin/team',           icon: Users,    labelKey: 'Team Management' as never },
   ]
 
-  // Combine for the "Admin" section (amber-styled, admin only)
+  // Combine for the "Manage" section (amber-styled, admin only)
   const adminItems: NavItem[] = role === 'admin'
     ? [...advancedFeatureItems, ...adminOnlyItems]
     : []
@@ -411,48 +414,65 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
               const label = getLabel(item.labelKey)
 
               return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  scroll={false}
-                  onClick={handleNavClick}
-                  className={`relative flex items-center gap-3 rounded-lg transition-all duration-200 group mb-0.5 ${
-                    mobileOpen ? 'px-3 py-2' : expanded ? 'px-3 py-2' : 'w-11 h-10 justify-center'
-                  } ${
-                    isActive
-                      ? 'bg-[rgba(250,245,236,0.08)] text-ink-inv'
-                      : 'text-[rgba(250,245,236,0.45)] hover:bg-[rgba(250,245,236,0.06)] hover:text-[rgba(250,245,236,0.75)]'
-                  }`}
-                >
-                  {isActive && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-[rgba(250,245,236,0.5)] rounded-r-full" />
+                <div key={item.href}>
+                  {/* Sub-section divider (e.g. "Integrations" inside Assistant) */}
+                  {item.sectionLabel && (expanded || mobileOpen) && (
+                    <div className="flex items-center gap-2 px-1 mt-2 mb-1">
+                      <div className="h-px flex-1 bg-[rgba(250,245,236,0.07)]" />
+                      <span className="text-[8px] font-bold text-[rgba(250,245,236,0.2)] uppercase tracking-widest">
+                        {item.sectionLabel}
+                      </span>
+                      <div className="h-px flex-1 bg-[rgba(250,245,236,0.07)]" />
+                    </div>
                   )}
-                  <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={isActive ? 2.2 : 1.8} />
-                  {(expanded || mobileOpen) && (
-                    <span className={`text-[12.5px] whitespace-nowrap transition-opacity duration-200 flex-1 ${isActive ? 'font-semibold' : 'font-medium'}`}>
-                      {label}
-                    </span>
-                  )}
-                  {(expanded || mobileOpen) && item.isNew && (
-                    <span className="text-[8px] font-bold px-1.5 py-0.5 bg-caution-bg text-caution border border-[rgba(184,134,11,0.2)] rounded-full flex-shrink-0">
-                      NEW
-                    </span>
-                  )}
-                  {(expanded || mobileOpen) && item.badge && !item.isNew && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 bg-[rgba(250,245,236,0.08)] text-[rgba(250,245,236,0.45)] rounded-full flex-shrink-0 min-w-[18px] text-center">
-                      {item.badge}
-                    </span>
-                  )}
-                  {/* Collapsed tooltip */}
-                  {!expanded && !mobileOpen && (
-                    <span className="absolute left-full ml-3 px-3 py-1.5 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,245,236,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                      {label}
-                      {item.badge && !item.isNew && <span className="ml-1.5 text-[9px] text-[rgba(250,245,236,0.4)]">({item.badge})</span>}
-                      {item.isNew && <span className="ml-1.5 text-[8px] text-caution">NEW</span>}
-                      <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-ink" />
-                    </span>
-                  )}
-                </Link>
+                  <Link
+                    href={item.href}
+                    scroll={false}
+                    onClick={handleNavClick}
+                    className={`relative flex items-center gap-3 rounded-lg transition-all duration-200 group mb-0.5 ${
+                      mobileOpen ? 'px-3 py-2' : expanded ? 'px-3 py-2' : 'w-11 h-10 justify-center'
+                    } ${
+                      isActive
+                        ? 'bg-[rgba(250,245,236,0.08)] text-ink-inv'
+                        : 'text-[rgba(250,245,236,0.45)] hover:bg-[rgba(250,245,236,0.06)] hover:text-[rgba(250,245,236,0.75)]'
+                    }`}
+                  >
+                    {isActive && (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-[rgba(250,245,236,0.5)] rounded-r-full" />
+                    )}
+                    <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={isActive ? 2.2 : 1.8} />
+                    {(expanded || mobileOpen) && (
+                      <span className={`text-[12.5px] whitespace-nowrap transition-opacity duration-200 flex-1 ${isActive ? 'font-semibold' : 'font-medium'}`}>
+                        {label}
+                      </span>
+                    )}
+                    {(expanded || mobileOpen) && item.isBeta && (
+                      <span className="text-[8px] font-bold px-1.5 py-0.5 bg-[rgba(100,180,255,0.12)] text-[rgba(100,180,255,0.75)] border border-[rgba(100,180,255,0.2)] rounded-full flex-shrink-0">
+                        Beta
+                      </span>
+                    )}
+                    {(expanded || mobileOpen) && item.isNew && !item.isBeta && (
+                      <span className="text-[8px] font-bold px-1.5 py-0.5 bg-caution-bg text-caution border border-[rgba(184,134,11,0.2)] rounded-full flex-shrink-0">
+                        NEW
+                      </span>
+                    )}
+                    {(expanded || mobileOpen) && item.badge && !item.isNew && !item.isBeta && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 bg-[rgba(250,245,236,0.08)] text-[rgba(250,245,236,0.45)] rounded-full flex-shrink-0 min-w-[18px] text-center">
+                        {item.badge}
+                      </span>
+                    )}
+                    {/* Collapsed tooltip */}
+                    {!expanded && !mobileOpen && (
+                      <span className="absolute left-full ml-3 px-3 py-1.5 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,245,236,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                        {label}
+                        {item.badge && !item.isNew && !item.isBeta && <span className="ml-1.5 text-[9px] text-[rgba(250,245,236,0.4)]">({item.badge})</span>}
+                        {item.isNew && !item.isBeta && <span className="ml-1.5 text-[8px] text-caution">NEW</span>}
+                        {item.isBeta && <span className="ml-1.5 text-[8px] text-[rgba(100,180,255,0.75)]">Beta</span>}
+                        <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-ink" />
+                      </span>
+                    )}
+                  </Link>
+                </div>
               )
             })}
           </div>
@@ -463,7 +483,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
           <div className="mt-1">
             {(expanded || mobileOpen) && (
               <div className="px-1 mb-1">
-                <span className="text-[9px] font-bold text-[rgba(250,245,236,0.25)] uppercase tracking-widest">Advanced</span>
+                <span className="text-[9px] font-bold text-[rgba(250,245,236,0.25)] uppercase tracking-widest">Manage</span>
               </div>
             )}
             {!expanded && !mobileOpen && <div className="w-full h-px bg-[rgba(250,245,236,0.06)] my-2" />}
@@ -508,12 +528,12 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
           </div>
         )}
 
-        {/* Admin items */}
+        {/* Manage section (Operations + Admin sub-groups) */}
         {adminItems.length > 0 && (
           <div className="mt-1">
             {(expanded || mobileOpen) && (
               <div className="px-1 mb-1">
-                <span className="text-[9px] font-bold text-[rgba(250,245,236,0.25)] uppercase tracking-widest">Admin</span>
+                <span className="text-[9px] font-bold text-[rgba(250,245,236,0.25)] uppercase tracking-widest">Manage</span>
               </div>
             )}
             {!expanded && !mobileOpen && <div className="w-full h-px bg-[rgba(250,245,236,0.06)] my-2" />}
@@ -524,28 +544,39 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
               const Icon = item.icon
               const label = getLabel(item.labelKey)
               return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  scroll={false}
-                  onClick={handleNavClick}
-                  className={`relative flex items-center gap-3 rounded-lg transition-all duration-200 group mb-0.5 ${
-                    mobileOpen || expanded ? 'px-3 py-2' : 'w-11 h-10 justify-center'
-                  } ${
-                    isActive
-                      ? 'bg-caution-bg text-caution'
-                      : 'text-[rgba(250,245,236,0.35)] hover:bg-[rgba(250,245,236,0.06)] hover:text-[rgba(250,245,236,0.6)]'
-                  }`}
-                >
-                  <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.8} />
-                  {(expanded || mobileOpen) && <span className="text-[12px] whitespace-nowrap font-medium">{label}</span>}
-                  {!expanded && !mobileOpen && (
-                    <span className="absolute left-full ml-3 px-3 py-1.5 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,245,236,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[60]">
-                      {label}
-                      <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-ink" />
-                    </span>
+                <div key={item.href}>
+                  {/* Sub-section divider inside Manage */}
+                  {item.sectionLabel && (expanded || mobileOpen) && (
+                    <div className="flex items-center gap-2 px-1 mt-2 mb-1">
+                      <div className="h-px flex-1 bg-[rgba(250,245,236,0.07)]" />
+                      <span className="text-[8px] font-bold text-[rgba(250,245,236,0.2)] uppercase tracking-widest">
+                        {item.sectionLabel}
+                      </span>
+                      <div className="h-px flex-1 bg-[rgba(250,245,236,0.07)]" />
+                    </div>
                   )}
-                </Link>
+                  <Link
+                    href={item.href}
+                    scroll={false}
+                    onClick={handleNavClick}
+                    className={`relative flex items-center gap-3 rounded-lg transition-all duration-200 group mb-0.5 ${
+                      mobileOpen || expanded ? 'px-3 py-2' : 'w-11 h-10 justify-center'
+                    } ${
+                      isActive
+                        ? 'bg-caution-bg text-caution'
+                        : 'text-[rgba(250,245,236,0.35)] hover:bg-[rgba(250,245,236,0.06)] hover:text-[rgba(250,245,236,0.6)]'
+                    }`}
+                  >
+                    <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.8} />
+                    {(expanded || mobileOpen) && <span className="text-[12px] whitespace-nowrap font-medium">{label}</span>}
+                    {!expanded && !mobileOpen && (
+                      <span className="absolute left-full ml-3 px-3 py-1.5 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,245,236,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[60]">
+                        {label}
+                        <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-ink" />
+                      </span>
+                    )}
+                  </Link>
+                </div>
               )
             })}
           </div>

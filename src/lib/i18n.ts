@@ -299,6 +299,24 @@ export const translations = {
       navGroupAction: 'Action',
       navGroupContext: 'Context',
       navGroupProxy: 'Infrastructure',
+      // New 4-pillar nav groups (Insights / Actions / Assistant / Manage)
+      navGroupInsights: 'Insights',
+      navGroupActions: 'Actions',
+      navGroupAssistant: 'Assistant',
+      navGroupManage: 'Manage',
+      // Insights items
+      exploreNav: 'Explore',
+      aiSearchNav: 'AI Search',
+      sourcesNav: 'Sources',
+      shoppingNav: 'Shopping',
+      adsNav: 'Ads',
+      // Actions items
+      monitoringNav: 'Monitoring',
+      analysisNav: 'Analysis',
+      // Assistant items
+      agentNav: 'Agent',
+      webInfraNav: 'Web Infrastructure',
+      mcpIntegrationNav: 'MCP Integration',
       // Search
       searchPlaceholder: 'Search topics, prompts, content...',
       // Getting Started
@@ -976,6 +994,24 @@ export const translations = {
       navGroupAction: '执行操作',
       navGroupContext: '品牌资产',
       navGroupProxy: '基础设施',
+      // 新四支柱导航分组
+      navGroupInsights: '洞察',
+      navGroupActions: '行动',
+      navGroupAssistant: 'Assistant',
+      navGroupManage: '管理',
+      // 洞察
+      exploreNav: '探索',
+      aiSearchNav: 'AI 搜索',
+      sourcesNav: '信源',
+      shoppingNav: '电商',
+      adsNav: '广告',
+      // 行动
+      monitoringNav: '监控',
+      analysisNav: '分析',
+      // Assistant
+      agentNav: 'Agent',
+      webInfraNav: 'Web 基础设施',
+      mcpIntegrationNav: 'MCP 集成',
       // Search
       searchPlaceholder: '搜索话题、Prompt、内容...',
       // Getting Started
