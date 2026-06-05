@@ -495,6 +495,36 @@ export interface DiscoverResult {
   source_domains: DiscoverSourceItem[];
 }
 
+export type QueryFanoutGate = 'pass' | 'warn' | 'fail';
+
+export interface QueryFanoutGates {
+  fetchable: QueryFanoutGate;
+  chosen: QueryFanoutGate;
+  extractable: QueryFanoutGate;
+}
+
+export interface QueryFanoutRow {
+  id?: string;
+  customer_id?: string;
+  prompt_id: string;
+  prompt_text: string;
+  query_text: string;
+  share_pct: number;
+  model: string;
+  model_domain: string;
+  region: string;
+  persona: string;
+  freshness: string;
+  source_domain: string;
+  added_terms: string[];
+  dropped_terms: string[];
+  kept_terms: string[];
+  gates: QueryFanoutGates;
+  generated_by?: string;
+  generated_at?: string;
+  updated_at?: string;
+}
+
 // ─── Dev Mode: EMA Policy Optimization ────────────────────────────────────
 
 export interface DevOptimizationConfig {
@@ -1711,6 +1741,21 @@ class APIClient {
       engines: string[]
       models?: Record<string, { quick: string; deep: string }>
     }>('/api/monitor/engines');
+  }
+
+  async getQueryFanouts(customerId: string, promptId?: string) {
+    const params = new URLSearchParams({ customer_id: customerId });
+    if (promptId) params.set('prompt_id', promptId);
+    return this.request<{ ok: boolean; rows: QueryFanoutRow[]; error?: string }>(
+      `/api/monitor/query-fanouts?${params.toString()}`,
+    );
+  }
+
+  async saveQueryFanouts(customerId: string, rows: QueryFanoutRow[]) {
+    return this.request<{ ok: boolean; upserted?: number; error?: string }>('/api/monitor/query-fanouts', {
+      method: 'POST',
+      body: JSON.stringify({ customer_id: customerId, rows }),
+    });
   }
 
   /**

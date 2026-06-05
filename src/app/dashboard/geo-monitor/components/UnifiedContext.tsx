@@ -284,7 +284,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const { user, role: userRole } = useAuth()
 
   // ── Tab ─────────────────────────────────────────
-  const [activeTab, setActiveTab] = useState<TabKey>('visibility')
+  const [activeTab, setActiveTab] = useState<TabKey>('prompts')
   const [citationsSubTab, setCitationsSubTab] = useState<'sources_overview' | 'url_detail'>('sources_overview')
   const [competitorsSubTab, setCompetitorsSubTab] = useState<'overall_sov' | 'prompt_sov' | 'sourcing_sov'>('overall_sov')
 
@@ -433,6 +433,10 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     mountInitDone.current = true
     try {
       const params = new URLSearchParams(window.location.search)
+      const tabParam = params.get('tab')
+      if (tabParam && ['prompts', 'discover', 'ai_research'].includes(tabParam)) {
+        setActiveTab(tabParam as TabKey)
+      }
 
       // ── Phase 4: customer mode — hydrate from backend, skip localStorage ──
       // Preview falls back to a default customer so the demo lands on real data.
