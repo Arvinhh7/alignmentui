@@ -55,6 +55,9 @@ interface NavItem {
   permissionKey?: string
   /** Renders a mini sub-section divider + label before this item */
   sectionLabel?: string
+  /** Feature is visible but not available yet */
+  disabled?: boolean
+  disabledLabel?: string
 }
 
 interface NavGroup {
@@ -73,6 +76,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
   const router = useRouter()
   const { user, role, signOut, permissions } = useAuth()
   const [expandedPref, setExpandedPref] = useState(false)
+  const [hoverExpanded, setHoverExpanded] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showSearch, setShowSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -96,16 +100,22 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
   const [viewportCollapsed, setViewportCollapsed] = useState(false)
   // Derived: on tablet, always collapse regardless of user preference
   const expanded = expandedPref && !viewportCollapsed
+  const displayExpanded = mobileOpen || expanded || hoverExpanded
 
   useEffect(() => {
     const check = () => {
       const w = window.innerWidth
       setViewportCollapsed(w >= 768 && w < 1024)
+      if (w < 768) setHoverExpanded(false)
     }
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
   }, [])
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('sidebarHoverExpanded', { detail: hoverExpanded && !expandedPref }))
+  }, [hoverExpanded, expandedPref])
 
   // ── Persist sidebar state ──────────────────────────────────────────────
   useEffect(() => {
@@ -182,7 +192,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         { href: '/dashboard/ai-search', icon: TrendingUp,   labelKey: 'aiSearchNav',  isNew: true },
         { href: '/dashboard/sources',   icon: Link2,        labelKey: 'sourcesNav',   isNew: true },
         { href: '/dashboard/shopping',  icon: ShoppingCart, labelKey: 'shoppingNav',  isNew: true },
-        { href: '/dashboard/ads',       icon: Megaphone,    labelKey: 'adsNav',       isNew: true },
+        { href: '/dashboard/ads',       icon: Megaphone,    labelKey: 'adsNav',       isNew: true, disabled: true, disabledLabel: 'Coming soon' },
         { href: '/dashboard/gci',       icon: Activity,     labelKey: 'GCI' as never, permissionKey: 'overview' },
       ],
     },
@@ -201,7 +211,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         { href: '/dashboard/brand-hub',        icon: Database,   labelKey: 'brandNav',           permissionKey: 'brand-hub' },
         { href: '/dashboard/visibility-proxy', icon: Plug,       labelKey: 'visibilityProxyNav', permissionKey: 'visibility-proxy', matchPrefix: true, isNew: true, sectionLabel: 'Integrations' },
         { href: '/dashboard/ga4-attribution',  icon: LineChart,  labelKey: 'GA4 Attribution' as never, permissionKey: 'ga4-attribution' },
-        { href: '/dashboard/mcp-integration',  icon: Cpu,        labelKey: 'mcpIntegrationNav', isBeta: true },
+        { href: '/dashboard/mcp-integration',  icon: Cpu,        labelKey: 'mcpIntegrationNav', isBeta: true, disabled: true, disabledLabel: 'Coming soon' },
       ],
     },
   ]
@@ -266,11 +276,19 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
   }
 
   const isItemActive = (item: NavItem) => {
+    if (item.disabled) return false
     if (item.matchPrefix) return pathname === item.href || pathname.startsWith(item.href + '/')
     return pathname === item.href
   }
 
   const handleNavClick = () => { onMobileClose?.() }
+  const shouldHoverExpand = !mobileOpen && !expandedPref && !viewportCollapsed
+  const handleMouseEnter = () => {
+    if (shouldHoverExpand) setHoverExpanded(true)
+  }
+  const handleMouseLeave = () => {
+    setHoverExpanded(false)
+  }
 
   return (
     <>
@@ -283,19 +301,21 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
       />
     )}
     <aside
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       className={`fixed left-0 top-0 h-screen bg-ink border-r border-[rgba(250,245,236,0.08)] flex flex-col z-50 transition-all duration-300 ease-in-out ${
         mobileOpen ? 'translate-x-0 w-[240px]' : '-translate-x-full md:translate-x-0'
       } ${
-        !mobileOpen ? (expanded ? 'md:w-[240px]' : 'md:w-[68px]') : ''
+        !mobileOpen ? (displayExpanded ? 'md:w-[240px]' : 'md:w-[68px]') : ''
       }`}
     >
       {/* ── Header: Logo + Toggle ─────────────────────────────────────────── */}
-      <div className={`flex items-center h-14 border-b border-[rgba(250,245,236,0.08)] ${mobileOpen ? 'px-4' : expanded ? 'px-4' : 'justify-center px-2'}`}>
+      <div className={`flex items-center h-14 border-b border-[rgba(250,245,236,0.08)] ${displayExpanded ? 'px-4' : 'justify-center px-2'}`}>
         <Link href="/" onClick={handleNavClick} className="hover:opacity-80 transition-opacity flex items-center gap-2.5 overflow-hidden flex-1 min-w-0">
           <div className="w-8 h-8 rounded-lg bg-[rgba(250,245,236,0.08)] p-1 flex items-center justify-center flex-shrink-0">
             <Image src="/logo-icon.png" alt="Alignment AI" width={28} height={28} className="object-contain" priority />
           </div>
-          {(expanded || mobileOpen) && (
+          {displayExpanded && (
             <span className="text-sm font-semibold text-ink-inv whitespace-nowrap">Alignment AI</span>
           )}
         </Link>
@@ -313,12 +333,12 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
             <button
               onClick={toggleExpanded}
               className="w-7 h-7 flex items-center justify-center rounded-md text-[rgba(250,245,236,0.35)] hover:bg-[rgba(250,245,236,0.06)] hover:text-[rgba(250,245,236,0.7)] transition-all flex-shrink-0"
-              aria-label={expanded ? 'Close sidebar' : 'Open sidebar'}
+              aria-label={expandedPref ? 'Close sidebar' : 'Open sidebar'}
             >
-              {expanded ? <PanelLeftClose className="w-4 h-4" strokeWidth={1.8} /> : <PanelLeft className="w-4 h-4" strokeWidth={1.8} />}
+              {expandedPref ? <PanelLeftClose className="w-4 h-4" strokeWidth={1.8} /> : <PanelLeft className="w-4 h-4" strokeWidth={1.8} />}
             </button>
             <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2.5 py-1 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,245,236,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-              {expanded ? 'Close sidebar' : 'Open sidebar'}
+              {expandedPref ? 'Close sidebar' : 'Open sidebar'}
             </span>
           </div>
         )}
@@ -327,15 +347,15 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
       {/* ── Customer / Workspace switcher (GEOly-style, under the logo) ────── */}
       <div className="mt-3">
         <SidebarCustomerSwitcher
-          expanded={expanded}
+          expanded={displayExpanded}
           mobileOpen={mobileOpen}
           onRequestExpand={() => { setExpandedPref(true); try { localStorage.setItem(SIDEBAR_KEY, 'true') } catch {} }}
         />
       </div>
 
       {/* ── Global Search ─────────────────────────────────────────────────── */}
-      <div className={`mt-3 ${(expanded || mobileOpen) ? 'px-3' : 'px-2 flex justify-center'}`} ref={searchRef}>
-        {(expanded || mobileOpen) ? (
+      <div className={`mt-3 ${displayExpanded ? 'px-3' : 'px-2 flex justify-center'}`} ref={searchRef}>
+        {displayExpanded ? (
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[rgba(250,245,236,0.3)]" />
             <input
@@ -355,7 +375,23 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
               <div className="absolute top-full left-0 right-0 mt-1 bg-ink border border-[rgba(250,245,236,0.08)] rounded-xl shadow-elevation-lg z-[80] overflow-hidden">
                 {searchResults.length > 0 ? searchResults.map(item => {
                   const Icon = item.icon
-                  return (
+                  const disabled = !!item.disabled
+                  const content = (
+                    <>
+                      <Icon className={`w-4 h-4 flex-shrink-0 ${disabled ? 'text-[rgba(250,245,236,0.18)]' : 'text-[rgba(250,245,236,0.4)]'}`} strokeWidth={1.8} />
+                      <span className={`text-[12px] ${disabled ? 'text-[rgba(250,245,236,0.25)]' : 'text-[rgba(250,245,236,0.7)]'}`}>{getLabel(item.labelKey)}</span>
+                      {disabled && <span className="ml-auto text-[9px] font-bold uppercase tracking-wide text-[rgba(250,245,236,0.25)]">{item.disabledLabel ?? 'Soon'}</span>}
+                    </>
+                  )
+                  return disabled ? (
+                    <div
+                      key={item.href}
+                      className="flex cursor-not-allowed items-center gap-2.5 px-3 py-2.5 opacity-80"
+                      aria-disabled="true"
+                    >
+                      {content}
+                    </div>
+                  ) : (
                     <Link
                       key={item.href}
                       href={item.href}
@@ -363,8 +399,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                       onClick={() => { setShowSearch(false); setSearchQuery('') }}
                       className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-[rgba(250,245,236,0.06)] transition-colors"
                     >
-                      <Icon className="w-4 h-4 text-[rgba(250,245,236,0.4)] flex-shrink-0" strokeWidth={1.8} />
-                      <span className="text-[12px] text-[rgba(250,245,236,0.7)]">{getLabel(item.labelKey)}</span>
+                      {content}
                     </Link>
                   )
                 }) : (
@@ -389,7 +424,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
       </div>
 
       {/* ── Getting Started Progress ────────────────────────────────────────── */}
-      {(expanded || mobileOpen) && (
+      {displayExpanded && (
         <div className="mx-3 mt-3 p-2.5 bg-[rgba(250,245,236,0.03)] border border-[rgba(250,245,236,0.06)] rounded-xl">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[10px] font-semibold text-[rgba(250,245,236,0.3)] uppercase tracking-wider">{t.dashboard.gettingStarted}</span>
@@ -405,28 +440,81 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
       )}
 
       {/* ── Navigation ────────────────────────────────────────────────────── */}
-      <nav className={`flex flex-col gap-0.5 flex-1 mt-3 overflow-y-auto scrollbar-none ${(expanded || mobileOpen) ? 'px-2.5' : 'px-2 items-center'}`}>
+      <nav className={`flex flex-col gap-0.5 flex-1 mt-3 overflow-y-auto scrollbar-none ${displayExpanded ? 'px-2.5' : 'px-2 items-center'}`}>
 
         {displayNavGroups.map((group) => (
           <div key={group.labelKey} className="mb-1">
-            {(expanded || mobileOpen) && (
+            {displayExpanded && (
               <div className="px-1 mb-1">
                 <span className="text-[10px] font-semibold text-[rgba(250,245,236,0.5)] uppercase tracking-[0.05em]">
                   {getLabel(group.labelKey)}
                 </span>
               </div>
             )}
-            {!expanded && !mobileOpen && <div className="w-full h-px bg-[rgba(250,245,236,0.06)] my-2" />}
+            {!displayExpanded && <div className="w-full h-px bg-[rgba(250,245,236,0.06)] my-2" />}
 
             {group.items.map((item) => {
               const isActive = isItemActive(item)
               const Icon = item.icon
               const label = getLabel(item.labelKey)
+              const disabled = !!item.disabled
+              const itemClassName = `relative flex items-center gap-3 rounded-lg transition-all duration-200 group mb-0.5 ${
+                displayExpanded ? 'px-3 py-2' : 'w-11 h-10 justify-center'
+              } ${
+                disabled
+                  ? 'cursor-not-allowed text-[rgba(250,245,236,0.18)]'
+                  : isActive
+                    ? 'bg-[rgba(250,245,236,0.08)] text-ink-inv'
+                    : 'text-[rgba(250,245,236,0.45)] hover:bg-[rgba(250,245,236,0.06)] hover:text-[rgba(250,245,236,0.75)]'
+              }`
+              const navContent = (
+                <>
+                  {isActive && (
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-[rgba(250,245,236,0.5)] rounded-r-full" />
+                  )}
+                  <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={isActive ? 2.2 : 1.8} />
+                  {displayExpanded && (
+                    <span className={`text-[12.5px] whitespace-nowrap transition-opacity duration-200 flex-1 ${isActive ? 'font-semibold' : 'font-medium'}`}>
+                      {label}
+                    </span>
+                  )}
+                  {displayExpanded && disabled && (
+                    <span className="text-[8px] font-bold px-1.5 py-0.5 bg-[rgba(250,245,236,0.04)] text-[rgba(250,245,236,0.25)] border border-[rgba(250,245,236,0.08)] rounded-full flex-shrink-0">
+                      {item.disabledLabel ?? 'Soon'}
+                    </span>
+                  )}
+                  {displayExpanded && !disabled && item.isBeta && (
+                    <span className="text-[8px] font-bold px-1.5 py-0.5 bg-[rgba(100,180,255,0.12)] text-[rgba(100,180,255,0.75)] border border-[rgba(100,180,255,0.2)] rounded-full flex-shrink-0">
+                      Beta
+                    </span>
+                  )}
+                  {displayExpanded && !disabled && item.isNew && !item.isBeta && (
+                    <span className="text-[8px] font-bold px-1.5 py-0.5 bg-caution-bg text-caution border border-[rgba(184,134,11,0.2)] rounded-full flex-shrink-0">
+                      NEW
+                    </span>
+                  )}
+                  {displayExpanded && !disabled && item.badge && !item.isNew && !item.isBeta && (
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 bg-[rgba(250,245,236,0.08)] text-[rgba(250,245,236,0.45)] rounded-full flex-shrink-0 min-w-[18px] text-center">
+                      {item.badge}
+                    </span>
+                  )}
+                  {!displayExpanded && (
+                    <span className="absolute left-full ml-3 px-3 py-1.5 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,245,236,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                      {label}
+                      {disabled && <span className="ml-1.5 text-[8px] text-[rgba(250,245,236,0.35)]">{item.disabledLabel ?? 'Soon'}</span>}
+                      {!disabled && item.badge && !item.isNew && !item.isBeta && <span className="ml-1.5 text-[9px] text-[rgba(250,245,236,0.4)]">({item.badge})</span>}
+                      {!disabled && item.isNew && !item.isBeta && <span className="ml-1.5 text-[8px] text-caution">NEW</span>}
+                      {!disabled && item.isBeta && <span className="ml-1.5 text-[8px] text-[rgba(100,180,255,0.75)]">Beta</span>}
+                      <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-ink" />
+                    </span>
+                  )}
+                </>
+              )
 
               return (
                 <div key={item.href}>
                   {/* Sub-section divider (e.g. "Integrations" inside Assistant) */}
-                  {item.sectionLabel && (expanded || mobileOpen) && (
+                  {item.sectionLabel && displayExpanded && (
                     <div className="flex items-center gap-2 px-1 mt-2 mb-1">
                       <div className="h-px flex-1 bg-[rgba(250,245,236,0.07)]" />
                       <span className="text-[8px] font-bold text-[rgba(250,245,236,0.2)] uppercase tracking-widest">
@@ -435,53 +523,20 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                       <div className="h-px flex-1 bg-[rgba(250,245,236,0.07)]" />
                     </div>
                   )}
-                  <Link
-                    href={item.href}
-                    scroll={false}
-                    onClick={handleNavClick}
-                    className={`relative flex items-center gap-3 rounded-lg transition-all duration-200 group mb-0.5 ${
-                      mobileOpen ? 'px-3 py-2' : expanded ? 'px-3 py-2' : 'w-11 h-10 justify-center'
-                    } ${
-                      isActive
-                        ? 'bg-[rgba(250,245,236,0.08)] text-ink-inv'
-                        : 'text-[rgba(250,245,236,0.45)] hover:bg-[rgba(250,245,236,0.06)] hover:text-[rgba(250,245,236,0.75)]'
-                    }`}
-                  >
-                    {isActive && (
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-[rgba(250,245,236,0.5)] rounded-r-full" />
-                    )}
-                    <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={isActive ? 2.2 : 1.8} />
-                    {(expanded || mobileOpen) && (
-                      <span className={`text-[12.5px] whitespace-nowrap transition-opacity duration-200 flex-1 ${isActive ? 'font-semibold' : 'font-medium'}`}>
-                        {label}
-                      </span>
-                    )}
-                    {(expanded || mobileOpen) && item.isBeta && (
-                      <span className="text-[8px] font-bold px-1.5 py-0.5 bg-[rgba(100,180,255,0.12)] text-[rgba(100,180,255,0.75)] border border-[rgba(100,180,255,0.2)] rounded-full flex-shrink-0">
-                        Beta
-                      </span>
-                    )}
-                    {(expanded || mobileOpen) && item.isNew && !item.isBeta && (
-                      <span className="text-[8px] font-bold px-1.5 py-0.5 bg-caution-bg text-caution border border-[rgba(184,134,11,0.2)] rounded-full flex-shrink-0">
-                        NEW
-                      </span>
-                    )}
-                    {(expanded || mobileOpen) && item.badge && !item.isNew && !item.isBeta && (
-                      <span className="text-[9px] font-bold px-1.5 py-0.5 bg-[rgba(250,245,236,0.08)] text-[rgba(250,245,236,0.45)] rounded-full flex-shrink-0 min-w-[18px] text-center">
-                        {item.badge}
-                      </span>
-                    )}
-                    {/* Collapsed tooltip */}
-                    {!expanded && !mobileOpen && (
-                      <span className="absolute left-full ml-3 px-3 py-1.5 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,245,236,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
-                        {label}
-                        {item.badge && !item.isNew && !item.isBeta && <span className="ml-1.5 text-[9px] text-[rgba(250,245,236,0.4)]">({item.badge})</span>}
-                        {item.isNew && !item.isBeta && <span className="ml-1.5 text-[8px] text-caution">NEW</span>}
-                        {item.isBeta && <span className="ml-1.5 text-[8px] text-[rgba(100,180,255,0.75)]">Beta</span>}
-                        <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-ink" />
-                      </span>
-                    )}
-                  </Link>
+                  {disabled ? (
+                    <div className={itemClassName} aria-disabled="true" title={`${label} is coming soon`}>
+                      {navContent}
+                    </div>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      scroll={false}
+                      onClick={handleNavClick}
+                      className={itemClassName}
+                    >
+                      {navContent}
+                    </Link>
+                  )}
                 </div>
               )
             })}
@@ -491,12 +546,12 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         {/* Staff advanced items — shown only when role=staff and permissions granted */}
         {staffAdvancedItems.length > 0 && (
           <div className="mt-1">
-            {(expanded || mobileOpen) && (
+            {displayExpanded && (
               <div className="px-1 mb-1">
                 <span className="text-[10px] font-semibold text-[rgba(250,245,236,0.5)] uppercase tracking-[0.05em]">Manage</span>
               </div>
             )}
-            {!expanded && !mobileOpen && <div className="w-full h-px bg-[rgba(250,245,236,0.06)] my-2" />}
+            {!displayExpanded && <div className="w-full h-px bg-[rgba(250,245,236,0.06)] my-2" />}
             {staffAdvancedItems.map((item) => {
               const isActive = item.matchPrefix
                 ? pathname === item.href || pathname.startsWith(item.href + '/')
@@ -510,7 +565,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                   scroll={false}
                   onClick={handleNavClick}
                   className={`relative flex items-center gap-3 rounded-lg transition-all duration-200 group mb-0.5 ${
-                    mobileOpen || expanded ? 'px-3 py-2' : 'w-11 h-10 justify-center'
+                    displayExpanded ? 'px-3 py-2' : 'w-11 h-10 justify-center'
                   } ${
                     isActive
                       ? 'bg-[rgba(250,245,236,0.08)] text-ink-inv'
@@ -521,12 +576,12 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                     <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-[rgba(250,245,236,0.5)] rounded-r-full" />
                   )}
                   <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={isActive ? 2.2 : 1.8} />
-                  {(expanded || mobileOpen) && (
+                  {displayExpanded && (
                     <span className={`text-[12.5px] whitespace-nowrap transition-opacity duration-200 flex-1 ${isActive ? 'font-semibold' : 'font-medium'}`}>
                       {label}
                     </span>
                   )}
-                  {!expanded && !mobileOpen && (
+                  {!displayExpanded && (
                     <span className="absolute left-full ml-3 px-3 py-1.5 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,245,236,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[60]">
                       {label}
                       <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-ink" />
@@ -541,12 +596,12 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         {/* Manage section (Operations + Admin sub-groups) */}
         {adminItems.length > 0 && (
           <div className="mt-1">
-            {(expanded || mobileOpen) && (
+            {displayExpanded && (
               <div className="px-1 mb-1">
                 <span className="text-[10px] font-semibold text-[rgba(250,245,236,0.5)] uppercase tracking-[0.05em]">Manage</span>
               </div>
             )}
-            {!expanded && !mobileOpen && <div className="w-full h-px bg-[rgba(250,245,236,0.06)] my-2" />}
+            {!displayExpanded && <div className="w-full h-px bg-[rgba(250,245,236,0.06)] my-2" />}
             {adminItems.map((item) => {
               const isActive = item.matchPrefix
                 ? pathname === item.href || pathname.startsWith(item.href + '/')
@@ -556,7 +611,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
               return (
                 <div key={item.href}>
                   {/* Sub-section divider inside Manage */}
-                  {item.sectionLabel && (expanded || mobileOpen) && (
+                  {item.sectionLabel && displayExpanded && (
                     <div className="flex items-center gap-2 px-1 mt-2 mb-1">
                       <div className="h-px flex-1 bg-[rgba(250,245,236,0.07)]" />
                       <span className="text-[8px] font-bold text-[rgba(250,245,236,0.2)] uppercase tracking-widest">
@@ -570,7 +625,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                     scroll={false}
                     onClick={handleNavClick}
                     className={`relative flex items-center gap-3 rounded-lg transition-all duration-200 group mb-0.5 ${
-                      mobileOpen || expanded ? 'px-3 py-2' : 'w-11 h-10 justify-center'
+                      displayExpanded ? 'px-3 py-2' : 'w-11 h-10 justify-center'
                     } ${
                       isActive
                         ? 'bg-caution-bg text-caution'
@@ -578,8 +633,8 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                     }`}
                   >
                     <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.8} />
-                    {(expanded || mobileOpen) && <span className="text-[12px] whitespace-nowrap font-medium">{label}</span>}
-                    {!expanded && !mobileOpen && (
+                    {displayExpanded && <span className="text-[12px] whitespace-nowrap font-medium">{label}</span>}
+                    {!displayExpanded && (
                       <span className="absolute left-full ml-3 px-3 py-1.5 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,245,236,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[60]">
                         {label}
                         <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-ink" />
@@ -594,17 +649,17 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
       </nav>
 
       {/* ── Bottom: User Card ──────────────────────────────────────────────── */}
-      <div className={`mt-auto border-t border-[rgba(250,245,236,0.08)] py-3 ${expanded ? 'px-2.5' : 'px-2'}`}>
+      <div className={`mt-auto border-t border-[rgba(250,245,236,0.08)] py-3 ${displayExpanded ? 'px-2.5' : 'px-2'}`}>
         <div ref={userMenuRef} className="relative">
           <button
             onClick={() => setShowUserMenu(prev => !prev)}
             className={`flex items-center gap-3 rounded-lg hover:bg-[rgba(250,245,236,0.06)] transition-all duration-200 ${
-              expanded ? 'w-full px-3 py-2' : 'w-11 h-11 justify-center mx-auto'
+              displayExpanded ? 'w-full px-3 py-2' : 'w-11 h-11 justify-center mx-auto'
             }`}
           >
             <div className="relative w-8 h-8 rounded-full bg-[rgba(250,245,236,0.10)] flex items-center justify-center flex-shrink-0">
               <span className="text-[12px] font-bold text-ink-inv">{initial}</span>
-              {!expanded && role && role !== 'user' && (
+              {!displayExpanded && role && role !== 'user' && (
                 <span className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-ink ${
                   role === 'admin' ? 'bg-caution' :
                   role === 'staff' ? 'bg-[rgba(100,180,255,0.85)]' :
@@ -612,7 +667,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                 }`} />
               )}
             </div>
-            {expanded && (
+            {displayExpanded && (
               <div className="flex flex-col items-start overflow-hidden flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 w-full">
                   <span className="text-[13px] font-medium text-[rgba(250,245,236,0.8)] truncate">{displayName}</span>
@@ -625,7 +680,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                 <span className="text-[10px] text-[rgba(250,245,236,0.3)] truncate w-full">{userEmail || 'Not logged in'}</span>
               </div>
             )}
-            {expanded && <ChevronRight className="w-3.5 h-3.5 text-[rgba(250,245,236,0.25)] flex-shrink-0" strokeWidth={1.8} />}
+            {displayExpanded && <ChevronRight className="w-3.5 h-3.5 text-[rgba(250,245,236,0.25)] flex-shrink-0" strokeWidth={1.8} />}
           </button>
 
           {/* ── User Profile Popup ─────────────────────────────────────── */}

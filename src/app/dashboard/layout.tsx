@@ -19,7 +19,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { lang } = useLanguage()
   const [expandedPref, setExpandedPref] = useState(false)
   const [viewportCollapsed, setViewportCollapsed] = useState(false)
+  const [hoverExpanded, setHoverExpanded] = useState(false)
   const expanded = expandedPref && !viewportCollapsed
+  const displayExpanded = expanded || hoverExpanded
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Preserve scroll position across module navigation
@@ -47,12 +49,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return () => { clearInterval(interval); window.removeEventListener('storage', handler) }
   }, [])
 
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const next = event instanceof CustomEvent ? Boolean(event.detail) : false
+      setHoverExpanded(next)
+    }
+    window.addEventListener('sidebarHoverExpanded', handler)
+    return () => window.removeEventListener('sidebarHoverExpanded', handler)
+  }, [])
+
   // Close mobile menu and sync viewport-collapsed state on resize
   useEffect(() => {
     const onResize = () => {
       const w = window.innerWidth
       if (w >= 768) setMobileMenuOpen(false)
       setViewportCollapsed(w >= 768 && w < 1024)
+      if (w < 768) setHoverExpanded(false)
     }
     onResize()
     window.addEventListener('resize', onResize)
@@ -129,7 +141,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return null
   }
 
-  const sidebarW = expanded ? SIDEBAR_EXPANDED_WIDTH : SIDEBAR_COLLAPSED_WIDTH
+  const sidebarW = displayExpanded ? SIDEBAR_EXPANDED_WIDTH : SIDEBAR_COLLAPSED_WIDTH
 
   return (
     <ToastProvider>
