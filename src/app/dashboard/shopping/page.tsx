@@ -5,7 +5,9 @@ import type { ReactNode } from 'react'
 import {
   ArrowUpRight,
   CalendarDays,
+  Check,
   ChevronDown,
+  Layers,
   Loader2,
   PackageSearch,
   Search,
@@ -106,6 +108,82 @@ function formatDate(value?: string | null) {
 
 function logoFallback(domain: string) {
   return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`
+}
+
+function ProductSpacePicker({
+  spaces,
+  activeSlug,
+  onChange,
+}: {
+  spaces: ProductSpace[]
+  activeSlug: string
+  onChange: (slug: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const active = spaces.find((space) => space.slug === activeSlug)
+  const filtered = spaces.filter((space) => (
+    !query.trim() || space.name.toLowerCase().includes(query.trim().toLowerCase())
+  ))
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="inline-flex h-10 min-w-[150px] items-center justify-between gap-3 rounded-full border border-divider bg-surface px-4 text-[13px] font-bold text-ink shadow-elevation-sm transition-colors hover:border-ink-3 focus:outline-none focus:border-ink-3"
+      >
+        <span className="inline-flex min-w-0 items-center gap-2">
+          <Layers className="h-4 w-4 shrink-0 text-ink-3" />
+          <span className="truncate">{active?.name ?? 'Product spaces'}</span>
+        </span>
+        <ChevronDown className="h-4 w-4 shrink-0 text-ink-3" />
+      </button>
+
+      {open ? (
+        <div className="absolute right-0 z-30 mt-2 w-[360px] overflow-hidden rounded-lg border border-divider-light bg-surface shadow-elevation-lg">
+          <div className="relative border-b border-divider-light">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              autoFocus
+              placeholder="Search categories"
+              className="h-11 w-full bg-surface pl-9 pr-3 text-[13px] text-ink focus:outline-none"
+            />
+          </div>
+          <div className="max-h-[330px] overflow-y-auto p-1.5">
+            {filtered.length ? filtered.map((space) => (
+              <button
+                key={space.slug}
+                type="button"
+                onClick={() => {
+                  onChange(space.slug)
+                  setQuery('')
+                  setOpen(false)
+                }}
+                className={`flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors ${
+                  space.slug === activeSlug ? 'bg-surface-warm text-ink' : 'hover:bg-surface-warm/70'
+                }`}
+              >
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center">
+                  {space.slug === activeSlug ? <Check className="h-4 w-4 text-ink" /> : null}
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-[14px] font-bold text-ink">{space.name}</span>
+                  <span className="mt-0.5 block truncate text-[12px] text-ink-3">
+                    {space.topic_count} topics · {space.product_count.toLocaleString()} products
+                  </span>
+                </span>
+              </button>
+            )) : (
+              <div className="px-4 py-8 text-center text-[13px] font-semibold text-ink-3">No categories found.</div>
+            )}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  )
 }
 
 function EntityBadge({ entity, compact = false }: { entity: ShoppingEntity; compact?: boolean }) {
@@ -325,18 +403,14 @@ export default function ShoppingPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <div className="relative">
-              <select
-                value={activeSlug}
-                onChange={(event) => setActiveSlug(event.target.value)}
-                className="h-10 appearance-none rounded-full border border-divider-light bg-surface px-4 pr-9 text-[13px] font-bold text-ink shadow-elevation-sm focus:outline-none focus:border-ink-3"
-              >
-                {spaces.length ? spaces.map((space) => (
-                  <option key={space.slug} value={space.slug}>{space.name}</option>
-                )) : <option value="projectors">Projectors</option>}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
-            </div>
+            <ProductSpacePicker
+              spaces={spaces}
+              activeSlug={activeSlug}
+              onChange={(slug) => {
+                setActiveSlug(slug)
+                setSearch('')
+              }}
+            />
             <span className="rounded-full border border-divider-light bg-surface px-4 py-2 text-[13px] font-bold">US · en</span>
             <span className="rounded-full border border-divider-light bg-surface px-4 py-2 text-[13px] font-bold">GPT-4.1 + Web</span>
             <span className="inline-flex items-center gap-2 rounded-full border border-divider-light bg-surface px-4 py-2 text-[13px] font-bold">
