@@ -8,6 +8,7 @@ import {
   BookOpen, Zap, BarChart2,
 } from 'lucide-react'
 import { useUnified } from '../UnifiedContext'
+import { BrandLogo } from '@/components/BrandLogo'
 
 // ─── Result shape (persisted to monitor_analysis_cache 'ai_research') ─────────
 // When the real backend ships, it returns this exact shape — storage/hydration
@@ -29,12 +30,23 @@ const MOCK_DIMENSIONS = [
 ]
 
 type Coverage = 'strong' | 'weak' | 'absent'
-const MOCK_BRANDS: { name: string; isYou?: boolean; coverage: Record<string, Coverage> }[] = [
-  { name: 'EcoFlow', isYou: true, coverage: { battery: 'strong', capacity: 'strong', usecases: 'strong', brands: 'strong', price: 'weak', safety: 'weak', env: 'absent', warranty: 'absent' } },
-  { name: 'Jackery',              coverage: { battery: 'weak',   capacity: 'weak',   usecases: 'strong', brands: 'strong', price: 'strong', safety: 'weak', env: 'absent', warranty: 'absent' } },
-  { name: 'Bluetti',              coverage: { battery: 'strong', capacity: 'strong', usecases: 'weak',   brands: 'strong', price: 'weak',   safety: 'strong', env: 'weak', warranty: 'absent' } },
-  { name: 'Goal Zero',            coverage: { battery: 'weak',   capacity: 'weak',   usecases: 'strong', brands: 'weak',   price: 'weak',   safety: 'weak', env: 'strong', warranty: 'weak' } },
+const MOCK_BRANDS: { name: string; domain: string; isYou?: boolean; coverage: Record<string, Coverage> }[] = [
+  { name: 'EcoFlow',   domain: 'ecoflow.com',       isYou: true, coverage: { battery: 'strong', capacity: 'strong', usecases: 'strong', brands: 'strong', price: 'weak',   safety: 'weak',   env: 'absent', warranty: 'absent' } },
+  { name: 'Jackery',   domain: 'jackery.com',                    coverage: { battery: 'weak',   capacity: 'weak',   usecases: 'strong', brands: 'strong', price: 'strong',  safety: 'weak',   env: 'absent', warranty: 'absent' } },
+  { name: 'Bluetti',   domain: 'bluettipower.com',               coverage: { battery: 'strong', capacity: 'strong', usecases: 'weak',   brands: 'strong', price: 'weak',    safety: 'strong', env: 'weak',   warranty: 'absent' } },
+  { name: 'Goal Zero', domain: 'goalzero.com',                   coverage: { battery: 'weak',   capacity: 'weak',   usecases: 'strong', brands: 'weak',   price: 'weak',    safety: 'weak',   env: 'strong', warranty: 'weak'   } },
 ]
+
+// ── Shared brand chip: official logo + name ───────────
+function BrandChip({ name, domain, size = 18, isYou = false }: { name: string; domain: string; size?: number; isYou?: boolean }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <BrandLogo domain={domain} name={name} size={size} />
+      <span className="font-semibold text-ink">{name}</span>
+      {isYou && <span className="text-[8px] font-bold text-sage bg-sage-bg px-1.5 py-0.5 rounded-full leading-none">You</span>}
+    </span>
+  )
+}
 
 const MOCK_TRAIL = {
   question: 'What is the best portable power station for home backup?',
@@ -48,11 +60,19 @@ const MOCK_TRAIL = {
 }
 
 const MOCK_GAPS = [
-  { dimension: 'Environmental Impact', yourCoverage: 0,  topCompetitor: 'Bluetti', competitorCoverage: 40, contentType: 'Sustainability Report',  priority: 'high'   },
-  { dimension: 'Warranty & Support',   yourCoverage: 0,  topCompetitor: 'Jackery', competitorCoverage: 35, contentType: 'Support Documentation',  priority: 'high'   },
-  { dimension: 'Price & Value',        yourCoverage: 25, topCompetitor: 'Jackery', competitorCoverage: 80, contentType: 'Comparison Article',     priority: 'medium' },
-  { dimension: 'Safety & Certs',       yourCoverage: 30, topCompetitor: 'Bluetti', competitorCoverage: 75, contentType: 'Technical Spec Page',    priority: 'medium' },
+  { dimension: 'Environmental Impact', yourCoverage: 0,  topCompetitor: 'Bluetti', topCompetitorDomain: 'bluettipower.com', competitorCoverage: 40, contentType: 'Sustainability Report',  priority: 'high'   },
+  { dimension: 'Warranty & Support',   yourCoverage: 0,  topCompetitor: 'Jackery', topCompetitorDomain: 'jackery.com',      competitorCoverage: 35, contentType: 'Support Documentation',  priority: 'high'   },
+  { dimension: 'Price & Value',        yourCoverage: 25, topCompetitor: 'Jackery', topCompetitorDomain: 'jackery.com',      competitorCoverage: 80, contentType: 'Comparison Article',     priority: 'medium' },
+  { dimension: 'Safety & Certs',       yourCoverage: 30, topCompetitor: 'Bluetti', topCompetitorDomain: 'bluettipower.com', competitorCoverage: 75, contentType: 'Technical Spec Page',    priority: 'medium' },
 ]
+
+// ─── Brand domain lookup (for logo rendering in Research Trail mentions) ─────
+const BRAND_DOMAINS: Record<string, string> = Object.fromEntries(
+  MOCK_BRANDS.map(b => [b.name, b.domain])
+)
+function domainForBrand(name: string): string {
+  return BRAND_DOMAINS[name] ?? name.toLowerCase().replace(/\s+/g, '') + '.com'
+}
 
 // ─── Shared helpers ────────────────────────────────────────────────────────────
 
@@ -208,50 +228,86 @@ function BrandCoverage() {
         question="Across all research dimensions, where do I appear vs competitors?"
       />
 
+      {/* Transposed: dimensions = rows (readable full names), brands = columns (short names) */}
       <div className="overflow-x-auto">
         <table className="w-full text-[11px]">
           <thead>
-            <tr>
-              <th className="text-left pb-3 pr-4 text-ink-3 font-semibold w-28">Brand</th>
-              {MOCK_DIMENSIONS.map(d => (
-                <th key={d.id} className="pb-3 px-2 text-center text-ink-3 font-medium max-w-[60px]">
-                  <div className="writing-vertical-lr" style={{ writingMode: 'vertical-lr', transform: 'rotate(180deg)', height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {d.label}
+            <tr className="border-b border-divider-light">
+              <th className="text-left py-2.5 pr-6 text-[11px] font-semibold text-ink-3 w-48">Dimension</th>
+              {MOCK_BRANDS.map(brand => (
+                <th key={brand.name} className="py-2.5 px-3 text-center">
+                  <div className="flex flex-col items-center gap-1.5">
+                    <BrandLogo domain={brand.domain} name={brand.name} size={24} />
+                    <span className="text-[11px] font-semibold text-ink whitespace-nowrap">{brand.name}</span>
+                    {brand.isYou && (
+                      <span className="text-[8px] font-bold text-sage bg-sage-bg px-1.5 py-0.5 rounded-full leading-none">You</span>
+                    )}
                   </div>
                 </th>
               ))}
-              <th className="pb-3 pl-4 text-right text-ink-3 font-semibold">Score</th>
+              <th className="py-2.5 pl-4 text-right text-[11px] font-semibold text-ink-3 w-24">
+                Coverage
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-divider-light">
-            {MOCK_BRANDS.map(brand => {
-              const strong = Object.values(brand.coverage).filter(v => v === 'strong').length
-              const total = Object.values(brand.coverage).length
-              const pct = Math.round((strong / total) * 100)
+            {MOCK_DIMENSIONS.map(d => {
+              // How many brands have strong coverage on this dimension
+              const strongCount = MOCK_BRANDS.filter(b => b.coverage[d.id] === 'strong').length
+              const youCoverage = MOCK_BRANDS.find(b => b.isYou)?.coverage[d.id]
+              const isGapForYou = youCoverage === 'absent'
               return (
-                <tr key={brand.name} className={brand.isYou ? 'bg-sage-bg/30' : ''}>
-                  <td className="py-3 pr-4 font-semibold text-ink">
-                    {brand.name}
-                    {brand.isYou && <span className="ml-1.5 text-[9px] font-bold text-sage bg-sage-bg px-1.5 py-0.5 rounded-full">You</span>}
+                <tr key={d.id} className={isGapForYou ? 'bg-red-soft-bg/20' : ''}>
+                  <td className="py-3 pr-6">
+                    <div className="flex items-center gap-2">
+                      <span className={`font-medium text-[12px] ${isGapForYou ? 'text-red-soft' : 'text-ink'}`}>
+                        {d.label}
+                      </span>
+                      {isGapForYou && (
+                        <span className="text-[8px] font-bold px-1.5 py-0.5 bg-red-soft text-white rounded-full leading-none flex-shrink-0">
+                          Gap
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[10px] text-ink-3 mt-0.5 capitalize">{d.depth} depth · {d.sources} sources</div>
                   </td>
-                  {MOCK_DIMENSIONS.map(d => (
-                    <td key={d.id} className="py-3 px-2 text-center">
+                  {MOCK_BRANDS.map(brand => (
+                    <td key={brand.name} className={`py-3 px-3 text-center ${brand.isYou ? 'bg-sage-bg/20' : ''}`}>
                       <CoverageCell coverage={brand.coverage[d.id]} />
                     </td>
                   ))}
                   <td className="py-3 pl-4 text-right">
-                    <span className={`font-bold ${pct >= 60 ? 'text-sage' : pct >= 40 ? 'text-caution' : 'text-red-soft'}`}>
-                      {pct}%
+                    <span className={`text-[11px] font-bold ${strongCount >= 3 ? 'text-sage' : strongCount >= 2 ? 'text-caution' : 'text-red-soft'}`}>
+                      {strongCount}/{MOCK_BRANDS.length}
                     </span>
                   </td>
                 </tr>
               )
             })}
           </tbody>
+          {/* Brand score footer */}
+          <tfoot>
+            <tr className="border-t-2 border-divider">
+              <td className="pt-3 pr-6 text-[11px] font-semibold text-ink-3">Overall Score</td>
+              {MOCK_BRANDS.map(brand => {
+                const strong = Object.values(brand.coverage).filter(v => v === 'strong').length
+                const total = Object.values(brand.coverage).length
+                const pct = Math.round((strong / total) * 100)
+                return (
+                  <td key={brand.name} className={`pt-3 px-3 text-center ${brand.isYou ? 'bg-sage-bg/20' : ''}`}>
+                    <span className={`text-[13px] font-bold ${pct >= 60 ? 'text-sage' : pct >= 40 ? 'text-caution' : 'text-red-soft'}`}>
+                      {pct}%
+                    </span>
+                  </td>
+                )
+              })}
+              <td />
+            </tr>
+          </tfoot>
         </table>
       </div>
 
-      <div className="mt-3 flex items-center gap-3 text-[11px] text-ink-3">
+      <div className="mt-4 flex items-center gap-3 text-[11px] text-ink-3">
         <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-sage" /> Strong coverage</span>
         <span className="flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5 text-caution" /> Weak / passing</span>
         <span className="flex items-center gap-1"><XCircle className="w-3.5 h-3.5 text-[rgba(0,0,0,0.2)]" /> Absent</span>
@@ -310,14 +366,18 @@ function ResearchTrail() {
             {expanded === i && (
               <div className="ml-8 mt-1 mb-2 p-3 bg-canvas rounded-xl border border-divider-light">
                 <div className="text-[10px] font-bold text-ink-3 uppercase tracking-wider mb-2">Brands mentioned in this sub-question</div>
-                <div className="flex gap-2">
-                  {sq.mentions.map(m => (
-                    <span key={m} className={`text-[11px] px-2.5 py-1 rounded-lg font-semibold border ${
-                      m === 'EcoFlow'
-                        ? 'bg-sage-bg text-sage border-sage/20'
-                        : 'bg-surface text-ink-3 border-divider-light'
-                    }`}>{m}</span>
-                  ))}
+                <div className="flex flex-wrap gap-2">
+                  {sq.mentions.map(m => {
+                    const isYouBrand = MOCK_BRANDS.find(b => b.name === m)?.isYou
+                    return (
+                      <span key={m} className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-lg font-semibold border ${
+                        isYouBrand ? 'bg-sage-bg border-sage/20' : 'bg-surface border-divider-light'
+                      }`}>
+                        <BrandLogo domain={domainForBrand(m)} name={m} size={16} />
+                        <span className={isYouBrand ? 'text-sage' : 'text-ink-2'}>{m}</span>
+                      </span>
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -325,12 +385,8 @@ function ResearchTrail() {
         ))}
       </div>
 
-      {/* Final synthesis */}
+      {/* Final synthesis — no label, just the quote */}
       <div className="p-4 bg-sage-bg/50 border border-sage/20 rounded-xl">
-        <div className="text-[10px] font-bold text-sage uppercase tracking-wider mb-2 flex items-center gap-1.5">
-          <Sparkles className="w-3 h-3" />
-          AI Final Synthesis (excerpt)
-        </div>
         <p className="text-[12.5px] text-ink-2 leading-relaxed">
           "{MOCK_TRAIL.finalCitation}"
         </p>
@@ -369,10 +425,23 @@ function GapPlaybook({ brandName }: { brandName: string }) {
                 }`}>{gap.priority}</span>
                 <span className="text-[13px] font-semibold text-ink">{gap.dimension}</span>
               </div>
-              <div className="flex items-center gap-4 text-[11px] text-ink-3">
-                <span>{brandName}: <strong className={gap.yourCoverage === 0 ? 'text-red-soft' : 'text-caution'}>{gap.yourCoverage === 0 ? 'Absent' : `${gap.yourCoverage}%`}</strong></span>
-                <span>{gap.topCompetitor}: <strong className="text-sage">{gap.competitorCoverage}%</strong></span>
-                <span className="flex items-center gap-1"><BarChart2 className="w-3 h-3" />{gap.contentType}</span>
+              <div className="flex flex-wrap items-center gap-3 text-[11px] text-ink-3 mt-1">
+                {/* Your brand coverage */}
+                <span className="flex items-center gap-1.5">
+                  <BrandLogo domain={domainForBrand(brandName)} name={brandName} size={14} />
+                  <strong className={gap.yourCoverage === 0 ? 'text-red-soft' : 'text-caution'}>
+                    {gap.yourCoverage === 0 ? 'Absent' : `${gap.yourCoverage}%`}
+                  </strong>
+                </span>
+                <span className="text-ink-3">vs</span>
+                {/* Top competitor coverage */}
+                <span className="flex items-center gap-1.5">
+                  <BrandLogo domain={gap.topCompetitorDomain} name={gap.topCompetitor} size={14} />
+                  <strong className="text-sage">{gap.competitorCoverage}%</strong>
+                </span>
+                <span className="flex items-center gap-1 text-ink-3">
+                  <BarChart2 className="w-3 h-3" />{gap.contentType}
+                </span>
               </div>
             </div>
             <button className="flex items-center gap-1.5 px-3 py-2 bg-ink text-ink-inv rounded-xl text-[11px] font-semibold hover:bg-ink/80 transition-colors flex-shrink-0 whitespace-nowrap">

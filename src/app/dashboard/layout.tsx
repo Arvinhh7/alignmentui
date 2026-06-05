@@ -11,6 +11,7 @@ import FeatureGate from '@/components/FeatureGate'
 import { useLanguage } from '@/lib/LanguageContext'
 import { getSupabase } from '@/lib/supabase'
 import { useScrollRestoration } from '@/hooks/useScrollRestoration'
+import DashboardGlobalSearch from '@/components/DashboardGlobalSearch'
 
 const SIDEBAR_KEY = 'sidebar_expanded'
 
@@ -169,6 +170,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           className="transition-all duration-300 ease-in-out pt-14 md:pt-0 md:[margin-left:var(--sidebar-w)]"
           style={{ '--sidebar-w': `${sidebarW}px` } as React.CSSProperties}
         >
+          <div className="sticky top-0 z-30 hidden h-14 items-center border-b border-divider-light bg-surface/95 px-6 backdrop-blur md:flex">
+            <div className="flex flex-1 items-center justify-center">
+              <DashboardGlobalSearch />
+            </div>
+          </div>
           <SubscriptionBanner lang={lang} />
           <FeatureGate>{children}</FeatureGate>
         </main>

@@ -6,6 +6,7 @@ import { useUnified } from '../UnifiedContext'
 import { DonutChart, formatPct } from '../shared/ChartComponents'
 import { INTENT_COLORS } from '../shared/constants'
 import type { WeightedSOVData, PromptSOVEntry, DomainSOVEntry } from '@/lib/api'
+import { BrandLogo } from '@/components/BrandLogo'
 
 // ─── Brand color palette ──────────────────────────────
 const BRAND_COLORS = [
@@ -69,50 +70,17 @@ function normalizeDomain(rawDomain: string): string {
     .split('/')[0]
 }
 
-// ─── BrandAvatar: favicon + colored-initial fallback ─
-function BrandAvatar({
-  faviconDomain, brand, color, size = 20,
-}: {
-  faviconDomain: string; brand: string; color: string; size?: number
-}) {
-  const [err, setErr] = useState(false)
-  const initial = (brand[0] ?? '?').toUpperCase()
-
-  return (
-    <div
-      className="relative flex-shrink-0 rounded-full overflow-hidden flex items-center justify-center"
-      style={{ width: size, height: size, backgroundColor: err ? color : 'transparent' }}
-    >
-      {!err && (
-        <img
-          src={`https://www.google.com/s2/favicons?domain=${faviconDomain}&sz=32`}
-          className="w-full h-full object-cover"
-          onError={() => setErr(true)}
-          alt=""
-        />
-      )}
-      {err && (
-        <span
-          className="font-bold text-white select-none"
-          style={{ fontSize: size * 0.5 }}
-        >
-          {initial}
-        </span>
-      )}
-    </div>
-  )
-}
-
-// ─── BrandLabel: avatar + name ────────────────────────
+// ─── BrandLabel: BrandLogo (Clearbit→Google→letter) + name ──
+// Replaces the old BrandAvatar (Google-only) with the shared BrandLogo
+// component that provides a 3-tier fallback chain.
 function BrandLabel({
-  brand, brandList, faviconDomain, size = 20, showYou = false,
+  brand, faviconDomain, size = 20, showYou = false,
 }: {
-  brand: string; brandList: string[]; faviconDomain: string; size?: number; showYou?: boolean
+  brand: string; brandList?: string[]; faviconDomain: string; size?: number; showYou?: boolean
 }) {
-  const color = getBrandColor(brand, brandList)
   return (
     <div className="flex items-center gap-1.5 min-w-0">
-      <BrandAvatar faviconDomain={faviconDomain} brand={brand} color={color} size={size} />
+      <BrandLogo domain={faviconDomain} name={brand} size={size} />
       <span className="text-sm font-medium text-ink truncate" title={brand}>{brand}</span>
       {showYou && (
         <span className="flex-shrink-0 text-[10px] px-1.5 py-0.5 bg-surface-warm text-ink-2 rounded-full font-semibold">You</span>
@@ -173,7 +141,7 @@ function SOVBar({
   return (
     <div className="flex items-center gap-3">
       <div className="w-44 flex-shrink-0 flex items-center gap-1.5 min-w-0">
-        <BrandAvatar faviconDomain={faviconDomain} brand={brand} color={color} size={18} />
+        <BrandLogo domain={faviconDomain} name={brand} size={18} />
         <span className="text-sm font-medium text-ink truncate" title={brand}>{brand}</span>
       </div>
       <div className="flex-1 h-2.5 bg-surface-warm rounded-full overflow-hidden">
@@ -349,7 +317,7 @@ function OverallSOVTab({
             <div key={brand} className={`rounded-xl border p-4 ${isOwn ? 'bg-canvas border-ink/20' : 'bg-surface border-divider'}`}>
               {/* Brand header: logo + name + You badge */}
               <div className="flex items-center gap-1.5 mb-3 min-w-0">
-                <BrandAvatar faviconDomain={faviconDomain} brand={brand} color={color} size={20} />
+                <BrandLogo domain={faviconDomain} name={brand} size={20} />
                 <span className="text-xs font-semibold text-ink-2 truncate flex-1" title={brand}>{brand}</span>
                 {isOwn && (
                   <span className="flex-shrink-0 text-[10px] px-1.5 py-0.5 bg-surface-warm text-ink-2 rounded-full font-semibold">You</span>
@@ -483,7 +451,7 @@ function PromptSOVTab({
                   return (
                     <th key={brand} className="px-3 py-3 text-center min-w-[110px]">
                       <div className={`flex items-center justify-center gap-1.5 ${isOwn ? 'flex-row' : ''}`}>
-                        <BrandAvatar faviconDomain={faviconDomain} brand={brand} color={color} size={16} />
+                        <BrandLogo domain={faviconDomain} name={brand} size={16} />
                         <span className="text-xs font-semibold text-ink-2 uppercase tracking-wide truncate max-w-[80px]" title={brand}>
                           {brand}
                         </span>
@@ -593,7 +561,7 @@ function SourcingSOVTab({
                   return (
                     <th key={brand} className="px-3 py-3 text-center min-w-[110px]">
                       <div className="flex items-center justify-center gap-1.5">
-                        <BrandAvatar faviconDomain={faviconDomain} brand={brand} color={color} size={16} />
+                        <BrandLogo domain={faviconDomain} name={brand} size={16} />
                         <span className="text-xs font-semibold text-ink-2 uppercase tracking-wide truncate max-w-[80px]" title={brand}>
                           {brand}
                         </span>

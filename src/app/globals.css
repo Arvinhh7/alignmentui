@@ -85,6 +85,35 @@ body {
   color: inherit;
 }
 
+/* Search and dropdown controls should feel easy to hit. */
+@media (hover: hover) and (pointer: fine) {
+  input[type="search"]:not([data-global-search-field="true"]),
+  select,
+  [data-search-input="true"],
+  [data-dropdown-trigger="true"],
+  [data-global-search-trigger="true"] {
+    transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+  }
+
+  input[type="search"]:not([data-global-search-field="true"]):hover,
+  select:hover,
+  [data-search-input="true"]:hover,
+  [data-dropdown-trigger="true"]:hover,
+  [data-global-search-trigger="true"]:hover {
+    transform: scale(1.015);
+  }
+}
+
+select,
+[data-dropdown-trigger="true"] {
+  cursor: pointer;
+}
+
+input[type="search"],
+[data-search-input="true"] {
+  cursor: text;
+}
+
 /* ===== DESIGN.md Component Layer ======================================= */
 
 @layer components {

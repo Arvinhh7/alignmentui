@@ -29,12 +29,12 @@ const CATEGORY_COLORS: Record<string, string> = {
 const CATEGORY_LABEL_MAP: Record<string, string> = {
   info_cognition:      '🧠 Info Cognition',
   solution_explore:    '🔍 Solution Explore',
-  comparison_decision: '⚖️ Compare & Decide',
+  comparison_decision: '⚖️ Comparison Decision',
   action_choice:       '🚀 Action Choice',
   recommendation:      '🚀 Action Choice',
-  comparison:          '⚖️ Compare & Decide',
+  comparison:          '⚖️ Comparison Decision',
   information:         '🧠 Info Cognition',
-  review:              '⚖️ Compare & Decide',
+  review:              '⚖️ Comparison Decision',
   howto:               '🚀 Action Choice',
 }
 

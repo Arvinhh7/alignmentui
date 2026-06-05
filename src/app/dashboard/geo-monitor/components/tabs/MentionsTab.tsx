@@ -11,6 +11,7 @@ import {
   CATEGORY_COLORS,
   SUB_TYPE_LABELS,
   autoClassify,
+  resolveIntent,
 } from '../shared/constants'
 
 export function MentionsTab() {
@@ -20,14 +21,29 @@ export function MentionsTab() {
   // ── Group mention_results by intent ──────────────────
   const intentStats = useMemo(() => {
     if (!scanResult) return []
+
+    // ── C: Hybrid intent resolution ───────────────────────
+    // Build a lookup from prompt template → stored category/intent from the
+    // prompts DB (ctx.filteredPrompts). Stored value is authoritative; if a
+    // prompt isn't in the list (e.g. stale scan with deleted prompt) we fall
+    // back to autoClassify so the row still counts rather than getting dropped.
+    const storedCategoryMap: Record<string, string> = {}
+    for (const p of ctx.filteredPrompts) {
+      if (p.template) {
+        storedCategoryMap[p.template] = p.category || p.intent || ''
+      }
+    }
+
     const groups: Record<string, { total: number; mentioned: number }> = {}
     for (const key of Object.keys(INTENT_FUNNEL)) {
       groups[key] = { total: 0, mentioned: 0 }
     }
     for (const m of scanResult.mention_results) {
-      const { category } = autoClassify(m.prompt_text)
-      // Normalize old categories to new intent keys
-      const intentKey = Object.keys(INTENT_FUNNEL).includes(category) ? category : 'info_cognition'
+      // Prefer stored category → resolveIntent handles old enum values → autoClassify fallback
+      const rawCategory =
+        storedCategoryMap[m.prompt_text] || autoClassify(m.prompt_text).category
+      const resolved = resolveIntent(rawCategory) || rawCategory
+      const intentKey = Object.keys(INTENT_FUNNEL).includes(resolved) ? resolved : 'info_cognition'
       if (!groups[intentKey]) groups[intentKey] = { total: 0, mentioned: 0 }
       groups[intentKey].total += 1
       if (m.mentioned) groups[intentKey].mentioned += 1
@@ -42,7 +58,7 @@ export function MentionsTab() {
         ? (groups[key].mentioned / groups[key].total) * 100
         : 0,
     }))
-  }, [scanResult])
+  }, [scanResult, ctx.filteredPrompts])
 
   // ── Quick stats ──────────────────────────────────────
   const { totalPrompts, mentionedCount, notMentionedCount, avgCitations } = useMemo(() => {

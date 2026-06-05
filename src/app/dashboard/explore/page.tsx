@@ -188,6 +188,8 @@ export default function ExplorePage() {
           <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-3" />
             <input
+              type="search"
+              data-search-input="true"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search categories…"

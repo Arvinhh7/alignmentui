@@ -360,6 +360,8 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[rgba(250,245,236,0.3)]" />
             <input
               ref={searchInputRef}
+              type="search"
+              data-search-input="true"
               value={searchQuery}
               onChange={e => { setSearchQuery(e.target.value); setShowSearch(true) }}
               onFocus={() => setShowSearch(true)}
