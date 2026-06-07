@@ -6,9 +6,10 @@ import { useSearchParams } from 'next/navigation'
 import {
   ArrowLeft, Play, Loader2, RefreshCw, BarChart2, Link2, Tag,
   CheckCircle2, Quote, ExternalLink, Search, X, MessageSquareText,
-  ChevronRight, Database,
+  ChevronRight, Database, AlertCircle,
 } from 'lucide-react'
 import { BrandLogo } from '@/components/BrandLogo'
+import { API_BASE_URL, fetchWithRetry } from '@/lib/api'
 
 const EXPLORE_BRAND_DOMAINS: [string, string][] = [
   ['apple', 'apple.com'],
@@ -405,11 +406,12 @@ export default function CategoryClient({ slug }: { slug: string }) {
   const [scanRunId, setScanRunId] = useState<string | null>(null)
   const [scanProgress, setScanProgress] = useState(0)
   const [selectedRecord, setSelectedRecord] = useState<RecentAnswer | null>(null)
-
-  const base = process.env.NEXT_PUBLIC_API_URL || ''
+  const [error, setError] = useState<string | null>(null)
 
   const loadData = useCallback(() => {
-    fetch(`${base}/api/explore/categories/${slug}`)
+    setLoading(true)
+    setError(null)
+    fetchWithRetry(`${API_BASE_URL}/api/explore/categories/${slug}`, {}, { timeoutMs: 9000, budgetMs: 20000 })
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`)
         return r.json()
@@ -418,9 +420,12 @@ export default function CategoryClient({ slug }: { slug: string }) {
         if (!d || !d.category) { setData(null); return }
         setData(d)
       })
-      .catch(() => setData(null))
+      .catch(() => {
+        setData(null)
+        setError('This category could not be loaded from the data API. Please retry in a moment.')
+      })
       .finally(() => setLoading(false))
-  }, [slug, base])
+  }, [slug])
 
   useEffect(() => { loadData() }, [loadData])
 
@@ -428,7 +433,8 @@ export default function CategoryClient({ slug }: { slug: string }) {
     if (!scanRunId || !scanning) return
     const poll = setInterval(async () => {
       try {
-        const r = await fetch(`${base}/api/explore/scan/${scanRunId}`)
+        const r = await fetchWithRetry(`${API_BASE_URL}/api/explore/scan/${scanRunId}`, {}, { timeoutMs: 5000, budgetMs: 5000 })
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
         const run = await r.json()
         setScanProgress(run.progress_pct ?? 0)
         if (run.status === 'completed' || run.status === 'failed') {
@@ -440,18 +446,19 @@ export default function CategoryClient({ slug }: { slug: string }) {
       } catch { /* keep polling */ }
     }, 2500)
     return () => clearInterval(poll)
-  }, [scanRunId, scanning, base, loadData])
+  }, [scanRunId, scanning, loadData])
 
   const handleScan = async () => {
     if (scanning) return
     setScanning(true)
     setScanProgress(0)
     try {
-      const r = await fetch(`${base}/api/explore/categories/${slug}/scan`, {
+      const r = await fetchWithRetry(`${API_BASE_URL}/api/explore/categories/${slug}/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ engine: 'chatgpt' }),
-      })
+      }, { timeoutMs: 10000 })
+      if (!r.ok) throw new Error(`HTTP ${r.status}`)
       const res = await r.json()
       if (res.run_id) setScanRunId(res.run_id)
       if (res.status === 'already_running' && res.run_id) setScanRunId(res.run_id)
@@ -492,7 +499,19 @@ export default function CategoryClient({ slug }: { slug: string }) {
 
   if (!data) return (
     <div className="flex min-h-screen items-center justify-center bg-canvas">
-      <p className="text-ink-3">Category not found.</p>
+      <div className="flex max-w-md flex-col items-center gap-3 rounded-2xl border border-divider-light bg-surface p-8 text-center">
+        <AlertCircle className="h-8 w-8 text-caution" />
+        <p className="text-sm font-semibold text-ink">{error || 'Category not found.'}</p>
+        <button
+          onClick={loadData}
+          className="rounded-xl bg-ink px-4 py-2 text-[12px] font-semibold text-ink-inv transition-colors hover:bg-ink/80"
+        >
+          Retry
+        </button>
+        <Link href="/dashboard/explore" className="text-[12px] font-semibold text-ink-3 underline underline-offset-4">
+          Back to Explore
+        </Link>
+      </div>
     </div>
   )
 

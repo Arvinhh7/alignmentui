@@ -8,7 +8,7 @@ import {
   X, type LucideIcon,
 } from 'lucide-react'
 import { BrandLogo } from '@/components/BrandLogo'
-import { fetchWithRetry } from '@/lib/api'
+import { API_BASE_URL, fetchWithRetry } from '@/lib/api'
 
 type ResultType = 'module' | 'category' | 'brand' | 'topic' | 'source'
 
@@ -285,11 +285,10 @@ export default function DashboardGlobalSearch({ mobile = false }: DashboardGloba
       return
     }
     let cancelled = false
-    const base = process.env.NEXT_PUBLIC_API_URL || ''
     const timer = window.setTimeout(() => {
       setLoadingRemote(true)
       setRemoteError(false)
-      fetchWithRetry(`${base}/api/global-search?q=${encodeURIComponent(q)}&limit=16`, {}, { timeoutMs: 6000, budgetMs: 12000 })
+      fetchWithRetry(`${API_BASE_URL}/api/global-search?q=${encodeURIComponent(q)}&limit=16`, {}, { timeoutMs: 4500, budgetMs: 4500 })
         .then(response => response.ok ? response.json() : Promise.reject(new Error(`HTTP ${response.status}`)))
         .then(data => {
           if (cancelled) return

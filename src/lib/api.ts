@@ -2,7 +2,12 @@
  * API client for Alignment AI Backend
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const DEFAULT_API_BASE_URL =
+  process.env.NODE_ENV === 'production'
+    ? 'https://api.alignmenttech.ai'
+    : 'http://localhost:8000'
+
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_BASE_URL
 
 /**
  * fetch wrapper with timeout + automatic retry for transient backend outages.

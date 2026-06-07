@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { TrendingUp, Compass, Search, Loader2, Zap } from 'lucide-react'
-import { BrandLogo } from '@/components/BrandLogo'
+import { AlertCircle, Compass, Search, Loader2, Zap } from 'lucide-react'
+import { API_BASE_URL, fetchWithRetry } from '@/lib/api'
 
 interface Category {
   id: string
@@ -121,19 +121,34 @@ function CategoryCard({ cat }: { cat: Category }) {
 export default function ExplorePage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [activeVertical, setActiveVertical] = useState<string | null>(null)
 
   useEffect(() => {
-    const base = process.env.NEXT_PUBLIC_API_URL || ''
-    fetch(`${base}/api/explore/categories`)
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+    fetchWithRetry(`${API_BASE_URL}/api/explore/categories`, {}, { timeoutMs: 8000, budgetMs: 18000 })
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`)
         return r.json()
       })
-      .then(d => setCategories(d?.categories || []))
-      .catch(() => setCategories([]))
-      .finally(() => setLoading(false))
+      .then(d => {
+        if (cancelled) return
+        setCategories(d?.categories || [])
+      })
+      .catch(() => {
+        if (cancelled) return
+        setCategories([])
+        setError('Explore data is temporarily unavailable. Please retry in a moment.')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const filtered = categories.filter(c => {
@@ -226,15 +241,28 @@ export default function ExplorePage() {
           </div>
         )}
 
+        {!loading && error && (
+          <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-divider-light bg-surface px-6 py-14 text-center">
+            <AlertCircle className="h-8 w-8 text-caution" />
+            <p className="text-sm font-semibold text-ink">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="rounded-xl bg-ink px-4 py-2 text-[12px] font-semibold text-ink-inv transition-colors hover:bg-ink/80"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
         {/* Category grid by vertical */}
-        {!loading && verticals.length === 0 && (
+        {!loading && !error && verticals.length === 0 && (
           <div className="text-center py-16 text-ink-3">
             <Compass className="w-10 h-10 mx-auto mb-3 opacity-30" />
             <p className="text-sm">No categories found.</p>
           </div>
         )}
 
-        {!loading && verticals.map(vertical => (
+        {!loading && !error && verticals.map(vertical => (
           <div key={vertical}>
             <div className="flex items-center gap-2 mb-3">
               <span className="text-lg">{VERTICAL_ICON[vertical]}</span>
