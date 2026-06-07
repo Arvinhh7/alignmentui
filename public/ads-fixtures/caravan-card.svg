@@ -1,0 +1,16 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="900" rx="44" fill="#E8F0EA"/>
+  <rect x="74" y="74" width="1052" height="752" rx="36" fill="#FFFDF9"/>
+  <path d="M180 632C180 466.315 314.315 332 480 332H632C797.685 332 932 466.315 932 632V676H180V632Z" fill="#4A7C59"/>
+  <path d="M318 468H736C804.483 468 860 523.517 860 592V628H194V592C194 523.517 249.517 468 318 468Z" fill="#CFE0D3"/>
+  <circle cx="346" cy="676" r="54" fill="#2D2B27"/>
+  <circle cx="742" cy="676" r="54" fill="#2D2B27"/>
+  <rect x="216" y="206" width="284" height="90" rx="20" fill="#111111"/>
+  <rect x="238" y="230" width="178" height="18" rx="9" fill="#FAF5EC"/>
+  <rect x="238" y="262" width="216" height="18" rx="9" fill="#EDE3D0"/>
+  <rect x="640" y="184" width="310" height="200" rx="28" fill="#D8E5F1"/>
+  <rect x="684" y="234" width="224" height="34" rx="17" fill="#1D4E89"/>
+  <rect x="684" y="286" width="192" height="24" rx="12" fill="#A8C4E0"/>
+  <text x="164" y="142" fill="#111111" font-family="Arial, sans-serif" font-size="44" font-weight="700">Observed ad card preview</text>
+  <text x="164" y="184" fill="#2D2B27" font-family="Arial, sans-serif" font-size="28">Caravan / camping image fixture used only for local fallback</text>
+</svg>

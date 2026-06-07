@@ -1,29 +1,8 @@
 import type { Metadata } from 'next'
 import Script from 'next/script'
-import { Inter, JetBrains_Mono, DM_Serif_Display } from 'next/font/google'
 import './globals.css'
 import { LanguageProvider } from '@/lib/LanguageContext'
 import { GA_ID } from '@/lib/gtag'
-
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
-})
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-mono',
-})
-
-const dmSerifDisplay = DM_Serif_Display({
-  weight: '400',
-  style: ['normal', 'italic'],
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-serif',
-})
 
 export const metadata: Metadata = {
   title: 'Alignment AI - GEO Platform',
@@ -36,8 +15,15 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} ${dmSerifDisplay.variable}`}>
-      <body className={inter.className}>
+    <html
+      lang="en"
+      style={{
+        ['--font-inter' as string]: 'Inter',
+        ['--font-mono' as string]: 'JetBrains Mono',
+        ['--font-serif' as string]: 'DM Serif Display',
+      }}
+    >
+      <body>
         <LanguageProvider>
           {children}
         </LanguageProvider>
