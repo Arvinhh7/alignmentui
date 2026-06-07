@@ -1,16 +1,16 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  Activity, BarChart3, Bot, Briefcase, Compass, Cpu, Database, ExternalLink,
-  LineChart, Link2, Megaphone, Search, ShieldCheck, ShoppingCart, Users, Wrench,
+  Activity, AlertCircle, BarChart3, Bot, Briefcase, Compass, Cpu, Database, ExternalLink,
+  History, LineChart, Link2, Megaphone, Search, ShieldCheck, ShoppingCart, Tag, Users, Wrench,
   X, type LucideIcon,
 } from 'lucide-react'
 import { BrandLogo } from '@/components/BrandLogo'
 import { fetchWithRetry } from '@/lib/api'
 
-type ResultType = 'module' | 'category' | 'brand'
+type ResultType = 'module' | 'category' | 'brand' | 'topic' | 'source'
 
 interface SearchResult {
   id: string
@@ -25,6 +25,26 @@ interface SearchResult {
   score: number
   brandDomain?: string | null
 }
+
+interface StoredSearchResult {
+  id: string
+  type: ResultType
+  title: string
+  subtitle: string
+  href: string
+  badge?: string
+  keywords: string[]
+  brandDomain?: string | null
+  lastUsedAt: number
+  hits: number
+}
+
+interface DashboardGlobalSearchProps {
+  mobile?: boolean
+}
+
+const RECENT_RESULTS_KEY = 'dashboard-global-search-recents-v1'
+const MAX_RECENT_RESULTS = 6
 
 const MODULE_RESULTS: SearchResult[] = [
   { id: 'module-explore', type: 'module', title: 'Explore', subtitle: 'Market categories, topics, brands, and citations', href: '/dashboard/explore', icon: Compass, badge: 'Beta', keywords: ['category', 'categories', 'topic', 'topics', 'brand', 'citation', 'leaderboard'], score: 0 },
@@ -50,6 +70,13 @@ const MODULE_RESULTS: SearchResult[] = [
   { id: 'module-team', type: 'module', title: 'Team Management', subtitle: 'Roles and staff permissions', href: '/dashboard/admin/team', icon: Users, keywords: ['team', 'staff', 'permission'], score: 0 },
 ]
 
+function iconForType(type: ResultType): LucideIcon | undefined {
+  if (type === 'category') return Compass
+  if (type === 'topic') return Tag
+  if (type === 'source') return Link2
+  return undefined
+}
+
 function scoreResult(result: SearchResult, query: string): number {
   const q = query.trim().toLowerCase()
   if (!q) return 0
@@ -65,6 +92,8 @@ function scoreResult(result: SearchResult, query: string): number {
   if (score > 0 && result.type === 'module') score += 10
   if (score > 0 && result.type === 'category') score += 6
   if (score > 0 && result.type === 'brand') score += 4
+  if (score > 0 && result.type === 'topic') score += 5
+  if (score > 0 && result.type === 'source') score += 3
   if (result.disabled) score -= 8
   return score
 }
@@ -72,18 +101,157 @@ function scoreResult(result: SearchResult, query: string): number {
 function groupLabel(type: ResultType): string {
   if (type === 'module') return 'Modules'
   if (type === 'category') return 'Explore categories'
-  return 'Explore brands'
+  if (type === 'brand') return 'Explore brands'
+  if (type === 'topic') return 'Explore topics'
+  return 'Citation sources'
 }
 
-export default function DashboardGlobalSearch() {
+function sanitizeRecentResult(raw: unknown): SearchResult | null {
+  if (!raw || typeof raw !== 'object') return null
+  const value = raw as Partial<StoredSearchResult>
+  if (!value.id || !value.type || !value.title || !value.subtitle || !value.href) return null
+  if (!['module', 'category', 'brand', 'topic', 'source'].includes(value.type)) return null
+  return {
+    id: value.id,
+    type: value.type,
+    title: value.title,
+    subtitle: value.subtitle,
+    href: value.href,
+    badge: value.badge,
+    keywords: Array.isArray(value.keywords) && value.keywords.length ? value.keywords.filter(Boolean) : [value.title, value.subtitle],
+    brandDomain: value.brandDomain ?? null,
+    icon: value.type === 'brand' ? undefined : iconForType(value.type),
+    score: 0,
+  }
+}
+
+function loadRecentResults(): SearchResult[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = window.localStorage.getItem(RECENT_RESULTS_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    return parsed.map(sanitizeRecentResult).filter((value): value is SearchResult => Boolean(value)).slice(0, MAX_RECENT_RESULTS)
+  } catch {
+    return []
+  }
+}
+
+function saveRecentResult(result: SearchResult) {
+  if (typeof window === 'undefined' || !result.href || result.disabled) return
+  try {
+    const existingRaw = window.localStorage.getItem(RECENT_RESULTS_KEY)
+    const parsed = existingRaw ? JSON.parse(existingRaw) : []
+    const existing = Array.isArray(parsed) ? (parsed as StoredSearchResult[]) : []
+    const current = existing.find(row => row.id === result.id)
+    const nextRow: StoredSearchResult = {
+      id: result.id,
+      type: result.type,
+      title: result.title,
+      subtitle: result.subtitle,
+      href: result.href,
+      badge: result.badge,
+      keywords: result.keywords,
+      brandDomain: result.brandDomain ?? null,
+      lastUsedAt: Date.now(),
+      hits: (current?.hits || 0) + 1,
+    }
+    const merged = [nextRow, ...existing.filter(row => row.id !== result.id)]
+      .sort((a, b) => (b.hits || 0) - (a.hits || 0) || (b.lastUsedAt || 0) - (a.lastUsedAt || 0))
+      .slice(0, MAX_RECENT_RESULTS)
+    window.localStorage.setItem(RECENT_RESULTS_KEY, JSON.stringify(merged))
+  } catch {}
+}
+
+function firstSelectableIndex(results: SearchResult[]): number {
+  return Math.max(0, results.findIndex(result => !result.disabled && result.href))
+}
+
+function moveActiveIndex(results: SearchResult[], startIndex: number, direction: 1 | -1): number {
+  if (!results.length) return 0
+  let next = startIndex
+  for (let step = 0; step < results.length; step += 1) {
+    next = (next + direction + results.length) % results.length
+    if (!results[next].disabled && results[next].href) return next
+  }
+  return startIndex
+}
+
+function SearchRow({
+  result,
+  active,
+  resultId,
+  onMouseEnter,
+  onClick,
+}: {
+  result: SearchResult
+  active: boolean
+  resultId: string
+  onMouseEnter: () => void
+  onClick: () => void
+}) {
+  const Icon = result.icon
+  return (
+    <button
+      id={resultId}
+      type="button"
+      role="option"
+      aria-selected={active}
+      onMouseEnter={onMouseEnter}
+      onClick={onClick}
+      disabled={result.disabled}
+      className={`flex min-h-[56px] w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-all duration-150 ${
+        result.disabled
+          ? 'cursor-not-allowed opacity-55'
+          : 'cursor-pointer hover:bg-canvas'
+      } ${
+        active ? 'bg-canvas shadow-sm ring-1 ring-divider-light' : ''
+      }`}
+    >
+      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-divider-light bg-surface">
+        {result.type === 'brand'
+          ? <BrandLogo domain={result.brandDomain || undefined} name={result.title} size={22} />
+          : Icon ? <Icon className="h-4 w-4 text-ink-2" /> : <Search className="h-4 w-4 text-ink-2" />}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-2">
+          <span className="truncate text-[13px] font-semibold text-ink">{result.title}</span>
+          {result.badge && (
+            <span className={`flex-shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold ${
+              result.disabled ? 'bg-surface-muted text-ink-3' : 'bg-sage-bg text-sage'
+            }`}>
+              {result.badge}
+            </span>
+          )}
+        </span>
+        <span className="mt-0.5 block truncate text-[11px] text-ink-3">{result.subtitle}</span>
+      </span>
+      {result.disabled ? (
+        <span className="rounded-full bg-surface-muted px-2 py-1 text-[10px] font-semibold text-ink-3">Unavailable</span>
+      ) : (
+        <ExternalLink className="h-4 w-4 flex-shrink-0 text-ink-3" />
+      )}
+    </button>
+  )
+}
+
+export default function DashboardGlobalSearch({ mobile = false }: DashboardGlobalSearchProps) {
   const router = useRouter()
+  const listboxId = useId()
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [remoteResults, setRemoteResults] = useState<SearchResult[]>([])
+  const [recentResults, setRecentResults] = useState<SearchResult[]>([])
   const [loadingRemote, setLoadingRemote] = useState(false)
+  const [remoteError, setRemoteError] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    setRecentResults(loadRecentResults())
+  }, [])
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -92,7 +260,9 @@ export default function DashboardGlobalSearch() {
         setOpen(true)
         requestAnimationFrame(() => inputRef.current?.focus())
       }
-      if (event.key === 'Escape') setOpen(false)
+      if (event.key === 'Escape') {
+        setOpen(false)
+      }
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
@@ -107,40 +277,34 @@ export default function DashboardGlobalSearch() {
   }, [])
 
   useEffect(() => {
-    const syncInputValue = () => {
-      const current = inputRef.current?.value ?? ''
-      setQuery(prev => prev === current ? prev : current)
-    }
-    syncInputValue()
-    const interval = window.setInterval(syncInputValue, 120)
-    return () => window.clearInterval(interval)
-  }, [])
-
-  useEffect(() => {
     const q = query.trim()
     if (!open || q.length < 2) {
       setRemoteResults([])
       setLoadingRemote(false)
+      setRemoteError(false)
       return
     }
     let cancelled = false
     const base = process.env.NEXT_PUBLIC_API_URL || ''
     const timer = window.setTimeout(() => {
       setLoadingRemote(true)
+      setRemoteError(false)
       fetchWithRetry(`${base}/api/global-search?q=${encodeURIComponent(q)}&limit=16`, {}, { timeoutMs: 6000, budgetMs: 12000 })
-        .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
+        .then(response => response.ok ? response.json() : Promise.reject(new Error(`HTTP ${response.status}`)))
         .then(data => {
           if (cancelled) return
           const next = (data?.results || []).map((result: SearchResult) => ({
             ...result,
-            icon: result.type === 'category' ? Compass : undefined,
+            icon: result.type === 'brand' ? undefined : iconForType(result.type),
             keywords: result.keywords || [result.title, result.subtitle],
             score: 0,
           }))
           setRemoteResults(next)
         })
         .catch(() => {
-          if (!cancelled) setRemoteResults([])
+          if (cancelled) return
+          setRemoteResults([])
+          setRemoteError(true)
         })
         .finally(() => {
           if (!cancelled) setLoadingRemote(false)
@@ -152,54 +316,41 @@ export default function DashboardGlobalSearch() {
     }
   }, [open, query])
 
+  const quickAccessResults = useMemo(
+    () => MODULE_RESULTS.slice(0, mobile ? 5 : 8).map((result, index) => ({ ...result, score: 80 - index })),
+    [mobile],
+  )
+
+  const moduleBrowseResults = useMemo(
+    () => quickAccessResults.filter(result => !recentResults.some(recent => recent.id === result.id)),
+    [quickAccessResults, recentResults],
+  )
+
   const results = useMemo(() => {
     const q = query.trim()
-    const pool = [...MODULE_RESULTS, ...remoteResults]
-    if (!q) return MODULE_RESULTS.slice(0, 8).map((r, idx) => ({ ...r, score: 80 - idx }))
-    return pool
+    if (!q) {
+      const deduped = new Map<string, SearchResult>()
+      for (const result of [...recentResults, ...quickAccessResults]) {
+        if (!deduped.has(result.id)) deduped.set(result.id, result)
+      }
+      return Array.from(deduped.values())
+    }
+
+    const deduped = new Map<string, SearchResult>()
+    for (const result of [...MODULE_RESULTS, ...recentResults, ...remoteResults]) {
+      if (!deduped.has(result.id)) deduped.set(result.id, result)
+    }
+
+    return Array.from(deduped.values())
       .map(result => ({ ...result, score: scoreResult(result, q) }))
       .filter(result => result.score > 0)
       .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title))
       .slice(0, 12)
-  }, [remoteResults, query])
+  }, [query, quickAccessResults, recentResults, remoteResults])
 
-  useEffect(() => setActiveIndex(0), [query])
-
-  const goTo = (result: SearchResult) => {
-    if (result.disabled || !result.href) return
-    setOpen(false)
-    setQuery('')
-    if (inputRef.current) inputRef.current.value = ''
-    router.push(result.href)
-  }
-
-  const onInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!open) setOpen(true)
-    if (!event.metaKey && !event.ctrlKey && !event.altKey) {
-      if (event.key.length === 1) {
-        setQuery(prev => `${prev}${event.key}`)
-      } else if (event.key === 'Backspace') {
-        setQuery(prev => prev.slice(0, -1))
-      } else if (event.key === 'Delete') {
-        setQuery('')
-      }
-      window.setTimeout(() => {
-        const current = inputRef.current?.value ?? ''
-        setQuery(prev => prev === current ? prev : current)
-      }, 30)
-    }
-    if (event.key === 'ArrowDown') {
-      event.preventDefault()
-      setActiveIndex(prev => Math.min(prev + 1, Math.max(0, results.length - 1)))
-    } else if (event.key === 'ArrowUp') {
-      event.preventDefault()
-      setActiveIndex(prev => Math.max(0, prev - 1))
-    } else if (event.key === 'Enter') {
-      event.preventDefault()
-      const active = results[activeIndex]
-      if (active) goTo(active)
-    }
-  }
+  useEffect(() => {
+    setActiveIndex(firstSelectableIndex(results))
+  }, [results])
 
   const grouped = results.reduce<Record<ResultType, SearchResult[]>>((acc, result) => {
     if (!acc[result.type]) acc[result.type] = []
@@ -207,58 +358,196 @@ export default function DashboardGlobalSearch() {
     return acc
   }, {} as Record<ResultType, SearchResult[]>)
 
+  const activeResult = results[activeIndex]
+  const trimmedQuery = query.trim()
+
+  const goTo = (result: SearchResult) => {
+    if (result.disabled || !result.href) return
+    saveRecentResult(result)
+    setRecentResults(loadRecentResults())
+    setOpen(false)
+    setQuery('')
+    router.push(result.href)
+  }
+
+  const onInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!open) setOpen(true)
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      setActiveIndex(prev => moveActiveIndex(results, prev, 1))
+      return
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      setActiveIndex(prev => moveActiveIndex(results, prev, -1))
+      return
+    }
+    if (event.key === 'Home') {
+      event.preventDefault()
+      setActiveIndex(firstSelectableIndex(results))
+      return
+    }
+    if (event.key === 'End') {
+      event.preventDefault()
+      for (let index = results.length - 1; index >= 0; index -= 1) {
+        if (!results[index].disabled && results[index].href) {
+          setActiveIndex(index)
+          break
+        }
+      }
+      return
+    }
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      if (activeResult) goTo(activeResult)
+      return
+    }
+    if (event.key === 'Escape') {
+      setOpen(false)
+    }
+  }
+
   return (
-    <div ref={wrapperRef} className="relative w-full max-w-[560px]">
+    <div ref={wrapperRef} className={`relative w-full ${mobile ? 'max-w-none' : 'max-w-[560px]'}`}>
       <div
         data-global-search-trigger="true"
-        className={`group relative flex h-10 items-center rounded-xl border bg-surface transition-all duration-200 hover:scale-[1.015] hover:border-ink-2 hover:shadow-sm ${
-          open ? 'border-ink-2 shadow-sm' : 'border-divider-light'
-        }`}
+        className={`group relative flex items-center rounded-2xl border bg-surface transition-all duration-200 ${
+          mobile ? 'h-11' : 'h-11'
+        } ${open ? 'border-ink-2 shadow-sm' : 'border-divider-light hover:border-ink-2 hover:shadow-sm'}`}
       >
         <Search className="pointer-events-none absolute left-3.5 h-4 w-4 text-ink-3 transition-colors group-hover:text-ink-2" />
         <input
           ref={inputRef}
           type="search"
+          value={query}
+          role="combobox"
+          aria-expanded={open}
+          aria-controls={listboxId}
+          aria-activedescendant={activeResult ? `${listboxId}-${activeResult.id}` : undefined}
+          aria-label="Search dashboard"
           data-global-search-field="true"
-          onChange={event => { setQuery(event.target.value); setOpen(true) }}
-          onInput={event => { setQuery(event.currentTarget.value); setOpen(true) }}
+          onChange={event => {
+            setQuery(event.target.value)
+            if (!open) setOpen(true)
+          }}
           onFocus={() => setOpen(true)}
           onKeyDown={onInputKeyDown}
-          placeholder="Search Alignment..."
-          className="h-full w-full bg-transparent pl-10 pr-20 text-[13px] text-ink placeholder:text-ink-3 focus:outline-none"
+          placeholder={mobile ? 'Search dashboard' : 'Search Alignment...'}
+          className={`h-full w-full bg-transparent text-[13px] text-ink placeholder:text-ink-3 focus:outline-none ${
+            mobile ? 'pl-10 pr-11' : 'pl-10 pr-20'
+          }`}
         />
         {query ? (
           <button
             type="button"
             onClick={() => {
-              if (inputRef.current) inputRef.current.value = ''
               setQuery('')
+              setRemoteError(false)
               inputRef.current?.focus()
             }}
-            className="absolute right-12 flex h-7 w-7 items-center justify-center rounded-lg text-ink-3 transition-all hover:scale-110 hover:bg-surface-muted hover:text-ink"
+            className={`absolute flex items-center justify-center rounded-xl text-ink-3 transition-colors hover:bg-surface-muted hover:text-ink ${
+              mobile ? 'right-2 h-8 w-8' : 'right-12 h-8 w-8'
+            }`}
             aria-label="Clear search"
           >
-            <X className="h-3.5 w-3.5" />
+            <X className="h-4 w-4" />
           </button>
         ) : null}
-        <span className="pointer-events-none absolute right-3 rounded-md border border-divider-light bg-canvas px-1.5 py-0.5 text-[10px] font-semibold text-ink-3">
-          ⌘K
-        </span>
+        {!mobile && (
+          <span className="pointer-events-none absolute right-3 rounded-md border border-divider-light bg-canvas px-1.5 py-0.5 text-[10px] font-semibold text-ink-3">
+            ⌘K
+          </span>
+        )}
       </div>
 
       {open && (
         <div
           data-global-search-results="true"
-          className="absolute left-0 right-0 top-full z-[90] mt-2 overflow-hidden rounded-2xl border border-divider-light bg-surface shadow-elevation-lg"
+          className={`absolute left-0 right-0 top-full z-[90] mt-2 overflow-hidden rounded-2xl border border-divider-light bg-surface shadow-elevation-lg ${
+            mobile ? 'max-h-[min(70vh,540px)]' : ''
+          }`}
         >
-          <div className="max-h-[520px] overflow-y-auto p-2">
-            {results.length === 0 ? (
-              <div className="px-4 py-8 text-center">
-                <p className="text-[13px] font-semibold text-ink">No results</p>
-                <p className="mt-1 text-[12px] text-ink-3">Try a module, category, brand, or citation source.</p>
+          <div id={listboxId} role="listbox" className="max-h-[520px] overflow-y-auto p-2">
+            {!trimmedQuery && recentResults.length > 0 && (
+              <div className="mb-2">
+                <div className="px-2.5 pb-1 pt-2 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3">
+                  Recent and frequent
+                </div>
+                <div className="space-y-1">
+                  {recentResults.map(result => {
+                    const absoluteIndex = results.findIndex(item => item.id === result.id)
+                    const active = absoluteIndex === activeIndex
+                    return (
+                      <SearchRow
+                        key={`recent-${result.id}`}
+                        result={{ ...result, icon: result.type === 'brand' ? undefined : iconForType(result.type) }}
+                        active={active}
+                        resultId={`${listboxId}-${result.id}`}
+                        onMouseEnter={() => setActiveIndex(Math.max(0, absoluteIndex))}
+                        onClick={() => goTo(result)}
+                      />
+                    )
+                  })}
+                </div>
               </div>
-            ) : (
-              (['module', 'category', 'brand'] as ResultType[]).map(type => {
+            )}
+
+            {!trimmedQuery && moduleBrowseResults.length > 0 && (
+              <div className="mb-2 last:mb-0">
+                <div className="px-2.5 pb-1 pt-2 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3">
+                  Quick access
+                </div>
+                <div className="space-y-1">
+                  {moduleBrowseResults.map(result => {
+                    const absoluteIndex = results.findIndex(item => item.id === result.id)
+                    const active = absoluteIndex === activeIndex
+                    return (
+                      <SearchRow
+                        key={result.id}
+                        result={result}
+                        active={active}
+                        resultId={`${listboxId}-${result.id}`}
+                        onMouseEnter={() => setActiveIndex(Math.max(0, absoluteIndex))}
+                        onClick={() => goTo(result)}
+                      />
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {trimmedQuery && results.length === 0 ? (
+              <div className="px-4 py-8 text-center">
+                {loadingRemote ? (
+                  <>
+                    <p className="text-[13px] font-semibold text-ink">Searching Alignment...</p>
+                    <p className="mt-1 text-[12px] text-ink-3">Checking modules, Explore data, and saved results.</p>
+                  </>
+                ) : remoteError ? (
+                  <>
+                    <p className="flex items-center justify-center gap-2 text-[13px] font-semibold text-ink">
+                      <AlertCircle className="h-4 w-4 text-caution" />
+                      Search is partially unavailable
+                    </p>
+                    <p className="mt-1 text-[12px] text-ink-3">Module results and recent destinations still work. Explore data will retry on the next query.</p>
+                  </>
+                ) : trimmedQuery ? (
+                  <>
+                    <p className="text-[13px] font-semibold text-ink">No results</p>
+                    <p className="mt-1 text-[12px] text-ink-3">Try a module, category, topic, brand, or citation source.</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="flex items-center justify-center gap-2 text-[13px] font-semibold text-ink">
+                      <History className="h-4 w-4 text-ink-3" />
+                      Start typing to search
+                    </p>
+                    <p className="mt-1 text-[12px] text-ink-3">You can jump across modules or drill into Explore data.</p>
+                  </>
+                )}
+              </div>
+            ) : trimmedQuery ? (
+              (['module', 'category', 'brand', 'topic', 'source'] as ResultType[]).map(type => {
                 const items = grouped[type] || []
                 if (!items.length) return null
                 return (
@@ -270,51 +559,24 @@ export default function DashboardGlobalSearch() {
                       {items.map(result => {
                         const absoluteIndex = results.findIndex(item => item.id === result.id)
                         const active = absoluteIndex === activeIndex
-                        const Icon = result.icon
                         return (
-                          <button
+                          <SearchRow
                             key={result.id}
-                            type="button"
+                            result={result}
+                            active={active}
+                            resultId={`${listboxId}-${result.id}`}
                             onMouseEnter={() => setActiveIndex(Math.max(0, absoluteIndex))}
                             onClick={() => goTo(result)}
-                            disabled={result.disabled}
-                            className={`flex min-h-[50px] w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-all duration-150 ${
-                              result.disabled
-                                ? 'cursor-not-allowed opacity-55'
-                                : 'cursor-pointer hover:scale-[1.01]'
-                            } ${
-                              active && !result.disabled ? 'bg-canvas shadow-sm' : 'hover:bg-canvas'
-                            }`}
-                          >
-                            <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-divider-light bg-surface">
-                              {result.type === 'brand'
-                                ? <BrandLogo domain={result.brandDomain || undefined} name={result.title} size={22} />
-                                : Icon ? <Icon className="h-4 w-4 text-ink-2" /> : <Search className="h-4 w-4 text-ink-2" />}
-                            </span>
-                            <span className="min-w-0 flex-1">
-                              <span className="flex items-center gap-2">
-                                <span className="truncate text-[13px] font-semibold text-ink">{result.title}</span>
-                                {result.badge && (
-                                  <span className={`flex-shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold ${
-                                    result.disabled ? 'bg-surface-muted text-ink-3' : 'bg-sage-bg text-sage'
-                                  }`}>
-                                    {result.badge}
-                                  </span>
-                                )}
-                              </span>
-                              <span className="mt-0.5 block truncate text-[11px] text-ink-3">{result.subtitle}</span>
-                            </span>
-                            {!result.disabled && <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-ink-3" />}
-                          </button>
+                          />
                         )
                       })}
                     </div>
                   </div>
                 )
               })
-            )}
+            ) : null}
           </div>
-          {loadingRemote && (
+          {loadingRemote && trimmedQuery && (
             <div className="border-t border-divider-light px-4 py-2 text-[11px] font-medium text-ink-3">
               Searching Alignment...
             </div>

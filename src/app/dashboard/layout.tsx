@@ -156,11 +156,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             <Menu className="w-5 h-5" />
           </button>
-          <div className="flex-1 flex items-center justify-center">
-            <span className="text-sm font-semibold text-ink">Alignment AI</span>
+          <div className="ml-3 flex-1">
+            <DashboardGlobalSearch mobile />
           </div>
-          {/* Spacer to balance the hamburger button */}
-          <div className="w-9" />
         </div>
 
         <Sidebar mobileOpen={mobileMenuOpen} onMobileClose={() => setMobileMenuOpen(false)} />

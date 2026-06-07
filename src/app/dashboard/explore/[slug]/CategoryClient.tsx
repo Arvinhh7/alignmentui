@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import {
   ArrowLeft, Play, Loader2, RefreshCw, BarChart2, Link2, Tag,
   CheckCircle2, Quote, ExternalLink, Search, X, MessageSquareText,
@@ -235,6 +236,10 @@ function brandKey(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
 }
 
+function highlightKey(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+}
+
 function brandListForRecord(record: RecentAnswer, allBrands: Brand[]): MentionedBrand[] {
   const byName = new Map<string, MentionedBrand>()
   for (const brand of allBrands) {
@@ -393,6 +398,7 @@ function RenderAIResponse({ record, brands }: { record: RecentAnswer; brands: Br
 }
 
 export default function CategoryClient({ slug }: { slug: string }) {
+  const searchParams = useSearchParams()
   const [data, setData] = useState<CategoryDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [scanning, setScanning] = useState(false)
@@ -454,6 +460,30 @@ export default function CategoryClient({ slug }: { slug: string }) {
     }
   }
 
+  const highlightBrand = highlightKey(searchParams.get('brand') || '')
+  const highlightTopic = highlightKey(searchParams.get('topic') || '')
+  const highlightSource = highlightKey(searchParams.get('source') || '')
+
+  useEffect(() => {
+    if (!data) return
+    const candidates = [
+      highlightBrand ? `brand-${highlightBrand}` : '',
+      highlightTopic ? `topic-${highlightTopic}` : '',
+      highlightSource ? `source-${highlightSource}` : '',
+      highlightSource ? 'citation-sources-section' : '',
+    ].filter(Boolean)
+    if (!candidates.length) return
+    const timer = window.setTimeout(() => {
+      for (const id of candidates) {
+        const node = document.getElementById(id)
+        if (!node) continue
+        node.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        break
+      }
+    }, 120)
+    return () => window.clearTimeout(timer)
+  }, [data, highlightBrand, highlightTopic, highlightSource])
+
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center bg-canvas">
       <Loader2 className="h-6 w-6 animate-spin text-ink-3" />
@@ -474,6 +504,12 @@ export default function CategoryClient({ slug }: { slug: string }) {
   const latestScan = data.latest_scan || null
   const hasData = brands.length > 0
   const currentEngine = latestScan?.engine || 'chatgpt'
+  const highlightedBrand = highlightBrand
+    ? brands.find(brand => highlightKey(brand.brand_name) === highlightBrand)
+    : null
+  const visibleBrands = highlightedBrand && !brands.slice(0, 20).some(brand => brand.brand_name === highlightedBrand.brand_name)
+    ? [...brands.slice(0, 19), highlightedBrand]
+    : brands.slice(0, 20)
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -549,8 +585,16 @@ export default function CategoryClient({ slug }: { slug: string }) {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {brands.slice(0, 20).map((brand, i) => (
-                    <div key={brand.brand_name} className="flex items-center gap-3">
+                  {visibleBrands.map((brand, i) => {
+                    const isHighlighted = highlightKey(brand.brand_name) === highlightBrand
+                    return (
+                    <div
+                      key={brand.brand_name}
+                      id={`brand-${highlightKey(brand.brand_name)}`}
+                      className={`flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors ${
+                        isHighlighted ? 'bg-sage-bg ring-1 ring-sage/30' : ''
+                      }`}
+                    >
                       <span className="w-5 shrink-0 text-right text-[11px] text-ink-3">{i + 1}</span>
                       <BrandLogo domain={brand.brand_domain || guessBrandDomain(brand.brand_name)} name={brand.brand_name} size={20} />
                       <span className="w-32 shrink-0 truncate text-[12px] font-semibold text-ink">{brand.brand_name}</span>
@@ -566,7 +610,7 @@ export default function CategoryClient({ slug }: { slug: string }) {
                       <span className="w-12 shrink-0 text-right text-[11px] font-bold text-ink">{brand.som_pct.toFixed(1)}%</span>
                       <span className="w-16 shrink-0 text-right text-[10px] text-ink-3">{brand.mentions} mentions</span>
                     </div>
-                  ))}
+                  )})}
                 </div>
               )}
             </section>
@@ -611,7 +655,7 @@ export default function CategoryClient({ slug }: { slug: string }) {
           </div>
 
           <div className="space-y-6">
-            <section className="rounded-2xl border border-divider-light bg-surface p-6">
+            <section id="citation-sources-section" className="rounded-2xl border border-divider-light bg-surface p-6">
               <h2 className="mb-4 flex items-center gap-2 text-[14px] font-bold text-ink">
                 <Link2 className="h-4 w-4 text-ink-3" />
                 Citation Sources
@@ -622,13 +666,21 @@ export default function CategoryClient({ slug }: { slug: string }) {
                   Quoted in answer
                 </div>
                 <div className="space-y-2">
-                  {citations.slice(0, 10).map(c => (
-                    <div key={c.domain} className="flex items-center gap-2 text-[12px]">
+                  {citations.slice(0, 20).map(c => {
+                    const isHighlighted = highlightKey(c.domain) === highlightSource
+                    return (
+                    <div
+                      key={c.domain}
+                      id={`source-${highlightKey(c.domain)}`}
+                      className={`flex items-center gap-2 rounded-xl px-2 py-1.5 text-[12px] transition-colors ${
+                        isHighlighted ? 'bg-sage-bg ring-1 ring-sage/30' : ''
+                      }`}
+                    >
                       <img src={`https://www.google.com/s2/favicons?domain=${c.domain}&sz=32`} alt="" className="h-4 w-4 rounded" />
                       <span className="min-w-0 flex-1 truncate font-medium text-ink">{c.domain}</span>
                       <span className="text-[10px] text-ink-3">{c.citation_count}x · {c.answer_count} answers</span>
                     </div>
-                  ))}
+                  )})}
                 </div>
               </div>
               <div className="mb-5">
@@ -665,8 +717,16 @@ export default function CategoryClient({ slug }: { slug: string }) {
               <span>Leader</span>
               <span />
             </div>
-            {topics.map(topic => (
-              <div key={`${topic.slot_number}-${topic.name}`} className="grid grid-cols-[minmax(280px,1fr)_130px_110px_180px_36px] items-center border-t border-divider-light px-4 py-3 text-[12px]">
+            {topics.map(topic => {
+              const isHighlighted = highlightKey(topic.name) === highlightTopic
+              return (
+              <div
+                key={`${topic.slot_number}-${topic.name}`}
+                id={`topic-${highlightKey(topic.name)}`}
+                className={`grid grid-cols-[minmax(280px,1fr)_130px_110px_180px_36px] items-center border-t border-divider-light px-4 py-3 text-[12px] transition-colors ${
+                  isHighlighted ? 'bg-sage-bg/70' : ''
+                }`}
+              >
                 <div className="min-w-0">
                   <div className="truncate font-semibold text-ink">{topic.name}</div>
                   <div className="mt-1 flex items-center gap-2">
@@ -690,7 +750,7 @@ export default function CategoryClient({ slug }: { slug: string }) {
                 </span>
                 <ChevronRight className="h-4 w-4 justify-self-end text-ink-3" />
               </div>
-            ))}
+            )})}
           </div>
         </section>
       </div>
