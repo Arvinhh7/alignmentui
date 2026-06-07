@@ -15,7 +15,6 @@ import {
   Target,
 } from 'lucide-react'
 import { fetchWithRetry } from '@/lib/api'
-import { ADS_PREVIEW_DATA } from './previewData'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -122,6 +121,9 @@ interface CollectorRun {
   result_json?: {
     message?: string
     next_connector?: string
+    query_universe_persisted?: number
+    observation_queue_persisted?: number
+    queue_status?: string
   }
   created_at?: string
 }
@@ -209,7 +211,7 @@ function CollectorPanel({ data }: { data: AdsResponse | null }) {
           <div>
             <h2 className="text-[16px] font-black text-ink">Observation collector</h2>
             <p className="mt-1 max-w-4xl text-[13px] leading-relaxed text-ink-3">
-              Query planning is automated, but this build records real observed cards through manual CSV ingest. Rows without images or query context are rejected before display.
+              Query planning, observation queueing, and card quality gates are persisted. The library below only renders accepted observations with images and query context.
             </p>
           </div>
         </div>
@@ -253,6 +255,7 @@ function CollectorPanel({ data }: { data: AdsResponse | null }) {
           <div className="mt-4 grid gap-2 text-[13px]">
             <div className="flex items-center justify-between"><span className="text-ink-3">Query universe</span><strong>{run?.plan_json?.query_universe_count ?? '-'}</strong></div>
             <div className="flex items-center justify-between"><span className="text-ink-3">Observation sample</span><strong>{run?.plan_json?.observation_query_count ?? run?.plan_json?.accepted_card_count ?? '-'}</strong></div>
+            <div className="flex items-center justify-between"><span className="text-ink-3">Queued</span><strong>{run?.result_json?.observation_queue_persisted ?? '-'}</strong></div>
             <div className="flex items-center justify-between"><span className="text-ink-3">AI model calls</span><strong>{run?.cost_estimate_json?.ai_model_calls ?? 0}</strong></div>
             <div className="flex items-start justify-between gap-3"><span className="text-ink-3">Envelope</span><strong className="text-right">{run?.cost_estimate_json?.rough_monthly_envelope?.expected ?? '-'}</strong></div>
           </div>
@@ -381,9 +384,9 @@ export default function AdsPage() {
         })
         .catch((err) => {
           if (err instanceof DOMException && err.name === 'AbortError') return
-          setError('Observed ads API is unavailable in this environment, so the local preview fallback is shown instead.')
-          setData(ADS_PREVIEW_DATA as unknown as AdsResponse)
-          setSelectedId(ADS_PREVIEW_DATA.observed_cards[0]?.id ?? null)
+          setError('Observed ads API is unavailable. No fallback cards are rendered because the library only displays cleaned observed ads.')
+          setData(null)
+          setSelectedId(null)
         })
         .finally(() => setLoading(false))
     }, 180)
