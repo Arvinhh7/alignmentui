@@ -192,7 +192,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         { href: '/dashboard/ai-search', icon: TrendingUp,   labelKey: 'aiSearchNav',  isNew: true },
         { href: '/dashboard/sources',   icon: Link2,        labelKey: 'sourcesNav',   isNew: true },
         { href: '/dashboard/shopping',  icon: ShoppingCart, labelKey: 'shoppingNav',  isNew: true },
-        { href: '/dashboard/ads',       icon: Megaphone,    labelKey: 'adsNav',       isNew: true, disabled: true, disabledLabel: 'Coming soon' },
+        { href: '/dashboard/ads',       icon: Megaphone,    labelKey: 'adsNav',       isNew: true },
         { href: '/dashboard/gci',       icon: Activity,     labelKey: 'GCI' as never, permissionKey: 'overview' },
       ],
     },
