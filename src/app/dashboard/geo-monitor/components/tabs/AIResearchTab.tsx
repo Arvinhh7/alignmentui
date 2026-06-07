@@ -1,83 +1,103 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
-  FlaskConical, Play, Loader2, Sparkles, ChevronRight,
-  Layers, Grid3X3, GitBranch, Target, TrendingUp,
-  ArrowRight, CheckCircle2, AlertCircle, XCircle,
-  BookOpen, Zap, BarChart2,
+  AlertCircle,
+  ArrowRight,
+  BarChart2,
+  BookOpen,
+  CheckCircle2,
+  FlaskConical,
+  GitBranch,
+  Grid3X3,
+  Layers,
+  Loader2,
+  Play,
+  RefreshCw,
+  Target,
+  XCircle,
+  Zap,
 } from 'lucide-react'
-import { useUnified } from '../UnifiedContext'
+import { api, type AIResearchRun } from '@/lib/api'
 import { BrandLogo } from '@/components/BrandLogo'
-
-// ─── Result shape (persisted to monitor_analysis_cache 'ai_research') ─────────
-// When the real backend ships, it returns this exact shape — storage/hydration
-// stays identical; only the generator changes.
-const RESEARCH_SCHEMA_VERSION = 1
-
-// ─── Mock data (EcoFlow example) ──────────────────────────────────────────────
-// Replace with real API response once backend ships.
-
-const MOCK_DIMENSIONS = [
-  { id: 'battery',   label: 'Battery Technology',      sources: 38, subQuestions: 9,  depth: 'high'   },
-  { id: 'capacity',  label: 'Capacity & Output Specs',  sources: 31, subQuestions: 8,  depth: 'high'   },
-  { id: 'usecases',  label: 'Use Cases',                sources: 27, subQuestions: 7,  depth: 'high'   },
-  { id: 'brands',    label: 'Brand Comparison',         sources: 24, subQuestions: 6,  depth: 'high'   },
-  { id: 'price',     label: 'Price & Value',            sources: 18, subQuestions: 5,  depth: 'medium' },
-  { id: 'safety',    label: 'Safety & Certifications',  sources: 14, subQuestions: 4,  depth: 'medium' },
-  { id: 'env',       label: 'Environmental Impact',     sources: 8,  subQuestions: 3,  depth: 'low'    },
-  { id: 'warranty',  label: 'Warranty & Support',       sources: 6,  subQuestions: 2,  depth: 'low'    },
-]
+import { useUnified } from '../UnifiedContext'
 
 type Coverage = 'strong' | 'weak' | 'absent'
-const MOCK_BRANDS: { name: string; domain: string; isYou?: boolean; coverage: Record<string, Coverage> }[] = [
-  { name: 'EcoFlow',   domain: 'ecoflow.com',       isYou: true, coverage: { battery: 'strong', capacity: 'strong', usecases: 'strong', brands: 'strong', price: 'weak',   safety: 'weak',   env: 'absent', warranty: 'absent' } },
-  { name: 'Jackery',   domain: 'jackery.com',                    coverage: { battery: 'weak',   capacity: 'weak',   usecases: 'strong', brands: 'strong', price: 'strong',  safety: 'weak',   env: 'absent', warranty: 'absent' } },
-  { name: 'Bluetti',   domain: 'bluettipower.com',               coverage: { battery: 'strong', capacity: 'strong', usecases: 'weak',   brands: 'strong', price: 'weak',    safety: 'strong', env: 'weak',   warranty: 'absent' } },
-  { name: 'Goal Zero', domain: 'goalzero.com',                   coverage: { battery: 'weak',   capacity: 'weak',   usecases: 'strong', brands: 'weak',   price: 'weak',    safety: 'weak',   env: 'strong', warranty: 'weak'   } },
-]
 
-// ── Shared brand chip: official logo + name ───────────
-function BrandChip({ name, domain, size = 18, isYou = false }: { name: string; domain: string; size?: number; isYou?: boolean }) {
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <BrandLogo domain={domain} name={name} size={size} />
-      <span className="font-semibold text-ink">{name}</span>
-      {isYou && <span className="text-[8px] font-bold text-sage bg-sage-bg px-1.5 py-0.5 rounded-full leading-none">You</span>}
-    </span>
-  )
+interface ResearchDimension {
+  id: string
+  label: string
+  sources: number
+  sub_questions: number
+  depth: 'high' | 'medium' | 'low'
+  terms?: string[]
 }
 
-const MOCK_TRAIL = {
-  question: 'What is the best portable power station for home backup?',
-  subQuestions: [
-    { q: 'Which brands dominate the home backup portable power station market?', sources: 12, mentions: ['EcoFlow', 'Bluetti', 'Jackery'] },
-    { q: 'What capacity (Wh) is recommended for whole-home vs partial backup?', sources: 9,  mentions: ['EcoFlow', 'Bluetti'] },
-    { q: 'How does LFP battery chemistry compare for safety in home use?', sources: 7,  mentions: ['EcoFlow', 'Bluetti'] },
-    { q: 'What are the top-rated units under $2000 for home backup?', sources: 8,  mentions: ['Jackery', 'EcoFlow'] },
-  ],
-  finalCitation: 'EcoFlow Delta Pro is consistently recommended for whole-home backup due to its 3.6kWh capacity and LFP battery chemistry, with Bluetti AC300+B300 as a modular alternative.',
+interface ResearchBrand {
+  name: string
+  domain: string
+  is_you?: boolean
 }
 
-const MOCK_GAPS = [
-  { dimension: 'Environmental Impact', yourCoverage: 0,  topCompetitor: 'Bluetti', topCompetitorDomain: 'bluettipower.com', competitorCoverage: 40, contentType: 'Sustainability Report',  priority: 'high'   },
-  { dimension: 'Warranty & Support',   yourCoverage: 0,  topCompetitor: 'Jackery', topCompetitorDomain: 'jackery.com',      competitorCoverage: 35, contentType: 'Support Documentation',  priority: 'high'   },
-  { dimension: 'Price & Value',        yourCoverage: 25, topCompetitor: 'Jackery', topCompetitorDomain: 'jackery.com',      competitorCoverage: 80, contentType: 'Comparison Article',     priority: 'medium' },
-  { dimension: 'Safety & Certs',       yourCoverage: 30, topCompetitor: 'Bluetti', topCompetitorDomain: 'bluettipower.com', competitorCoverage: 75, contentType: 'Technical Spec Page',    priority: 'medium' },
-]
-
-// ─── Brand domain lookup (for logo rendering in Research Trail mentions) ─────
-const BRAND_DOMAINS: Record<string, string> = Object.fromEntries(
-  MOCK_BRANDS.map(b => [b.name, b.domain])
-)
-function domainForBrand(name: string): string {
-  return BRAND_DOMAINS[name] ?? name.toLowerCase().replace(/\s+/g, '') + '.com'
+interface ResearchGap {
+  dimension: string
+  your_coverage: Coverage
+  top_competitor: string
+  top_competitor_domain: string
+  content_type: string
+  priority: 'high' | 'medium' | 'low'
 }
 
-// ─── Shared helpers ────────────────────────────────────────────────────────────
+interface ResearchTrailItem {
+  q: string
+  dimension_id: string
+  sources: number
+  mentions: string[]
+  terms: string
+}
+
+interface ResearchResult {
+  v: number
+  brand_name: string
+  domain: string
+  product_space: string
+  market: string
+  audience: string
+  engines: string[]
+  summary: {
+    dimensions: number
+    sub_questions: number
+    sources_read: number
+    readiness: number
+  }
+  dimensions: ResearchDimension[]
+  brands: ResearchBrand[]
+  coverage: Record<string, Record<string, Coverage>>
+  trail: {
+    question: string
+    sub_questions: ResearchTrailItem[]
+    final_citation: string
+  }
+  gaps: ResearchGap[]
+  generated_at: string
+}
+
+function asResearchResult(value: unknown): ResearchResult | null {
+  if (!value || typeof value !== 'object') return null
+  const obj = value as Partial<ResearchResult>
+  if (!Array.isArray(obj.dimensions) || !Array.isArray(obj.brands) || !obj.summary) return null
+  return obj as ResearchResult
+}
+
+function domainFromName(name: string) {
+  return `${name.toLowerCase().replace(/[^a-z0-9]+/g, '')}.com`
+}
 
 function BlockHeader({ icon: Icon, title, question, number }: {
-  icon: React.ElementType; title: string; question: string; number: number
+  icon: React.ElementType
+  title: string
+  question: string
+  number: number
 }) {
   return (
     <div className="flex items-start gap-4 mb-5">
@@ -97,43 +117,43 @@ function BlockHeader({ icon: Icon, title, question, number }: {
   )
 }
 
-// ─── Block 1: Research Brief ──────────────────────────────────────────────────
+function CoverageIcon({ coverage }: { coverage: Coverage }) {
+  if (coverage === 'strong') return <CheckCircle2 className="w-4 h-4 text-sage" strokeWidth={2} />
+  if (coverage === 'weak') return <AlertCircle className="w-4 h-4 text-caution" strokeWidth={2} />
+  return <XCircle className="w-4 h-4 text-[rgba(0,0,0,0.18)]" strokeWidth={1.6} />
+}
 
-function ResearchBrief({ brandName }: { brandName: string }) {
+function ResearchBrief({ result }: { result: ResearchResult }) {
   return (
     <div className="bg-surface rounded-2xl border border-divider-light p-6">
       <BlockHeader
-        icon={BookOpen} number={1}
+        icon={BookOpen}
+        number={1}
         title="Research Brief"
-        question={`What dimensions does AI investigate when doing deep research on "${brandName}"?`}
+        question={`What dimensions does AI investigate when doing deep research on "${result.brand_name}"?`}
       />
-
-      {/* Research plan */}
       <div className="bg-canvas rounded-xl border border-divider-light p-4 mb-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="w-3.5 h-3.5 text-caution" />
-          <span className="text-[11px] font-bold text-ink-3 uppercase tracking-wider">AI-Generated Research Plan</span>
-        </div>
+        <div className="text-[11px] font-bold text-ink-3 uppercase tracking-wider mb-3">Customer-scoped research plan</div>
         <p className="text-[13px] text-ink-2 mb-3">
-          <span className="font-semibold text-ink">Topic:</span> Portable power stations for home backup & outdoor use
+          <span className="font-semibold text-ink">Topic:</span> {result.product_space} · {result.market}
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
           {[
-            { label: 'Dimensions', value: '8', color: 'text-ink' },
-            { label: 'Sub-questions', value: '44', color: 'text-ink' },
-            { label: 'Sources read', value: '166', color: 'text-ink' },
-            { label: 'Engines', value: 'ChatGPT · Perplexity', color: 'text-ink-2', small: true },
-          ].map(m => (
-            <div key={m.label} className="bg-surface rounded-xl p-3 border border-divider-light text-center">
-              <div className={`text-[20px] font-bold ${m.color} ${m.small ? 'text-[13px]' : ''}`}>{m.value}</div>
-              <div className="text-[10px] text-ink-3 mt-0.5">{m.label}</div>
+            { label: 'Dimensions', value: String(result.summary.dimensions) },
+            { label: 'Sub-questions', value: String(result.summary.sub_questions) },
+            { label: 'Sources read', value: String(result.summary.sources_read) },
+            { label: 'Engines', value: result.engines.map(e => e.charAt(0).toUpperCase() + e.slice(1)).join(' · ') },
+          ].map(metric => (
+            <div key={metric.label} className="bg-surface rounded-xl p-3 border border-divider-light text-center">
+              <div className="text-[20px] font-bold text-ink">{metric.value}</div>
+              <div className="text-[10px] text-ink-3 mt-0.5">{metric.label}</div>
             </div>
           ))}
         </div>
         <div className="flex flex-wrap gap-2">
-          {MOCK_DIMENSIONS.map(d => (
+          {result.dimensions.map(d => (
             <span key={d.id} className={`text-[11px] px-2.5 py-1 rounded-full font-medium border ${
-              d.depth === 'high'   ? 'bg-sage-bg text-sage border-sage/20' :
+              d.depth === 'high' ? 'bg-sage-bg text-sage border-sage/20' :
               d.depth === 'medium' ? 'bg-caution-bg text-caution border-caution/20' :
               'bg-surface-muted text-ink-3 border-divider-light'
             }`}>
@@ -142,45 +162,35 @@ function ResearchBrief({ brandName }: { brandName: string }) {
           ))}
         </div>
       </div>
-
       <div className="flex items-center gap-2 p-3 bg-caution-bg/40 border border-caution/15 rounded-xl">
-        <TrendingUp className="w-3.5 h-3.5 text-caution flex-shrink-0" />
+        <ArrowRight className="w-3.5 h-3.5 text-caution flex-shrink-0" />
         <p className="text-[12px] text-caution font-medium">
-          AI spent 60% of research depth on Battery Tech, Capacity, and Use Cases — these are your highest-value content investment areas.
+          AI Research is scoped to this customer profile: {result.brand_name}, {result.product_space}, {result.market}, and the active prompt set.
         </p>
       </div>
     </div>
   )
 }
 
-// ─── Block 2: Dimension Map ───────────────────────────────────────────────────
-
-function DimensionMap() {
-  const maxSources = Math.max(...MOCK_DIMENSIONS.map(d => d.sources))
+function DimensionMap({ result }: { result: ResearchResult }) {
+  const maxSources = Math.max(...result.dimensions.map(d => d.sources), 1)
   return (
     <div className="bg-surface rounded-2xl border border-divider-light p-6">
-      <BlockHeader
-        icon={Layers} number={2}
-        title="Dimension Map"
-        question="Which dimensions does AI research most deeply — and where does competition concentrate?"
-      />
-
+      <BlockHeader icon={Layers} number={2} title="Dimension Map" question="Which dimensions does AI research most deeply?" />
       <div className="space-y-2.5">
-        {MOCK_DIMENSIONS.map(d => (
+        {result.dimensions.map(d => (
           <div key={d.id} className="flex items-center gap-3">
-            <div className="w-40 text-[12px] text-ink-2 font-medium flex-shrink-0 truncate">{d.label}</div>
-            <div className="flex-1 h-7 bg-canvas rounded-lg overflow-hidden border border-divider-light relative">
+            <div className="w-44 text-[12px] text-ink-2 font-medium flex-shrink-0 truncate">{d.label}</div>
+            <div className="flex-1 h-7 bg-canvas rounded-lg overflow-hidden border border-divider-light">
               <div
-                className={`h-full rounded-lg transition-all ${
-                  d.depth === 'high' ? 'bg-ink' : d.depth === 'medium' ? 'bg-[rgba(0,0,0,0.35)]' : 'bg-[rgba(0,0,0,0.12)]'
-                }`}
+                className={`h-full rounded-lg ${d.depth === 'high' ? 'bg-ink' : d.depth === 'medium' ? 'bg-[rgba(0,0,0,0.35)]' : 'bg-[rgba(0,0,0,0.12)]'}`}
                 style={{ width: `${(d.sources / maxSources) * 100}%` }}
               />
             </div>
             <div className="flex items-center gap-2 flex-shrink-0 w-32 justify-end">
               <span className="text-[11px] text-ink-3">{d.sources} sources</span>
               <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                d.depth === 'high'   ? 'bg-sage-bg text-sage' :
+                d.depth === 'high' ? 'bg-sage-bg text-sage' :
                 d.depth === 'medium' ? 'bg-caution-bg text-caution' :
                 'bg-surface-muted text-ink-3'
               }`}>{d.depth}</span>
@@ -188,233 +198,121 @@ function DimensionMap() {
           </div>
         ))}
       </div>
-
-      <div className="mt-4 flex items-center gap-2 p-3 bg-surface-muted rounded-xl border border-divider-light">
-        <ArrowRight className="w-3.5 h-3.5 text-ink-3 flex-shrink-0" />
-        <p className="text-[12px] text-ink-3">
-          Top 4 dimensions account for 73% of all research depth — this is where your content dollars have the highest ROI.
-        </p>
-      </div>
     </div>
   )
 }
 
-// ─── Block 3: Brand Coverage Matrix ───────────────────────────────────────────
-
-function CoverageCell({ coverage }: { coverage: Coverage }) {
-  if (coverage === 'strong') return (
-    <div className="flex items-center justify-center">
-      <CheckCircle2 className="w-4 h-4 text-sage" strokeWidth={2} />
-    </div>
-  )
-  if (coverage === 'weak') return (
-    <div className="flex items-center justify-center">
-      <AlertCircle className="w-4 h-4 text-caution" strokeWidth={2} />
-    </div>
-  )
-  return (
-    <div className="flex items-center justify-center">
-      <XCircle className="w-4 h-4 text-[rgba(0,0,0,0.15)]" strokeWidth={1.5} />
-    </div>
-  )
-}
-
-function BrandCoverage() {
+function BrandCoverage({ result }: { result: ResearchResult }) {
   return (
     <div className="bg-surface rounded-2xl border border-divider-light p-6">
-      <BlockHeader
-        icon={Grid3X3} number={3}
-        title="Brand Coverage Matrix"
-        question="Across all research dimensions, where do I appear vs competitors?"
-      />
-
-      {/* Transposed: dimensions = rows (readable full names), brands = columns (short names) */}
+      <BlockHeader icon={Grid3X3} number={3} title="Brand Coverage Matrix" question="Across research dimensions, where do I appear vs competitors?" />
       <div className="overflow-x-auto">
         <table className="w-full text-[11px]">
           <thead>
             <tr className="border-b border-divider-light">
               <th className="text-left py-2.5 pr-6 text-[11px] font-semibold text-ink-3 w-48">Dimension</th>
-              {MOCK_BRANDS.map(brand => (
+              {result.brands.map(brand => (
                 <th key={brand.name} className="py-2.5 px-3 text-center">
                   <div className="flex flex-col items-center gap-1.5">
                     <BrandLogo domain={brand.domain} name={brand.name} size={24} />
                     <span className="text-[11px] font-semibold text-ink whitespace-nowrap">{brand.name}</span>
-                    {brand.isYou && (
-                      <span className="text-[8px] font-bold text-sage bg-sage-bg px-1.5 py-0.5 rounded-full leading-none">You</span>
-                    )}
+                    {brand.is_you && <span className="text-[8px] font-bold text-sage bg-sage-bg px-1.5 py-0.5 rounded-full leading-none">You</span>}
                   </div>
                 </th>
               ))}
-              <th className="py-2.5 pl-4 text-right text-[11px] font-semibold text-ink-3 w-24">
-                Coverage
-              </th>
+              <th className="py-2.5 pl-4 text-right text-[11px] font-semibold text-ink-3 w-24">Coverage</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-divider-light">
-            {MOCK_DIMENSIONS.map(d => {
-              // How many brands have strong coverage on this dimension
-              const strongCount = MOCK_BRANDS.filter(b => b.coverage[d.id] === 'strong').length
-              const youCoverage = MOCK_BRANDS.find(b => b.isYou)?.coverage[d.id]
+            {result.dimensions.map(d => {
+              const strongCount = result.brands.filter(b => result.coverage[b.name]?.[d.id] === 'strong').length
+              const youBrand = result.brands.find(b => b.is_you)
+              const youCoverage = youBrand ? result.coverage[youBrand.name]?.[d.id] : 'absent'
               const isGapForYou = youCoverage === 'absent'
               return (
                 <tr key={d.id} className={isGapForYou ? 'bg-red-soft-bg/20' : ''}>
                   <td className="py-3 pr-6">
                     <div className="flex items-center gap-2">
-                      <span className={`font-medium text-[12px] ${isGapForYou ? 'text-red-soft' : 'text-ink'}`}>
-                        {d.label}
-                      </span>
-                      {isGapForYou && (
-                        <span className="text-[8px] font-bold px-1.5 py-0.5 bg-red-soft text-white rounded-full leading-none flex-shrink-0">
-                          Gap
-                        </span>
-                      )}
+                      <span className={`font-medium text-[12px] ${isGapForYou ? 'text-red-soft' : 'text-ink'}`}>{d.label}</span>
+                      {isGapForYou && <span className="text-[8px] font-bold px-1.5 py-0.5 bg-red-soft text-white rounded-full leading-none">Gap</span>}
                     </div>
                     <div className="text-[10px] text-ink-3 mt-0.5 capitalize">{d.depth} depth · {d.sources} sources</div>
                   </td>
-                  {MOCK_BRANDS.map(brand => (
-                    <td key={brand.name} className={`py-3 px-3 text-center ${brand.isYou ? 'bg-sage-bg/20' : ''}`}>
-                      <CoverageCell coverage={brand.coverage[d.id]} />
+                  {result.brands.map(brand => (
+                    <td key={brand.name} className={`py-3 px-3 text-center ${brand.is_you ? 'bg-sage-bg/20' : ''}`}>
+                      <div className="flex justify-center">
+                        <CoverageIcon coverage={result.coverage[brand.name]?.[d.id] ?? 'absent'} />
+                      </div>
                     </td>
                   ))}
                   <td className="py-3 pl-4 text-right">
                     <span className={`text-[11px] font-bold ${strongCount >= 3 ? 'text-sage' : strongCount >= 2 ? 'text-caution' : 'text-red-soft'}`}>
-                      {strongCount}/{MOCK_BRANDS.length}
+                      {strongCount}/{result.brands.length}
                     </span>
                   </td>
                 </tr>
               )
             })}
           </tbody>
-          {/* Brand score footer */}
-          <tfoot>
-            <tr className="border-t-2 border-divider">
-              <td className="pt-3 pr-6 text-[11px] font-semibold text-ink-3">Overall Score</td>
-              {MOCK_BRANDS.map(brand => {
-                const strong = Object.values(brand.coverage).filter(v => v === 'strong').length
-                const total = Object.values(brand.coverage).length
-                const pct = Math.round((strong / total) * 100)
-                return (
-                  <td key={brand.name} className={`pt-3 px-3 text-center ${brand.isYou ? 'bg-sage-bg/20' : ''}`}>
-                    <span className={`text-[13px] font-bold ${pct >= 60 ? 'text-sage' : pct >= 40 ? 'text-caution' : 'text-red-soft'}`}>
-                      {pct}%
-                    </span>
-                  </td>
-                )
-              })}
-              <td />
-            </tr>
-          </tfoot>
         </table>
       </div>
-
       <div className="mt-4 flex items-center gap-3 text-[11px] text-ink-3">
-        <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-sage" /> Strong coverage</span>
-        <span className="flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5 text-caution" /> Weak / passing</span>
+        <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-sage" /> Strong</span>
+        <span className="flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5 text-caution" /> Weak</span>
         <span className="flex items-center gap-1"><XCircle className="w-3.5 h-3.5 text-[rgba(0,0,0,0.2)]" /> Absent</span>
-      </div>
-
-      <div className="mt-4 p-3 bg-red-soft-bg/40 border border-red-soft/15 rounded-xl flex items-start gap-2">
-        <AlertCircle className="w-3.5 h-3.5 text-red-soft flex-shrink-0 mt-0.5" />
-        <p className="text-[12px] text-red-soft font-medium">
-          EcoFlow is absent from Environmental Impact and Warranty — Bluetti covers both. These are the gaps widening the citation gap.
-        </p>
       </div>
     </div>
   )
 }
 
-// ─── Block 4: Research Trail ───────────────────────────────────────────────────
-
-function ResearchTrail() {
-  const [expanded, setExpanded] = useState<number | null>(null)
+function ResearchTrail({ result }: { result: ResearchResult }) {
+  const brandDomain = Object.fromEntries(result.brands.map(b => [b.name, b.domain]))
   return (
     <div className="bg-surface rounded-2xl border border-divider-light p-6">
-      <BlockHeader
-        icon={GitBranch} number={4}
-        title="Research Trail"
-        question="How did AI actually build this research? (one real thread, made visible)"
-      />
-
-      {/* Root question */}
-      <div className="mb-4">
-        <div className="flex items-start gap-3 p-4 bg-ink text-ink-inv rounded-xl">
-          <BookOpen className="w-4 h-4 flex-shrink-0 mt-0.5 opacity-70" />
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider opacity-50 mb-0.5">User asked AI</div>
-            <div className="text-[13px] font-semibold">"{MOCK_TRAIL.question}"</div>
-          </div>
+      <BlockHeader icon={GitBranch} number={4} title="Research Trail" question="How did AI split this research into sub-questions?" />
+      <div className="mb-4 flex items-start gap-3 p-4 bg-ink text-ink-inv rounded-xl">
+        <BookOpen className="w-4 h-4 flex-shrink-0 mt-0.5 opacity-70" />
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-wider opacity-50 mb-0.5">Root research question</div>
+          <div className="text-[13px] font-semibold">"{result.trail.question}"</div>
         </div>
       </div>
-
-      {/* Sub-questions tree */}
       <div className="space-y-2 mb-4 pl-4 border-l-2 border-divider">
-        {MOCK_TRAIL.subQuestions.map((sq, i) => (
-          <div key={i}>
-            <button
-              onClick={() => setExpanded(expanded === i ? null : i)}
-              className="w-full flex items-start gap-3 p-3 rounded-xl hover:bg-surface-warm transition-colors text-left"
-            >
+        {result.trail.sub_questions.map((sq, i) => (
+          <div key={`${sq.dimension_id}-${i}`} className="p-3 rounded-xl bg-canvas border border-divider-light">
+            <div className="flex items-start gap-3">
               <div className="flex-shrink-0 w-5 h-5 rounded-full bg-surface-muted border border-divider flex items-center justify-center text-[9px] font-bold text-ink-3 mt-0.5">
                 {i + 1}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-[12px] text-ink font-medium">{sq.q}</div>
-                <div className="text-[10px] text-ink-3 mt-0.5">{sq.sources} sources read</div>
-              </div>
-              <ChevronRight className={`w-3.5 h-3.5 text-ink-3 flex-shrink-0 mt-0.5 transition-transform ${expanded === i ? 'rotate-90' : ''}`} />
-            </button>
-            {expanded === i && (
-              <div className="ml-8 mt-1 mb-2 p-3 bg-canvas rounded-xl border border-divider-light">
-                <div className="text-[10px] font-bold text-ink-3 uppercase tracking-wider mb-2">Brands mentioned in this sub-question</div>
-                <div className="flex flex-wrap gap-2">
-                  {sq.mentions.map(m => {
-                    const isYouBrand = MOCK_BRANDS.find(b => b.name === m)?.isYou
-                    return (
-                      <span key={m} className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-lg font-semibold border ${
-                        isYouBrand ? 'bg-sage-bg border-sage/20' : 'bg-surface border-divider-light'
-                      }`}>
-                        <BrandLogo domain={domainForBrand(m)} name={m} size={16} />
-                        <span className={isYouBrand ? 'text-sage' : 'text-ink-2'}>{m}</span>
-                      </span>
-                    )
-                  })}
+                <div className="text-[10px] text-ink-3 mt-0.5">{sq.sources} sources · {sq.terms}</div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {sq.mentions.map(name => (
+                    <span key={name} className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-lg font-semibold border bg-surface border-divider-light">
+                      <BrandLogo domain={brandDomain[name] ?? domainFromName(name)} name={name} size={16} />
+                      <span className="text-ink-2">{name}</span>
+                    </span>
+                  ))}
                 </div>
               </div>
-            )}
+            </div>
           </div>
         ))}
       </div>
-
-      {/* Final synthesis — no label, just the quote */}
       <div className="p-4 bg-sage-bg/50 border border-sage/20 rounded-xl">
-        <p className="text-[12.5px] text-ink-2 leading-relaxed">
-          "{MOCK_TRAIL.finalCitation}"
-        </p>
-      </div>
-
-      <div className="mt-4 p-3 bg-surface-muted rounded-xl flex items-start gap-2">
-        <ArrowRight className="w-3.5 h-3.5 text-ink-3 flex-shrink-0 mt-0.5" />
-        <p className="text-[12px] text-ink-3">
-          EcoFlow appears in 3 of 4 sub-questions — but is absent in the price sub-question where Jackery dominates.
-        </p>
+        <p className="text-[12.5px] text-ink-2 leading-relaxed">"{result.trail.final_citation}"</p>
       </div>
     </div>
   )
 }
 
-// ─── Block 5: Gap Playbook ─────────────────────────────────────────────────────
-
-function GapPlaybook({ brandName }: { brandName: string }) {
+function GapPlaybook({ result }: { result: ResearchResult }) {
   return (
     <div className="bg-surface rounded-2xl border border-divider-light p-6">
-      <BlockHeader
-        icon={Target} number={5}
-        title="Gap Playbook"
-        question="Which gaps should I fix first — and what content closes each one?"
-      />
-
+      <BlockHeader icon={Target} number={5} title="Gap Playbook" question="Which gaps should I fix first?" />
       <div className="space-y-3">
-        {MOCK_GAPS.map((gap) => (
+        {result.gaps.map(gap => (
           <div key={gap.dimension} className={`p-4 rounded-xl border flex items-center gap-4 ${
             gap.priority === 'high' ? 'border-red-soft/25 bg-red-soft-bg/30' : 'border-caution/20 bg-caution-bg/20'
           }`}>
@@ -426,22 +324,16 @@ function GapPlaybook({ brandName }: { brandName: string }) {
                 <span className="text-[13px] font-semibold text-ink">{gap.dimension}</span>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-[11px] text-ink-3 mt-1">
-                {/* Your brand coverage */}
                 <span className="flex items-center gap-1.5">
-                  <BrandLogo domain={domainForBrand(brandName)} name={brandName} size={14} />
-                  <strong className={gap.yourCoverage === 0 ? 'text-red-soft' : 'text-caution'}>
-                    {gap.yourCoverage === 0 ? 'Absent' : `${gap.yourCoverage}%`}
-                  </strong>
+                  <BrandLogo domain={result.domain} name={result.brand_name} size={14} />
+                  <strong className={gap.your_coverage === 'absent' ? 'text-red-soft' : 'text-caution'}>{gap.your_coverage}</strong>
                 </span>
-                <span className="text-ink-3">vs</span>
-                {/* Top competitor coverage */}
+                <span>vs</span>
                 <span className="flex items-center gap-1.5">
-                  <BrandLogo domain={gap.topCompetitorDomain} name={gap.topCompetitor} size={14} />
-                  <strong className="text-sage">{gap.competitorCoverage}%</strong>
+                  <BrandLogo domain={gap.top_competitor_domain} name={gap.top_competitor} size={14} />
+                  <strong className="text-sage">{gap.top_competitor}</strong>
                 </span>
-                <span className="flex items-center gap-1 text-ink-3">
-                  <BarChart2 className="w-3 h-3" />{gap.contentType}
-                </span>
+                <span className="flex items-center gap-1"><BarChart2 className="w-3 h-3" />{gap.content_type}</span>
               </div>
             </div>
             <button className="flex items-center gap-1.5 px-3 py-2 bg-ink text-ink-inv rounded-xl text-[11px] font-semibold hover:bg-ink/80 transition-colors flex-shrink-0 whitespace-nowrap">
@@ -451,133 +343,148 @@ function GapPlaybook({ brandName }: { brandName: string }) {
           </div>
         ))}
       </div>
-
-      <div className="mt-4 p-4 bg-canvas rounded-xl border border-divider-light flex items-center justify-between">
-        <div>
-          <div className="text-[13px] font-semibold text-ink">Close all 4 gaps → projected coverage jump</div>
-          <div className="text-[11px] text-ink-3 mt-0.5">Based on competitor benchmarks in this category</div>
-        </div>
-        <div className="text-right">
-          <div className="text-[22px] font-bold text-sage">50% → 87%</div>
-          <div className="text-[10px] text-ink-3">citation coverage</div>
-        </div>
-      </div>
     </div>
   )
 }
 
-// ─── Empty state ───────────────────────────────────────────────────────────────
-
-function EmptyState({ brandName, onRun, running }: {
-  brandName: string; onRun: () => void; running: boolean
+function EmptyState({ brandName, canRun, onRun, running }: {
+  brandName: string
+  canRun: boolean
+  onRun: () => void
+  running: boolean
 }) {
   return (
-    <div className="space-y-4">
-      {/* Prompt card */}
-      <div className="bg-surface rounded-2xl border border-divider-light p-8 text-center">
-        <div className="w-14 h-14 rounded-2xl bg-[rgba(100,180,255,0.08)] flex items-center justify-center mx-auto mb-4">
-          <FlaskConical className="w-7 h-7 text-[rgba(100,180,255,0.7)]" strokeWidth={1.6} />
-        </div>
-        <h3 className="text-[16px] font-bold text-ink mb-2">AI Research</h3>
-        <p className="text-[13px] text-ink-3 max-w-md mx-auto mb-6">
-          Simulate a <strong className="text-ink">Deep Research</strong> run on your brand and category.
-          See how AI builds its research plan, which dimensions it investigates, and where{' '}
-          <strong className="text-ink">{brandName || 'your brand'}</strong> appears vs competitors.
-        </p>
-
-        {/* What you'll get */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-8 max-w-2xl mx-auto text-left">
-          {[
-            { n: '①', title: 'Research Brief',   desc: 'WHAT dimensions AI studies' },
-            { n: '②', title: 'Dimension Map',     desc: 'SO WHAT patterns emerge' },
-            { n: '③', title: 'Brand Coverage',    desc: 'WHERE you stand vs rivals' },
-            { n: '④', title: 'Research Trail',    desc: 'WHY it plays out this way' },
-            { n: '⑤', title: 'Gap Playbook',      desc: 'NOW WHAT to build' },
-          ].map(s => (
-            <div key={s.n} className="p-3 bg-canvas rounded-xl border border-divider-light">
-              <div className="text-[11px] font-bold text-ink-3 mb-1">{s.n} {s.title}</div>
-              <div className="text-[10px] text-ink-3 leading-relaxed">{s.desc}</div>
-            </div>
-          ))}
-        </div>
-
-        <button
-          onClick={onRun}
-          disabled={running || !brandName}
-          className="inline-flex items-center gap-2.5 px-6 py-3 bg-ink text-ink-inv rounded-xl text-[13px] font-semibold hover:bg-ink/80 transition-colors disabled:opacity-50 shadow-sm"
-        >
-          {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-          {running ? 'Running deep research…' : `Run AI Research${brandName ? ` on ${brandName}` : ''}`}
-        </button>
-        {!brandName && (
-          <p className="text-[11px] text-ink-3 mt-2">Configure a brand first to run research</p>
-        )}
+    <div className="bg-surface rounded-2xl border border-divider-light p-8 text-center">
+      <div className="w-14 h-14 rounded-2xl bg-[rgba(100,180,255,0.08)] flex items-center justify-center mx-auto mb-4">
+        <FlaskConical className="w-7 h-7 text-[rgba(100,180,255,0.7)]" strokeWidth={1.6} />
       </div>
+      <h3 className="text-[16px] font-bold text-ink mb-2">AI Research</h3>
+      <p className="text-[13px] text-ink-3 max-w-md mx-auto mb-6">
+        Create a customer-scoped research run from the Customer Intelligence Profile, active prompts, market, product space, and competitors.
+      </p>
+      <button
+        onClick={onRun}
+        disabled={running || !canRun}
+        className="inline-flex items-center gap-2.5 px-6 py-3 bg-ink text-ink-inv rounded-xl text-[13px] font-semibold hover:bg-ink/80 transition-colors disabled:opacity-50 shadow-sm"
+      >
+        {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+        {running ? 'Running customer research...' : `Run AI Research${brandName ? ` on ${brandName}` : ''}`}
+      </button>
+      {!canRun && <p className="text-[11px] text-ink-3 mt-2">Select a customer and complete the Customer Intelligence Profile first.</p>}
     </div>
   )
 }
-
-// ─── Main export ───────────────────────────────────────────────────────────────
 
 export function AIResearchTab() {
   const ctx = useUnified()
-  const brandName = ctx.brandConfig.brand_name || ''
-
-  // Persisted result lives in UnifiedContext (hydrated from DB via getLatest).
-  // `running` is the only local state — the result itself is permanent.
-  const result = ctx.aiResearchResult
+  const [run, setRun] = useState<AIResearchRun | null>(null)
+  const [loading, setLoading] = useState(false)
   const [running, setRunning] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleRun = () => {
-    if (!brandName) return
-    setRunning(true)
-    // Simulate a 2.5s research run. The bundled blob is what a real backend
-    // would return — saved to monitor_analysis_cache('ai_research') so it
-    // survives logout / customer switch / refresh (no re-run needed).
-    setTimeout(() => {
-      ctx.saveAiResearch({
-        v: RESEARCH_SCHEMA_VERSION,
-        brandName,
-        simulated: true,
-        dimensions: MOCK_DIMENSIONS,
-        brands: MOCK_BRANDS,
-        trail: MOCK_TRAIL,
-        gaps: MOCK_GAPS,
+  const result = useMemo(() => asResearchResult(run?.result_json), [run])
+  const brandName = ctx.brandConfig.brand_name || ''
+  const canRun = Boolean(ctx.activeCustomerId && brandName && ctx.brandConfig.domain)
+
+  useEffect(() => {
+    if (!ctx.activeCustomerId) {
+      setRun(null)
+      return
+    }
+    let cancelled = false
+    setLoading(true)
+    setError('')
+    api.getLatestAIResearchRun(ctx.activeCustomerId)
+      .then(res => {
+        if (cancelled) return
+        setRun(res.data?.run ?? null)
       })
+      .catch(err => {
+        if (!cancelled) setError(err.message || 'Failed to load AI Research')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [ctx.activeCustomerId])
+
+  const handleRun = async () => {
+    if (!ctx.activeCustomerId || !canRun) return
+    setRunning(true)
+    setError('')
+    try {
+      const res = await api.createAIResearchRun({
+        customer_id: ctx.activeCustomerId,
+        brand_config: ctx.brandConfig as unknown as Record<string, unknown>,
+        prompts: ctx.prompts.filter(p => p.is_active).slice(0, 20).map(p => ({
+          id: p.id,
+          template: p.template,
+          category: p.category,
+          intent: p.intent,
+        })),
+        engines: ctx.availableEngines.length ? ctx.availableEngines : ['chatgpt', 'perplexity'],
+      })
+      if (res.error || !res.data?.run) {
+        setError(res.error || res.data?.error || 'AI Research run failed')
+      } else {
+        setRun(res.data.run)
+      }
+    } catch (err: any) {
+      setError(err.message || 'AI Research run failed')
+    } finally {
       setRunning(false)
-    }, 2500)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="w-5 h-5 animate-spin text-ink-3" />
+      </div>
+    )
   }
 
   if (!result) {
-    return <EmptyState brandName={brandName} onRun={handleRun} running={running} />
+    return (
+      <div className="space-y-4">
+        {error && <div className="bg-red-soft-bg border border-red-soft/30 rounded-xl p-4 text-sm text-red-soft">{error}</div>}
+        <EmptyState brandName={brandName} canRun={canRun} onRun={handleRun} running={running} />
+      </div>
+    )
   }
 
   return (
     <div className="space-y-5">
-      {/* Re-run header */}
-      <div className="flex items-center justify-between p-4 bg-surface rounded-xl border border-divider-light">
-        <div className="flex items-center gap-2">
-          <FlaskConical className="w-4 h-4 text-ink-3" />
-          <span className="text-[13px] font-semibold text-ink">AI Research — {brandName}</span>
-          {(result as { simulated?: boolean }).simulated && (
-            <span className="text-[10px] px-2 py-0.5 bg-sage-bg text-sage rounded-full font-bold">Simulated</span>
-          )}
-          <span className="text-[10px] px-2 py-0.5 bg-surface-muted text-ink-3 rounded-full font-medium">Saved</span>
+      {error && <div className="bg-red-soft-bg border border-red-soft/30 rounded-xl p-4 text-sm text-red-soft">{error}</div>}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-surface rounded-xl border border-divider-light">
+        <div className="flex items-center gap-3 min-w-0">
+          <BrandLogo domain={result.domain} name={result.brand_name} size={32} />
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[13px] font-semibold text-ink">AI Research — {result.brand_name}</span>
+              <span className="text-[10px] px-2 py-0.5 bg-sage-bg text-sage rounded-full font-bold">Customer scoped</span>
+              <span className="text-[10px] px-2 py-0.5 bg-surface-muted text-ink-3 rounded-full font-medium">Saved run</span>
+            </div>
+            <p className="text-[11px] text-ink-3 mt-0.5">
+              {result.product_space} · {result.market} · readiness {result.summary.readiness}% · {run?.created_at ? new Date(run.created_at).toLocaleString() : ''}
+            </p>
+          </div>
         </div>
         <button
-          onClick={() => { ctx.clearAiResearch() }}
-          className="text-[11px] font-semibold text-ink-3 hover:text-ink transition-colors flex items-center gap-1.5"
+          onClick={handleRun}
+          disabled={running}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-ink text-ink-inv rounded-xl text-sm font-semibold hover:bg-ink/80 transition-colors disabled:opacity-50"
         >
-          <Play className="w-3 h-3" /> Re-run
+          {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+          Update Research
         </button>
       </div>
 
-      {/* 5-block narrative */}
-      <ResearchBrief brandName={brandName} />
-      <DimensionMap />
-      <BrandCoverage />
-      <ResearchTrail />
-      <GapPlaybook brandName={brandName} />
+      <ResearchBrief result={result} />
+      <DimensionMap result={result} />
+      <BrandCoverage result={result} />
+      <ResearchTrail result={result} />
+      <GapPlaybook result={result} />
     </div>
   )
 }

@@ -408,10 +408,12 @@ export default function OnboardingPage() {
             keywords:        selectedTopicNames,
             competitors:     compNames,
             industry:        '',
+            product_space:   selectedTopicNames[0] ?? '',
             one_liner:       '',
             target_audience: '',
             target_market:   '',
             differentiation: '',
+            source_domains:  du ? [du] : [],
           },
         })
         customerId = customer.id

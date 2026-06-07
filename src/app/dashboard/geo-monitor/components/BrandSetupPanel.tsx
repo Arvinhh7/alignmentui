@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Settings, Save, X, ChevronDown, Trash2, AlertTriangle } from 'lucide-react'
+import { Settings, Save, X, ChevronDown, Trash2, AlertTriangle, Pencil, CheckCircle2 } from 'lucide-react'
 import { useUnified } from './UnifiedContext'
 import { TagInput } from './shared/ChartComponents'
+import { BrandLogo } from '@/components/BrandLogo'
 import {
   isBrandSelfVariant,
   INDUSTRY_LIST,
@@ -91,6 +92,7 @@ export function BrandSetupPanel() {
   const [showRecentDropdown, setShowRecentDropdown] = useState(false)
   const [keywordInput, setKeywordInput]       = useState('')
   const [competitorInput, setCompetitorInput] = useState('')
+  const [sourceInput, setSourceInput] = useState('')
 
   // ── P2: Competitor industry-mismatch warning ───────────────────────────────
   // Warn when a competitor tag looks like an educational/gov institution while
@@ -109,7 +111,58 @@ export function BrandSetupPanel() {
 
   // Don't show the config panel while customer data is loading — prevents a
   // 1-2s flash of an empty form before the DB-hydrated config arrives.
-  if (!ctx.showConfig || ctx.customerHydrating) return null
+  if (ctx.customerHydrating) return null
+
+  if (!ctx.showConfig && ctx.isConfigured) {
+    const readinessItems = [
+      Boolean(ctx.brandConfig.brand_name),
+      Boolean(ctx.brandConfig.domain),
+      Boolean(ctx.brandConfig.product_space || ctx.brandConfig.keywords.length),
+      Boolean(ctx.brandConfig.target_market),
+      ctx.brandConfig.competitors.length > 0,
+      Boolean(ctx.brandConfig.one_liner || ctx.brandConfig.differentiation),
+    ]
+    const readiness = Math.round((readinessItems.filter(Boolean).length / readinessItems.length) * 100)
+    const productSpace = ctx.brandConfig.product_space || ctx.brandConfig.keywords[0] || 'Product space not set'
+    const market = ctx.brandConfig.target_market || 'Market not set'
+    return (
+      <div className="bg-surface border border-divider rounded-xl px-5 py-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <BrandLogo domain={ctx.brandConfig.domain} name={ctx.brandConfig.brand_name} size={36} />
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-sm font-bold text-ink">Customer Intelligence Profile</h3>
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sage-bg text-sage">
+                <CheckCircle2 className="w-3 h-3" />
+                {readiness}% ready
+              </span>
+            </div>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-3">
+              <span className="font-semibold text-ink-2">{ctx.brandConfig.brand_name}</span>
+              <span>{ctx.brandConfig.domain || 'No domain'}</span>
+              <span>·</span>
+              <span>{market}</span>
+              <span>·</span>
+              <span>{productSpace}</span>
+              <span>·</span>
+              <span>{ctx.brandConfig.competitors.length} competitors</span>
+              <span>·</span>
+              <span>{ctx.brandConfig.keywords.length} keywords</span>
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={() => ctx.setShowConfig(true)}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-ink text-ink-inv rounded-xl text-sm font-semibold hover:bg-ink/80 transition-colors"
+        >
+          <Pencil className="w-4 h-4" />
+          Edit Profile
+        </button>
+      </div>
+    )
+  }
+
+  if (!ctx.showConfig) return null
 
   return (
     <div className="bg-surface rounded-xl border border-divider overflow-hidden">
@@ -117,7 +170,7 @@ export function BrandSetupPanel() {
       <div className="px-6 py-4 border-b border-divider-light flex items-center justify-between bg-canvas">
         <div className="flex items-center gap-2">
           <Settings className="w-5 h-5 text-ink-3" />
-          <h3 className="text-sm font-semibold text-ink">Brand Configuration</h3>
+          <h3 className="text-sm font-semibold text-ink">Customer Intelligence Profile</h3>
         </div>
         {ctx.isConfigured && (
           <button
@@ -203,6 +256,17 @@ export function BrandSetupPanel() {
               </option>
             ))}
           </SelectField>
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-ink-2 mb-1.5">Product Space</label>
+          <input
+            type="text"
+            placeholder="e.g. Portable power stations, gaming phones, projectors"
+            value={ctx.brandConfig.product_space ?? ''}
+            onChange={e => ctx.setBrandConfig({ ...ctx.brandConfig, product_space: e.target.value })}
+            className="w-full px-3 py-2 border border-divider rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
+          />
         </div>
 
         {/* ═══ BRAND DESCRIPTION ═════════════════════════════════════════════ */}
@@ -298,6 +362,17 @@ export function BrandSetupPanel() {
           )}
         </div>
 
+        <div>
+          <label className="block text-xs font-medium text-ink-2 mb-1.5">Source Seeds</label>
+          <TagInput
+            value={ctx.brandConfig.source_domains ?? []}
+            onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, source_domains: v })}
+            placeholder="Add source domain (official pages, reviews, media)..."
+            inputValue={sourceInput}
+            onInputChange={setSourceInput}
+          />
+        </div>
+
         {/* Error */}
         {ctx.configError && <p className="text-xs text-red-soft">{ctx.configError}</p>}
 
@@ -305,9 +380,10 @@ export function BrandSetupPanel() {
         <div className="flex items-center gap-3 pt-2">
           <button
             onClick={() => {
-              ctx.handleSaveConfig(keywordInput, competitorInput)
+              ctx.handleSaveConfig(keywordInput, competitorInput, sourceInput)
               setKeywordInput('')
               setCompetitorInput('')
+              setSourceInput('')
             }}
             className="flex items-center gap-2 px-5 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-xl text-sm font-medium transition-colors"
           >

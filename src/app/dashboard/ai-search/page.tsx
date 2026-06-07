@@ -2,7 +2,6 @@
 
 import { UnifiedProvider } from '../geo-monitor/components/UnifiedContext'
 import { AIResearchTab } from '../geo-monitor/components/tabs/AIResearchTab'
-import { ControlBar } from '../geo-monitor/components/ControlBar'
 import { BrandSetupPanel } from '../geo-monitor/components/BrandSetupPanel'
 import { TrendingUp } from 'lucide-react'
 
@@ -25,7 +24,6 @@ function AISearchContent() {
 
       <div className="p-6 space-y-6">
         <BrandSetupPanel />
-        <ControlBar />
         {/* The 5-block narrative: Brief → Dimension Map → Brand Coverage → Research Trail → Gap Playbook */}
         <AIResearchTab />
       </div>

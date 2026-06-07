@@ -308,10 +308,12 @@ export interface BrandConfig {
   keywords: string[]
   competitors: string[]
   industry?: string        // e.g. "saas_b2b", "ecommerce_dtc" — from INDUSTRY_LIST
+  product_space?: string
   one_liner?: string
   target_audience?: string
   target_market?: string   // displayed as "Target Country"; key kept for backward compat
   differentiation?: string
+  source_domains?: string[]
 }
 
 export interface ScanHistoryEntry {
@@ -376,6 +378,7 @@ export interface BrandConfigLike {
   domain: string
   keywords?: string[]
   competitors?: string[]
+  source_domains?: string[]
 }
 
 // Clean a brand config in-place: split any stuck-together comma values and
@@ -388,7 +391,8 @@ export function sanitizeBrandConfig<T extends BrandConfigLike>(cfg: T): T {
   const keywords = expandTags(cfg.keywords)
   const competitorsRaw = expandTags(cfg.competitors)
   const competitors = competitorsRaw.filter(c => !isBrandSelfVariant(c, cfg.brand_name, cfg.domain))
-  return { ...cfg, keywords, competitors }
+  const source_domains = expandTags(cfg.source_domains)
+  return { ...cfg, keywords, competitors, source_domains }
 }
 
 export interface RecentBrandRecord {
@@ -397,9 +401,11 @@ export interface RecentBrandRecord {
   keywords: string[]
   competitors: string[]
   industry?: string
+  product_space?: string
   one_liner?: string
   target_audience?: string
   target_market?: string
   differentiation?: string
+  source_domains?: string[]
   usedAt: string
 }

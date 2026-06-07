@@ -525,6 +525,19 @@ export interface QueryFanoutRow {
   updated_at?: string;
 }
 
+export interface AIResearchRun {
+  id: string;
+  customer_id: string;
+  status: string;
+  engine_set: string[];
+  config_snapshot: Record<string, unknown>;
+  prompt_snapshot: Array<Record<string, unknown>>;
+  result_json: Record<string, unknown>;
+  generated_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // ─── Dev Mode: EMA Policy Optimization ────────────────────────────────────
 
 export interface DevOptimizationConfig {
@@ -1755,6 +1768,25 @@ class APIClient {
     return this.request<{ ok: boolean; upserted?: number; error?: string }>('/api/monitor/query-fanouts', {
       method: 'POST',
       body: JSON.stringify({ customer_id: customerId, rows }),
+    });
+  }
+
+  async getLatestAIResearchRun(customerId: string) {
+    const params = new URLSearchParams({ customer_id: customerId });
+    return this.request<{ ok: boolean; run: AIResearchRun | null; error?: string }>(
+      `/api/monitor/ai-research/runs/latest?${params.toString()}`,
+    );
+  }
+
+  async createAIResearchRun(payload: {
+    customer_id: string;
+    brand_config: Record<string, unknown>;
+    prompts: Array<{ id?: string; template: string; category?: string; intent?: string | null }>;
+    engines?: string[];
+  }) {
+    return this.request<{ ok: boolean; run?: AIResearchRun; error?: string }>('/api/monitor/ai-research/runs', {
+      method: 'POST',
+      body: JSON.stringify(payload),
     });
   }
 
