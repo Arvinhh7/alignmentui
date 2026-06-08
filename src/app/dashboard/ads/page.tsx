@@ -99,29 +99,6 @@ interface AdsResponse {
   }
 }
 
-interface CoverageRun {
-  id: string
-  status: string
-  mode: string
-  plan_json?: {
-    category_count?: number
-    query_universe_count?: number
-    observation_query_count?: number
-    categories?: { name: string; slug: string; seeds?: string[] }[]
-    created_at?: string
-  }
-  result_json?: {
-    query_universe_persisted?: number
-    observation_queue_persisted?: number
-    queue_status?: string
-  }
-  cost_estimate_json?: {
-    paid_observation_queries?: number
-    rough_monthly_envelope?: { expected?: string; label?: string }
-  }
-  created_at?: string
-}
-
 function formatDate(value?: string | null) {
   if (!value) return 'Not observed yet'
   return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value))
@@ -359,7 +336,6 @@ export default function AdsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [badImageIds, setBadImageIds] = useState<string[]>([])
-  const [coverageRun, setCoverageRun] = useState<CoverageRun | null>(null)
 
   useEffect(() => {
     fetchWithRetry(`${API_BASE_URL}/api/ads/spaces`)
@@ -408,13 +384,6 @@ export default function AdsPage() {
       controller.abort()
     }
   }, [activeSlug, deferredSearch])
-
-  useEffect(() => {
-    fetchWithRetry(`${API_BASE_URL}/api/ads/collector/runs/latest?ads_space_slug=ai-ads-market`)
-      .then((r) => r.ok ? r.json() : null)
-      .then((payload) => setCoverageRun(payload?.run ?? null))
-      .catch(() => setCoverageRun(null))
-  }, [])
 
   const categoryOptions = useMemo(() => {
     const topics = uniq((data?.observed_cards ?? []).flatMap((card) => card.contexts.map((context) => context.query_topic)))
@@ -486,9 +455,6 @@ export default function AdsPage() {
   }, [visibleCards])
 
   const observationSourceLabel = data?.quality.data_source === 'database' ? 'Database observations' : data?.quality.data_source === 'preview_cache' ? 'Preview cache from real ingest' : 'Accepted observations'
-  const coveragePlan = coverageRun?.plan_json
-  const coverageResult = coverageRun?.result_json
-  const coverageCategories = coveragePlan?.categories ?? []
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#f7eedf_0%,#f3efe7_36%,#efe7d8_68%,#f7f3eb_100%)]">
@@ -502,7 +468,7 @@ export default function AdsPage() {
               </div>
               <h1 className="mt-4 text-[40px] font-black leading-[0.95] text-ink md:text-[52px]">AI Ads</h1>
               <p className="mt-4 max-w-3xl text-[15px] leading-relaxed text-ink-3">
-                ChatGPT ad cards observed across AI commerce surfaces. Search or filter categories to see which advertisers are buying attention in the markets you care about.
+                ChatGPT ad cards observed across AI commerce surfaces. Search advertisers, switch product spaces, or filter observed topics to see who is buying attention in this market.
               </p>
             </div>
 
@@ -535,7 +501,7 @@ export default function AdsPage() {
                 className="h-11 min-w-[180px] rounded-full border border-[#d8cfbf] bg-white px-4 text-[13px] font-bold text-ink"
               >
                 {categoryOptions.map((category) => (
-                  <option key={category} value={category}>{category === 'all' ? 'All categories' : category}</option>
+                  <option key={category} value={category}>{category === 'all' ? 'All observed topics' : category}</option>
                 ))}
               </select>
               <span className="rounded-full border border-[#d8cfbf] bg-white px-4 py-2 text-[13px] font-bold text-ink">{data?.ads_space.locale ?? 'US/en'}</span>
@@ -552,60 +518,15 @@ export default function AdsPage() {
               <MetricCard label="Advertisers" value={formatNumber(advertiserSummaries.length)} icon={Target} accent="#ead8b1" />
               <MetricCard label="Ad cards" value={formatNumber(visibleCards.length)} icon={ImageIcon} accent="#d8ebcf" />
               <MetricCard label="Observed queries" value={formatNumber(visibleQueries.length)} icon={Search} accent="#f4d8c2" />
-              <MetricCard label="Observed categories" value={formatNumber(visibleTopics.length)} icon={Layers3} accent="#d8dff4" />
+              <MetricCard label="Observed topics" value={formatNumber(visibleTopics.length)} icon={Layers3} accent="#d8dff4" />
             </div>
           ) : null}
         </div>
       </div>
 
       <div className="mx-auto max-w-[1480px] space-y-5 p-6">
-        {coveragePlan ? (
-          <section className="rounded-[28px] border border-[#d9cfbd] bg-[#fffdf8] p-5 shadow-[0_18px_42px_rgba(58,40,18,0.07)]">
-            <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-              <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-[#d8cfbf] bg-[#f8f2e7] px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-ink-3">
-                  <Database className="h-3.5 w-3.5" />
-                  Coverage experiment
-                </div>
-                <h2 className="mt-3 text-[22px] font-black text-ink">10-category / 800-query observation queue</h2>
-                <p className="mt-1 max-w-3xl text-[13px] leading-relaxed text-ink-3">
-                  This is the planned observation universe. Cards only enter the advertiser library below after a real ad is observed, cached to our storage, and passes the quality gate.
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:min-w-[520px]">
-                <div className="rounded-[20px] bg-[#fbf5ea] p-3">
-                  <div className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-3">Planned categories</div>
-                  <div className="mt-1 text-[22px] font-black text-ink">{formatNumber(coveragePlan.category_count ?? coverageCategories.length)}</div>
-                </div>
-                <div className="rounded-[20px] bg-[#fbf5ea] p-3">
-                  <div className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-3">Query universe</div>
-                  <div className="mt-1 text-[22px] font-black text-ink">{formatNumber(coveragePlan.query_universe_count ?? 0)}</div>
-                </div>
-                <div className="rounded-[20px] bg-[#fbf5ea] p-3">
-                  <div className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-3">Queued observes</div>
-                  <div className="mt-1 text-[22px] font-black text-ink">{formatNumber(coverageResult?.observation_queue_persisted ?? coveragePlan.observation_query_count ?? 0)}</div>
-                </div>
-                <div className="rounded-[20px] bg-[#fbf5ea] p-3">
-                  <div className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-3">Status</div>
-                  <div className="mt-1 text-[14px] font-black capitalize text-ink">{coverageResult?.queue_status ?? coverageRun?.status ?? 'planned'}</div>
-                </div>
-              </div>
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {coverageCategories.map((category) => (
-                <span key={category.slug} className="rounded-full border border-[#ddd2c1] bg-white px-3 py-1 text-[11px] font-bold text-ink-3">
-                  {category.name}
-                </span>
-              ))}
-            </div>
-            <div className="mt-4 rounded-[20px] bg-[#f8f2e7] px-4 py-3 text-[12px] font-semibold text-ink-3">
-              Observed library below currently has {formatNumber(visibleTopics.length)} accepted categories and {formatNumber(visibleQueries.length)} accepted queries. The rest of the 800-query universe is queued, not yet accepted card data.
-            </div>
-          </section>
-        ) : null}
-
         <div className="rounded-[24px] border border-[#d8cfbf] bg-white/75 px-4 py-3 text-[13px] font-semibold text-ink-3 shadow-[0_16px_40px_rgba(59,42,18,0.06)]">
-          {observationSourceLabel}. Showing {formatNumber(advertiserSummaries.length)} advertisers and {formatNumber(visibleCards.length)} accepted ad cards for {activeCategory === 'all' ? data?.ads_space.name ?? 'all categories' : activeCategory}.
+          {observationSourceLabel}. Showing {formatNumber(advertiserSummaries.length)} advertisers and {formatNumber(visibleCards.length)} accepted ad cards for {activeCategory === 'all' ? data?.ads_space.name ?? 'this product space' : `the observed topic "${activeCategory}"`}.
         </div>
 
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-[320px_minmax(0,1fr)_420px]">
@@ -627,7 +548,7 @@ export default function AdsPage() {
                 <div className="text-[11px] font-black uppercase tracking-[0.18em] text-ink-3">Advertiser library</div>
                 <h2 className="mt-2 text-[20px] font-black text-ink">Who is advertising here?</h2>
                 <p className="mt-1 text-[13px] leading-relaxed text-ink-3">
-                  Ranked advertisers with official logos, destination domains, representative ad previews, card volume, and category coverage.
+                  Ranked advertisers with official logos, destination domains, representative ad previews, card volume, and observed-topic coverage.
                 </p>
               </div>
               <div className="w-full lg:w-[320px]">
@@ -670,7 +591,7 @@ export default function AdsPage() {
               </div>
             ) : (
               <div className="flex min-h-[520px] items-center justify-center p-8 text-sm font-semibold text-ink-3">
-                No advertisers are available for this category or search.
+                No advertisers are available for this observed topic or search.
               </div>
             )}
           </section>
