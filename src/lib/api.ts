@@ -9,6 +9,61 @@ const DEFAULT_API_BASE_URL =
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_BASE_URL
 
+function xhrFetch(input: string, init: RequestInit = {}): Promise<Response> {
+  return new Promise((resolve, reject) => {
+    if (typeof XMLHttpRequest === 'undefined') {
+      reject(new Error('No fetch or XMLHttpRequest implementation available'))
+      return
+    }
+
+    const xhr = new XMLHttpRequest()
+    xhr.open(init.method || 'GET', input)
+    const headers = init.headers
+    if (headers instanceof Headers) {
+      headers.forEach((value, key) => xhr.setRequestHeader(key, value))
+    } else if (Array.isArray(headers)) {
+      headers.forEach(([key, value]) => xhr.setRequestHeader(key, value))
+    } else if (headers) {
+      Object.entries(headers).forEach(([key, value]) => xhr.setRequestHeader(key, String(value)))
+    }
+
+    const signal = init.signal as AbortSignal | undefined
+    const onAbort = () => {
+      xhr.abort()
+      reject(new DOMException('The operation was aborted.', 'AbortError'))
+    }
+    if (signal) {
+      if (signal.aborted) {
+        onAbort()
+        return
+      }
+      signal.addEventListener('abort', onAbort, { once: true })
+    }
+
+    xhr.onload = () => {
+      signal?.removeEventListener('abort', onAbort)
+      resolve(new Response(xhr.responseText, {
+        status: xhr.status,
+        statusText: xhr.statusText,
+        headers: xhr.getAllResponseHeaders()
+          .trim()
+          .split(/[\r\n]+/)
+          .filter(Boolean)
+          .reduce((acc, line) => {
+            const index = line.indexOf(':')
+            if (index > -1) acc[line.slice(0, index).trim()] = line.slice(index + 1).trim()
+            return acc
+          }, {} as Record<string, string>),
+      }))
+    }
+    xhr.onerror = () => {
+      signal?.removeEventListener('abort', onAbort)
+      reject(new Error('Network request failed'))
+    }
+    xhr.send(init.body as XMLHttpRequestBodyInit | null | undefined)
+  })
+}
+
 /**
  * fetch wrapper with timeout + automatic retry for transient backend outages.
  *
@@ -46,7 +101,8 @@ export async function fetchWithRetry(
     }
     const timer = setTimeout(() => { timedOut = true; controller.abort(); }, timeoutMs);
     try {
-      const res = await fetch(input, { ...init, signal: controller.signal });
+      const fetchImpl = typeof fetch === 'function' ? fetch : xhrFetch
+      const res = await fetchImpl(input, { ...init, signal: controller.signal });
       clearTimeout(timer);
       callerSignal?.removeEventListener('abort', onCallerAbort);
       // 502/503/504 = backend mid-restart / gateway not ready → retry within budget

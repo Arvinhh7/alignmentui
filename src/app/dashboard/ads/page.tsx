@@ -2,10 +2,8 @@
 
 import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import {
-  AlertCircle,
   ArrowUpRight,
   CalendarDays,
-  CheckCircle2,
   Database,
   Globe,
   Image as ImageIcon,
@@ -101,32 +99,25 @@ interface AdsResponse {
   }
 }
 
-interface CollectorConnector {
-  ready: boolean
-  purpose: string
-  required: string[]
-  note?: string
-}
-
-interface CollectorRun {
+interface CoverageRun {
   id: string
-  status: 'planned' | 'blocked' | 'running' | 'completed' | 'failed'
-  mode: 'pilot' | 'standard' | 'deep'
+  status: string
+  mode: string
   plan_json?: {
+    category_count?: number
     query_universe_count?: number
     observation_query_count?: number
-    accepted_card_count?: number
-  }
-  cost_estimate_json?: {
-    rough_monthly_envelope?: { expected?: string }
-    ai_model_calls?: number
+    categories?: { name: string; slug: string; seeds?: string[] }[]
+    created_at?: string
   }
   result_json?: {
-    message?: string
-    next_connector?: string
     query_universe_persisted?: number
     observation_queue_persisted?: number
     queue_status?: string
+  }
+  cost_estimate_json?: {
+    paid_observation_queries?: number
+    rough_monthly_envelope?: { expected?: string; label?: string }
   }
   created_at?: string
 }
@@ -174,6 +165,16 @@ function EntityChip({ entity }: { entity: Entity }) {
   )
 }
 
+interface AdvertiserSummary {
+  advertiser: Entity
+  cards: ObservedCard[]
+  previewCard: ObservedCard
+  totalAppearances: number
+  topics: string[]
+  queries: string[]
+  latestSeen?: string | null
+}
+
 function MetricCard({
   label,
   value,
@@ -196,127 +197,6 @@ function MetricCard({
       </div>
       <div className="mt-3 text-[30px] font-black leading-none text-ink">{value}</div>
     </div>
-  )
-}
-
-function CollectorPanel({ data }: { data: AdsResponse | null }) {
-  const [readiness, setReadiness] = useState<Record<string, CollectorConnector>>({})
-  const [run, setRun] = useState<CollectorRun | null>(null)
-  const [running, setRunning] = useState(false)
-
-  useEffect(() => {
-    fetchWithRetry(`${API_BASE_URL}/api/ads/collector/readiness`)
-      .then((r) => r.ok ? r.json() : null)
-      .then((payload) => setReadiness(payload?.connectors ?? {}))
-      .catch(() => setReadiness({}))
-  }, [])
-
-  useEffect(() => {
-    const slug = data?.ads_space.slug
-    if (!slug) return
-    fetchWithRetry(`${API_BASE_URL}/api/ads/collector/runs/latest?ads_space_slug=${encodeURIComponent(slug)}`)
-      .then((r) => r.ok ? r.json() : null)
-      .then((payload) => setRun(payload?.run ?? null))
-      .catch(() => setRun(null))
-  }, [data?.ads_space.slug])
-
-  const createRun = async () => {
-    if (!data?.ads_space) return
-    setRunning(true)
-    try {
-      const competitors = data.advertiser_leaderboard.map((row) => row.advertiser.name).slice(0, 8)
-      const seeds = data.observed_cards.flatMap((card) => card.contexts.map((ctx) => ctx.observed_query)).slice(0, 20)
-      const response = await fetchWithRetry(`${API_BASE_URL}/api/ads/collector/runs`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ads_space_slug: data.ads_space.slug,
-          product_space: data.ads_space.name,
-          market: data.ads_space.locale.startsWith('US') ? 'United States' : data.ads_space.locale,
-          language: 'en',
-          brand_name: 'EcoFlow',
-          domain: 'ecoflow.com',
-          seed_keywords: seeds,
-          competitors,
-          mode: 'pilot',
-          persist: true,
-          execute_connectors: false,
-        }),
-      })
-      const payload = await response.json()
-      setRun(payload?.run ?? null)
-    } finally {
-      setRunning(false)
-    }
-  }
-
-  const connectors = Object.entries(readiness)
-  const readyCount = connectors.filter(([, value]) => value.ready).length
-
-  return (
-    <section className="rounded-[28px] border border-[#d9cfbd] bg-[linear-gradient(135deg,#fffaf0_0%,#fffdf8_54%,#f5ecda_100%)] shadow-[0_24px_60px_rgba(59,42,18,0.09)]">
-      <div className="flex flex-col gap-4 border-b border-[#e0d4c2] p-5 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#efe2c9]">
-            <Database className="h-5 w-5 text-ink" />
-          </div>
-          <div>
-            <h2 className="text-[18px] font-black text-ink">Observation collector</h2>
-            <p className="mt-1 max-w-4xl text-[13px] leading-relaxed text-ink-3">
-              Planning, queueing, and image/query quality gates stay active. The library renders only accepted observations with durable creative URLs.
-            </p>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={createRun}
-          disabled={running || !data?.ads_space}
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-ink px-5 text-[13px] font-black text-ink-inv transition-colors hover:bg-ink-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <Megaphone className="h-4 w-4" />}
-          Create pilot plan
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 p-5 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {connectors.map(([key, value]) => (
-            <div key={key} className="rounded-[22px] border border-[#ded3c2] bg-white/75 p-3">
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <div className="text-[11px] font-black uppercase tracking-[0.15em] text-ink-3">{key.replaceAll('_', ' ')}</div>
-                {value.ready ? <CheckCircle2 className="h-4 w-4 text-sage" /> : <AlertCircle className="h-4 w-4 text-caution" />}
-              </div>
-              <div className={`text-[13px] font-black ${value.ready ? 'text-sage' : 'text-caution'}`}>
-                {value.ready ? 'Ready' : 'Blocked'}
-              </div>
-              <p className="mt-2 text-[11px] leading-relaxed text-ink-3">{value.note || value.purpose}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="rounded-[22px] border border-[#ded3c2] bg-white/75 p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="text-[11px] font-black uppercase tracking-[0.15em] text-ink-3">Latest run</div>
-              <div className="mt-1 text-[18px] font-black capitalize text-ink">{run?.status ?? 'No run yet'}</div>
-            </div>
-            <div className="rounded-full border border-[#ddd2c0] bg-white px-3 py-1 text-[11px] font-black text-ink-3">
-              {readyCount}/{connectors.length || 4} ready
-            </div>
-          </div>
-          <div className="mt-4 grid gap-2 text-[13px]">
-            <div className="flex items-center justify-between"><span className="text-ink-3">Query universe</span><strong>{run?.plan_json?.query_universe_count ?? '-'}</strong></div>
-            <div className="flex items-center justify-between"><span className="text-ink-3">Observation sample</span><strong>{run?.plan_json?.observation_query_count ?? run?.plan_json?.accepted_card_count ?? '-'}</strong></div>
-            <div className="flex items-center justify-between"><span className="text-ink-3">Queued</span><strong>{run?.result_json?.observation_queue_persisted ?? '-'}</strong></div>
-            <div className="flex items-center justify-between"><span className="text-ink-3">AI model calls</span><strong>{run?.cost_estimate_json?.ai_model_calls ?? 0}</strong></div>
-            <div className="flex items-start justify-between gap-3"><span className="text-ink-3">Envelope</span><strong className="text-right">{run?.cost_estimate_json?.rough_monthly_envelope?.expected ?? '-'}</strong></div>
-          </div>
-          {run?.result_json?.message ? (
-            <p className="mt-3 rounded-2xl bg-[#f8f3e8] px-3 py-2 text-[12px] font-semibold text-ink-3">{run.result_json.message}</p>
-          ) : null}
-        </div>
-      </div>
-    </section>
   )
 }
 
@@ -378,25 +258,24 @@ function AdvertiserRail({
   )
 }
 
-function ObservedCardTile({
-  card,
+function AdvertiserCardTile({
+  summary,
+  rank,
   selected,
-  hidden,
   onSelect,
   onBadImage,
 }: {
-  card: ObservedCard
+  summary: AdvertiserSummary
+  rank: number
   selected: boolean
-  hidden: boolean
   onSelect: () => void
   onBadImage: (id: string) => void
 }) {
-  if (hidden) return null
-
+  const card = summary.previewCard
   const queryCount = cardQueryCount(card)
   const topicCount = cardTopicCount(card)
   const destinationDomain = domainFromUrl(card.destination_url)
-  const topics = cardTopicLabels(card)
+  const topics = summary.topics.slice(0, 3)
 
   return (
     <button
@@ -419,14 +298,23 @@ function ObservedCardTile({
           }}
         />
         <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-3 bg-[linear-gradient(180deg,rgba(33,24,16,0.66)_0%,rgba(33,24,16,0)_100%)] p-4">
-          <EntityChip entity={card.advertiser} />
-          <span className="rounded-full border border-white/35 bg-black/35 px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-white">
-            {destinationDomain}
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/35 bg-black/35 px-3 py-1 text-[11px] font-black text-white">
+            #{rank} <span className="opacity-70">·</span> {summary.totalAppearances} cards seen
           </span>
+          {summary.cards.length > 1 ? (
+            <span className="rounded-full border border-white/35 bg-white/90 px-2.5 py-1 text-[11px] font-black text-ink">×{summary.cards.length}</span>
+          ) : null}
         </div>
       </div>
 
       <div className="space-y-4 p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <EntityChip entity={summary.advertiser} />
+            <div className="mt-2 text-[12px] text-ink-3">{summary.advertiser.domain}</div>
+          </div>
+          <div className="rounded-full border border-[#ddd2c1] bg-white px-3 py-1 text-[11px] font-black text-ink-3">{destinationDomain}</div>
+        </div>
         <div>
           <h3 className="text-[16px] font-black leading-tight text-ink">{card.title}</h3>
           <p className="mt-2 line-clamp-2 text-[13px] leading-relaxed text-ink-3">{card.description}</p>
@@ -439,11 +327,11 @@ function ObservedCardTile({
           </div>
           <div className="rounded-2xl bg-[#f7f1e4] p-3">
             <div className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-3">Queries</div>
-            <div className="mt-1 text-[16px] font-black text-ink">{queryCount}</div>
+            <div className="mt-1 text-[16px] font-black text-ink">{summary.queries.length || queryCount}</div>
           </div>
           <div className="rounded-2xl bg-[#f7f1e4] p-3">
             <div className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-3">Topics</div>
-            <div className="mt-1 text-[16px] font-black text-ink">{topicCount}</div>
+            <div className="mt-1 text-[16px] font-black text-ink">{summary.topics.length || topicCount}</div>
           </div>
         </div>
 
@@ -464,11 +352,14 @@ export default function AdsPage() {
   const [activeSlug, setActiveSlug] = useState('portable-power-stations')
   const [data, setData] = useState<AdsResponse | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedAdvertiserId, setSelectedAdvertiserId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [activeCategory, setActiveCategory] = useState('all')
   const deferredSearch = useDeferredValue(search)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [badImageIds, setBadImageIds] = useState<string[]>([])
+  const [coverageRun, setCoverageRun] = useState<CoverageRun | null>(null)
 
   useEffect(() => {
     fetchWithRetry(`${API_BASE_URL}/api/ads/spaces`)
@@ -499,7 +390,9 @@ export default function AdsPage() {
         })
         .then((payload: AdsResponse) => {
           setData(payload)
-          setSelectedId((current) => payload.observed_cards.some((card) => card.id === current) ? current : (payload.observed_cards[0]?.id ?? null))
+          const firstCard = payload.observed_cards[0]
+          setSelectedId((current) => payload.observed_cards.some((card) => card.id === current) ? current : (firstCard?.id ?? null))
+          setSelectedAdvertiserId((current) => payload.observed_cards.some((card) => card.advertiser.id === current) ? current : (firstCard?.advertiser.id ?? null))
         })
         .catch((err) => {
           if (err instanceof DOMException && err.name === 'AbortError') return
@@ -516,16 +409,68 @@ export default function AdsPage() {
     }
   }, [activeSlug, deferredSearch])
 
+  useEffect(() => {
+    fetchWithRetry(`${API_BASE_URL}/api/ads/collector/runs/latest?ads_space_slug=ai-ads-market`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((payload) => setCoverageRun(payload?.run ?? null))
+      .catch(() => setCoverageRun(null))
+  }, [])
+
+  const categoryOptions = useMemo(() => {
+    const topics = uniq((data?.observed_cards ?? []).flatMap((card) => card.contexts.map((context) => context.query_topic)))
+    return ['all', ...topics]
+  }, [data?.observed_cards])
+
   const visibleCards = useMemo(() => {
-    return (data?.observed_cards ?? []).filter((card) => !badImageIds.includes(card.id))
-  }, [badImageIds, data?.observed_cards])
+    return (data?.observed_cards ?? []).filter((card) => {
+      if (badImageIds.includes(card.id)) return false
+      if (activeCategory === 'all') return true
+      return card.contexts.some((context) => context.query_topic === activeCategory)
+    })
+  }, [activeCategory, badImageIds, data?.observed_cards])
+
+  const advertiserSummaries = useMemo<AdvertiserSummary[]>(() => {
+    const byAdvertiser = new Map<string, ObservedCard[]>()
+    for (const card of visibleCards) {
+      const current = byAdvertiser.get(card.advertiser.id) ?? []
+      current.push(card)
+      byAdvertiser.set(card.advertiser.id, current)
+    }
+    return Array.from(byAdvertiser.values())
+      .map((cards) => {
+        const sortedCards = [...cards].sort((a, b) => b.appearance_count - a.appearance_count)
+        const contexts = sortedCards.flatMap((card) => card.contexts)
+        return {
+          advertiser: sortedCards[0].advertiser,
+          cards: sortedCards,
+          previewCard: sortedCards[0],
+          totalAppearances: sortedCards.reduce((sum, card) => sum + card.appearance_count, 0),
+          topics: uniq(contexts.map((context) => context.query_topic)),
+          queries: uniq(contexts.map((context) => context.observed_query)),
+          latestSeen: sortedCards
+            .map((card) => card.last_seen_at)
+            .filter(Boolean)
+            .sort()
+            .at(-1),
+        }
+      })
+      .sort((a, b) => b.totalAppearances - a.totalAppearances || a.advertiser.name.localeCompare(b.advertiser.name))
+  }, [visibleCards])
+
+  const effectiveSelectedAdvertiserId = selectedAdvertiserId && advertiserSummaries.some((summary) => summary.advertiser.id === selectedAdvertiserId)
+    ? selectedAdvertiserId
+    : advertiserSummaries[0]?.advertiser.id ?? null
+
+  const selectedAdvertiser = useMemo(() => {
+    return advertiserSummaries.find((summary) => summary.advertiser.id === effectiveSelectedAdvertiserId) ?? advertiserSummaries[0] ?? null
+  }, [advertiserSummaries, effectiveSelectedAdvertiserId])
+
+  const selectedAdvertiserCards = selectedAdvertiser?.cards ?? []
 
   const selected = useMemo(() => {
-    if (!visibleCards.length) return null
-    return visibleCards.find((card) => card.id === selectedId) ?? visibleCards[0]
-  }, [selectedId, visibleCards])
-
-  const selectedAdvertiserId = selected?.advertiser.id ?? visibleCards[0]?.advertiser.id ?? null
+    if (!selectedAdvertiserCards.length) return null
+    return selectedAdvertiserCards.find((card) => card.id === selectedId) ?? selectedAdvertiserCards[0]
+  }, [selectedAdvertiserCards, selectedId])
 
   const filteredLeaderboard = useMemo(() => {
     const visibleAdvertiserIds = new Set(visibleCards.map((card) => card.advertiser.id))
@@ -540,12 +485,10 @@ export default function AdsPage() {
     return uniq(visibleCards.flatMap((card) => card.contexts.map((context) => context.query_topic.toLowerCase())))
   }, [visibleCards])
 
-  const selectedAdvertiserCards = useMemo(() => {
-    if (!selectedAdvertiserId) return visibleCards
-    return visibleCards.filter((card) => card.advertiser.id === selectedAdvertiserId)
-  }, [selectedAdvertiserId, visibleCards])
-
   const observationSourceLabel = data?.quality.data_source === 'database' ? 'Database observations' : data?.quality.data_source === 'preview_cache' ? 'Preview cache from real ingest' : 'Accepted observations'
+  const coveragePlan = coverageRun?.plan_json
+  const coverageResult = coverageRun?.result_json
+  const coverageCategories = coveragePlan?.categories ?? []
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#f7eedf_0%,#f3efe7_36%,#efe7d8_68%,#f7f3eb_100%)]">
@@ -555,25 +498,44 @@ export default function AdsPage() {
             <div className="max-w-4xl">
               <div className="inline-flex items-center gap-2 rounded-full border border-[#d9cfbd] bg-white/80 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-ink-3">
                 <LibraryBig className="h-3.5 w-3.5" />
-                GEOly-style observation library
+                AI ads library
               </div>
-              <h1 className="mt-4 text-[40px] font-black leading-[0.95] text-ink md:text-[52px]">Ads observation cards</h1>
+              <h1 className="mt-4 text-[40px] font-black leading-[0.95] text-ink md:text-[52px]">AI Ads</h1>
               <p className="mt-4 max-w-3xl text-[15px] leading-relaxed text-ink-3">
-                Advertiser identity, official logos, accepted creative images, destination domains, and query-context drilldowns across observed ChatGPT ad cards.
+                ChatGPT ad cards observed across AI commerce surfaces. Search or filter categories to see which advertisers are buying attention in the markets you care about.
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              <div className="relative w-full sm:w-[320px]">
+                <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
+                <input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search brand or ad title..."
+                  className="h-11 w-full rounded-full border border-[#d8cfbf] bg-white pl-10 pr-4 text-[13px] focus:border-ink-3 focus:outline-none"
+                />
+              </div>
               <select
                 value={activeSlug}
                 onChange={(event) => {
                   setActiveSlug(event.target.value)
                   setSearch('')
+                  setActiveCategory('all')
                 }}
                 className="h-11 min-w-[220px] rounded-full border border-[#d8cfbf] bg-white px-4 text-[13px] font-bold text-ink"
               >
                 {spaces.map((space) => (
                   <option key={space.slug} value={space.slug}>{space.name}</option>
+                ))}
+              </select>
+              <select
+                value={activeCategory}
+                onChange={(event) => setActiveCategory(event.target.value)}
+                className="h-11 min-w-[180px] rounded-full border border-[#d8cfbf] bg-white px-4 text-[13px] font-bold text-ink"
+              >
+                {categoryOptions.map((category) => (
+                  <option key={category} value={category}>{category === 'all' ? 'All categories' : category}</option>
                 ))}
               </select>
               <span className="rounded-full border border-[#d8cfbf] bg-white px-4 py-2 text-[13px] font-bold text-ink">{data?.ads_space.locale ?? 'US/en'}</span>
@@ -587,39 +549,85 @@ export default function AdsPage() {
 
           {data?.ads_space ? (
             <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-              <MetricCard label="Advertisers" value={formatNumber(filteredLeaderboard.length)} icon={Target} accent="#ead8b1" />
-              <MetricCard label="Cards" value={formatNumber(visibleCards.length)} icon={ImageIcon} accent="#d8ebcf" />
-              <MetricCard label="Queries" value={formatNumber(visibleQueries.length)} icon={Search} accent="#f4d8c2" />
-              <MetricCard label="Topics" value={formatNumber(visibleTopics.length)} icon={Layers3} accent="#d8dff4" />
+              <MetricCard label="Advertisers" value={formatNumber(advertiserSummaries.length)} icon={Target} accent="#ead8b1" />
+              <MetricCard label="Ad cards" value={formatNumber(visibleCards.length)} icon={ImageIcon} accent="#d8ebcf" />
+              <MetricCard label="Observed queries" value={formatNumber(visibleQueries.length)} icon={Search} accent="#f4d8c2" />
+              <MetricCard label="Observed categories" value={formatNumber(visibleTopics.length)} icon={Layers3} accent="#d8dff4" />
             </div>
           ) : null}
         </div>
       </div>
 
       <div className="mx-auto max-w-[1480px] space-y-5 p-6">
-        <div className="rounded-[24px] border border-[#d8cfbf] bg-white/75 px-4 py-3 text-[13px] font-semibold text-ink-3 shadow-[0_16px_40px_rgba(59,42,18,0.06)]">
-          {observationSourceLabel}. Hidden invalid images: {formatNumber(data?.quality.hidden_cards_missing_images ?? 0)}. Cards without durable images or query context do not render.
-        </div>
+        {coveragePlan ? (
+          <section className="rounded-[28px] border border-[#d9cfbd] bg-[#fffdf8] p-5 shadow-[0_18px_42px_rgba(58,40,18,0.07)]">
+            <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#d8cfbf] bg-[#f8f2e7] px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-ink-3">
+                  <Database className="h-3.5 w-3.5" />
+                  Coverage experiment
+                </div>
+                <h2 className="mt-3 text-[22px] font-black text-ink">10-category / 800-query observation queue</h2>
+                <p className="mt-1 max-w-3xl text-[13px] leading-relaxed text-ink-3">
+                  This is the planned observation universe. Cards only enter the advertiser library below after a real ad is observed, cached to our storage, and passes the quality gate.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:min-w-[520px]">
+                <div className="rounded-[20px] bg-[#fbf5ea] p-3">
+                  <div className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-3">Planned categories</div>
+                  <div className="mt-1 text-[22px] font-black text-ink">{formatNumber(coveragePlan.category_count ?? coverageCategories.length)}</div>
+                </div>
+                <div className="rounded-[20px] bg-[#fbf5ea] p-3">
+                  <div className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-3">Query universe</div>
+                  <div className="mt-1 text-[22px] font-black text-ink">{formatNumber(coveragePlan.query_universe_count ?? 0)}</div>
+                </div>
+                <div className="rounded-[20px] bg-[#fbf5ea] p-3">
+                  <div className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-3">Queued observes</div>
+                  <div className="mt-1 text-[22px] font-black text-ink">{formatNumber(coverageResult?.observation_queue_persisted ?? coveragePlan.observation_query_count ?? 0)}</div>
+                </div>
+                <div className="rounded-[20px] bg-[#fbf5ea] p-3">
+                  <div className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-3">Status</div>
+                  <div className="mt-1 text-[14px] font-black capitalize text-ink">{coverageResult?.queue_status ?? coverageRun?.status ?? 'planned'}</div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {coverageCategories.map((category) => (
+                <span key={category.slug} className="rounded-full border border-[#ddd2c1] bg-white px-3 py-1 text-[11px] font-bold text-ink-3">
+                  {category.name}
+                </span>
+              ))}
+            </div>
+            <div className="mt-4 rounded-[20px] bg-[#f8f2e7] px-4 py-3 text-[12px] font-semibold text-ink-3">
+              Observed library below currently has {formatNumber(visibleTopics.length)} accepted categories and {formatNumber(visibleQueries.length)} accepted queries. The rest of the 800-query universe is queued, not yet accepted card data.
+            </div>
+          </section>
+        ) : null}
 
-        <CollectorPanel data={data} />
+        <div className="rounded-[24px] border border-[#d8cfbf] bg-white/75 px-4 py-3 text-[13px] font-semibold text-ink-3 shadow-[0_16px_40px_rgba(59,42,18,0.06)]">
+          {observationSourceLabel}. Showing {formatNumber(advertiserSummaries.length)} advertisers and {formatNumber(visibleCards.length)} accepted ad cards for {activeCategory === 'all' ? data?.ads_space.name ?? 'all categories' : activeCategory}.
+        </div>
 
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-[320px_minmax(0,1fr)_420px]">
           <AdvertiserRail
             rows={filteredLeaderboard}
-            selectedAdvertiserId={selectedAdvertiserId}
+            selectedAdvertiserId={effectiveSelectedAdvertiserId}
             onSelect={(advertiserId) => {
               const firstCard = visibleCards.find((card) => card.advertiser.id === advertiserId)
-              if (firstCard) setSelectedId(firstCard.id)
+              if (firstCard) {
+                setSelectedAdvertiserId(advertiserId)
+                setSelectedId(firstCard.id)
+              }
             }}
           />
 
           <section className="overflow-hidden rounded-[28px] border border-[#d9cfbd] bg-[#fffdf8] shadow-[0_24px_60px_rgba(59,42,18,0.08)]">
             <div className="flex flex-col gap-4 border-b border-[#e1d5c4] p-5 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-ink-3">Card library</div>
-                <h2 className="mt-2 text-[20px] font-black text-ink">Observed ad cards</h2>
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-ink-3">Advertiser library</div>
+                <h2 className="mt-2 text-[20px] font-black text-ink">Who is advertising here?</h2>
                 <p className="mt-1 text-[13px] leading-relaxed text-ink-3">
-                  Real observed-card payloads only. Each card exposes advertiser identity, destination domain, and unique topic/query breadth.
+                  Ranked advertisers with official logos, destination domains, representative ad previews, card volume, and category coverage.
                 </p>
               </div>
               <div className="w-full lg:w-[320px]">
@@ -644,22 +652,25 @@ export default function AdsPage() {
                 <Megaphone className="h-8 w-8 text-ink-3" />
                 <p className="max-w-md text-sm font-semibold text-ink-3">{error}</p>
               </div>
-            ) : selectedAdvertiserCards.length ? (
+            ) : advertiserSummaries.length ? (
               <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 2xl:grid-cols-3">
-                {selectedAdvertiserCards.map((card) => (
-                  <ObservedCardTile
-                    key={card.id}
-                    card={card}
-                    selected={card.id === selected?.id}
-                    hidden={badImageIds.includes(card.id)}
-                    onSelect={() => setSelectedId(card.id)}
+                {advertiserSummaries.map((summary, index) => (
+                  <AdvertiserCardTile
+                    key={summary.advertiser.id}
+                    summary={summary}
+                    rank={index + 1}
+                    selected={summary.advertiser.id === effectiveSelectedAdvertiserId}
+                    onSelect={() => {
+                      setSelectedAdvertiserId(summary.advertiser.id)
+                      setSelectedId(summary.previewCard.id)
+                    }}
                     onBadImage={(id) => setBadImageIds((current) => current.includes(id) ? current : [...current, id])}
                   />
                 ))}
               </div>
             ) : (
               <div className="flex min-h-[520px] items-center justify-center p-8 text-sm font-semibold text-ink-3">
-                No accepted observed cards are available for this filter.
+                No advertisers are available for this category or search.
               </div>
             )}
           </section>
@@ -667,83 +678,112 @@ export default function AdsPage() {
           <aside className="h-fit rounded-[28px] border border-[#d9cfbd] bg-[#fffdf8] shadow-[0_24px_60px_rgba(59,42,18,0.08)] xl:sticky xl:top-20">
             <div className="border-b border-[#e1d5c4] p-5">
               <div className="text-[11px] font-black uppercase tracking-[0.18em] text-ink-3">Drilldown</div>
-              <h2 className="mt-2 text-[20px] font-black text-ink">Query context</h2>
+              <h2 className="mt-2 text-[20px] font-black text-ink">Advertiser detail</h2>
               <p className="mt-1 text-[13px] leading-relaxed text-ink-3">
-                Destination, platform, channel, query list, and observation timings for the selected card.
+                All observed ad cards, destination pages, categories, and query context for the selected advertiser.
               </p>
             </div>
 
-            {selected ? (
+            {selectedAdvertiser ? (
               <div className="space-y-5 p-5">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={selected.creative_asset.image_url} alt={selected.title} className="h-60 w-full rounded-[22px] border border-[#ddd2c1] bg-[#f3ecdf] object-cover" />
-
-                <div className="flex flex-wrap gap-1.5">
-                  <EntityChip entity={selected.advertiser} />
-                  <EntityChip entity={selected.contexts[0].platform} />
-                  {selected.contexts[0].channel ? <EntityChip entity={selected.contexts[0].channel!} /> : null}
-                </div>
-
-                <div>
-                  <div className="rounded-full border border-[#ddd2c1] bg-[#f8f2e7] px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-ink-3">
-                    {domainFromUrl(selected.destination_url)}
+                <div className="rounded-[24px] border border-[#ded3c2] bg-[#fbf6ec] p-4">
+                  <EntityChip entity={selectedAdvertiser.advertiser} />
+                  <h3 className="mt-3 text-[24px] font-black leading-tight text-ink">{selectedAdvertiser.advertiser.name}</h3>
+                  <p className="mt-1 text-[13px] font-semibold text-ink-3">{selectedAdvertiser.advertiser.domain}</p>
+                  <div className="mt-4 grid grid-cols-3 gap-2 text-[12px]">
+                    <div className="rounded-2xl bg-white p-3">
+                      <div className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-3">Cards</div>
+                      <div className="mt-1 text-[16px] font-black text-ink">{selectedAdvertiser.cards.length}</div>
+                    </div>
+                    <div className="rounded-2xl bg-white p-3">
+                      <div className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-3">Topics</div>
+                      <div className="mt-1 text-[16px] font-black text-ink">{selectedAdvertiser.topics.length}</div>
+                    </div>
+                    <div className="rounded-2xl bg-white p-3">
+                      <div className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-3">Queries</div>
+                      <div className="mt-1 text-[16px] font-black text-ink">{selectedAdvertiser.queries.length}</div>
+                    </div>
                   </div>
-                  <h3 className="mt-3 text-[22px] font-black leading-tight text-ink">{selected.title}</h3>
-                  <p className="mt-2 text-[13px] leading-relaxed text-ink-3">{selected.description}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-[12px]">
                   <div className="rounded-[20px] bg-[#f8f2e7] p-3">
                     <div className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-3">Appearances</div>
-                    <div className="mt-1 text-[16px] font-black text-ink">{formatNumber(selected.appearance_count)}</div>
+                    <div className="mt-1 text-[16px] font-black text-ink">{formatNumber(selectedAdvertiser.totalAppearances)}</div>
                   </div>
                   <div className="rounded-[20px] bg-[#f8f2e7] p-3">
-                    <div className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-3">Contexts</div>
-                    <div className="mt-1 text-[16px] font-black text-ink">{selected.contexts.length}</div>
+                    <div className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-3">Latest seen</div>
+                    <div className="mt-1 text-[13px] font-black text-ink">{formatDate(selectedAdvertiser.latestSeen)}</div>
                   </div>
                   <div className="rounded-[20px] bg-[#f8f2e7] p-3">
-                    <div className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-3">Queries</div>
-                    <div className="mt-1 text-[16px] font-black text-ink">{cardQueryCount(selected)}</div>
+                    <div className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-3">Platform</div>
+                    <div className="mt-1 text-[13px] font-black text-ink">{selectedAdvertiser.previewCard.contexts[0]?.platform.name ?? 'ChatGPT Ads'}</div>
                   </div>
                   <div className="rounded-[20px] bg-[#f8f2e7] p-3">
-                    <div className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-3">Topics</div>
-                    <div className="mt-1 text-[16px] font-black text-ink">{cardTopicCount(selected)}</div>
+                    <div className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-3">Channel</div>
+                    <div className="mt-1 text-[13px] font-black text-ink">{selectedAdvertiser.previewCard.contexts[0]?.channel?.name ?? 'ChatGPT Ads'}</div>
                   </div>
-                </div>
-
-                <div className="grid gap-2 border-y border-[#e1d5c4] py-4 text-[13px]">
-                  <div className="flex items-center justify-between"><span className="text-ink-3">First seen</span><strong>{formatDate(selected.first_seen_at)}</strong></div>
-                  <div className="flex items-center justify-between"><span className="text-ink-3">Last seen</span><strong>{formatDate(selected.last_seen_at)}</strong></div>
-                  <div className="flex items-center justify-between"><span className="text-ink-3">Destination</span><strong>{domainFromUrl(selected.destination_url)}</strong></div>
                 </div>
 
                 <div className="space-y-2">
-                  <div className="text-[13px] font-black text-ink">Observed query context</div>
-                  {selected.contexts.map((context) => (
-                    <div key={context.id} className="rounded-[22px] border border-[#ded3c2] bg-[#fbf6ec] p-3">
-                      <div className="text-[13px] font-bold text-ink">{context.observed_query}</div>
-                      <div className="mt-1 text-[12px] text-ink-3">{context.query_topic}</div>
-                      <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-semibold text-ink-3">
-                        <span>{context.country_code}</span>
-                        <span>{context.language_code.toUpperCase()}</span>
-                        <span>{context.model_name}</span>
-                        <span>{formatDate(context.observed_at)}</span>
+                  <div className="text-[13px] font-black text-ink">All ad cards from this advertiser</div>
+                  {selectedAdvertiser.cards.map((card) => (
+                    <button
+                      key={card.id}
+                      type="button"
+                      onClick={() => setSelectedId(card.id)}
+                      className={`w-full rounded-[22px] border p-3 text-left transition-all ${
+                        selected?.id === card.id ? 'border-ink bg-[#f5ecda]' : 'border-[#ded3c2] bg-[#fbf6ec] hover:border-ink-3'
+                      }`}
+                    >
+                      <div className="flex gap-3">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={card.creative_asset.image_url} alt={card.title} className="h-20 w-20 shrink-0 rounded-2xl border border-[#ddd2c1] bg-white object-cover" />
+                        <div className="min-w-0">
+                          <div className="line-clamp-2 text-[13px] font-black leading-snug text-ink">{card.title}</div>
+                          <div className="mt-1 text-[11px] font-semibold text-ink-3">{domainFromUrl(card.destination_url)}</div>
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {cardTopicLabels(card).map((topic) => (
+                              <span key={topic} className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-ink-3">{topic}</span>
+                            ))}
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
 
-                <a
-                  href={selected.destination_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-[12px] font-bold text-ink underline underline-offset-4"
-                >
-                  Destination URL <ArrowUpRight className="h-3.5 w-3.5" />
-                </a>
+                {selected ? (
+                  <div className="space-y-3 border-t border-[#e1d5c4] pt-4">
+                    <div>
+                      <div className="text-[13px] font-black text-ink">Selected card query context</div>
+                      <p className="mt-1 text-[12px] text-ink-3">{selected.title}</p>
+                    </div>
+                    {selected.contexts.map((context) => (
+                      <div key={context.id} className="rounded-[22px] border border-[#ded3c2] bg-[#fbf6ec] p-3">
+                        <div className="text-[13px] font-bold text-ink">{context.observed_query}</div>
+                        <div className="mt-1 text-[12px] text-ink-3">{context.query_topic}</div>
+                        <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-semibold text-ink-3">
+                          <span>{context.country_code}</span>
+                          <span>{context.language_code.toUpperCase()}</span>
+                          <span>{context.model_name}</span>
+                          <span>{formatDate(context.observed_at)}</span>
+                        </div>
+                      </div>
+                    ))}
+                    <a
+                      href={selected.destination_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-[12px] font-bold text-ink underline underline-offset-4"
+                    >
+                      Destination URL <ArrowUpRight className="h-3.5 w-3.5" />
+                    </a>
+                  </div>
+                ) : null}
               </div>
             ) : (
-              <div className="p-5 text-sm font-semibold text-ink-3">Select a visible ad card to inspect.</div>
+              <div className="p-5 text-sm font-semibold text-ink-3">Select an advertiser to inspect.</div>
             )}
           </aside>
         </div>
