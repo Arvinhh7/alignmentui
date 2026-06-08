@@ -7,11 +7,13 @@ import { LogoFull } from '@/components/Logo'
 
 // ── Solutions dropdown items ───────────────────────────────────────────────────
 const SOLUTIONS = [
-  { label: 'GEO Audit',        href: '/dashboard/geo-audit' },
-  { label: 'GEO Optimization', href: '/dashboard/geo-optimization' },
-  { label: 'GEO Content',      href: '/dashboard/geo-content' },
-  { label: 'GEO Distribution', href: '/dashboard/geo-distribution' },
-  { label: 'GEO Monitor',      href: '/dashboard/geo-monitor' },
+  { label: 'AI Search Intelligence', href: '/dashboard/ai-search' },
+  { label: 'Explore Market Graph',   href: '/dashboard/explore' },
+  { label: 'Citation Sources',       href: '/dashboard/sources' },
+  { label: 'Shopping Intelligence',  href: '/dashboard/shopping' },
+  { label: 'AI Ads Intelligence',    href: '/dashboard/ads' },
+  { label: 'Visibility Proxy',       href: '/dashboard/visibility-proxy' },
+  { label: 'Agentic Commerce',       href: '/dashboard/agentic-commerce' },
 ]
 
 const FREE_TOOLS = [

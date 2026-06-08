@@ -68,7 +68,7 @@ const pipelineStages = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
       </svg>
     ),
-    description: '18+ sources: arXiv, Semantic Scholar, OpenAI blog, YouTube, GitHub...',
+    description: 'AI answers, category topics, citation domains, shopping surfaces, product feeds, and broker events',
   },
   {
     key: 'process',
@@ -80,7 +80,7 @@ const pipelineStages = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
     ),
-    description: 'NLP scoring, deduplication, multi-tag classification, quality filtering',
+    description: 'Entity normalization, brand/product deduplication, citation canonicalization, and quality gates',
   },
   {
     key: 'store',
@@ -91,7 +91,7 @@ const pipelineStages = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
       </svg>
     ),
-    description: 'Supabase PostgreSQL with real-time subscriptions',
+    description: 'A durable AI commerce graph for brands, products, sources, prompts, offers, and quotes',
   },
   {
     key: 'deliver',
@@ -102,7 +102,7 @@ const pipelineStages = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
       </svg>
     ),
-    description: 'REST API, daily Lark push, dashboard UI',
+    description: 'Dashboards, Visibility Proxy, MCP/API, Product Agents, and Broker telemetry',
   },
 ]
 
@@ -213,7 +213,7 @@ export default function SystemPage() {
 
   const metricCards = [
     {
-      label: 'Papers',
+      label: 'AI Sources',
       value: stats.papers ?? 0,
       icon: (
         <svg className="w-8 h-8 text-ink-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,7 +222,7 @@ export default function SystemPage() {
       ),
     },
     {
-      label: 'Community Posts',
+      label: 'Citations',
       value: stats.community_posts ?? 0,
       icon: (
         <svg className="w-8 h-8 text-caution" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -240,7 +240,7 @@ export default function SystemPage() {
       ),
     },
     {
-      label: 'YouTube Videos',
+      label: 'Answer Records',
       value: stats.youtube_videos ?? 0,
       icon: (
         <svg className="w-8 h-8 text-red-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -250,7 +250,7 @@ export default function SystemPage() {
       ),
     },
     {
-      label: 'Drive Files',
+      label: 'Catalog Files',
       value: stats.drive_files ?? 0,
       icon: (
         <svg className="w-8 h-8 text-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -259,7 +259,7 @@ export default function SystemPage() {
       ),
     },
     {
-      label: 'Total Records',
+      label: 'Graph Records',
       value: stats.total ?? 0,
       icon: (
         <svg className="w-8 h-8 text-ink-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -294,7 +294,7 @@ export default function SystemPage() {
             <svg className="w-4 h-4 text-red-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
             </svg>
-            <span className="text-sm text-ink-2 font-medium">Infrastructure Overview</span>
+            <span className="text-sm text-ink-2 font-medium">AI Commerce Graph</span>
           </div>
 
           <h1
@@ -302,13 +302,13 @@ export default function SystemPage() {
           >
             System
             <br />
-            <span className="gradient-text">Architecture</span>
+            <span className="gradient-text">for AI Commerce</span>
           </h1>
 
           <p
             className={`text-lg md:text-xl text-ink-2 mb-10 max-w-2xl mx-auto leading-relaxed transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
           >
-            A real-time global intelligence pipeline that collects, processes, and delivers GEO insights across 18+ data sources.
+            The data system behind Alignment: collect AI answer, source, shopping, product, and broker signals; clean them into a commerce graph; deliver them to dashboards, proxies, APIs, and agents.
           </p>
         </div>
       </section>
@@ -324,10 +324,10 @@ export default function SystemPage() {
               How It Works
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-ink mb-4">
-              Data Pipeline <span className="gradient-text">Architecture</span>
+              AI Commerce Graph <span className="gradient-text">Architecture</span>
             </h2>
             <p className="text-lg text-ink-2 max-w-2xl mx-auto">
-              From raw data ingestion to actionable delivery — four stages power the entire system.
+              From messy AI outputs to normalized market intelligence and machine-callable commerce infrastructure.
             </p>
           </div>
 
@@ -383,7 +383,7 @@ export default function SystemPage() {
               Real-Time Stats
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-ink mb-4">
-              Live Data <span className="gradient-text">Metrics</span>
+              Commerce Graph <span className="gradient-text">Metrics</span>
             </h2>
             <p className="text-lg text-ink-2 max-w-2xl mx-auto">
               Our pipeline continuously ingests data — here are the latest numbers, updated in real time.
@@ -419,7 +419,7 @@ export default function SystemPage() {
               Intelligence Network
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-ink mb-4">
-              Data <span className="gradient-text">Sources</span>
+              Signal <span className="gradient-text">Sources</span>
             </h2>
             <p className="text-lg text-ink-2 max-w-2xl mx-auto">
               We monitor and ingest from authoritative sources across the AI ecosystem, organized by reliability tier.
@@ -521,7 +521,7 @@ export default function SystemPage() {
             Start Exploring
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-ink mb-6">
-            Explore Our <span className="gradient-text">Data</span>
+            Explore the <span className="gradient-text">AI Commerce Graph</span>
           </h2>
           <p className="text-lg text-ink-2 mb-10 max-w-2xl mx-auto">
             Dive into the latest GEO research, AI news, and intelligence curated by our pipeline — updated daily.

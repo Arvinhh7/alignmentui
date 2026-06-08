@@ -2,19 +2,106 @@
 
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
-import { LogoFull } from '@/components/Logo'
 import Footer from '@/components/Footer'
 import PublicNavbar from '@/components/PublicNavbar'
 import { useEffect, useState } from 'react'
 import {
-  ShieldCheck, TrendingUp, PenTool, Globe,
-  BarChart3, Search, ArrowRight,
+  ArrowRight,
+  BarChart3,
+  Bot,
+  Code2,
+  Database,
+  Megaphone,
+  Search,
+  ShoppingCart,
 } from 'lucide-react'
 
-// Platform logo icons
-const PlatformIcon = ({ src, alt }: { src: string; alt: string }) => (
-  <img src={src} alt={alt} width={22} height={22} className="w-[22px] h-[22px] object-contain" />
-)
+const productModules = [
+  {
+    label: 'Explore',
+    icon: BarChart3,
+    eyebrow: 'Market intelligence',
+    title: 'Map the AI market',
+    desc: 'See which topics, brands, and citation sources shape AI recommendations across a category.',
+    image: '/landing/explore-2.png',
+    points: ['Brand competitive landscape', 'Citation source authority', 'Topic ranking'],
+  },
+  {
+    label: 'AI Research',
+    icon: Search,
+    eyebrow: 'Research trail',
+    title: 'See how AI breaks down buyer questions',
+    desc: 'Follow the sub-questions, sources, competitors, and decision dimensions behind an AI research path.',
+    image: '/landing/ai-research.png',
+    points: ['Root question', 'Sub-question trail', 'Competitor context'],
+  },
+  {
+    label: 'Shopping',
+    icon: ShoppingCart,
+    eyebrow: 'Shopping intelligence',
+    title: 'Track products surfaced in AI buying mode',
+    desc: 'Understand product cards, offer facts, price signals, quality gates, and prompt evidence.',
+    image: '/landing/shopping.png',
+    points: ['Product cards', 'Offer facts', 'Prompt evidence'],
+  },
+  {
+    label: 'Ads',
+    icon: Megaphone,
+    eyebrow: 'AI paid surfaces',
+    title: 'Observe advertisers inside AI journeys',
+    desc: 'Rank observed advertisers, creative cards, destination domains, and the queries where paid surfaces appear.',
+    image: '/landing/ads.png',
+    points: ['Advertiser library', 'Creative cards', 'Query context'],
+  },
+  {
+    label: 'Answer Drilldown',
+    icon: Database,
+    eyebrow: 'Record-level proof',
+    title: 'Open the exact answer behind every signal',
+    desc: 'Review the AI response, brands mentioned, highlighted entities, citations, and source links for each record.',
+    image: '/landing/explore-1.png',
+    points: ['AI response', 'Brands mentioned', 'Citation links'],
+  },
+]
+
+const outcomes = [
+  {
+    title: 'Know where AI recommends competitors',
+    desc: 'Topic rankings, leaders, citations, and AI answer records in one place.',
+  },
+  {
+    title: 'Clean the data before decisions',
+    desc: 'Brands, products, domains, and citations are normalized so leaderboards stay trustworthy.',
+  },
+  {
+    title: 'Prepare for agentic commerce',
+    desc: 'Turn visibility into product signals, offer evidence, quote readiness, and transaction attribution.',
+  },
+]
+
+const trustedBrands = [
+  { name: 'Shopify', logo: '/logos/shopify.png' },
+  { name: 'WordPress', logo: '/logos/wordpress.png' },
+  { name: 'Webflow', logo: '/logos/webflow.png' },
+  { name: 'Wix', logo: '/logos/wix.png' },
+  { name: 'Custom Sites', logo: null },
+]
+
+const heroPlatforms = [
+  { name: 'ChatGPT', logo: '/logos/openai.png' },
+  { name: 'Gemini', logo: '/logos/gemini.png' },
+  { name: 'Google AI', logo: '/logos/google.png' },
+  { name: 'Perplexity', logo: '/logos/perplexity.png' },
+  { name: 'Claude', logo: '/logos/anthropic.png' },
+  { name: 'Grok', logo: '/logos/grok.png' },
+]
+
+const heroStats = [
+  { value: '8,432', label: 'AI Traffic', change: '↑ +104%' },
+  { value: '1,247', label: 'Brand Mentions', change: '↑ +12%' },
+  { value: '342', label: 'Citations', change: '↑ +18%' },
+  { value: '87.3', label: 'AIGVR Score', change: '↑ +5.2' },
+]
 
 export default function LandingPage() {
   const { t } = useLanguage()
@@ -22,287 +109,236 @@ export default function LandingPage() {
 
   useEffect(() => { setMounted(true) }, [])
 
-  const stats = [
-    { value: t.hero.stats.trafficValue,   label: t.hero.stats.traffic,   change: t.hero.stats.trafficChange },
-    { value: t.hero.stats.mentionsValue,  label: t.hero.stats.mentions,  change: t.hero.stats.mentionsChange },
-    { value: t.hero.stats.citationsValue, label: t.hero.stats.citations, change: t.hero.stats.citationsChange },
-    { value: t.hero.stats.scoreValue,     label: t.hero.stats.score,     change: t.hero.stats.scoreChange },
-  ]
-
-  const features = [
-    {
-      icon: <Search className="w-[18px] h-[18px]" />,
-      title: 'GEO Audit',
-      desc: 'Deep analysis of how AI platforms perceive your brand, products, and content. Identify gaps before your competitors do.',
-      bg: 'bg-surface-warm',
-    },
-    {
-      icon: <TrendingUp className="w-[18px] h-[18px]" />,
-      title: 'GEO Monitor',
-      desc: 'Real-time tracking of brand mentions, citations, and sentiment across ChatGPT, Perplexity, Gemini, and 30+ platforms.',
-      bg: 'bg-sage-bg',
-    },
-    {
-      icon: <PenTool className="w-[18px] h-[18px]" />,
-      title: 'GEO Content',
-      desc: 'AI-generated FAQ pairs, brand stories, and product descriptions optimized for machine comprehension and citation.',
-      bg: 'bg-surface-warm',
-    },
-    {
-      icon: <Globe className="w-[18px] h-[18px]" />,
-      title: 'Visibility Proxy',
-      desc: 'Works invisibly in the background — AI platforms get what they need to cite your brand, your visitors see nothing different.',
-      bg: 'bg-surface-warm',
-    },
-    {
-      icon: <BarChart3 className="w-[18px] h-[18px]" />,
-      title: 'ROI Tracking',
-      desc: 'Measure the revenue impact of AI-driven traffic with GA4 attribution, referral tracking, and conversion analysis.',
-      bg: 'bg-surface-warm',
-    },
-    {
-      icon: <ShieldCheck className="w-[18px] h-[18px]" />,
-      title: 'Competitor Intel',
-      desc: 'See how competitors rank in AI recommendations. Benchmark your visibility score and find opportunities to overtake them.',
-      bg: 'bg-surface-warm',
-    },
-  ]
-
-  const steps = [
-    { n: 1, title: 'Audit',    desc: 'Scan how AI platforms currently perceive your brand' },
-    { n: 2, title: 'Optimize', desc: 'Fix gaps in structured data and knowledge graph' },
-    { n: 3, title: 'Content',  desc: 'Generate AI-optimized FAQ, stories, and product data' },
-    { n: 4, title: 'Distribute', desc: 'Push structured content to AI crawl endpoints' },
-    { n: 5, title: 'Monitor',  desc: 'Track mentions, citations, and visibility scores' },
-  ]
-
-  const proxyFeatures = [
-    { title: 'Zero-Impact for Humans',  desc: 'Real visitors never notice anything different. No speed loss, no layout shifts, no changes to your website code.', tag: 'Transparent' },
-    { title: 'Enhanced for AI',         desc: 'When GPTBot, ClaudeBot, or PerplexityBot visits, they receive your original content plus structured knowledge graph data.', tag: '34+ AI Platforms' },
-    { title: 'Referral Tracking',       desc: 'Dual-signal attribution: passive Referer header detection plus active URL parameter planting in llms.txt and agent.json.', tag: 'GA4 Compatible' },
-    { title: 'Global Performance',       desc: "Lightning-fast and always on. Works with Shopify, WordPress, Webflow, or any custom site — no engineers needed.", tag: 'Global Infrastructure' },
-  ]
-
   return (
     <div className="min-h-screen bg-canvas">
-
-      {/* ── Navigation ───────────────────────────────────────────────────── */}
       <PublicNavbar />
 
-      {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="pt-28 md:pt-40 pb-16 md:pb-20 px-5 md:px-8 lg:px-12 max-w-marketing mx-auto text-center">
+      <section className="px-5 pb-12 pt-28 md:px-8 md:pb-16 md:pt-36 lg:px-12">
+        <div className="mx-auto max-w-marketing text-center">
+          <div
+            className={`inline-flex items-center gap-2 rounded-full border border-divider bg-surface px-4 py-1.5 text-[12.5px] text-ink-2 transition-all duration-500 ${
+              mounted ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
+            }`}
+          >
+            <span className="h-1.5 w-1.5 animate-blink rounded-full bg-sage" />
+            Visible to Global 58 AI Platforms
+          </div>
 
-        {/* Badge — Global 58 AI Platforms */}
-        <div
-          className={`inline-flex items-center gap-2 px-4 py-1.5 border border-divider rounded-full text-[12.5px] text-ink-2 bg-surface mb-4 transition-all duration-500 ${
-            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-          }`}
-        >
-          <span className="w-1.5 h-1.5 rounded-full bg-sage animate-blink flex-shrink-0" />
-          {t.hero.badge}
-        </div>
+          <div
+            className={`mt-6 flex flex-wrap items-center justify-center gap-2 transition-all delay-75 duration-500 ${
+              mounted ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
+            }`}
+          >
+            {heroPlatforms.map((platform) => (
+              <span
+                key={platform.name}
+                className="inline-flex items-center gap-2 rounded-full border border-divider-light bg-surface px-3 py-1.5 text-[13px] font-semibold text-ink-2 shadow-elevation-sm"
+              >
+                <img src={platform.logo} alt={platform.name} width={16} height={16} className="h-4 w-4 rounded-sm object-contain" />
+                {platform.name}
+              </span>
+            ))}
+          </div>
 
-        {/* Platform chips — logo + name */}
-        <div
-          className={`flex flex-wrap items-center justify-center gap-2 mb-7 transition-all duration-500 delay-75 ${
-            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-          }`}
-        >
-          {[
-            { name: 'ChatGPT',    logo: '/logos/openai.png' },
-            { name: 'Gemini',     logo: '/logos/gemini.png' },
-            { name: 'Google AI',  logo: '/logos/google.png' },
-            { name: 'Perplexity', logo: '/logos/perplexity.png' },
-            { name: 'Claude',     logo: '/logos/anthropic.png' },
-            { name: 'Grok',       logo: '/logos/grok.png' },
-          ].map(p => (
-            <span
-              key={p.name}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-surface border border-divider-light rounded-full text-[11.5px] font-medium text-ink-2 shadow-elevation-sm"
-            >
-              <img src={p.logo} alt={p.name} width={14} height={14} className="w-3.5 h-3.5 object-contain rounded-sm" />
-              {p.name}
-            </span>
-          ))}
-        </div>
+          <h1
+            className={`heading-hero mx-auto mt-10 max-w-[980px] transition-all delay-100 duration-500 ${
+              mounted ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
+            }`}
+          >
+            Get your brand
+            <br />
+            <em className="underline decoration-2 underline-offset-[6px]">recommended and bought by AI</em>
+          </h1>
 
-        {/* Headline — DM Serif with italic+underline emphasis */}
-        <h1
-          className={`heading-hero mb-6 transition-all duration-500 delay-75 ${
-            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
-          }`}
-        >
-          {t.hero.headline}
-          <br />
-          <em className="underline underline-offset-[6px] decoration-2 decoration-ink">
-            {t.hero.headlineHighlight}
-          </em>
-        </h1>
-
-        {/* Subtitle */}
-        <p
-          className={`text-lead max-w-subtitle mx-auto mb-10 transition-all duration-500 delay-150 ${
-            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
-          }`}
-        >
-          {t.hero.subheadline}
-        </p>
-
-        {/* CTA Buttons */}
-        <div
-          className={`flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-3.5 transition-all duration-500 delay-200 ${
-            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
-          }`}
-        >
-          <Link href="/login" className="btn-primary flex items-center gap-2">
-            {t.nav.getStarted} <ArrowRight className="w-4 h-4" />
-          </Link>
-          <Link href="#how-it-works" className="btn-secondary">
-            {t.nav.seeHowItWorks}
-          </Link>
-        </div>
-
-        {/* Stats row — 2-col on mobile, 3-col on sm+ */}
-        <div
-          className={`grid grid-cols-2 sm:grid-cols-4 mt-12 md:mt-16 max-w-[900px] mx-auto rounded-2xl overflow-hidden gap-px bg-divider transition-all duration-500 delay-300 ${
-            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
-          }`}
-        >
-          {stats.map((stat, i) => (
-            <div
-              key={i}
-              className={`px-4 sm:px-6 py-6 sm:py-7 bg-surface text-center ${
-                i === 0 ? 'rounded-tl-2xl rounded-bl-none sm:rounded-bl-2xl' : i === 1 ? 'rounded-tr-2xl sm:rounded-tr-none' : i === 2 ? 'rounded-bl-2xl sm:rounded-bl-none' : i === stats.length - 1 ? 'rounded-br-2xl sm:rounded-r-2xl' : ''
-              }`}
-            >
-              <div className="stat-value">{stat.value}</div>
-              <div className="stat-label mt-1">{stat.label}</div>
-              <div className="inline-flex items-center gap-0.5 mt-1.5 text-[11px] font-medium text-sage">
-                ↑ {stat.change}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── How It Works ─────────────────────────────────────────────────── */}
-      <section id="how-it-works" className="py-16 md:py-25 px-5 md:px-8 lg:px-12 max-w-marketing mx-auto">
-        <p className="eyebrow">How it works</p>
-        <h2 className="heading-section mt-3 mb-4">Five steps to AI visibility</h2>
-        <p className="text-lead max-w-[520px]">
-          A systematic approach to making your brand discoverable, citable, and recommended by every major AI platform.
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mt-14">
-          {steps.map((step, i) => (
-            <div key={step.n} className="relative card text-center hover:shadow-elevation-md transition-all duration-[250ms]">
-              <div className="w-7 h-7 rounded-full bg-ink text-ink-inv text-[12px] font-semibold flex items-center justify-center mx-auto mb-3.5">
-                {step.n}
-              </div>
-              <h4 className="text-[14px] font-semibold text-ink mb-1.5 tracking-tight">{step.title}</h4>
-              <p className="text-[12px] text-ink-3 leading-relaxed">{step.desc}</p>
-              {i < steps.length - 1 && (
-                <span className="hidden lg:block absolute top-[44px] right-[-12px] w-6 h-px bg-divider" />
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Features ─────────────────────────────────────────────────────── */}
-      <section className="py-16 md:py-25 px-5 md:px-8 lg:px-12 max-w-marketing mx-auto">
-        <p className="eyebrow">Platform</p>
-        <h2 className="heading-section mt-3">Everything you need for AI visibility</h2>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-14">
-          {features.map((feature, i) => (
-            <div
-              key={i}
-              className="card card-hover opacity-0 animate-fade-in-up"
-              style={{ animationDelay: `${i * 80}ms`, animationFillMode: 'forwards' }}
-            >
-              <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-5 text-ink-2 ${feature.bg}`}>
-                {feature.icon}
-              </div>
-              <h3 className="text-[15px] font-semibold text-ink mb-2 tracking-tight">{feature.title}</h3>
-              <p className="text-[13.5px] text-ink-2 leading-relaxed">{feature.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Dark Section — Visibility Proxy ──────────────────────────────── */}
-      <section className="px-5 md:px-8 lg:px-12 pb-10 max-w-marketing mx-auto">
-        <div className="card-dark">
-          <p className="eyebrow text-[rgba(250,245,236,0.4)]">Technology</p>
-          <h2 className="heading-section text-ink-inv mt-3 max-w-[480px]">
-            The invisible layer between your website and AI
-          </h2>
-          <p className="text-lead text-[rgba(250,245,236,0.6)] mt-4 max-w-[520px]">
-            Visibility Proxy sits at the edge. Human visitors see your site unchanged. AI platforms automatically receive the signals they need to discover and cite your brand.
+          <p
+            className={`text-lead mx-auto mt-6 max-w-[720px] transition-all delay-150 duration-500 ${
+              mounted ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
+            }`}
+          >
+            Alignment helps brands win visibility across AI search, shopping, and agentic commerce.
+            See how ChatGPT, Gemini, Google AI, Perplexity, Claude, and Grok mention your brand,
+            surface your products, cite your sources, and prepare buyers or agents to take action.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-12">
-            {proxyFeatures.map((item, i) => (
-              <div key={i} className="card-dark-inner hover:bg-[rgba(250,245,236,0.06)] hover:border-[rgba(250,245,236,0.12)] transition-all duration-200">
-                <h4 className="text-[15px] font-semibold text-ink-inv mb-1.5">{item.title}</h4>
-                <p className="text-[13px] text-[rgba(250,245,236,0.5)] leading-relaxed">{item.desc}</p>
-                <span className="inline-block mt-2.5 text-[10px] px-2.5 py-1 rounded-md bg-[rgba(250,245,236,0.08)] text-[rgba(250,245,236,0.55)] font-medium uppercase tracking-wider">
-                  {item.tag}
-                </span>
+          <div
+            className={`mt-9 flex flex-col items-center justify-center gap-3 transition-all delay-200 duration-500 sm:flex-row ${
+              mounted ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
+            }`}
+          >
+            <Link href="/login" className="btn-primary flex items-center gap-2">
+              {t.nav.getStarted} <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link href="#modules" className="btn-secondary">
+              See How It Works
+            </Link>
+          </div>
+
+          <div
+            className={`mx-auto mt-16 grid max-w-[920px] grid-cols-2 overflow-hidden rounded-2xl border border-divider bg-surface shadow-elevation-sm transition-all delay-300 duration-500 md:grid-cols-4 ${
+              mounted ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+            }`}
+          >
+            {heroStats.map((stat) => (
+              <div key={stat.label} className="border-divider px-5 py-8 text-center md:border-r md:last:border-r-0">
+                <div className="font-serif text-[36px] leading-none text-ink md:text-[42px]">{stat.value}</div>
+                <div className="mt-2 text-[14px] font-medium text-ink-2">{stat.label}</div>
+                <div className="mt-2 text-[13px] font-semibold text-sage">{stat.change}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Trust ────────────────────────────────────────────────────────── */}
-      <div className="py-16 md:py-20 px-5 md:px-12 text-center">
-        <p className="eyebrow">Trusted by forward-thinking brands</p>
-        <div className="flex items-center justify-center gap-6 md:gap-10 mt-8 flex-wrap">
-          {[
-            { name: 'Shopify',      logo: '/logos/shopify.png' },
-            { name: 'WordPress',    logo: '/logos/wordpress.png' },
-            { name: 'Webflow',      logo: '/logos/webflow.png' },
-            { name: 'Wix',          logo: '/logos/wix.png' },
-            { name: 'Custom Sites', logo: null },
-          ].map(({ name, logo }) => (
-            <div
-              key={name}
-              className="flex items-center gap-2 opacity-50 hover:opacity-80 transition-opacity"
-            >
-              {logo ? (
-                <img src={logo} alt={name} width={22} height={22} className="w-[22px] h-[22px] object-contain rounded-sm flex-shrink-0" />
-              ) : (
-                <svg className="w-[22px] h-[22px] text-ink-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                </svg>
-              )}
-              <span className="text-[17px] font-semibold text-ink-3 tracking-tight">{name}</span>
+      <section className="border-y border-divider bg-surface px-5 py-12 md:px-8 lg:px-12">
+        <div className="mx-auto grid max-w-marketing grid-cols-1 gap-5 md:grid-cols-3">
+          {outcomes.map((item) => (
+            <div key={item.title} className="rounded-2xl border border-divider-light bg-canvas p-5">
+              <h3 className="text-[17px] font-semibold tracking-tight text-ink">{item.title}</h3>
+              <p className="mt-2 text-[13.5px] leading-relaxed text-ink-2">{item.desc}</p>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* ── Final CTA ────────────────────────────────────────────────────── */}
-      <section className="py-16 md:py-20 pb-20 md:pb-28 px-5 md:px-12 text-center max-w-cta mx-auto">
-        <h2 className="heading-section">Start getting mentioned by AI today</h2>
-        <p className="text-lead mt-4 mb-9">
-          Join the brands already optimizing their visibility across ChatGPT, Perplexity, Claude, and every major AI platform.
+      <section id="modules" className="px-5 py-16 md:px-8 md:py-24 lg:px-12">
+        <div className="mx-auto max-w-marketing">
+          <div className="max-w-[760px]">
+            <p className="eyebrow">Five product modules</p>
+            <h2 className="heading-section mt-3">Every module has its own product surface</h2>
+            <p className="text-lead mt-4">
+              The homepage now shows the actual product, module by module, so users can understand Alignment without reading a long theory page.
+            </p>
+          </div>
+
+          <div className="mt-12 space-y-10">
+            {productModules.map((module, index) => {
+              const Icon = module.icon
+              const reverse = index % 2 === 1
+              return (
+                <article
+                  key={module.label}
+                  className={`grid grid-cols-1 gap-6 rounded-[28px] border border-divider bg-surface p-4 shadow-elevation-sm lg:grid-cols-[0.58fr_1.42fr] lg:p-6 ${
+                    reverse ? 'lg:grid-cols-[1.42fr_0.58fr]' : ''
+                  }`}
+                >
+                  <div className={`p-3 md:p-5 ${reverse ? 'lg:order-2' : ''}`}>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sage-bg text-sage">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <span className="rounded-full border border-divider-light bg-canvas px-3 py-1.5 text-[12px] font-bold text-ink">
+                        {module.label}
+                      </span>
+                    </div>
+                    <p className="eyebrow mt-6">{module.eyebrow}</p>
+                    <h3 className="mt-3 text-[28px] font-semibold leading-tight tracking-tight text-ink md:text-[34px]">
+                      {module.title}
+                    </h3>
+                    <p className="mt-4 text-[15px] leading-relaxed text-ink-2">{module.desc}</p>
+                    <div className="mt-6 flex flex-wrap gap-2">
+                      {module.points.map((point) => (
+                        <span key={point} className="rounded-full border border-divider-light bg-canvas px-3 py-1.5 text-[12px] font-semibold text-ink-2">
+                          {point}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className={`overflow-x-auto rounded-[22px] border border-divider-light bg-canvas p-3 ${reverse ? 'lg:order-1' : ''}`}>
+                    <img
+                      src={module.image}
+                      alt={`Alignment ${module.label} module`}
+                      className="mx-auto h-auto max-h-none w-full min-w-[760px] object-contain"
+                    />
+                  </div>
+                </article>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="px-5 pb-16 md:px-8 md:pb-24 lg:px-12">
+        <div className="card-dark mx-auto max-w-marketing">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
+            <div>
+              <p className="eyebrow text-[rgba(250,245,236,0.45)]">Why now</p>
+              <h2 className="heading-section mt-3 text-ink-inv">AI answers are becoming the new storefront</h2>
+              <p className="mt-4 text-[15px] leading-relaxed text-[rgba(250,245,236,0.65)]">
+                Visibility alone is not enough. Brands need clean entity data, trusted citations, product evidence, and a machine-callable commerce layer.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {[
+                ['Discover', 'Which prompts and topics create demand?'],
+                ['Recommend', 'Which brands, sources, and products does AI choose?'],
+                ['Trust', 'Which citations and facts make the answer believable?'],
+                ['Transact', 'Can an agent query, quote, commit, and attribute revenue?'],
+              ].map(([title, desc]) => (
+                <div key={title} className="card-dark-inner">
+                  <div className="text-[15px] font-semibold text-ink-inv">{title}</div>
+                  <div className="mt-2 text-[13px] leading-relaxed text-[rgba(250,245,236,0.55)]">{desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-5 py-16 text-center md:px-12 md:py-20">
+        <p className="eyebrow">Trusted by forward-thinking brands</p>
+        <div className="brand-marquee mx-auto mt-8 max-w-[980px] overflow-hidden">
+          <div className="brand-marquee-track flex w-max items-center gap-12">
+            {[...trustedBrands, ...trustedBrands, ...trustedBrands].map(({ name, logo }, index) => (
+              <div key={`${name}-${index}`} className="flex shrink-0 items-center gap-2 opacity-50 transition-opacity hover:opacity-80">
+                {logo ? (
+                  <img src={logo} alt={name} width={28} height={28} className="h-7 w-7 flex-shrink-0 rounded-sm object-contain" />
+                ) : (
+                  <Code2 className="h-7 w-7 flex-shrink-0 text-ink-3" />
+                )}
+                <span className="whitespace-nowrap text-[24px] font-semibold tracking-tight text-ink-3">{name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <style jsx>{`
+          .brand-marquee {
+            mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+          }
+          .brand-marquee-track {
+            animation: brand-marquee 26s linear infinite;
+          }
+          .brand-marquee:hover .brand-marquee-track {
+            animation-play-state: paused;
+          }
+          @keyframes brand-marquee {
+            from {
+              transform: translateX(0);
+            }
+            to {
+              transform: translateX(-33.333%);
+            }
+          }
+        `}</style>
+      </section>
+
+      <section className="mx-auto max-w-cta px-5 pb-20 text-center md:px-12 md:pb-28">
+        <Bot className="mx-auto mb-5 h-9 w-9 text-ink" />
+        <h2 className="heading-section">Start with visibility. Build toward agentic commerce.</h2>
+        <p className="text-lead mx-auto mt-4 max-w-[680px]">
+          Use Alignment to see the AI market, clean the signals, and prepare your products for AI-driven buying journeys.
         </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-3.5">
-          <Link href="/login" className="btn-primary flex items-center gap-2 w-full sm:w-auto justify-center">
-            {t.nav.getStarted} — Free <ArrowRight className="w-4 h-4" />
+        <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Link href="/login" className="btn-primary flex w-full items-center justify-center gap-2 sm:w-auto">
+            {t.nav.getStarted} <ArrowRight className="h-4 w-4" />
           </Link>
-          <Link href="/contact" className="btn-secondary w-full sm:w-auto text-center">
+          <Link href="/contact" className="btn-secondary w-full text-center sm:w-auto">
             {t.nav.bookDemo}
           </Link>
         </div>
       </section>
 
-      {/* ── Footer ───────────────────────────────────────────────────────── */}
       <Footer />
-
     </div>
   )
 }

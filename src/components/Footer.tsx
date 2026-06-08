@@ -17,7 +17,7 @@ export default function Footer() {
               <LogoFull width={160} height={53} />
             </div>
             <p className="text-ink-3 text-sm leading-relaxed">
-              Get your brand seen and cited by AI — automatically.
+              Build the operating layer for AI discovery, recommendation, and agentic commerce.
             </p>
           </div>
 

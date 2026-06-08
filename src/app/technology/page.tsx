@@ -95,31 +95,31 @@ const dimensions = [
   {
     icon: dimensionIcons.accessibility,
     title: 'AI Discoverability',
-    description: 'Whether AI agents can discover and index your brand — including llms.txt, agent.json, and explicit AI bot access rules in robots.txt.',
+    description: 'Whether AI systems and shopping agents can discover, index, and identify your brand, products, and commerce endpoints.',
     color: 'from-[#C84B31] to-[#A33820]',
   },
   {
     icon: dimensionIcons.semantic,
-    title: 'Semantic Structure & Format',
-    description: 'Whether your content is structured and format-negotiable for AI — from heading hierarchy to Markdown Negotiation.',
+    title: 'Entity & Product Structure',
+    description: 'Whether brand, product, offer, review, domain, and citation entities are clean enough for AI systems to merge instead of duplicate.',
     color: 'from-[#C84B31] to-[#A33820]',
   },
   {
     icon: dimensionIcons.citability,
-    title: 'Content Citability',
-    description: 'How quotable your content is — TL;DRs, stats, definitions, and unique data points that AI prefers to cite verbatim.',
+    title: 'Source & Citation Authority',
+    description: 'Which URLs and domains AI systems trust when explaining your category, ranking competitors, and recommending products.',
     color: 'from-[#4A6FA5] to-[#3D5E8C]',
   },
   {
     icon: dimensionIcons.risk,
-    title: 'Risk Boundary & Trust',
-    description: 'Identifying content that could trigger AI safety filters or hallucination — ensuring your brand appears reliably and accurately.',
+    title: 'Recommendation Trust',
+    description: 'Whether answer engines can recommend your products accurately, with price, availability, compatibility, and source confidence.',
     color: 'from-[#4A6FA5] to-[#3D5E8C]',
   },
   {
     icon: dimensionIcons.reusability,
-    title: 'Reusability & Memory',
-    description: 'How well your content survives across different AI platforms and query contexts. Measures format adaptability and cross-model performance.',
+    title: 'Agentic Reusability',
+    description: 'How well your signals survive across search, shopping, voice, and agent workflows, from answer generation to quote and commit.',
     color: 'from-[#4A7B5C] to-[#386248]',
   },
 ]
@@ -181,10 +181,10 @@ export default function TechnologyPage() {
 
 
   const statCards = [
-    { label: 'Papers', value: stats.papers ?? 0 },
-    { label: 'Blog Posts', value: stats.community_posts ?? 0 },
-    { label: 'GEO Tools', value: stats.products ?? 0 },
-    { label: 'Videos', value: stats.youtube_videos ?? 0 },
+    { label: 'AI Sources', value: stats.papers ?? 0 },
+    { label: 'Citation Signals', value: stats.community_posts ?? 0 },
+    { label: 'Product Signals', value: stats.products ?? 0 },
+    { label: 'Answer Records', value: stats.youtube_videos ?? 0 },
   ]
 
   const allPapers = [...featuredPapers, ...papers]
@@ -209,26 +209,26 @@ export default function TechnologyPage() {
             <svg className="w-4 h-4 text-red-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
             </svg>
-            <span className="text-sm text-ink-2 font-medium">Research-Driven GEO</span>
+            <span className="text-sm text-ink-2 font-medium">AI Commerce Infrastructure</span>
           </div>
 
           <h1
             className={`text-5xl md:text-6xl lg:text-7xl font-bold text-ink leading-[1.1] mb-6 transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
           >
-            The Science Behind
+            The Technology Behind
             <br />
-            <span className="gradient-text">GEO</span>
+            <span className="gradient-text">AI Commerce</span>
           </h1>
 
           <p
             className={`text-lg md:text-xl text-ink-2 mb-10 max-w-2xl mx-auto leading-relaxed transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
           >
-            {"Alignment's technology is built on cutting-edge research in Generative Engine Optimization — the new discipline of making your brand visible to AI."}
+            {"Alignment combines GEO research, entity normalization, source intelligence, Visibility Proxy, and Broker APIs so brands can be found, recommended, and transacted by AI."}
           </p>
         </div>
       </section>
 
-      {/* Two-Layer Technology Architecture */}
+      {/* Technology Architecture */}
       <section className="py-24 bg-surface-warm relative">
         <div className="absolute inset-0 bg-dots opacity-20" />
         <div className="relative max-w-7xl mx-auto px-6">
@@ -240,10 +240,10 @@ export default function TechnologyPage() {
               Platform Architecture
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-ink mb-4">
-              Built on <span className="gradient-text">Two Layers</span>
+              Built on <span className="gradient-text">Three Layers</span>
             </h2>
             <p className="text-lg text-ink-2 max-w-2xl mx-auto">
-              Most tools only optimize content. Alignment AI operates at both the infrastructure and content layers — ensuring AI can find, read, and cite your brand.
+              Most tools stop at monitoring. Alignment connects market intelligence, visibility infrastructure, and agentic commerce protocols.
             </p>
           </div>
 
@@ -255,7 +255,7 @@ export default function TechnologyPage() {
                 <div className="flex items-center gap-3 mb-6">
                   <span className="text-[10px] font-bold text-white/40 font-mono bg-white/10 px-2 py-1 rounded">LAYER 1</span>
                   <div className="w-px h-4 bg-white/20" />
-                  <span className="text-xs text-white/50">Infrastructure</span>
+                  <span className="text-xs text-white/50">Market intelligence</span>
                 </div>
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -263,32 +263,32 @@ export default function TechnologyPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
                     </svg>
                   </div>
-                  <h3 className="text-2xl font-bold text-ink-inv">AI Visibility Infrastructure</h3>
+                  <h3 className="text-2xl font-bold text-ink-inv">AI Market Intelligence</h3>
                 </div>
                 <p className="text-white/65 text-sm leading-relaxed mb-8">
-                  Works silently behind your existing site — automatically sends the signals that 58 AI platforms need to discover, understand, and cite your brand. No code changes on your side.
+                  Alignment observes how AI systems answer buyer questions, which sources they cite, which competitors they recommend, and which products appear in shopping-mode responses.
                 </p>
                 <div className="space-y-4">
                   {[
                     {
                       icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" /></svg>,
-                      label: 'AI Bot Detection & Routing',
-                      desc: 'Identifies GPTBot, ClaudeBot, Googlebot-AI and 55+ more AI crawlers',
+                      label: 'Answer Surface Monitoring',
+                      desc: 'Tracks ChatGPT, Perplexity, Gemini, Claude, Grok, and Google AI Overviews',
                     },
                     {
                       icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>,
-                      label: 'AI-Ready Data Delivery',
-                      desc: 'Sends the structured information each AI platform needs to understand your brand',
+                      label: 'Category and Topic Graph',
+                      desc: 'Maps topics, leaders, mentions, and competitor share across AI answers',
                     },
                     {
                       icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
-                      label: 'AI Platform Instructions',
-                      desc: 'Tells AI platforms exactly how to find, read, and represent your brand',
+                      label: 'Citation Source Intelligence',
+                      desc: 'Canonicalizes domains and URLs that AI systems trust and quote',
                     },
                     {
                       icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
-                      label: 'Zero Impact on Speed',
-                      desc: 'Adds no noticeable delay to your site — runs on a global network for visitors everywhere',
+                      label: 'Shopping and Ads Signals',
+                      desc: 'Detects products, channels, price bands, paid surfaces, and commerce opportunities',
                     },
                   ].map((item, i) => (
                     <div key={i} className="flex items-start gap-3">
@@ -305,14 +305,14 @@ export default function TechnologyPage() {
               </div>
             </div>
 
-            {/* Layer 2 — GEO Platform */}
+            {/* Layer 2 — Visibility Infrastructure */}
             <div className="bg-surface rounded-2xl p-8 border border-divider relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-[#C84B31]/[0.04] rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl pointer-events-none" />
               <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-6">
                   <span className="text-[10px] font-bold text-ink-3 font-mono bg-surface-warm px-2 py-1 rounded">LAYER 2</span>
                   <div className="w-px h-4 bg-divider-light" />
-                  <span className="text-xs text-ink-3">GEO Platform</span>
+                  <span className="text-xs text-ink-3">Visibility infrastructure</span>
                 </div>
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 bg-red-soft-bg rounded-xl flex items-center justify-center flex-shrink-0">
@@ -320,32 +320,32 @@ export default function TechnologyPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                   </div>
-                  <h3 className="text-2xl font-bold text-ink">Content Intelligence Platform</h3>
+                  <h3 className="text-2xl font-bold text-ink">Visibility Infrastructure</h3>
                 </div>
                 <p className="text-ink-2 text-sm leading-relaxed mb-8">
-                  A full-stack platform that audits, optimizes, and monitors how AI models represent your brand across every major answer engine. Built on academic GEO research and trained on 58 AI platform behaviors.
+                  Once the market is mapped, Alignment ships the machine-readable layer AI systems need: clean entities, citation-ready pages, structured product data, llms.txt, agent.json, and crawler-aware delivery.
                 </p>
                 <div className="space-y-4">
                   {[
                     {
                       icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>,
-                      label: 'Complete AI Visibility Audit',
-                      desc: 'Score your brand across 5 dimensions: discoverability, content clarity, citability, accuracy risk, and reach',
+                      label: 'Entity Normalization',
+                      desc: 'Merges brand/product variants so Bose, Bose QuietComfort, and product SKUs do not pollute rankings',
                     },
                     {
                       icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>,
-                      label: 'AI Content Optimization',
-                      desc: 'Generate FAQs, articles, and content formats that AI platforms cite more often',
+                      label: 'AI-Readable Content and Schema',
+                      desc: 'Publishes concise, cited, structured answers and Product/Offer/Review signals',
                     },
                     {
                       icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>,
-                      label: 'Cross-Platform Brand Monitor',
-                      desc: 'Track mentions in ChatGPT, Gemini, Perplexity, Claude, and Grok in real time',
+                      label: 'Visibility Proxy',
+                      desc: 'Serves AI crawlers the right structured signals while humans see the normal site',
                     },
                     {
                       icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>,
-                      label: 'Citation Analytics & Alerts',
-                      desc: 'See which content gets cited and get alerted when mention rates change',
+                      label: 'Attribution and Feedback Loop',
+                      desc: 'Connects AI mentions, source clicks, shopping recommendations, quote success, and GMV',
                     },
                   ].map((item, i) => (
                     <div key={i} className="flex items-start gap-3">
@@ -363,17 +363,39 @@ export default function TechnologyPage() {
             </div>
           </div>
 
+          <div className="rounded-2xl border-2 border-[#E5B5A4] bg-[#FAF0EC] p-8 mb-8">
+            <div className="flex flex-col lg:flex-row lg:items-start gap-6">
+              <div className="lg:w-[280px]">
+                <span className="text-[10px] font-bold text-[#A33820] font-mono bg-white/60 px-2 py-1 rounded">LAYER 3</span>
+                <h3 className="mt-4 text-2xl font-bold text-ink">Agentic Commerce Protocol</h3>
+                <p className="mt-3 text-sm leading-relaxed text-ink-2">
+                  Brands expose a Product Agent once. Consumer agents query the Broker, receive ranked quotes, commit transactions, and send attribution back to the commerce graph.
+                </p>
+              </div>
+              <div className="grid flex-1 grid-cols-1 md:grid-cols-4 gap-3">
+                {[
+                  ['Query', 'Consumer agent sends purchase intent'],
+                  ['Quote', 'Product Agents return price, fit, inventory, and policy'],
+                  ['Commit', 'The chosen quote becomes an auditable transaction'],
+                  ['Measure', 'GMV, latency, failures, and broker rank are tracked'],
+                ].map(([title, desc]) => (
+                  <div key={title} className="rounded-xl border border-[#E5B5A4] bg-white/70 p-4">
+                    <div className="text-[12px] font-bold uppercase tracking-[0.14em] text-[#A33820]">{title}</div>
+                    <p className="mt-2 text-[12px] leading-relaxed text-ink-2">{desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
           {/* Connector note */}
           <p className="text-center text-sm text-ink-3">
-            Layer 1 ensures AI can{' '}
-            <span className="font-semibold text-ink">discover</span> your brand.{' '}
-            Layer 2 ensures AI wants to{' '}
-            <span className="font-semibold text-ink">cite</span> it.
+            Layer 1 shows where AI demand already lives. Layer 2 makes your brand machine-readable. Layer 3 makes your catalog callable by shopping agents.
           </p>
         </div>
       </section>
 
-      {/* What is GEO? */}
+      {/* GEO as the first layer */}
       <section className="py-24 bg-canvas">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
@@ -384,25 +406,25 @@ export default function TechnologyPage() {
               Understanding the Shift
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-ink mb-4">
-              What is <span className="gradient-text">GEO?</span>
+              GEO is the <span className="gradient-text">First Layer</span>
             </h2>
             <p className="text-lg text-ink-2 max-w-2xl mx-auto">
-              The world is shifting from search engines to answer engines. Your optimization strategy must evolve with it.
+              AI visibility is still the starting point. Modern brands need to connect visibility to recommendations, shopping surfaces, and agent transactions.
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left: Explanation */}
             <div>
-              <h3 className="text-2xl font-bold text-ink mb-4">From Search to Answer</h3>
+              <h3 className="text-2xl font-bold text-ink mb-4">From Search to Answer to Transaction</h3>
               <p className="text-ink-2 leading-relaxed mb-6">
-                Traditional SEO optimizes your content for search engine rankings — getting your page to appear on page one of Google or Bing results. Users still need to click through to your website.
+                Traditional SEO optimizes your content for search rankings. GEO optimizes your content for AI-generated answers, citations, and recommendations.
               </p>
               <p className="text-ink-2 leading-relaxed mb-6">
-                <strong>Generative Engine Optimization (GEO)</strong> is fundamentally different. It optimizes your content to be cited, quoted, and referenced directly inside AI-generated answers — from ChatGPT, Perplexity, Gemini, and other large language model interfaces.
+                <strong>Generative Engine Optimization (GEO)</strong> is now the entry layer of a larger AI commerce stack. If AI cannot discover and cite you, it will not recommend or transact with you.
               </p>
               <p className="text-ink-2 leading-relaxed">
-                With GEO, the goal is not a ranking position — {"it's"} a <strong>citation</strong>. When an AI answers a {"user's"} question, your brand should be the source it references.
+                Alignment extends that first layer into shopping intelligence and agentic commerce, so visibility gains can be tied back to sources, product recommendations, quotes, commits, and revenue.
               </p>
             </div>
 
@@ -442,7 +464,7 @@ export default function TechnologyPage() {
                 </div>
               </div>
 
-              {/* GEO Card */}
+              {/* AI Commerce Card */}
               <div className="bg-ink rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
                 <div className="relative z-10">
@@ -453,12 +475,12 @@ export default function TechnologyPage() {
                       </svg>
                     </div>
                     <div>
-                      <h4 className="font-bold">GEO — Generative Engine Optimization</h4>
-                      <p className="text-xs text-white/70">Optimizing for AI-generated answers</p>
+                      <h4 className="font-bold">AI Commerce</h4>
+                      <p className="text-xs text-white/70">Optimizing for AI recommendations and transactions</p>
                     </div>
                   </div>
                   <div className="space-y-2">
-                    {['Cited in AI responses', 'Source authority & trust signals', 'Clear content structure', 'Consistent citation across AI platforms'].map((item, i) => (
+                    {['Cited in AI responses', 'Recommended in shopping answers', 'Machine-callable product data', 'Quotes, commits, and GMV attribution'].map((item, i) => (
                       <div key={i} className="flex items-center gap-2 text-sm text-white/90">
                         <svg className="w-4 h-4 text-white/80 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
