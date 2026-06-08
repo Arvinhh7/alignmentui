@@ -14,7 +14,7 @@ const TabLoader = () => (
 )
 
 const PromptsTab  = dynamic(() => import('./components/tabs/PromptsTab').then(m => ({ default: m.PromptsTab })),   { loading: TabLoader })
-const DiscoverTab = dynamic(() => import('./components/tabs/DiscoverTab').then(m => ({ default: m.DiscoverTab })), { loading: TabLoader })
+const FanOutTab  = dynamic(() => import('./components/tabs/FanOutTab').then(m => ({ default: m.FanOutTab })),   { loading: TabLoader })
 
 function MonitoringContent() {
   const ctx = useUnified()
@@ -95,7 +95,7 @@ function MonitoringContent() {
 
         {/* Tab content */}
         {ctx.activeTab === 'prompts'     && <PromptsTab />}
-        {ctx.activeTab === 'discover'    && <DiscoverTab />}
+        {ctx.activeTab === 'discover'    && <FanOutTab />}
         {ctx.activeTab === 'ai_research' && <PromptEngineeringTab />}
       </div>
     </div>
