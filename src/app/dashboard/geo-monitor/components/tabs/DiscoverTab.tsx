@@ -140,13 +140,14 @@ function SourceCard({ item, total, rank }: {
 }
 
 // ── Main tab ─────────────────────────────────────────
-export function DiscoverTab() {
+export function DiscoverTab({ variant = 'standalone' }: { variant?: 'standalone' | 'sources-gap' }) {
   const { t } = useLanguage()
   const ctx = useUnified()
   const d = t.dashboard.discover
   const result = ctx.discoverResult
   const isAnyRunning = ctx.isRunningDiscover || ctx.isRunningDeepDiscover
   const isAdminOrStaff = ctx.userRole === 'admin' || ctx.userRole === 'staff'
+  const isSourcesGap = variant === 'sources-gap'
 
   const coreItems = useMemo(() => {
     if (!result) return []
@@ -166,11 +167,15 @@ export function DiscoverTab() {
       {/* ── Header ───────────────────────────────── */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="min-w-0">
-          <h3 className="text-sm font-semibold text-ink">{d.title}</h3>
+          <h3 className="text-sm font-semibold text-ink">
+            {isSourcesGap ? 'Sources Gap' : d.title}
+          </h3>
           <p className="text-xs text-ink-3 mt-0.5">
             {result
               ? `${result.total_grounded_urls.toLocaleString()} grounded URLs · ${result.unique_domains} domains · ${result.engine_used}`
-              : d.subtitle}
+              : isSourcesGap
+                ? 'Find the source domains AI already trusts, then turn missing citation layers into content, PR, review, and distribution actions.'
+                : d.subtitle}
             {/* Show active model name for the currently selected engine */}
             {ctx.engineModels[ctx.discoverEngine] && (
               <span className="ml-1 text-ink-3/70 font-mono text-[10px]">

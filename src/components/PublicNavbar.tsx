@@ -7,9 +7,8 @@ import { LogoFull } from '@/components/Logo'
 
 // ── Solutions dropdown items ───────────────────────────────────────────────────
 const SOLUTIONS = [
-  { label: 'AI Search Intelligence', href: '/dashboard/ai-search' },
+  { label: 'AI Research', href: '/dashboard/ai-search' },
   { label: 'Explore Market Graph',   href: '/dashboard/explore' },
-  { label: 'Citation Sources',       href: '/dashboard/sources' },
   { label: 'Shopping Intelligence',  href: '/dashboard/shopping' },
   { label: 'AI Ads Intelligence',    href: '/dashboard/ads' },
   { label: 'Visibility Proxy',       href: '/dashboard/visibility-proxy' },

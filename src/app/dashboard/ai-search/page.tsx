@@ -14,9 +14,9 @@ function AISearchContent() {
             <TrendingUp className="w-5 h-5 text-sage" />
           </div>
           <div>
-            <h1 className="heading-dash">AI Search</h1>
+            <h1 className="heading-dash">AI Research</h1>
             <p className="text-sm text-ink-3">
-              Deep Research simulation — see how AI investigates your category and where your brand ranks
+              Customer-scoped research — see how AI investigates your market and where your brand has gaps
             </p>
           </div>
         </div>

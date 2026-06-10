@@ -48,8 +48,7 @@ const MAX_RECENT_RESULTS = 6
 
 const MODULE_RESULTS: SearchResult[] = [
   { id: 'module-explore', type: 'module', title: 'Explore', subtitle: 'Market categories, topics, brands, and citations', href: '/dashboard/explore', icon: Compass, badge: 'Beta', keywords: ['category', 'categories', 'topic', 'topics', 'brand', 'citation', 'leaderboard'], score: 0 },
-  { id: 'module-ai-search', type: 'module', title: 'AI Search', subtitle: 'Analyze AI search visibility and answer surfaces', href: '/dashboard/ai-search', icon: BarChart3, badge: 'NEW', keywords: ['answer', 'visibility', 'search', 'chatgpt', 'perplexity'], score: 0 },
-  { id: 'module-sources', type: 'module', title: 'Sources', subtitle: 'Citation source intelligence across AI answers', href: '/dashboard/sources', icon: Link2, badge: 'NEW', keywords: ['citation', 'source', 'domain', 'publisher'], score: 0 },
+  { id: 'module-ai-search', type: 'module', title: 'AI Research', subtitle: 'Customer-scoped AI market research, sources gap, and gap playbooks', href: '/dashboard/ai-search', icon: BarChart3, badge: 'NEW', keywords: ['answer', 'visibility', 'research', 'search', 'chatgpt', 'perplexity', 'gap', 'citation', 'source', 'domain', 'publisher'], score: 0 },
   { id: 'module-shopping', type: 'module', title: 'Shopping', subtitle: 'Product and category intelligence', href: '/dashboard/shopping', icon: ShoppingCart, badge: 'NEW', keywords: ['product', 'commerce', 'shop', 'category'], score: 0 },
   { id: 'module-ads', type: 'module', title: 'Ads', subtitle: 'Paid answer and AI ad intelligence', href: '/dashboard/ads', icon: Megaphone, badge: 'NEW', keywords: ['paid', 'advertising', 'media', 'sponsored', 'cpc'], score: 0 },
   { id: 'module-gci', type: 'module', title: 'GCI', subtitle: 'Growth content intelligence', href: '/dashboard/gci', icon: Activity, keywords: ['content', 'growth'], score: 0 },

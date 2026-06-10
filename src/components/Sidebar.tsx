@@ -14,7 +14,7 @@ import {
   Sparkles, ExternalLink, HelpCircle, Home, ChevronRight, CreditCard,
   LineChart, LayoutDashboard, Search, MessageSquare,
   BookOpen, TrendingUp, Database, X, Globe, Users, ShoppingCart, Briefcase,
-  Compass, Bot, Megaphone, Plug, Cpu, Link2,
+  Compass, Bot, Megaphone, Plug, Cpu,
 } from 'lucide-react'
 
 const SIDEBAR_KEY = 'sidebar_expanded'
@@ -190,7 +190,6 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
       items: [
         { href: '/dashboard/explore',   icon: Compass,      labelKey: 'exploreNav',   isBeta: true },
         { href: '/dashboard/ai-search', icon: TrendingUp,   labelKey: 'aiSearchNav',  isNew: true },
-        { href: '/dashboard/sources',   icon: Link2,        labelKey: 'sourcesNav',   isNew: true },
         { href: '/dashboard/shopping',  icon: ShoppingCart, labelKey: 'shoppingNav',  isNew: true },
         { href: '/dashboard/ads',       icon: Megaphone,    labelKey: 'adsNav',       isNew: true },
         { href: '/dashboard/gci',       icon: Activity,     labelKey: 'GCI' as never, permissionKey: 'overview' },

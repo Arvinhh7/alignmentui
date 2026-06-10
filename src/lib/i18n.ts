@@ -306,8 +306,8 @@ export const translations = {
       navGroupManage: 'Manage',
       // Insights items
       exploreNav: 'Explore',
-      aiSearchNav: 'AI Search',
-      sourcesNav: 'Sources',
+      aiSearchNav: 'AI Research',
+      sourcesNav: 'Sources Gap',
       shoppingNav: 'Shopping',
       adsNav: 'Ads',
       // Actions items
@@ -1001,8 +1001,8 @@ export const translations = {
       navGroupManage: '管理',
       // 洞察
       exploreNav: '探索',
-      aiSearchNav: 'AI 搜索',
-      sourcesNav: '信源',
+      aiSearchNav: 'AI Research',
+      sourcesNav: 'Sources Gap',
       shoppingNav: '电商',
       adsNav: '广告',
       // 行动

@@ -21,6 +21,7 @@ import {
 import { api, type AIResearchRun } from '@/lib/api'
 import { BrandLogo } from '@/components/BrandLogo'
 import { useUnified } from '../UnifiedContext'
+import { DiscoverTab } from './DiscoverTab'
 
 type Coverage = 'strong' | 'weak' | 'absent'
 
@@ -310,7 +311,7 @@ function ResearchTrail({ result }: { result: ResearchResult }) {
 function GapPlaybook({ result }: { result: ResearchResult }) {
   return (
     <div className="bg-surface rounded-2xl border border-divider-light p-6">
-      <BlockHeader icon={Target} number={5} title="Gap Playbook" question="Which gaps should I fix first?" />
+      <BlockHeader icon={Target} number={6} title="Gap Playbook" question="Which gaps should I fix first?" />
       <div className="space-y-3">
         {result.gaps.map(gap => (
           <div key={gap.dimension} className={`p-4 rounded-xl border flex items-center gap-4 ${
@@ -343,6 +344,26 @@ function GapPlaybook({ result }: { result: ResearchResult }) {
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+function SourcesGapSection({ number }: { number: number }) {
+  return (
+    <div id="sources-gap" className="scroll-mt-24 bg-surface rounded-2xl border border-divider-light p-6">
+      <BlockHeader
+        icon={GitBranch}
+        number={number}
+        title="Sources Gap"
+        question="Which trusted external sources should I enter to close the research gaps?"
+      />
+      <div className="mb-5 rounded-xl border border-divider-light bg-canvas p-4">
+        <p className="text-[13px] leading-relaxed text-ink-2">
+          Sources Gap maps the domains AI already cites for this market. Use it to see where competitors appear,
+          where your domain is missing, and which sources should become content, PR, review, schema, or distribution actions.
+        </p>
+      </div>
+      <DiscoverTab variant="sources-gap" />
     </div>
   )
 }
@@ -438,8 +459,12 @@ export function AIResearchTab() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="w-5 h-5 animate-spin text-ink-3" />
+      <div className="space-y-4">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-divider-light bg-surface py-16">
+          <Loader2 className="w-5 h-5 animate-spin text-ink-3" />
+          <p className="mt-3 text-[13px] font-semibold text-ink-3">Loading AI Research…</p>
+        </div>
+        <SourcesGapSection number={2} />
       </div>
     )
   }
@@ -449,6 +474,7 @@ export function AIResearchTab() {
       <div className="space-y-4">
         {error && <div className="bg-red-soft-bg border border-red-soft/30 rounded-xl p-4 text-sm text-red-soft">{error}</div>}
         <EmptyState brandName={brandName} canRun={canRun} onRun={handleRun} running={running} />
+        <SourcesGapSection number={2} />
       </div>
     )
   }
@@ -484,6 +510,7 @@ export function AIResearchTab() {
       <DimensionMap result={result} />
       <BrandCoverage result={result} />
       <ResearchTrail result={result} />
+      <SourcesGapSection number={5} />
       <GapPlaybook result={result} />
     </div>
   )
