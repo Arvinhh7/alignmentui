@@ -9,12 +9,12 @@ import { useAuth, type UserRole, type PermissionsMap } from '@/hooks/useAuth'
 import { api, CreditBalance } from '@/lib/api'
 import { SidebarCustomerSwitcher } from '@/components/SidebarCustomerSwitcher'
 import {
-  ShieldCheck, Zap, PenTool, Share2, BarChart3, Activity,
+  ShieldCheck, Zap, PenTool, BarChart3, Activity,
   LogOut, Settings, Wrench, PanelLeftClose, PanelLeft,
   Sparkles, ExternalLink, HelpCircle, Home, ChevronRight, CreditCard,
   LineChart, LayoutDashboard, Search, MessageSquare,
   BookOpen, TrendingUp, Database, X, Globe, Users, ShoppingCart, Briefcase,
-  Compass, Bot, Megaphone, Plug, Cpu,
+  Compass, Plug, Cpu, Megaphone, Bot, Share2,
 } from 'lucide-react'
 
 const SIDEBAR_KEY = 'sidebar_expanded'
@@ -29,7 +29,9 @@ const ROLE_CONFIG: Record<UserRole, { label: string; color: string }> = {
 
 const PLAN_DISPLAY: Record<string, string> = {
   starter: 'Starter',
-  growth: 'Growth',
+  standard: 'Standard',
+  pro: 'Pro',
+  growth: 'Standard',
   enterprise: 'Enterprise',
   trial: 'Trial',
 }
@@ -191,8 +193,6 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         { href: '/dashboard/explore',   icon: Compass,      labelKey: 'exploreNav',   isBeta: true },
         { href: '/dashboard/ai-search', icon: TrendingUp,   labelKey: 'aiSearchNav',  isNew: true },
         { href: '/dashboard/shopping',  icon: ShoppingCart, labelKey: 'shoppingNav',  isNew: true },
-        { href: '/dashboard/ads',       icon: Megaphone,    labelKey: 'adsNav',       isNew: true },
-        { href: '/dashboard/gci',       icon: Activity,     labelKey: 'GCI' as never, permissionKey: 'overview' },
       ],
     },
     {
@@ -205,7 +205,6 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
     {
       labelKey: 'navGroupAssistant',
       items: [
-        { href: '/dashboard/geo-content',      icon: Bot,        labelKey: 'agentNav',          permissionKey: 'geo-content' },
         { href: '/dashboard/geo-audit',        icon: ShieldCheck, labelKey: 'webInfraNav',       permissionKey: 'geo-audit' },
         { href: '/dashboard/brand-hub',        icon: Database,   labelKey: 'brandNav',           permissionKey: 'brand-hub' },
         { href: '/dashboard/visibility-proxy', icon: Plug,       labelKey: 'visibilityProxyNav', permissionKey: 'visibility-proxy', matchPrefix: true, isNew: true, sectionLabel: 'Integrations' },
@@ -218,15 +217,16 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
   // ── Manage section: Operations (delegatable) + Admin (admin-only) ──────
   // RULE: any item with a permissionKey can be assigned to staff via Team Management.
   const advancedFeatureItems: NavItem[] = [
-    // ── Operations sub-section ─────────────────────────────────────────
-    { href: '/dashboard/geo-distribution', icon: Share2,       labelKey: 'geoDistributionNav',          permissionKey: 'geo-distribution',  sectionLabel: 'Operations' },
-    { href: '/dashboard/agentic-commerce', icon: ShoppingCart, labelKey: 'agenticCommerceNav' as never, permissionKey: 'agentic-commerce',  matchPrefix: true },
     // ── Admin sub-section (delegatable) ───────────────────────────────
     { href: '/dashboard/admin/customers',  icon: Briefcase,    labelKey: 'Customers' as never,          permissionKey: 'customers',         matchPrefix: true, sectionLabel: 'Admin' },
   ]
 
   // Admin-only items — NEVER delegatable to staff.
   const adminOnlyItems: NavItem[] = [
+    { href: '/dashboard/ads',              icon: Megaphone, labelKey: 'Ads' as never,             sectionLabel: 'Product Lab', isNew: true },
+    { href: '/dashboard/gci',              icon: Activity,  labelKey: 'GCI' as never },
+    { href: '/dashboard/geo-content',      icon: Bot,       labelKey: 'Agent' as never,           matchPrefix: true },
+    { href: '/dashboard/geo-distribution', icon: Share2,    labelKey: 'GEO Distribute' as never, matchPrefix: true },
     { href: '/dashboard/ops',                  icon: Activity, labelKey: 'Managed Service' as never, matchPrefix: true },
     { href: '/dashboard/admin',                icon: Wrench,   labelKey: 'Admin Panel' as never },
     { href: '/dashboard/admin/domain-checker', icon: Search,   labelKey: 'Domain Checker' as never },

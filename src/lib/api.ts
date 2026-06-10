@@ -2404,13 +2404,17 @@ export interface PlanLimits {
   credits_per_month: number;
   team_seats: number;
   brands_allowed: number;
+  prompts_tracked_daily: number;
+  platforms_allowed: string[];
+  modules_allowed: string[];
   competitor_tracking: boolean;
   api_access: boolean;
+  mcp_integration: boolean;
   custom_reports: boolean;
 }
 
 export interface SubscriptionStatus {
-  plan: 'starter' | 'growth' | 'enterprise';
+  plan: 'starter' | 'standard' | 'pro' | 'enterprise' | 'growth' | 'trial' | 'admin';
   status: 'trialing' | 'active' | 'past_due' | 'canceled' | 'paused' | 'incomplete';
   billing_interval: 'month' | 'year';
   trial_ends_at: string | null;

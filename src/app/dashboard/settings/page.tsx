@@ -456,7 +456,9 @@ function Feedback({ type, message }: { type: 'success' | 'error'; message: strin
 // ─── Plan display helper ───────────────────────────────────────────────────────
 const PLAN_LABELS: Record<string, string> = {
   starter: 'Starter',
-  growth: 'Growth',
+  standard: 'Standard',
+  pro: 'Pro',
+  growth: 'Standard',
   enterprise: 'Enterprise',
 }
 const STATUS_STYLES: Record<string, string> = {
@@ -467,10 +469,36 @@ const STATUS_STYLES: Record<string, string> = {
   paused: 'bg-caution-bg text-caution border-caution/30',
   incomplete: 'bg-caution-bg text-caution border-caution/30',
 }
+const MODULE_LABELS: Record<string, string> = {
+  explore: 'Explore',
+  ai_research: 'AI Research',
+  shopping: 'Shopping',
+  monitoring: 'Monitoring',
+  analysis: 'Analysis',
+  web_infrastructure: 'Web Infrastructure',
+  brand_hub: 'Brand Hub',
+  visibility_proxy: 'Visibility Proxy',
+  ga4_attribution: 'GA4 Attribution',
+  mcp_integration: 'MCP Integration',
+}
+const PLATFORM_LABELS: Record<string, string> = {
+  chatgpt: 'ChatGPT',
+  perplexity: 'Perplexity',
+  ai_overviews: 'AI Overviews',
+  gemini: 'Gemini',
+  claude: 'Claude',
+  grok: 'Grok',
+}
 
 function formatDate(iso: string | null) {
   if (!iso) return '—'
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+}
+
+function formatLimit(value: number | undefined | null, fallback = '—') {
+  if (value === -1) return 'Unlimited'
+  if (typeof value !== 'number') return fallback
+  return value.toLocaleString()
 }
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
@@ -507,6 +535,24 @@ export default function SettingsPage() {
     plan: string; status: string; billing_interval: string;
     trial_ends_at: string | null; current_period_end: string | null;
     cancel_at_period_end: boolean;
+    limits?: {
+      credits_per_month: number;
+      team_seats: number;
+      brands_allowed: number;
+      prompts_tracked_daily: number;
+      platforms_allowed: string[];
+      modules_allowed: string[];
+      api_access: boolean;
+      mcp_integration: boolean;
+      custom_reports: boolean;
+    };
+  } | null>(null)
+  const [credits, setCredits] = useState<{
+    credits_used: number;
+    credits_limit: number;
+    credits_bonus: number;
+    credits_total: number;
+    credits_remaining: number;
   } | null>(null)
 
   // Populate profile fields from user metadata
@@ -523,11 +569,20 @@ export default function SettingsPage() {
       setSubLoading(false)
       return
     }
-    api.getSubscription(user.id).then(res => {
-      if (res.data?.subscription) setSubscription(res.data.subscription as typeof subscription)
+    Promise.all([api.getSubscription(user.id), api.getCredits(user.id)]).then(([subRes, creditRes]) => {
+      if (subRes.data?.subscription) setSubscription(subRes.data.subscription as typeof subscription)
+      setCredits(creditRes.data ?? null)
       setSubLoading(false)
     }).catch(() => setSubLoading(false))
   }, [user?.id, role])
+
+  const mcpAllowed =
+    role === 'admin' ||
+    role === 'staff' ||
+    role === 'demo' ||
+    subscription?.limits?.mcp_integration === true ||
+    subscription?.plan === 'pro' ||
+    subscription?.plan === 'enterprise'
 
   // Fetch MCP tokens — all authenticated users can manage their own tokens
   useEffect(() => {
@@ -770,6 +825,78 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
+                {credits && (
+                  <div className="rounded-2xl border border-divider-light bg-surface-warm p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-3">Monthly credits</p>
+                        <p className="mt-1 text-2xl font-black text-ink">
+                          {credits.credits_remaining === -1 ? 'Unlimited' : credits.credits_remaining.toLocaleString()}
+                        </p>
+                        <p className="mt-1 text-xs text-ink-3">
+                          {formatLimit(credits.credits_used)} used · {formatLimit(credits.credits_total)} total
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-divider bg-surface px-3 py-2 text-right">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3">Bonus</p>
+                        <p className="text-sm font-semibold text-ink">{formatLimit(credits.credits_bonus)}</p>
+                      </div>
+                    </div>
+                    {credits.credits_total !== -1 && (
+                      <div className="mt-4 h-2 rounded-full bg-surface overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-ink"
+                          style={{ width: `${Math.min(100, Math.max(0, (credits.credits_used / Math.max(1, credits.credits_total)) * 100))}%` }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {subscription.limits && (
+                  <div className="rounded-2xl border border-divider-light bg-surface p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-3">Plan entitlements</p>
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                      <div className="rounded-xl bg-surface-warm px-3 py-2">
+                        <span className="text-ink-3">Daily prompts</span>
+                        <p className="mt-0.5 font-semibold text-ink">{formatLimit(subscription.limits.prompts_tracked_daily)}</p>
+                      </div>
+                      <div className="rounded-xl bg-surface-warm px-3 py-2">
+                        <span className="text-ink-3">Brands</span>
+                        <p className="mt-0.5 font-semibold text-ink">{formatLimit(subscription.limits.brands_allowed)}</p>
+                      </div>
+                      <div className="rounded-xl bg-surface-warm px-3 py-2">
+                        <span className="text-ink-3">Team seats</span>
+                        <p className="mt-0.5 font-semibold text-ink">{formatLimit(subscription.limits.team_seats)}</p>
+                      </div>
+                      <div className="rounded-xl bg-surface-warm px-3 py-2">
+                        <span className="text-ink-3">API access</span>
+                        <p className="mt-0.5 font-semibold text-ink">{subscription.limits.api_access ? 'Included' : 'Not included'}</p>
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <p className="text-[11px] font-semibold text-ink-3">Platforms</p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {subscription.limits.platforms_allowed.map(platform => (
+                          <span key={platform} className="rounded-full border border-divider-light bg-surface-warm px-2.5 py-1 text-[11px] font-semibold text-ink-2">
+                            {PLATFORM_LABELS[platform] ?? platform}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <p className="text-[11px] font-semibold text-ink-3">Modules</p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {subscription.limits.modules_allowed.map(module => (
+                          <span key={module} className="rounded-full border border-divider-light bg-surface-warm px-2.5 py-1 text-[11px] font-semibold text-ink-2">
+                            {MODULE_LABELS[module] ?? module}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {subscription.cancel_at_period_end && (
                   <div className="flex items-start gap-2 p-3 bg-caution-bg border border-caution/20 rounded-xl text-sm text-caution">
                     <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -820,6 +947,15 @@ export default function SettingsPage() {
         {/* ── MCP (Model Context Protocol) ── */}
         {role !== 'demo' && (
           <Section icon={Key} title="MCP — AI Tools Integration" description="Connect Claude Desktop, Cursor, or Windsurf to query your brand data with natural language">
+            {!mcpAllowed ? (
+              <div className="rounded-2xl border border-divider-light bg-surface-warm p-4">
+                <p className="text-sm font-semibold text-ink">MCP Integration is available on Pro and Enterprise.</p>
+                <p className="mt-1 text-sm text-ink-3">Upgrade when you are ready to connect external AI tools to your Alignment workspace.</p>
+                <a href="/pricing" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-ink px-4 py-2.5 text-sm font-semibold text-ink-inv hover:bg-[#2d2d2c]">
+                  <ExternalLink className="h-4 w-4" /> View Plans
+                </a>
+              </div>
+            ) : (
             <div className="space-y-4">
               <p className="text-sm text-ink-2 leading-relaxed">
                 Create an API token for each AI tool you want to connect. Each token is linked to your account and shown only once — copy it immediately after creation.
@@ -907,6 +1043,7 @@ export default function SettingsPage() {
                 <span className="text-xs text-ink-3">Name tokens by device: e.g. <code className="font-mono">Claude-Desktop-MacBook</code></span>
               </div>
             </div>
+            )}
           </Section>
         )}
 

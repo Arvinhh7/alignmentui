@@ -11,7 +11,6 @@ import {
   Bot,
   Code2,
   Database,
-  Megaphone,
   Search,
   ShoppingCart,
 } from 'lucide-react'
@@ -45,20 +44,20 @@ const productModules = [
     points: ['Product cards', 'Offer facts', 'Prompt evidence'],
   },
   {
-    label: 'Ads',
-    icon: Megaphone,
-    eyebrow: 'AI paid surfaces',
-    title: 'Observe advertisers inside AI journeys',
-    desc: 'Rank observed advertisers, creative cards, destination domains, and the queries where paid surfaces appear.',
-    image: '/landing/ads.png',
-    points: ['Advertiser library', 'Creative cards', 'Query context'],
+    label: 'Monitoring',
+    icon: Database,
+    eyebrow: 'Prompt tracking',
+    title: 'Track how AI answers change over time',
+    desc: 'Monitor prompt performance, fan-out behavior, competitor mentions, and source movement across recurring runs.',
+    image: '/landing/explore-1.png',
+    points: ['Prompt history', 'Fan-out analysis', 'Source movement'],
   },
   {
-    label: 'Answer Drilldown',
+    label: 'Analysis',
     icon: Database,
-    eyebrow: 'Record-level proof',
-    title: 'Open the exact answer behind every signal',
-    desc: 'Review the AI response, brands mentioned, highlighted entities, citations, and source links for each record.',
+    eyebrow: 'Decision layer',
+    title: 'Turn AI visibility into action',
+    desc: 'Review the AI response, brands mentioned, highlighted entities, citations, and source links behind each signal.',
     image: '/landing/explore-1.png',
     points: ['AI response', 'Brands mentioned', 'Citation links'],
   },
@@ -74,8 +73,8 @@ const outcomes = [
     desc: 'Brands, products, domains, and citations are normalized so leaderboards stay trustworthy.',
   },
   {
-    title: 'Prepare for agentic commerce',
-    desc: 'Turn visibility into product signals, offer evidence, quote readiness, and transaction attribution.',
+    title: 'Connect visibility to owned channels',
+    desc: 'Use Web Infrastructure, Brand Hub, Visibility Proxy, and GA4 Attribution to improve the pages AI can fetch and measure the traffic it sends back.',
   },
 ]
 
@@ -203,7 +202,7 @@ export default function LandingPage() {
       <section id="modules" className="px-5 py-16 md:px-8 md:py-24 lg:px-12">
         <div className="mx-auto max-w-marketing">
           <div className="max-w-[760px]">
-            <p className="eyebrow">Five product modules</p>
+            <p className="eyebrow">Launch modules</p>
             <h2 className="heading-section mt-3">Every module has its own product surface</h2>
             <p className="text-lead mt-4">
               The homepage now shows the actual product, module by module, so users can understand Alignment without reading a long theory page.
@@ -265,7 +264,7 @@ export default function LandingPage() {
               <p className="eyebrow text-[rgba(250,245,236,0.45)]">Why now</p>
               <h2 className="heading-section mt-3 text-ink-inv">AI answers are becoming the new storefront</h2>
               <p className="mt-4 text-[15px] leading-relaxed text-[rgba(250,245,236,0.65)]">
-                Visibility alone is not enough. Brands need clean entity data, trusted citations, product evidence, and a machine-callable commerce layer.
+                Visibility alone is not enough. Brands need clean entity data, trusted citations, product evidence, and measurable paths back to owned channels.
               </p>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -273,7 +272,7 @@ export default function LandingPage() {
                 ['Discover', 'Which prompts and topics create demand?'],
                 ['Recommend', 'Which brands, sources, and products does AI choose?'],
                 ['Trust', 'Which citations and facts make the answer believable?'],
-                ['Transact', 'Can an agent query, quote, commit, and attribute revenue?'],
+                ['Attribute', 'Which AI journeys create measurable traffic and conversions?'],
               ].map(([title, desc]) => (
                 <div key={title} className="card-dark-inner">
                   <div className="text-[15px] font-semibold text-ink-inv">{title}</div>
@@ -324,7 +323,7 @@ export default function LandingPage() {
 
       <section className="mx-auto max-w-cta px-5 pb-20 text-center md:px-12 md:pb-28">
         <Bot className="mx-auto mb-5 h-9 w-9 text-ink" />
-        <h2 className="heading-section">Start with visibility. Build toward agentic commerce.</h2>
+        <h2 className="heading-section">Start with visibility. Build toward measurable AI growth.</h2>
         <p className="text-lead mx-auto mt-4 max-w-[680px]">
           Use Alignment to see the AI market, clean the signals, and prepare your products for AI-driven buying journeys.
         </p>

@@ -4,10 +4,11 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Activity, AlertCircle, BarChart3, Bot, Briefcase, Compass, Cpu, Database, ExternalLink,
-  History, LineChart, Link2, Megaphone, Search, ShieldCheck, ShoppingCart, Tag, Users, Wrench,
-  X, type LucideIcon,
+  History, LineChart, Link2, Search, ShieldCheck, ShoppingCart, Tag, Users, Wrench,
+  Megaphone, Share2, X, type LucideIcon,
 } from 'lucide-react'
 import { BrandLogo } from '@/components/BrandLogo'
+import { useAuth } from '@/hooks/useAuth'
 import { API_BASE_URL, fetchWithRetry } from '@/lib/api'
 
 type ResultType = 'module' | 'category' | 'brand' | 'topic' | 'source'
@@ -45,29 +46,48 @@ interface DashboardGlobalSearchProps {
 
 const RECENT_RESULTS_KEY = 'dashboard-global-search-recents-v1'
 const MAX_RECENT_RESULTS = 6
+const HIDDEN_LAUNCH_PATH_PREFIXES = [
+  '/dashboard/ads',
+  '/dashboard/gci',
+  '/dashboard/geo-content',
+  '/dashboard/geo-distribution',
+  '/dashboard/agentic-commerce',
+]
 
 const MODULE_RESULTS: SearchResult[] = [
   { id: 'module-explore', type: 'module', title: 'Explore', subtitle: 'Market categories, topics, brands, and citations', href: '/dashboard/explore', icon: Compass, badge: 'Beta', keywords: ['category', 'categories', 'topic', 'topics', 'brand', 'citation', 'leaderboard'], score: 0 },
   { id: 'module-ai-search', type: 'module', title: 'AI Research', subtitle: 'Diagnose profile, source gaps, prompt gaps, and next actions', href: '/dashboard/ai-search', icon: BarChart3, badge: 'NEW', keywords: ['answer', 'visibility', 'research', 'search', 'chatgpt', 'perplexity', 'gap', 'citation', 'source', 'domain', 'publisher', 'prompt'], score: 0 },
   { id: 'module-shopping', type: 'module', title: 'Shopping', subtitle: 'Product and category intelligence', href: '/dashboard/shopping', icon: ShoppingCart, badge: 'NEW', keywords: ['product', 'commerce', 'shop', 'category'], score: 0 },
-  { id: 'module-ads', type: 'module', title: 'Ads', subtitle: 'Paid answer and AI ad intelligence', href: '/dashboard/ads', icon: Megaphone, badge: 'NEW', keywords: ['paid', 'advertising', 'media', 'sponsored', 'cpc'], score: 0 },
-  { id: 'module-gci', type: 'module', title: 'GCI', subtitle: 'Growth content intelligence', href: '/dashboard/gci', icon: Activity, keywords: ['content', 'growth'], score: 0 },
   { id: 'module-monitor', type: 'module', title: 'Monitoring', subtitle: 'Manage prompts, run scans, and track visibility', href: '/dashboard/geo-monitor', icon: BarChart3, keywords: ['monitor', 'prompt', 'competitor', 'mention', 'fan-out', 'scan'], score: 0 },
   { id: 'module-analysis', type: 'module', title: 'Analysis', subtitle: 'Cross-module reporting and decision support', href: '/dashboard/analysis', icon: LineChart, badge: 'NEW', keywords: ['report', 'analysis', 'insight'], score: 0 },
-  { id: 'module-agent', type: 'module', title: 'Agent', subtitle: 'GEO content and AI assistant workflows', href: '/dashboard/geo-content', icon: Bot, keywords: ['content', 'agent', 'assistant'], score: 0 },
   { id: 'module-web-infra', type: 'module', title: 'Web Infrastructure', subtitle: 'GEO audit and technical readiness', href: '/dashboard/geo-audit', icon: ShieldCheck, keywords: ['audit', 'schema', 'technical', 'website'], score: 0 },
   { id: 'module-brand-hub', type: 'module', title: 'Brand Hub', subtitle: 'Brand and domain data management', href: '/dashboard/brand-hub', icon: Database, keywords: ['brand', 'domain', 'entity'], score: 0 },
   { id: 'module-visibility-proxy', type: 'module', title: 'Visibility Proxy', subtitle: 'AI crawler and proxy visibility infrastructure', href: '/dashboard/visibility-proxy', icon: ExternalLink, badge: 'NEW', keywords: ['proxy', 'crawler', 'bot', 'shopify'], score: 0 },
   { id: 'module-ga4', type: 'module', title: 'GA4 Attribution', subtitle: 'AI traffic and revenue attribution', href: '/dashboard/ga4-attribution', icon: LineChart, keywords: ['ga4', 'analytics', 'attribution', 'roi'], score: 0 },
   { id: 'module-mcp', type: 'module', title: 'MCP Integration', subtitle: 'Connect external MCP tools and agents', icon: Cpu, disabled: true, badge: 'Coming soon', keywords: ['mcp', 'integration', 'tool'], score: 0 },
-  { id: 'module-distribute', type: 'module', title: 'GEO Distribute', subtitle: 'Distribute optimized content across channels', href: '/dashboard/geo-distribution', icon: ExternalLink, keywords: ['distribute', 'reddit', 'social', 'content'], score: 0 },
-  { id: 'module-agentic-commerce', type: 'module', title: 'Agentic Commerce', subtitle: 'Commerce agent visibility and transactions', href: '/dashboard/agentic-commerce', icon: ShoppingCart, keywords: ['commerce', 'agentic', 'shopify', 'quote'], score: 0 },
   { id: 'module-customers', type: 'module', title: 'Customers', subtitle: 'Customer and workspace management', href: '/dashboard/admin/customers', icon: Briefcase, keywords: ['customer', 'workspace', 'client'], score: 0 },
   { id: 'module-managed-service', type: 'module', title: 'Managed Service', subtitle: 'Operations projects and client work', href: '/dashboard/ops', icon: Activity, keywords: ['ops', 'project', 'managed'], score: 0 },
   { id: 'module-admin', type: 'module', title: 'Admin Panel', subtitle: 'Internal admin tools', href: '/dashboard/admin', icon: Wrench, keywords: ['admin', 'token'], score: 0 },
   { id: 'module-domain-checker', type: 'module', title: 'Domain Checker', subtitle: 'Check domain readiness and ownership', href: '/dashboard/admin/domain-checker', icon: Search, keywords: ['domain', 'checker'], score: 0 },
   { id: 'module-team', type: 'module', title: 'Team Management', subtitle: 'Roles and staff permissions', href: '/dashboard/admin/team', icon: Users, keywords: ['team', 'staff', 'permission'], score: 0 },
 ]
+
+const ADMIN_PRODUCT_LAB_RESULTS: SearchResult[] = [
+  { id: 'module-ads', type: 'module', title: 'Ads', subtitle: 'AI ads card observation and advertiser intelligence', href: '/dashboard/ads', icon: Megaphone, badge: 'Admin', keywords: ['ads', 'advertiser', 'ad cards', 'creative', 'criteo'], score: 0 },
+  { id: 'module-gci', type: 'module', title: 'GCI', subtitle: 'Growth and commerce intelligence workspace', href: '/dashboard/gci', icon: Activity, badge: 'Admin', keywords: ['gci', 'growth', 'commerce', 'intelligence'], score: 0 },
+  { id: 'module-agent', type: 'module', title: 'Agent', subtitle: 'Agent workflow and GEO content product lab', href: '/dashboard/geo-content', icon: Bot, badge: 'Admin', keywords: ['agent', 'geo content', 'automation', 'workflow'], score: 0 },
+  { id: 'module-geo-distribute', type: 'module', title: 'GEO Distribute', subtitle: 'Distribution and publishing product lab', href: '/dashboard/geo-distribution', icon: Share2, badge: 'Admin', keywords: ['geo distribute', 'distribution', 'publish', 'syndication'], score: 0 },
+]
+
+function isLaunchVisibleResult(result: SearchResult): boolean {
+  const href = result.href
+  if (!href) return true
+  return !HIDDEN_LAUNCH_PATH_PREFIXES.some(prefix => href === prefix || href.startsWith(prefix + '/'))
+}
+
+function isVisibleSearchResult(value: SearchResult | null): value is SearchResult {
+  return value !== null && isLaunchVisibleResult(value)
+}
 
 function iconForType(type: ResultType): LucideIcon | undefined {
   if (type === 'category') return Compass
@@ -131,7 +151,10 @@ function loadRecentResults(): SearchResult[] {
     if (!raw) return []
     const parsed = JSON.parse(raw)
     if (!Array.isArray(parsed)) return []
-    return parsed.map(sanitizeRecentResult).filter((value): value is SearchResult => Boolean(value)).slice(0, MAX_RECENT_RESULTS)
+    return parsed
+      .map(sanitizeRecentResult)
+      .filter(isVisibleSearchResult)
+      .slice(0, MAX_RECENT_RESULTS)
   } catch {
     return []
   }
@@ -238,6 +261,8 @@ function SearchRow({
 export default function DashboardGlobalSearch({ mobile = false }: DashboardGlobalSearchProps) {
   const router = useRouter()
   const listboxId = useId()
+  const { role } = useAuth()
+  const isAdmin = role === 'admin'
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [remoteResults, setRemoteResults] = useState<SearchResult[]>([])
@@ -296,7 +321,7 @@ export default function DashboardGlobalSearch({ mobile = false }: DashboardGloba
             icon: result.type === 'brand' ? undefined : iconForType(result.type),
             keywords: result.keywords || [result.title, result.subtitle],
             score: 0,
-          }))
+          })).filter((result: SearchResult) => isAdmin || isLaunchVisibleResult(result))
           setRemoteResults(next)
         })
         .catch(() => {
@@ -312,11 +337,16 @@ export default function DashboardGlobalSearch({ mobile = false }: DashboardGloba
       cancelled = true
       window.clearTimeout(timer)
     }
-  }, [open, query])
+  }, [isAdmin, open, query])
+
+  const moduleResults = useMemo(
+    () => isAdmin ? [...MODULE_RESULTS, ...ADMIN_PRODUCT_LAB_RESULTS] : MODULE_RESULTS,
+    [isAdmin],
+  )
 
   const quickAccessResults = useMemo(
-    () => MODULE_RESULTS.slice(0, mobile ? 5 : 8).map((result, index) => ({ ...result, score: 80 - index })),
-    [mobile],
+    () => moduleResults.slice(0, mobile ? 5 : 8).map((result, index) => ({ ...result, score: 80 - index })),
+    [mobile, moduleResults],
   )
 
   const moduleBrowseResults = useMemo(
@@ -335,7 +365,7 @@ export default function DashboardGlobalSearch({ mobile = false }: DashboardGloba
     }
 
     const deduped = new Map<string, SearchResult>()
-    for (const result of [...MODULE_RESULTS, ...recentResults, ...remoteResults]) {
+    for (const result of [...moduleResults, ...recentResults, ...remoteResults]) {
       if (!deduped.has(result.id)) deduped.set(result.id, result)
     }
 
@@ -344,7 +374,7 @@ export default function DashboardGlobalSearch({ mobile = false }: DashboardGloba
       .filter(result => result.score > 0)
       .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title))
       .slice(0, 12)
-  }, [query, quickAccessResults, recentResults, remoteResults])
+  }, [query, quickAccessResults, moduleResults, recentResults, remoteResults])
 
   useEffect(() => {
     setActiveIndex(firstSelectableIndex(results))

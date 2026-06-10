@@ -10,9 +10,12 @@ const SOLUTIONS = [
   { label: 'AI Research', href: '/dashboard/ai-search' },
   { label: 'Explore Market Graph',   href: '/dashboard/explore' },
   { label: 'Shopping Intelligence',  href: '/dashboard/shopping' },
-  { label: 'AI Ads Intelligence',    href: '/dashboard/ads' },
+  { label: 'Monitoring',             href: '/dashboard/geo-monitor' },
+  { label: 'Analysis',               href: '/dashboard/analysis' },
+  { label: 'Web Infrastructure',     href: '/dashboard/geo-audit' },
+  { label: 'Brand Hub',              href: '/dashboard/brand-hub' },
   { label: 'Visibility Proxy',       href: '/dashboard/visibility-proxy' },
-  { label: 'Agentic Commerce',       href: '/dashboard/agentic-commerce' },
+  { label: 'GA4 Attribution',        href: '/dashboard/ga4-attribution' },
 ]
 
 const FREE_TOOLS = [

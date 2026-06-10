@@ -150,6 +150,8 @@ function UserManagement() {
 
   const planColors: Record<string, string> = {
     starter: 'bg-surface-warm text-ink-2',
+    standard: 'bg-surface-warm text-ink-2',
+    pro: 'bg-surface-warm text-ink-2',
     growth: 'bg-surface-warm text-ink-2',
     enterprise: 'bg-surface-warm text-ink-2',
     trial: 'bg-sage-bg text-sage',
@@ -272,10 +274,15 @@ function UserManagement() {
             </thead>
             <tbody className="divide-y divide-divider-light">
               {[
-                ['GEO Audit (1 URL)', 10], ['Monitor Scan (per prompt)', 1], ['Competitor Scan', 3],
-                ['Gap Analysis', 15], ['Intel Report', 25], ['Advanced Analysis', 5],
-                ['Optimization Plan', 15], ['Apply Optimization', 5], ['Content Generate', 3],
-                ['Content Validate', 1], ['Distribution Strategy', 5], ['Reddit Strategy', 10],
+                ['Explore / Shopping reads', 0],
+                ['Shopping refresh', 20],
+                ['AI Research run', 80],
+                ['Monitoring prompt run', 1],
+                ['Monitoring competitor scan', 3],
+                ['Analysis report', 25],
+                ['Web infrastructure audit', 10],
+                ['Visibility Proxy scan', 10],
+                ['GA4 Attribution sync', 5],
               ].map(([op, cost]) => (
                 <tr key={op as string} className="hover:bg-surface-warm">
                   <td className="px-4 py-2.5 text-ink-2">{op}</td>
@@ -287,9 +294,10 @@ function UserManagement() {
         </div>
         <div className="mt-4 text-xs text-ink-3 space-y-1">
           <p><span className="font-semibold">Trial:</span> 50 credits/month</p>
-          <p><span className="font-semibold">Starter ($299/mo):</span> 300 credits/month</p>
-          <p><span className="font-semibold">Growth ($599/mo):</span> 1,000 credits/month</p>
-          <p><span className="font-semibold">Enterprise ($999/mo):</span> 5,000 credits/month</p>
+          <p><span className="font-semibold">Starter ($99/mo):</span> 5,000 credits/month</p>
+          <p><span className="font-semibold">Standard ($199/mo):</span> 12,000 credits/month</p>
+          <p><span className="font-semibold">Pro ($399/mo):</span> 30,000 credits/month</p>
+          <p><span className="font-semibold">Enterprise:</span> Custom credits</p>
         </div>
       </section>
     </div>

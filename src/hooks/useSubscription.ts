@@ -7,13 +7,13 @@
  * Returns:
  *   hasAccess  — true if user has admin/demo role OR active/trialing subscription
  *   isLoading  — true while fetching
- *   plan       — 'starter' | 'growth' | 'enterprise' | null
+ *   plan       — 'starter' | 'standard' | 'pro' | 'enterprise' | legacy 'growth' | null
  *   status     — Stripe subscription status or null
  */
 import { useState, useEffect } from 'react'
 import { api } from '@/lib/api'
 
-export type SubscriptionPlan = 'starter' | 'growth' | 'enterprise' | null
+export type SubscriptionPlan = 'starter' | 'standard' | 'pro' | 'enterprise' | 'growth' | 'trial' | 'admin' | null
 export type SubscriptionStatusValue =
   | 'trialing'
   | 'active'

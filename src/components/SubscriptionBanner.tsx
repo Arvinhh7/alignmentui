@@ -18,12 +18,16 @@ import { useAuth } from '@/hooks/useAuth'
 
 const PLAN_DISPLAY: Record<string, string> = {
   starter: 'Starter',
-  growth: 'Growth',
+  standard: 'Standard',
+  pro: 'Pro',
+  growth: 'Standard',
   enterprise: 'Enterprise',
 }
 
 const PLAN_COLORS: Record<string, string> = {
   starter: 'bg-surface-muted text-ink-2',
+  standard: 'bg-surface-muted text-ink-2',
+  pro: 'bg-surface-muted text-ink-2',
   growth: 'bg-surface-muted text-ink-2',
   enterprise: 'bg-surface-muted text-ink-2',
 }
@@ -61,7 +65,7 @@ function CounterOffer({ reason, plan, lang, onPause, onDowngrade, onContinueCanc
         {plan !== 'starter' && (
           <div className="p-4 bg-surface-warm border border-divider rounded-xl">
             <p className="font-semibold text-ink text-sm mb-1">
-              {isZh ? '💡 降级到 Starter ($299/月)' : '💡 Switch to Starter ($299/mo)'}
+              {isZh ? '💡 降级到 Starter ($99/月)' : '💡 Switch to Starter ($99/mo)'}
             </p>
             <p className="text-ink-2 text-xs mb-3">
               {isZh

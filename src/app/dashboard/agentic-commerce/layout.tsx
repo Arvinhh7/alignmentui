@@ -1,6 +1,6 @@
 /**
  * Agentic Commerce layout — subscription gated, Layer 3 navigation.
- * Requires an active paid plan (starter / growth / enterprise).
+ * Requires an active paid plan (starter / standard / pro / enterprise).
  * Admin / demo roles always have access.
  */
 "use client";

@@ -86,12 +86,12 @@ const sections: { title: string; items: FAQItem[] }[] = [
         a: 'The Free plan includes: Brand Story, Products (up to 10), FAQ (up to 5 pairs), robots.txt optimization, Organization + FAQPage + Product JSON-LD schema, and the AI Readiness Score dashboard. Your AI Score can reach up to 45/100 on the Free plan.',
       },
       {
-        q: 'What do I get with Growth ($49/month)?',
-        a: 'Growth unlocks: llms.txt and agent.json endpoints, Trust & Authority module, Competitive Edge module, up to 50 FAQ pairs, 100 products, 5,000 imported reviews, full AI Readiness Score (100/100), and advanced analytics with platform breakdown.',
+        q: 'What do I get with Standard ($199/month)?',
+        a: 'Standard includes the core AI visibility workspace, 12,000 monthly credits, multi-platform monitoring, competitor analysis, Explore / Shopping database access, Visibility Proxy, GA4 Attribution, custom reports, and 5 team seats.',
       },
       {
         q: 'How do I upgrade my plan?',
-        a: 'Go to Plans & Pricing in the app menu. Click "Upgrade to Growth" or "Upgrade to Enterprise." You will be redirected to Shopify\'s standard billing approval page. After approving, you are returned to the app with your new plan active.',
+        a: 'Go to Plans & Pricing in the app menu. Choose Starter, Standard, or Pro to start Stripe checkout. Enterprise is handled through sales.',
       },
       {
         q: 'How do I cancel my subscription?',
@@ -116,7 +116,7 @@ const sections: { title: string; items: FAQItem[] }[] = [
       },
       {
         q: 'The "Competitive Edge" and "Trust & Authority" modules are locked.',
-        a: 'These modules require the Growth plan or higher. Click "Upgrade to Growth" on the Plans & Pricing page to unlock them.',
+        a: 'These modules require the Standard plan or higher. Click "Upgrade to Standard" on the Plans & Pricing page to unlock them.',
       },
       {
         q: 'I uninstalled and reinstalled the app. Where is my data?',

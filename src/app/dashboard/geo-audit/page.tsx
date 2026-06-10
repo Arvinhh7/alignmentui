@@ -1523,10 +1523,10 @@ function ZoneBreakdownSection({
 }) {
   // Gating logic:
   // admin: full access
-  // enterprise/growth: all zones visible
+  // standard/pro/enterprise: all zones visible. growth is a legacy alias.
   // starter: green full, yellow/red locked
   // trial (plan=null): green first 10, rest locked
-  const isFullAccess = isAdmin || plan === 'enterprise' || plan === 'growth'
+  const isFullAccess = isAdmin || plan === 'standard' || plan === 'pro' || plan === 'enterprise' || plan === 'growth'
   const isStarterOnly = !isAdmin && (plan === 'starter')
   const isTrial = !isAdmin && !plan
 
@@ -1547,7 +1547,7 @@ function ZoneBreakdownSection({
         {!isFullAccess && (
           <span className="text-xs text-ink-3 flex items-center gap-1">
             <Lock className="w-3 h-3" />
-            {plan === 'starter' ? 'Upgrade to Growth for Yellow/Red zones' : 'Subscribe to unlock all zones'}
+            {plan === 'starter' ? 'Upgrade to Standard for Yellow/Red zones' : 'Subscribe to unlock all zones'}
           </span>
         )}
       </div>
@@ -1819,7 +1819,7 @@ function UnifiedAuditSection({
   userId?: string
   siteUrl?: string
 }) {
-  const isFullAccess = isAdmin || plan === 'enterprise' || plan === 'growth'
+  const isFullAccess = isAdmin || plan === 'standard' || plan === 'pro' || plan === 'enterprise' || plan === 'growth'
   const isStarterOnly = !isAdmin && plan === 'starter'
   const isTrial = !isAdmin && !plan
 

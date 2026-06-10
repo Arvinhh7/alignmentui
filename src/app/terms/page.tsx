@@ -68,19 +68,24 @@ export default function TermsPage() {
                 </thead>
                 <tbody>
                   <tr className="border-t border-divider-light">
-                    <td className="px-4 py-2">Free</td>
-                    <td className="px-4 py-2">$0/month</td>
-                    <td className="px-4 py-2">5 FAQ pairs, 10 products, AI Score up to 45/100</td>
+                    <td className="px-4 py-2">Starter</td>
+                    <td className="px-4 py-2">$99/month</td>
+                    <td className="px-4 py-2">5,000 credits/month, 1 brand, core AI visibility modules, basic report export</td>
                   </tr>
                   <tr className="border-t border-divider-light bg-surface">
-                    <td className="px-4 py-2">Growth</td>
-                    <td className="px-4 py-2">$49/month</td>
-                    <td className="px-4 py-2">50 FAQ pairs, 100 products, 5,000 reviews, full 100/100 Score, llms.txt &amp; agent.json endpoints</td>
+                    <td className="px-4 py-2">Standard</td>
+                    <td className="px-4 py-2">$199/month</td>
+                    <td className="px-4 py-2">12,000 credits/month, 4 AI platforms, competitor analysis, custom reports</td>
                   </tr>
                   <tr className="border-t border-divider-light">
+                    <td className="px-4 py-2">Pro</td>
+                    <td className="px-4 py-2">$399/month</td>
+                    <td className="px-4 py-2">30,000 credits/month, multi-brand workflows, advanced AI Research, API access</td>
+                  </tr>
+                  <tr className="border-t border-divider-light bg-surface">
                     <td className="px-4 py-2">Enterprise</td>
-                    <td className="px-4 py-2">$99/month</td>
-                    <td className="px-4 py-2">200 FAQ pairs, 500 products, 25,000 reviews, priority support</td>
+                    <td className="px-4 py-2">Custom</td>
+                    <td className="px-4 py-2">Custom credits, custom connectors, private deployment options, SLA, dedicated CSM</td>
                   </tr>
                 </tbody>
               </table>

@@ -21,25 +21,35 @@
 import { usePathname } from 'next/navigation'
 import { Lock } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { useSubscription } from '@/hooks/useSubscription'
 import {
   FEATURES,
   featureFromPath,
   hasFeatureAccess,
+  hasPlanFeatureAccess,
+  isLaunchHiddenFeature,
 } from '@/lib/featurePermissions'
 
 export default function FeatureGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? ''
-  const { role, permissions } = useAuth()
+  const { role, permissions, user } = useAuth()
+  const sub = useSubscription(user?.id, role)
   const featureKey = featureFromPath(pathname)
 
   // Not a feature page (settings, admin/*, etc.) → fall through unchanged.
   if (!featureKey) return <>{children}</>
 
   // Has access → render normally.
-  if (hasFeatureAccess(role, permissions, featureKey)) return <>{children}</>
+  if (
+    hasFeatureAccess(role, permissions, featureKey) &&
+    (role === 'admin' || role === 'demo' || role === 'staff' || hasPlanFeatureAccess(sub.plan, featureKey))
+  ) {
+    return <>{children}</>
+  }
 
   // Staff lacks permission → render restricted view in place of children.
   const feature = FEATURES[featureKey]
+  const isLaunchHidden = isLaunchHiddenFeature(featureKey)
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)] p-6">
       <div className="max-w-md w-full bg-surface border border-divider rounded-2xl p-10 text-center">
@@ -48,9 +58,18 @@ export default function FeatureGate({ children }: { children: React.ReactNode })
         </div>
         <h2 className="text-lg font-bold text-ink mb-2">Access Restricted</h2>
         <p className="text-sm text-ink-2 leading-relaxed mb-6">
-          <span className="font-semibold text-ink">{feature.label}</span> is not
-          enabled for your account. Please contact your administrator to request
-          additional permissions.
+          {isLaunchHidden ? (
+            <>
+              <span className="font-semibold text-ink">{feature.label}</span> is not
+              included in the current launch workspace.
+            </>
+          ) : (
+            <>
+              <span className="font-semibold text-ink">{feature.label}</span> is not
+              enabled for your account. Please contact your administrator to request
+              additional permissions.
+            </>
+          )}
         </p>
         <div className="flex items-center justify-center gap-3">
           <button
