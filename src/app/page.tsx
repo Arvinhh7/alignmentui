@@ -22,7 +22,7 @@ const productModules = [
     eyebrow: 'Market intelligence',
     title: 'Map the AI market',
     desc: 'See which topics, brands, and citation sources shape AI recommendations across a category.',
-    image: '/landing/explore-2.png',
+    image: '/landing/ai-market-map.png',
     points: ['Brand competitive landscape', 'Citation source authority', 'Topic ranking'],
   },
   {
@@ -31,7 +31,7 @@ const productModules = [
     eyebrow: 'Research trail',
     title: 'See how AI breaks down buyer questions',
     desc: 'Follow the sub-questions, sources, competitors, and decision dimensions behind an AI research path.',
-    image: '/landing/ai-research.png',
+    image: '/landing/buyer-question-breakdown.png',
     points: ['Root question', 'Sub-question trail', 'Competitor context'],
   },
   {
@@ -49,7 +49,7 @@ const productModules = [
     eyebrow: 'Prompt tracking',
     title: 'Track how AI answers change over time',
     desc: 'Monitor prompt performance, fan-out behavior, competitor mentions, and source movement across recurring runs.',
-    image: '/landing/explore-1.png',
+    image: '/landing/answer-change-monitoring.png',
     points: ['Prompt history', 'Fan-out analysis', 'Source movement'],
   },
   {
@@ -58,23 +58,23 @@ const productModules = [
     eyebrow: 'Decision layer',
     title: 'Turn AI visibility into action',
     desc: 'Review the AI response, brands mentioned, highlighted entities, citations, and source links behind each signal.',
-    image: '/landing/explore-1.png',
+    image: '/landing/visibility-action-layer.png',
     points: ['AI response', 'Brands mentioned', 'Citation links'],
   },
 ]
 
 const outcomes = [
   {
-    title: 'Know where AI recommends competitors',
-    desc: 'Topic rankings, leaders, citations, and AI answer records in one place.',
+    title: 'Know which products AI chooses',
+    desc: 'Track product cards, brands, and competitors surfaced across buyer-intent prompts.',
   },
   {
-    title: 'Clean the data before decisions',
-    desc: 'Brands, products, domains, and citations are normalized so leaderboards stay trustworthy.',
+    title: 'See the facts behind AI recommendations',
+    desc: 'Capture prices, offers, ratings, channels, citations, and source domains before they become purchase decisions.',
   },
   {
-    title: 'Connect visibility to owned channels',
-    desc: 'Use Web Infrastructure, Brand Hub, Visibility Proxy, and GA4 Attribution to improve the pages AI can fetch and measure the traffic it sends back.',
+    title: 'Turn demand into owned-channel action',
+    desc: 'Use product, source, and query context to improve pages, feeds, retailer coverage, and attribution.',
   },
 ]
 
@@ -120,7 +120,7 @@ export default function LandingPage() {
             }`}
           >
             <span className="h-1.5 w-1.5 animate-blink rounded-full bg-sage" />
-            Visible to Global 58 AI Platforms
+            AI commerce intelligence across search, shopping, and answer engines
           </div>
 
           <div
@@ -243,11 +243,11 @@ export default function LandingPage() {
                     </div>
                   </div>
 
-                  <div className={`overflow-x-auto rounded-[22px] border border-divider-light bg-canvas p-3 ${reverse ? 'lg:order-1' : ''}`}>
+                  <div className={`rounded-[22px] border border-divider-light bg-canvas p-3 ${reverse ? 'lg:order-1' : ''}`}>
                     <img
                       src={module.image}
                       alt={`Alignment ${module.label} module`}
-                      className="mx-auto h-auto max-h-none w-full min-w-[760px] object-contain"
+                      className="mx-auto h-auto w-full object-contain"
                     />
                   </div>
                 </article>
