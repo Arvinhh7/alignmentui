@@ -16,7 +16,7 @@ function AISearchContent() {
           <div>
             <h1 className="heading-dash">AI Research</h1>
             <p className="text-sm text-ink-3">
-              Customer-scoped research — see how AI investigates your market and where your brand has gaps
+              Start from the customer profile, diagnose source and prompt gaps, then send actions into Monitoring
             </p>
           </div>
         </div>
@@ -24,7 +24,6 @@ function AISearchContent() {
 
       <div className="p-6 space-y-6">
         <BrandSetupPanel />
-        {/* The 5-block narrative: Brief → Dimension Map → Brand Coverage → Research Trail → Gap Playbook */}
         <AIResearchTab />
       </div>
     </div>

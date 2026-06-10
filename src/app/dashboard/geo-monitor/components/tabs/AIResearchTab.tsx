@@ -1,10 +1,10 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import {
   AlertCircle,
   ArrowRight,
-  BarChart2,
   BookOpen,
   CheckCircle2,
   FlaskConical,
@@ -308,62 +308,171 @@ function ResearchTrail({ result }: { result: ResearchResult }) {
   )
 }
 
-function GapPlaybook({ result }: { result: ResearchResult }) {
+function WorkflowSteps({
+  hasProfile,
+  hasResearch,
+  hasSources,
+  activePrompts,
+  hasScan,
+}: {
+  hasProfile: boolean
+  hasResearch: boolean
+  hasSources: boolean
+  activePrompts: number
+  hasScan: boolean
+}) {
+  const steps = [
+    { label: 'Customer Profile', detail: 'Market, brand, competitors', done: hasProfile },
+    { label: 'AI Research', detail: 'Diagnosis and gaps', done: hasResearch },
+    { label: 'Sources Map', detail: 'Trusted sources AI cites', done: hasSources },
+    { label: 'Design Prompts', detail: activePrompts ? `${activePrompts} active prompts` : 'Prompt plan', done: activePrompts > 0 },
+    { label: 'Monitoring', detail: 'Track performance daily', done: hasScan },
+  ]
+
   return (
-    <div className="bg-surface rounded-2xl border border-divider-light p-6">
-      <BlockHeader icon={Target} number={6} title="Gap Playbook" question="Which gaps should I fix first?" />
-      <div className="space-y-3">
-        {result.gaps.map(gap => (
-          <div key={gap.dimension} className={`p-4 rounded-xl border flex items-center gap-4 ${
-            gap.priority === 'high' ? 'border-red-soft/25 bg-red-soft-bg/30' : 'border-caution/20 bg-caution-bg/20'
-          }`}>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                  gap.priority === 'high' ? 'bg-red-soft text-white' : 'bg-caution text-white'
-                }`}>{gap.priority}</span>
-                <span className="text-[13px] font-semibold text-ink">{gap.dimension}</span>
-              </div>
-              <div className="flex flex-wrap items-center gap-3 text-[11px] text-ink-3 mt-1">
-                <span className="flex items-center gap-1.5">
-                  <BrandLogo domain={result.domain} name={result.brand_name} size={14} />
-                  <strong className={gap.your_coverage === 'absent' ? 'text-red-soft' : 'text-caution'}>{gap.your_coverage}</strong>
-                </span>
-                <span>vs</span>
-                <span className="flex items-center gap-1.5">
-                  <BrandLogo domain={gap.top_competitor_domain} name={gap.top_competitor} size={14} />
-                  <strong className="text-sage">{gap.top_competitor}</strong>
-                </span>
-                <span className="flex items-center gap-1"><BarChart2 className="w-3 h-3" />{gap.content_type}</span>
-              </div>
-            </div>
-            <button className="flex items-center gap-1.5 px-3 py-2 bg-ink text-ink-inv rounded-xl text-[11px] font-semibold hover:bg-ink/80 transition-colors flex-shrink-0 whitespace-nowrap">
-              <Zap className="w-3 h-3" />
-              Generate
-            </button>
+    <div className="grid gap-2 sm:grid-cols-5">
+      {steps.map((step, index) => (
+        <div key={step.label} className={`rounded-2xl border p-3 ${
+          step.done ? 'border-sage/25 bg-sage-bg/45' : 'border-divider-light bg-surface'
+        }`}>
+          <div className="flex items-center gap-2">
+            <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
+              step.done ? 'bg-sage text-white' : 'bg-surface-muted text-ink-3'
+            }`}>
+              {step.done ? <CheckCircle2 className="h-3 w-3" /> : index + 1}
+            </span>
+            <span className="text-[12px] font-bold text-ink">{step.label}</span>
           </div>
-        ))}
+          <p className="mt-1 pl-7 text-[10px] leading-snug text-ink-3">{step.detail}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ResearchStatusCard({
+  result,
+  activePrompts,
+  hasSources,
+  hasScan,
+  onGeneratePrompts,
+}: {
+  result: ResearchResult
+  activePrompts: number
+  hasSources: boolean
+  hasScan: boolean
+  onGeneratePrompts: () => void
+}) {
+  const nextStep = !hasSources
+    ? 'Run Sources Map to find the external domains AI already trusts.'
+    : activePrompts === 0
+      ? 'Generate recommended prompts from the gaps, then move them into Monitoring.'
+      : !hasScan
+        ? 'Open Monitoring and run a scan to measure prompt visibility.'
+        : 'Review the diagnosis, then refresh research after source or prompt changes.'
+
+  return (
+    <div className="rounded-2xl border border-divider-light bg-surface p-5">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <div className="text-[11px] font-bold uppercase tracking-wider text-ink-3">Closed-loop status</div>
+          <h3 className="mt-1 text-[18px] font-bold text-ink">Profile → diagnose → build sources/prompts → monitor</h3>
+          <p className="mt-1 text-[13px] leading-relaxed text-ink-3">{nextStep}</p>
+        </div>
+        <div className="grid min-w-[360px] grid-cols-3 overflow-hidden rounded-2xl border border-divider-light bg-canvas">
+          <div className="p-3 text-center">
+            <div className="text-[20px] font-bold text-ink">{result.summary.readiness}%</div>
+            <div className="text-[10px] text-ink-3">Readiness</div>
+          </div>
+          <div className="border-x border-divider-light p-3 text-center">
+            <div className="text-[20px] font-bold text-ink">{activePrompts}</div>
+            <div className="text-[10px] text-ink-3">Active prompts</div>
+          </div>
+          <div className="p-3 text-center">
+            <div className="text-[20px] font-bold text-ink">{hasSources ? 'Mapped' : 'Open'}</div>
+            <div className="text-[10px] text-ink-3">Sources Map</div>
+          </div>
+        </div>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <a href="#sources-map" className="inline-flex items-center gap-2 rounded-xl border border-divider-light bg-canvas px-4 py-2 text-[12px] font-semibold text-ink hover:bg-surface-warm">
+          <GitBranch className="h-3.5 w-3.5" />
+          Review Sources Map
+        </a>
+        <button
+          type="button"
+          onClick={onGeneratePrompts}
+          className="inline-flex items-center gap-2 rounded-xl bg-ink px-4 py-2 text-[12px] font-semibold text-ink-inv hover:bg-ink/80"
+        >
+          <Zap className="h-3.5 w-3.5" />
+          Generate recommended prompts
+        </button>
+        <Link href="/dashboard/geo-monitor?tab=prompts" className="inline-flex items-center gap-2 rounded-xl border border-divider-light bg-canvas px-4 py-2 text-[12px] font-semibold text-ink hover:bg-surface-warm">
+          <Target className="h-3.5 w-3.5" />
+          Open Monitoring
+        </Link>
       </div>
     </div>
   )
 }
 
-function SourcesGapSection({ number }: { number: number }) {
+function ResearchDiagnosisSection({ result }: { result: ResearchResult }) {
   return (
-    <div id="sources-gap" className="scroll-mt-24 bg-surface rounded-2xl border border-divider-light p-6">
+    <section className="space-y-5">
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <div className="text-[11px] font-bold uppercase tracking-wider text-sage">Phase 2 · Research Diagnosis</div>
+          <h2 className="mt-1 text-[20px] font-bold text-ink">What AI sees before it recommends a brand</h2>
+          <p className="mt-1 text-[13px] text-ink-3">
+            This section explains the market dimensions AI researches, where your brand appears, and which gaps create the action plan below.
+          </p>
+        </div>
+      </div>
+      <ResearchBrief result={result} />
+      <DimensionMap result={result} />
+      <BrandCoverage result={result} />
+      <ResearchTrail result={result} />
+    </section>
+  )
+}
+
+function SourcesMapSection({ number }: { number: number }) {
+  return (
+    <div id="sources-map" className="scroll-mt-24 bg-surface rounded-2xl border border-divider-light p-6">
       <BlockHeader
         icon={GitBranch}
         number={number}
-        title="Sources Gap"
-        question="Which trusted external sources should I enter to close the research gaps?"
+        title="Sources Map"
+        question="Which trusted external sources does AI already cite in this market?"
       />
       <div className="mb-5 rounded-xl border border-divider-light bg-canvas p-4">
         <p className="text-[13px] leading-relaxed text-ink-2">
-          Sources Gap maps the domains AI already cites for this market. Use it to see where competitors appear,
-          where your domain is missing, and which sources should become content, PR, review, schema, or distribution actions.
+          Sources Map shows the domains AI already cites for this market. Use it to understand the current citation landscape,
+          then use Analysis to identify where your brand is missing and which sources should become content, PR, review, schema, or distribution actions.
         </p>
       </div>
       <DiscoverTab variant="sources-gap" />
+    </div>
+  )
+}
+
+function ActionPreview() {
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <div className="rounded-2xl border border-dashed border-divider bg-surface p-5 opacity-75">
+        <div className="text-[11px] font-bold uppercase tracking-wider text-ink-3">After AI Research</div>
+        <h3 className="mt-1 text-[15px] font-bold text-ink">Sources Map</h3>
+        <p className="mt-2 text-[12px] leading-relaxed text-ink-3">
+          Discover which external domains AI trusts and where competitors already have citation coverage.
+        </p>
+      </div>
+      <div className="rounded-2xl border border-dashed border-divider bg-surface p-5 opacity-75">
+        <div className="text-[11px] font-bold uppercase tracking-wider text-ink-3">After AI Research</div>
+        <h3 className="mt-1 text-[15px] font-bold text-ink">Design Prompts</h3>
+        <p className="mt-2 text-[12px] leading-relaxed text-ink-3">
+          Convert missing intents and competitor gaps into monitoring prompts.
+        </p>
+      </div>
     </div>
   )
 }
@@ -374,6 +483,13 @@ function EmptyState({ brandName, canRun, onRun, running }: {
   onRun: () => void
   running: boolean
 }) {
+  const ctx = useUnified()
+  const missingReason = !ctx.activeCustomerId
+    ? 'Select a customer workspace first so the research run can be saved.'
+    : !ctx.brandConfig.domain
+      ? 'Add the brand domain in the Customer Intelligence Profile first.'
+      : 'Complete the Customer Intelligence Profile first.'
+
   return (
     <div className="bg-surface rounded-2xl border border-divider-light p-8 text-center">
       <div className="w-14 h-14 rounded-2xl bg-[rgba(100,180,255,0.08)] flex items-center justify-center mx-auto mb-4">
@@ -391,7 +507,7 @@ function EmptyState({ brandName, canRun, onRun, running }: {
         {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
         {running ? 'Running customer research...' : `Run AI Research${brandName ? ` on ${brandName}` : ''}`}
       </button>
-      {!canRun && <p className="text-[11px] text-ink-3 mt-2">Select a customer and complete the Customer Intelligence Profile first.</p>}
+      {!canRun && <p className="text-[11px] text-ink-3 mt-2">{missingReason}</p>}
     </div>
   )
 }
@@ -406,6 +522,11 @@ export function AIResearchTab() {
   const result = useMemo(() => asResearchResult(run?.result_json), [run])
   const brandName = ctx.brandConfig.brand_name || ''
   const canRun = Boolean(ctx.activeCustomerId && brandName && ctx.brandConfig.domain)
+  const activePrompts = ctx.prompts.filter(p => p.is_active).length
+  const hasProfile = Boolean(ctx.activeCustomerId && ctx.brandConfig.brand_name && ctx.brandConfig.domain)
+  const hasSources = Boolean(ctx.discoverResult?.source_domains?.length)
+  const hasScan = Boolean(ctx.scanResult)
+  const handleGeneratePrompts = () => ctx.setShowGeneratePromptsModal(true)
 
   useEffect(() => {
     if (!ctx.activeCustomerId) {
@@ -460,11 +581,17 @@ export function AIResearchTab() {
   if (loading) {
     return (
       <div className="space-y-4">
+        <WorkflowSteps
+          hasProfile={hasProfile}
+          hasResearch={false}
+          hasSources={hasSources}
+          activePrompts={activePrompts}
+          hasScan={hasScan}
+        />
         <div className="flex flex-col items-center justify-center rounded-2xl border border-divider-light bg-surface py-16">
           <Loader2 className="w-5 h-5 animate-spin text-ink-3" />
           <p className="mt-3 text-[13px] font-semibold text-ink-3">Loading AI Research…</p>
         </div>
-        <SourcesGapSection number={2} />
       </div>
     )
   }
@@ -472,15 +599,29 @@ export function AIResearchTab() {
   if (!result) {
     return (
       <div className="space-y-4">
+        <WorkflowSteps
+          hasProfile={hasProfile}
+          hasResearch={false}
+          hasSources={hasSources}
+          activePrompts={activePrompts}
+          hasScan={hasScan}
+        />
         {error && <div className="bg-red-soft-bg border border-red-soft/30 rounded-xl p-4 text-sm text-red-soft">{error}</div>}
         <EmptyState brandName={brandName} canRun={canRun} onRun={handleRun} running={running} />
-        <SourcesGapSection number={2} />
+        <ActionPreview />
       </div>
     )
   }
 
   return (
     <div className="space-y-5">
+      <WorkflowSteps
+        hasProfile={hasProfile}
+        hasResearch={true}
+        hasSources={hasSources}
+        activePrompts={activePrompts}
+        hasScan={hasScan}
+      />
       {error && <div className="bg-red-soft-bg border border-red-soft/30 rounded-xl p-4 text-sm text-red-soft">{error}</div>}
       <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-surface rounded-xl border border-divider-light">
         <div className="flex items-center gap-3 min-w-0">
@@ -506,12 +647,15 @@ export function AIResearchTab() {
         </button>
       </div>
 
-      <ResearchBrief result={result} />
-      <DimensionMap result={result} />
-      <BrandCoverage result={result} />
-      <ResearchTrail result={result} />
-      <SourcesGapSection number={5} />
-      <GapPlaybook result={result} />
+      <ResearchStatusCard
+        result={result}
+        activePrompts={activePrompts}
+        hasSources={hasSources}
+        hasScan={hasScan}
+        onGeneratePrompts={handleGeneratePrompts}
+      />
+      <ResearchDiagnosisSection result={result} />
+      <SourcesMapSection number={5} />
     </div>
   )
 }

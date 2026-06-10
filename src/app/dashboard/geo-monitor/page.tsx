@@ -1,11 +1,10 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { Loader2, BarChart3, Tag, Compass, FlaskConical } from 'lucide-react'
+import { Loader2, BarChart3, Tag, Compass } from 'lucide-react'
 import { UnifiedProvider, useUnified, type TabKey } from './components/UnifiedContext'
 import { ControlBar } from './components/ControlBar'
 import { BrandSetupPanel } from './components/BrandSetupPanel'
-import { PromptEngineeringTab } from './components/tabs/PromptEngineeringTab'
 
 const TabLoader = () => (
   <div className="flex items-center justify-center py-12">
@@ -32,12 +31,6 @@ function MonitoringContent() {
       icon: <Compass className="w-4 h-4" />,
       badge: ctx.discoverResult ? `${ctx.discoverResult.unique_domains}` : undefined,
     },
-    {
-      key: 'ai_research',
-      label: 'Prompt Engineering',
-      icon: <FlaskConical className="w-4 h-4" />,
-      isBeta: true,
-    },
   ]
 
   return (
@@ -50,7 +43,7 @@ function MonitoringContent() {
           </div>
           <div>
             <h1 className="heading-dash">Monitoring</h1>
-            <p className="text-sm text-ink-3">Prompt tracking, Fan-Out analysis, and AI research</p>
+            <p className="text-sm text-ink-3">Manage prompts, run scans, and monitor visibility performance</p>
           </div>
         </div>
       </div>
@@ -96,7 +89,6 @@ function MonitoringContent() {
         {/* Tab content */}
         {ctx.activeTab === 'prompts'     && <PromptsTab />}
         {ctx.activeTab === 'discover'    && <FanOutTab />}
-        {ctx.activeTab === 'ai_research' && <PromptEngineeringTab />}
       </div>
     </div>
   )

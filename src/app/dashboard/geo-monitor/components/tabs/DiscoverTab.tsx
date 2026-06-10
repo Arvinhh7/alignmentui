@@ -168,13 +168,13 @@ export function DiscoverTab({ variant = 'standalone' }: { variant?: 'standalone'
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="min-w-0">
           <h3 className="text-sm font-semibold text-ink">
-            {isSourcesGap ? 'Sources Gap' : d.title}
+            {isSourcesGap ? 'Sources Map' : d.title}
           </h3>
           <p className="text-xs text-ink-3 mt-0.5">
             {result
               ? `${result.total_grounded_urls.toLocaleString()} grounded URLs · ${result.unique_domains} domains · ${result.engine_used}`
               : isSourcesGap
-                ? 'Find the source domains AI already trusts, then turn missing citation layers into content, PR, review, and distribution actions.'
+                ? 'Map the source domains AI already cites, then use Analysis to identify where your brand is missing.'
                 : d.subtitle}
             {/* Show active model name for the currently selected engine */}
             {ctx.engineModels[ctx.discoverEngine] && (
@@ -353,26 +353,44 @@ export function DiscoverTab({ variant = 'standalone' }: { variant?: 'standalone'
               </div>
             </div>
           )}
-          {/* ── P1: Generate Prompts CTA ──────────── */}
+          {/* ── Design prompts CTA ──────────── */}
           <div className="bg-canvas border border-divider rounded-xl p-5">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="min-w-0">
-                <h4 className="text-sm font-semibold text-ink">{d.generatePrompts.ctaTitle}</h4>
-                <p className="text-xs text-ink-3 mt-0.5">{d.generatePrompts.ctaDesc}</p>
+                <h4 className="text-sm font-semibold text-ink">
+                  {isSourcesGap ? 'Design Prompts' : d.generatePrompts.ctaTitle}
+                </h4>
+                <p className="text-xs text-ink-3 mt-0.5">
+                  {isSourcesGap
+                    ? 'Turn this source map into monitorable prompts for buyer intents, competitor comparisons, and proof-source questions.'
+                    : d.generatePrompts.ctaDesc}
+                </p>
               </div>
-              <button
-                onClick={() => ctx.setShowGeneratePromptsModal(true)}
-                disabled={!ctx.isConfigured}
-                className="flex items-center gap-2 px-4 py-2 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-xl text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                {d.generatePrompts.ctaButton}
-              </button>
+              <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={() => ctx.setShowGeneratePromptsModal(true)}
+                  disabled={!ctx.isConfigured}
+                  className="flex items-center gap-2 px-4 py-2 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-xl text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  {isSourcesGap ? 'Generate prompts' : d.generatePrompts.ctaButton}
+                </button>
+                {isSourcesGap && (
+                  <Link
+                    href="/dashboard/geo-monitor?tab=prompts"
+                    className="flex items-center gap-2 px-4 py-2 bg-surface hover:bg-surface-warm text-ink-2 border border-divider rounded-xl text-sm font-medium transition-colors"
+                  >
+                    Manage prompts
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
 
           {/* ── P2+P3: Citation Truth Map ─────────── */}
-          <CitationTruthMap discoverResult={result} scanResult={ctx.scanResult} />
+          {(!isSourcesGap || ctx.scanResult) && (
+            <CitationTruthMap discoverResult={result} scanResult={ctx.scanResult} />
+          )}
 
           {/* ── P4: Prompt Intelligence ───────────── */}
           {ctx.scanResult && (

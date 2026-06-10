@@ -1,38 +1,13 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Search, StopCircle, Pencil, Loader2, RefreshCw, Bookmark } from 'lucide-react'
+import { Search, StopCircle, RefreshCw, Bookmark } from 'lucide-react'
 import { useUnified } from './UnifiedContext'
-import { BrandLogo } from '@/components/BrandLogo'
 
 /**
- * Active-brand badge — switching customers now lives in the global sidebar
- * switcher (SidebarCustomerSwitcher). Here we only show the current brand and
- * an Edit affordance to open the brand-config panel.
+ * Scan controls shared by Monitoring and Analysis. The customer profile card
+ * above this bar owns profile editing, so this bar only handles scan/report actions.
  */
-function BrandBadge() {
-  const ctx = useUnified()
-  if (!ctx.isConfigured && !ctx.activeCustomerId) return null
-
-  const name = ctx.brandConfig.brand_name || (ctx.customerHydrating ? 'Loading…' : '')
-
-  return (
-    <div className="flex items-center gap-2 px-3 py-1.5 bg-red-soft-bg rounded-xl border border-red-soft/30">
-      {ctx.customerHydrating
-        ? <Loader2 className="w-4 h-4 text-caution animate-spin" />
-        : <BrandLogo domain={ctx.brandConfig.domain} name={name} size={20} />}
-      <span className="text-sm font-semibold text-ink">{name}</span>
-      <button
-        onClick={() => ctx.setShowConfig(!ctx.showConfig)}
-        className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-700 text-white hover:bg-red-800 active:bg-red-900 transition-colors shadow-sm"
-      >
-        <Pencil className="w-3 h-3" />
-        Edit
-      </button>
-    </div>
-  )
-}
-
 export function ControlBar() {
   const ctx = useUnified()
   const [savedFeedback, setSavedFeedback] = useState(false)
@@ -59,9 +34,6 @@ export function ControlBar() {
 
   return (
     <div className="bg-surface rounded-xl border border-divider p-4 flex flex-wrap items-center gap-4">
-      {/* Active-brand badge + Edit (switching lives in the sidebar now) */}
-      <BrandBadge />
-
       {/* Date presets */}
       <div className="flex items-center gap-1 bg-canvas rounded-xl p-1">
         {(['7d', '30d', '90d', 'custom'] as const).map(preset => (
