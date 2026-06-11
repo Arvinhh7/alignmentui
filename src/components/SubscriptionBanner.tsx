@@ -410,7 +410,7 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
                 {isZh ? '🎉 订阅成功！' : '🎉 Subscription activated!'}
               </p>
               <p className="text-xs text-ink-inv/70">
-                {isZh ? '14 天免费试用已开始，尽情探索所有功能。' : 'Your 14-day trial has started. Explore all features.'}
+                {isZh ? '7 天免费试用已开始，尽情探索所有功能。' : 'Your 7-day trial has started. Explore all features.'}
               </p>
             </div>
             <button onClick={() => setShowSuccessToast(false)} className="text-ink-inv/50 hover:text-ink-inv transition-colors ml-2">

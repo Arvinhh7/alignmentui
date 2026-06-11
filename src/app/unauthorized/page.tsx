@@ -46,7 +46,7 @@ export default function UnauthorizedPage() {
           )}
 
           <p className="text-ink-3 leading-relaxed mb-6">
-            A subscription is required to access the dashboard. Try the Platform free for 14 days — no credit card needed.
+            A subscription is required to access the dashboard. Try the Platform free for 7 days — no credit card needed.
           </p>
 
           {/* Feature list */}

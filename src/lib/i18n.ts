@@ -246,7 +246,7 @@ export const translations = {
     // Pricing Page
     pricingPage: {
       title: 'Simple, Transparent Pricing',
-      subtitle: 'Choose the plan that fits your needs. All plans include a 30-day free trial.',
+      subtitle: 'Choose the plan that fits your needs. All plans include a 7-day free trial.',
       monthly: 'Monthly',
       yearly: 'Yearly',
       save: 'Save 17%',
@@ -941,7 +941,7 @@ export const translations = {
     // Pricing Page
     pricingPage: {
       title: '简单透明的定价',
-      subtitle: '选择适合您需求的方案。所有方案均包含30天免费试用。',
+      subtitle: '选择适合您需求的方案。所有方案均包含7天免费试用。',
       monthly: '月付',
       yearly: '年付',
       save: '节省17%',

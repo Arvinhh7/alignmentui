@@ -112,7 +112,7 @@ function PricingPageInner() {
         { name: 'ChatGPT', logo: '/logos/openai.png' },
       ],
       features: lang === 'zh' ? [
-        '14 天免费试用',
+        '7 天免费试用',
         '1 个品牌 / 项目',
         '50 条 prompts 每日追踪',
         'Explore / Shopping 数据库访问',
@@ -120,7 +120,7 @@ function PricingPageInner() {
         '基础报告导出',
         '邮件支持',
       ] : [
-        '14-day free trial',
+        '7-day free trial',
         '1 project / brand',
         '50 prompts tracked daily',
         'Explore / Shopping database access',
@@ -144,7 +144,7 @@ function PricingPageInner() {
         { name: 'Gemini', logo: '/logos/gemini.png' },
       ],
       features: lang === 'zh' ? [
-        '14 天免费试用',
+        '7 天免费试用',
         '包含所有 Starter 功能',
         '100 条 prompts 每日追踪',
         'Shopping 标准刷新',
@@ -153,7 +153,7 @@ function PricingPageInner() {
         '自定义报告',
         '5 个团队席位',
       ] : [
-        '14-day free trial',
+        '7-day free trial',
         'All Starter features',
         '100 prompts tracked daily',
         'Standard Shopping refresh',
@@ -178,7 +178,7 @@ function PricingPageInner() {
         { name: 'Gemini', logo: '/logos/gemini.png' },
       ],
       features: lang === 'zh' ? [
-        '14 天免费试用',
+        '7 天免费试用',
         '包含所有 Standard 功能',
         '300 条 prompts 每日追踪',
         '多品牌 / 多项目',
@@ -187,7 +187,7 @@ function PricingPageInner() {
         'API access',
         '优先支持',
       ] : [
-        '14-day free trial',
+        '7-day free trial',
         'All Standard features',
         '300 prompts tracked daily',
         'Multi projects / brands',

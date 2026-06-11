@@ -470,7 +470,7 @@ function LoginPageInner() {
                 {isForgotPassword ? "Enter your email and we'll send you a reset link"
                   : fromAudit ? 'Create a free account to unlock your full audit report'
                   : fromROI ? 'Sign up for free to unlock your ROI results'
-                  : isSignUp ? 'Start your 14-day free trial — no credit card required'
+                  : isSignUp ? 'Start your 7-day free trial — no credit card required'
                   : t.login.signInTo}
               </p>
             </div>
@@ -716,7 +716,7 @@ function LoginPageInner() {
                           <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-ink-2 hover:text-ink underline">Terms of Service</a>
                           {' '}and{' '}
                           <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-ink-2 hover:text-ink underline">Privacy Policy</a>.
-                          14-day free trial, cancel anytime.
+                          7-day free trial, cancel anytime.
                         </span>
                       </label>
                     )}
