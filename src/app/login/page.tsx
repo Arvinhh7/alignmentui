@@ -470,7 +470,7 @@ function LoginPageInner() {
                 {isForgotPassword ? "Enter your email and we'll send you a reset link"
                   : fromAudit ? 'Create a free account to unlock your full audit report'
                   : fromROI ? 'Sign up for free to unlock your ROI results'
-                  : isSignUp ? 'Start your 7-day free trial — no credit card required'
+                  : isSignUp ? 'Start your 7-day free trial'
                   : t.login.signInTo}
               </p>
             </div>

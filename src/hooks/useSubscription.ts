@@ -32,6 +32,20 @@ interface SubscriptionState {
 
 const ACCESS_STATUSES = ['trialing', 'active', 'past_due']
 
+function getCheckoutSessionId(): string | null {
+  if (typeof window === 'undefined') return null
+
+  const rawSearch = window.location.search || ''
+  const params = new URLSearchParams(rawSearch)
+  const sessionId = params.get('session_id')
+  if (sessionId) return sessionId
+
+  // Backward-compatible parser for older malformed redirects like
+  // ?subscription=success?session_id=cs_...
+  const legacyMatch = rawSearch.match(/[?&]subscription=success\?session_id=([^&]+)/)
+  return legacyMatch ? decodeURIComponent(legacyMatch[1]) : null
+}
+
 export function useSubscription(
   userId: string | undefined,
   role: string | null,
@@ -104,16 +118,29 @@ export function useSubscription(
       }
     }
 
+    const syncCheckoutAndCheck = async (): Promise<void> => {
+      const sessionId = getCheckoutSessionId()
+      if (sessionId) {
+        try {
+          await api.syncCheckoutSession({ user_id: userId, session_id: sessionId })
+        } catch {
+          // The Stripe webhook is still the source of truth; polling below is
+          // the fallback when the browser replay cannot complete.
+        }
+      }
+      if (mounted) await checkSubscription()
+    }
+
     // If arriving from Stripe checkout success, start with a short delay
-    // to give the webhook time to fire before the first check
+    // then replay the session as a webhook fallback before polling.
     const isFromCheckout =
       typeof window !== 'undefined' &&
       window.location.search.includes('subscription=success')
 
     if (isFromCheckout) {
-      setTimeout(() => { if (mounted) checkSubscription() }, 1500)
+      setTimeout(() => { if (mounted) void syncCheckoutAndCheck() }, 500)
     } else {
-      checkSubscription()
+      void checkSubscription()
     }
 
     return () => { mounted = false }

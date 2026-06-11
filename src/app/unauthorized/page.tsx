@@ -36,7 +36,7 @@ export default function UnauthorizedPage() {
           </div>
 
           <h1 className="text-2xl font-bold text-ink mb-3">
-            Start Your 14-Day Free Trial
+            Start Your 7-Day Free Trial
           </h1>
 
           {user?.email && (
@@ -46,7 +46,7 @@ export default function UnauthorizedPage() {
           )}
 
           <p className="text-ink-3 leading-relaxed mb-6">
-            A subscription is required to access the dashboard. Try the Platform free for 7 days — no credit card needed.
+            A subscription is required to access the dashboard. Start with a 7-day trial, then manage billing from Settings.
           </p>
 
           {/* Feature list */}

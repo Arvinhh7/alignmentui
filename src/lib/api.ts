@@ -2212,6 +2212,17 @@ class APIClient {
     });
   }
 
+  async syncCheckoutSession(params: { user_id: string; session_id: string }) {
+    return this.request<{ subscription: { action: string; user_id: string; plan?: string } }>(
+      '/api/stripe/sync-checkout-session',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      }
+    );
+  }
+
   async getSubscription(user_id: string) {
     return this.request<{ subscription: SubscriptionStatus | null }>(`/api/stripe/subscription/${user_id}`);
   }
