@@ -691,12 +691,12 @@ export default function SettingsPage() {
       if (res.data?.portal_url) {
         window.location.href = res.data.portal_url
       } else {
-        alert('Unable to open billing portal. Please try again or contact support@alignmenttech.ai.')
+        alert(res.error || 'Unable to open billing portal. Please try again or contact support@alignmenttech.ai.')
         setPortalLoading(false)
       }
     } catch (err) {
       console.error('Portal session error:', err)
-      alert('Unable to open billing portal. Please try again or contact support@alignmenttech.ai.')
+      alert(err instanceof Error ? err.message : 'Unable to open billing portal. Please try again or contact support@alignmenttech.ai.')
       setPortalLoading(false)
     }
   }
