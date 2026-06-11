@@ -687,7 +687,7 @@ export default function SettingsPage() {
     if (!user?.id) return
     setPortalLoading(true)
     try {
-      const res = await api.createPortalSession(user.id)
+      const res = await api.createPortalSession(user.id, user.email)
       if (res.data?.portal_url) {
         window.location.href = res.data.portal_url
       } else {
