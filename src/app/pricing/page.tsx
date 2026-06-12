@@ -71,16 +71,19 @@ function PricingPageInner() {
     return targetIdx > currentIdx ? 'upgrade' : 'downgrade'
   }, [sub])
 
-  const handlePortalRedirect = useCallback(async (planKey: string) => {
+  const handlePortalRedirect = useCallback(async (planKey?: string) => {
     if (!user?.id) return
-    setPortalLoading(planKey)
+    const loadingKey = planKey ?? 'manage'
+    setPortalLoading(loadingKey)
     try {
-      const result = await api.createPortalSession(user.id)
+      const interval = isYearly ? 'year' : 'month'
+      const result = await api.createPortalSession(user.id, user.email ?? null, planKey, interval)
       if (result.data?.portal_url) window.location.href = result.data.portal_url
+      else setCheckoutError(result.error ?? 'Unable to open billing portal. Please try again.')
     } finally {
       setPortalLoading(null)
     }
-  }, [user?.id])
+  }, [user?.id, user?.email, isYearly])
 
   const handleStartTrial = useCallback(async (planName: string) => {
     const planKey = PLAN_KEY_MAP[planName]
@@ -387,13 +390,13 @@ function PricingPageInner() {
                             {lang === 'zh' ? '当前套餐' : 'Current Plan'}
                           </button>
                           <button
-                            onClick={() => handlePortalRedirect(planKey)}
+                            onClick={() => handlePortalRedirect()}
                             disabled={!!portalLoading}
                             className={`w-full text-xs underline underline-offset-2 transition-colors disabled:opacity-50 ${
                               plan.popular ? 'text-ink-inv/60 hover:text-ink-inv/90' : 'text-ink-3 hover:text-ink-2'
                             }`}
                           >
-                            {portalLoading === planKey
+                            {portalLoading === 'manage'
                               ? redirectingLabel
                               : (lang === 'zh' ? '管理订阅' : 'Manage subscription')}
                           </button>

@@ -2204,11 +2204,16 @@ class APIClient {
     });
   }
 
-  async createPortalSession(user_id: string, user_email?: string | null) {
+  async createPortalSession(
+    user_id: string,
+    user_email?: string | null,
+    target_plan?: string,
+    billing_interval?: 'month' | 'year',
+  ) {
     return this.request<{ portal_url: string }>('/api/stripe/create-portal-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id, user_email }),
+      body: JSON.stringify({ user_id, user_email, target_plan, billing_interval }),
     });
   }
 
