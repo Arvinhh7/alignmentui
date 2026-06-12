@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { getSupabase } from '@/lib/supabase'
 import { api } from '@/lib/api'
@@ -504,6 +505,9 @@ function formatLimit(value: number | undefined | null, fallback = '—') {
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function SettingsPage() {
   const { user, session, resetPassword, role } = useAuth()
+  const searchParams = useSearchParams()
+  const section = searchParams.get('section') === 'settings' ? 'settings' : 'account'
+  const showingAccount = section === 'account'
 
   // Profile
   const [fullName, setFullName] = useState('')
@@ -686,89 +690,95 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-canvas">
       {/* Header */}
       <div className="bg-surface border-b border-divider-light px-8 py-6">
-        <h1 className="heading-dash">Account Settings</h1>
-        <p className="text-sm text-ink-3 mt-1">Manage your profile, security, and subscription</p>
+        <h1 className="heading-dash">{showingAccount ? 'Account' : 'Settings'}</h1>
+        <p className="text-sm text-ink-3 mt-1">
+          {showingAccount
+            ? 'Manage your profile, security, and subscription'
+            : 'Manage workspace integrations and website connections'}
+        </p>
       </div>
 
       <div className="max-w-2xl mx-auto px-8 py-8 space-y-5">
 
-        {/* ── Profile ── */}
-        <Section icon={User} title="Profile" description="Update your name and company">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-ink-2 mb-1.5">Full Name</label>
-              <input
-                type="text"
-                value={fullName}
-                onChange={e => setFullName(e.target.value)}
-                placeholder="Your full name"
-                className="w-full px-3.5 py-2.5 bg-surface-warm border border-divider rounded-xl text-sm focus:ring-2 focus:ring-ink/10 focus:border-ink focus:bg-surface transition-all outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-ink-2 mb-1.5">Company Name</label>
-              <input
-                type="text"
-                value={companyName}
-                onChange={e => setCompanyName(e.target.value)}
-                placeholder="Your company"
-                className="w-full px-3.5 py-2.5 bg-surface-warm border border-divider rounded-xl text-sm focus:ring-2 focus:ring-ink/10 focus:border-ink focus:bg-surface transition-all outline-none"
-              />
-            </div>
-            <button
-              onClick={handleProfileSave}
-              disabled={profileSaving}
-              className="flex items-center gap-2 px-4 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium rounded-xl transition-all disabled:opacity-50">
-              {profileSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              Save Changes
-            </button>
-            {profileFeedback && <Feedback type={profileFeedback.type} message={profileFeedback.msg} />}
-          </div>
-        </Section>
+        {showingAccount && (
+          <>
+            {/* ── Profile ── */}
+            <Section icon={User} title="Profile" description="Update your name and company">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-ink-2 mb-1.5">Full Name</label>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={e => setFullName(e.target.value)}
+                    placeholder="Your full name"
+                    className="w-full px-3.5 py-2.5 bg-surface-warm border border-divider rounded-xl text-sm focus:ring-2 focus:ring-ink/10 focus:border-ink focus:bg-surface transition-all outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-ink-2 mb-1.5">Company Name</label>
+                  <input
+                    type="text"
+                    value={companyName}
+                    onChange={e => setCompanyName(e.target.value)}
+                    placeholder="Your company"
+                    className="w-full px-3.5 py-2.5 bg-surface-warm border border-divider rounded-xl text-sm focus:ring-2 focus:ring-ink/10 focus:border-ink focus:bg-surface transition-all outline-none"
+                  />
+                </div>
+                <button
+                  onClick={handleProfileSave}
+                  disabled={profileSaving}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium rounded-xl transition-all disabled:opacity-50">
+                  {profileSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  Save Changes
+                </button>
+                {profileFeedback && <Feedback type={profileFeedback.type} message={profileFeedback.msg} />}
+              </div>
+            </Section>
 
-        {/* ── Email ── */}
-        <Section icon={Mail} title="Email Address" description="Change the email linked to your account">
-          <div className="mb-4 p-3 bg-surface-warm rounded-xl border border-divider-light">
-            <p className="text-xs text-ink-3">Current email</p>
-            <p className="text-sm font-medium text-ink mt-0.5">{user?.email || '—'}</p>
-          </div>
-          <form onSubmit={handleEmailChange} className="space-y-3">
-            <div>
-              <label className="block text-xs font-medium text-ink-2 mb-1.5">New Email Address</label>
-              <input
-                type="email"
-                value={newEmail}
-                onChange={e => setNewEmail(e.target.value)}
-                placeholder="new@company.com"
-                required
-                className="w-full px-3.5 py-2.5 bg-surface-warm border border-divider rounded-xl text-sm focus:ring-2 focus:ring-ink/10 focus:border-ink focus:bg-surface transition-all outline-none"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={emailSaving || !newEmail.trim()}
-              className="flex items-center gap-2 px-4 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium rounded-xl transition-all disabled:opacity-50">
-              {emailSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              Send Confirmation Email
-            </button>
-          </form>
-          {emailFeedback && <Feedback type={emailFeedback.type} message={emailFeedback.msg} />}
-        </Section>
+            {/* ── Email ── */}
+            <Section icon={Mail} title="Email Address" description="Change the email linked to your account">
+              <div className="mb-4 p-3 bg-surface-warm rounded-xl border border-divider-light">
+                <p className="text-xs text-ink-3">Current email</p>
+                <p className="text-sm font-medium text-ink mt-0.5">{user?.email || '—'}</p>
+              </div>
+              <form onSubmit={handleEmailChange} className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-ink-2 mb-1.5">New Email Address</label>
+                  <input
+                    type="email"
+                    value={newEmail}
+                    onChange={e => setNewEmail(e.target.value)}
+                    placeholder="new@company.com"
+                    required
+                    className="w-full px-3.5 py-2.5 bg-surface-warm border border-divider rounded-xl text-sm focus:ring-2 focus:ring-ink/10 focus:border-ink focus:bg-surface transition-all outline-none"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={emailSaving || !newEmail.trim()}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium rounded-xl transition-all disabled:opacity-50">
+                  {emailSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  Send Confirmation Email
+                </button>
+              </form>
+              {emailFeedback && <Feedback type={emailFeedback.type} message={emailFeedback.msg} />}
+            </Section>
 
-        {/* ── Password ── */}
-        <Section icon={Lock} title="Password" description="Send a password reset link to your email">
-          <p className="text-sm text-ink-3 mb-4 leading-relaxed">
-            We&apos;ll send a reset link to <span className="font-medium text-ink-2">{user?.email}</span>. Click the link to set a new password.
-          </p>
-          <button
-            onClick={handlePasswordReset}
-            disabled={passwordSending}
-            className="flex items-center gap-2 px-4 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium rounded-xl transition-all disabled:opacity-50">
-            {passwordSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-            Send Reset Email
-          </button>
-          {passwordFeedback && <Feedback type={passwordFeedback.type} message={passwordFeedback.msg} />}
-        </Section>
+            {/* ── Password ── */}
+            <Section icon={Lock} title="Password" description="Send a password reset link to your email">
+              <p className="text-sm text-ink-3 mb-4 leading-relaxed">
+                We&apos;ll send a reset link to <span className="font-medium text-ink-2">{user?.email}</span>. Click the link to set a new password.
+              </p>
+              <button
+                onClick={handlePasswordReset}
+                disabled={passwordSending}
+                className="flex items-center gap-2 px-4 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium rounded-xl transition-all disabled:opacity-50">
+                {passwordSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                Send Reset Email
+              </button>
+              {passwordFeedback && <Feedback type={passwordFeedback.type} message={passwordFeedback.msg} />}
+            </Section>
 
         {/* ── Subscription ── */}
         {role === 'user' && (
@@ -913,10 +923,14 @@ export default function SettingsPage() {
             )}
           </Section>
         )}
+          </>
+        )}
 
-        {/* ── MCP (Model Context Protocol) ── */}
-        {role !== 'demo' && (
-          <Section icon={Key} title="MCP — AI Tools Integration" description="Connect Claude Desktop, Cursor, or Windsurf to query your brand data with natural language">
+        {!showingAccount && (
+          <>
+            {/* ── MCP (Model Context Protocol) ── */}
+            {role !== 'demo' && (
+              <Section icon={Key} title="MCP — AI Tools Integration" description="Connect Claude Desktop, Cursor, or Windsurf to query your brand data with natural language">
             {!mcpAllowed ? (
               <div className="rounded-2xl border border-divider-light bg-surface-warm p-4">
                 <p className="text-sm font-semibold text-ink">MCP Integration is available on Pro and Enterprise.</p>
@@ -1014,34 +1028,37 @@ export default function SettingsPage() {
               </div>
             </div>
             )}
-          </Section>
+              </Section>
+            )}
+
+            {/* ── Website Connections ── */}
+            <Section
+              icon={Globe}
+              title="Website Connections"
+              description="Connect your Shopify, WordPress, GitHub, or custom site so Alignment can read and fix AI visibility issues"
+            >
+              {user?.id ? (
+                <WebsiteConnectionsSection userId={user.id} />
+              ) : (
+                <p className="text-sm text-ink-3">Sign in to manage website connections.</p>
+              )}
+            </Section>
+          </>
         )}
 
-        {/* ── Website Connections ── */}
-        <Section
-          icon={Globe}
-          title="Website Connections"
-          description="Connect your Shopify, WordPress, GitHub, or custom site so Alignment can read and fix AI visibility issues"
-        >
-          {user?.id ? (
-            <WebsiteConnectionsSection userId={user.id} />
-          ) : (
-            <p className="text-sm text-ink-3">Sign in to manage website connections.</p>
-          )}
-        </Section>
-
-        {/* ── Danger Zone ── */}
-        <Section icon={AlertTriangle} title="Danger Zone" description="Irreversible account actions">
-          <p className="text-sm text-ink-3 mb-4 leading-relaxed">
-            To delete your account or request a data export, please contact our support team directly.
-          </p>
-          <a
-            href="mailto:contact@alignmenttech.ai?subject=Account%20Deletion%20Request"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-surface hover:bg-red-soft-bg border border-red-soft/30 text-red-soft hover:text-red-soft text-sm font-medium rounded-xl transition-all">
-            <Mail className="w-4 h-4" />
-            Contact Support to Delete Account
-          </a>
-        </Section>
+        {showingAccount && (
+          <Section icon={AlertTriangle} title="Danger Zone" description="Irreversible account actions">
+            <p className="text-sm text-ink-3 mb-4 leading-relaxed">
+              To delete your account or request a data export, please contact our support team directly.
+            </p>
+            <a
+              href="mailto:contact@alignmenttech.ai?subject=Account%20Deletion%20Request"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-surface hover:bg-red-soft-bg border border-red-soft/30 text-red-soft hover:text-red-soft text-sm font-medium rounded-xl transition-all">
+              <Mail className="w-4 h-4" />
+              Contact Support to Delete Account
+            </a>
+          </Section>
+        )}
 
       </div>
     </div>

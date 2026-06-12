@@ -709,15 +709,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                 <div className="m-3 p-3 bg-[rgba(250,245,236,0.04)] rounded-xl border border-[rgba(250,245,236,0.06)]">
                   <div className="flex items-center justify-between mb-2.5">
                     <span className="text-[12px] font-semibold text-ink-inv">{planLabel} Plan</span>
-                    {credits.plan !== 'enterprise' && (
-                      <Link
-                        href="/pricing"
-                        onClick={() => setShowUserMenu(false)}
-                        className="inline-flex items-center justify-center rounded-lg bg-[#F9D66B] px-4 py-2 text-[13px] font-black text-ink shadow-[0_0_0_1px_rgba(249,214,107,0.35),0_8px_22px_rgba(249,214,107,0.18)] transition-all hover:-translate-y-0.5 hover:bg-[#FFE38A] active:translate-y-0"
-                      >
-                        Upgrade →
-                      </Link>
-                    )}
+                    {credits.plan !== 'enterprise' && <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-caution">Upgrade available</span>}
                   </div>
                   <div className="flex items-center gap-1.5 mb-1.5">
                     <Sparkles className={`w-3 h-3 flex-shrink-0 ${creditLow ? 'text-red-soft' : 'text-caution'}`} />
@@ -736,20 +728,29 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                     />
                   </div>
                   {creditLow && <p className="text-[10px] text-red-soft mt-1.5">Running low — consider upgrading</p>}
+                  {credits.plan !== 'enterprise' && (
+                    <Link
+                      href="/pricing"
+                      onClick={() => setShowUserMenu(false)}
+                      className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#F9D66B] text-[13px] font-black text-ink shadow-[inset_0_0_0_1px_rgba(0,0,0,0.16),0_10px_22px_rgba(249,214,107,0.16)] transition-all hover:-translate-y-0.5 hover:bg-[#FFE38A] active:translate-y-0"
+                    >
+                      Upgrade plan <span aria-hidden="true">→</span>
+                    </Link>
+                  )}
                 </div>
               )}
 
               {/* Navigation links */}
               <div className="py-1.5">
                 <button
-                  onClick={() => { setShowUserMenu(false); router.push('/dashboard/settings') }}
+                  onClick={() => { setShowUserMenu(false); router.push('/dashboard/settings?section=account') }}
                   className="w-full flex items-center gap-2.5 px-4 py-2 text-[13px] text-[rgba(250,245,236,0.5)] hover:bg-[rgba(250,245,236,0.06)] hover:text-ink-inv transition-colors text-left"
                 >
                   <CreditCard className="w-3.5 h-3.5 flex-shrink-0" />
                   Account
                 </button>
                 <button
-                  onClick={() => { setShowUserMenu(false); router.push('/dashboard/settings') }}
+                  onClick={() => { setShowUserMenu(false); router.push('/dashboard/settings?section=settings') }}
                   className="w-full flex items-center gap-2.5 px-4 py-2 text-[13px] text-[rgba(250,245,236,0.5)] hover:bg-[rgba(250,245,236,0.06)] hover:text-ink-inv transition-colors text-left"
                 >
                   <Settings className="w-3.5 h-3.5 flex-shrink-0" />
