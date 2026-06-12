@@ -5,8 +5,9 @@ import { Search, StopCircle, RefreshCw, Bookmark } from 'lucide-react'
 import { useUnified } from './UnifiedContext'
 
 /**
- * Scan controls shared by Monitoring and Analysis. The customer profile card
- * above this bar owns profile editing, so this bar only handles scan/report actions.
+ * Scan controls shared by Monitoring and Analysis.
+ * Customer profile editing lives in AI Research; this bar only consumes profile
+ * readiness from UnifiedContext to run scans and save report snapshots.
  */
 export function ControlBar() {
   const ctx = useUnified()

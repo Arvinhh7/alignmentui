@@ -31,6 +31,7 @@ import {
   ACTIVE_CUSTOMER_KEY,
   ACTIVE_CUSTOMER_EVENT,
   CUSTOMER_CACHE_KEY,
+  CUSTOMER_PROFILE_CONFIRMED_KEY,
   SNAPSHOTS_KEY,
   autoClassify,
   sanitizeBrandConfig,
@@ -281,6 +282,36 @@ const _PREVIEW_BRAND: BrandConfig | null =
 const _IS_PREVIEW = process.env.NEXT_PUBLIC_PREVIEW_MODE === 'true'
 // Preview lands on this real customer so prompts/scan hydrate with real data.
 const _PREVIEW_CUSTOMER_ID = process.env.NEXT_PUBLIC_PREVIEW_CUSTOMER_ID || null
+
+function profileConfirmationId(customerId: string | null, config: Pick<BrandConfig, 'brand_name' | 'domain'>) {
+  if (customerId) return `customer:${customerId}`
+  const brand = config.brand_name.trim().toLowerCase()
+  const domain = config.domain.trim().toLowerCase()
+  return `local:${brand}:${domain}`
+}
+
+function isProfileConfirmed(customerId: string | null, config: Pick<BrandConfig, 'brand_name' | 'domain'>) {
+  if (typeof window === 'undefined') return false
+  try {
+    const id = profileConfirmationId(customerId, config)
+    const confirmed = JSON.parse(localStorage.getItem(CUSTOMER_PROFILE_CONFIRMED_KEY) || '{}') as Record<string, boolean>
+    return confirmed[id] === true
+  } catch {
+    return false
+  }
+}
+
+function markProfileConfirmed(customerId: string | null, config: Pick<BrandConfig, 'brand_name' | 'domain'>) {
+  if (typeof window === 'undefined') return
+  try {
+    const id = profileConfirmationId(customerId, config)
+    const confirmed = JSON.parse(localStorage.getItem(CUSTOMER_PROFILE_CONFIRMED_KEY) || '{}') as Record<string, boolean>
+    confirmed[id] = true
+    localStorage.setItem(CUSTOMER_PROFILE_CONFIRMED_KEY, JSON.stringify(confirmed))
+  } catch {
+    // Non-critical; server/local profile persistence still succeeds.
+  }
+}
 
 export function UnifiedProvider({ children }: { children: ReactNode }) {
   const { user, role: userRole } = useAuth()
@@ -549,7 +580,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     customersApi.getLatest(activeCustomerId, user.id)
       .then(data => {
         const cfg = (data.customer.config_json ?? {}) as Partial<BrandConfig>
-        setBrandConfig(sanitizeBrandConfig({
+        const hydratedConfig = sanitizeBrandConfig({
           brand_name:       data.customer.brand_name,
           domain:           data.customer.domain,
           keywords:         (cfg.keywords as string[])        ?? [],
@@ -561,9 +592,10 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
           target_market:    (cfg.target_market as string)     ?? '',
           differentiation:  (cfg.differentiation as string)   ?? '',
           source_domains:   (cfg.source_domains as string[])  ?? [],
-        }))
+        })
+        setBrandConfig(hydratedConfig)
         setIsConfigured(true)
-        setShowConfig(false)
+        setShowConfig(!isProfileConfirmed(activeCustomerId, hydratedConfig))
         // ④ Write brand name to cache so future new tabs show it immediately
         try {
           const nameCache: Record<string, { brand_name: string; domain: string }> =
@@ -831,6 +863,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       autoScanTriggered.current = true
     }
 
+    markProfileConfirmed(activeCustomerId, merged)
     setIsConfigured(true); setShowConfig(false)
 
     // Save to recent brands with merged config (avoids stale closure in saveRecentBrand)

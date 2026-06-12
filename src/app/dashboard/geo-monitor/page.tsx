@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic'
 import { Loader2, BarChart3, Tag, Compass } from 'lucide-react'
 import { UnifiedProvider, useUnified, type TabKey } from './components/UnifiedContext'
 import { ControlBar } from './components/ControlBar'
-import { BrandSetupPanel } from './components/BrandSetupPanel'
 
 const TabLoader = () => (
   <div className="flex items-center justify-center py-12">
@@ -49,7 +48,6 @@ function MonitoringContent() {
       </div>
 
       <div className="p-6 space-y-6">
-        <BrandSetupPanel />
         <ControlBar />
 
         {ctx.scanError && (

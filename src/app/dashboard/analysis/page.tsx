@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic'
 import { Loader2, LineChart, Eye, MessageSquare, Link2, ThumbsUp, Users, UserCircle2 } from 'lucide-react'
 import { UnifiedProvider, useUnified, type TabKey } from '../geo-monitor/components/UnifiedContext'
 import { ControlBar } from '../geo-monitor/components/ControlBar'
-import { BrandSetupPanel } from '../geo-monitor/components/BrandSetupPanel'
 
 const TabLoader = () => (
   <div className="flex items-center justify-center py-12">
@@ -53,7 +52,6 @@ function AnalysisContent() {
       </div>
 
       <div className="p-6 space-y-6">
-        <BrandSetupPanel />
         <ControlBar />
 
         {ctx.scanError && (

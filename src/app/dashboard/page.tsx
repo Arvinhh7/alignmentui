@@ -9,9 +9,11 @@ import {
   ACTIVE_CUSTOMER_EVENT,
   ACTIVE_CUSTOMER_KEY,
   CUSTOMER_CACHE_KEY,
+  CUSTOMER_PROFILE_CONFIRMED_KEY,
 } from '@/app/dashboard/geo-monitor/components/shared/constants'
 
 const DEFAULT_ENTRY = '/dashboard/geo-audit'
+const PROFILE_ENTRY = '/dashboard/ai-search'
 const PROMPTS_ENTRY = '/dashboard/prompts'
 const MONITOR_ENTRY = '/dashboard/geo-monitor'
 
@@ -62,6 +64,16 @@ function chooseCustomer(customers: CustomerSummary[]): CustomerSummary | null {
   }
 }
 
+function isCustomerProfileConfirmed(customer: CustomerSummary): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    const confirmed = JSON.parse(localStorage.getItem(CUSTOMER_PROFILE_CONFIRMED_KEY) || '{}') as Record<string, boolean>
+    return confirmed[`customer:${customer.id}`] === true
+  } catch {
+    return false
+  }
+}
+
 export default function DashboardRootPage() {
   const router = useRouter()
   const { user, role, permissions, isLoading, isAuthenticated } = useAuth()
@@ -95,6 +107,11 @@ export default function DashboardRootPage() {
         }
 
         syncActiveCustomer(activeCustomer)
+
+        if (!isCustomerProfileConfirmed(activeCustomer)) {
+          router.replace(PROFILE_ENTRY)
+          return
+        }
 
         let promptCount: number | null = null
         try {
