@@ -47,6 +47,8 @@ function PricingPageInner() {
   const [sub, setSub] = useState<SubscriptionStatus | null>(null)
   const [portalLoading, setPortalLoading] = useState<string | null>(null)
   const [reactivateLoading, setReactivateLoading] = useState(false)
+  const [upgradeConfirm, setUpgradeConfirm] = useState<{ planKey: string; planName: string } | null>(null)
+  const [upgradeLoading, setUpgradeLoading] = useState(false)
 
   useEffect(() => {
     if (!user?.id) { setSub(null); return }
@@ -85,6 +87,29 @@ function PricingPageInner() {
       setPortalLoading(null)
     }
   }, [user?.id, user?.email, isYearly])
+
+  const handleConfirmUpgrade = useCallback(async () => {
+    if (!user?.id || !upgradeConfirm) return
+    setUpgradeLoading(true)
+    setCheckoutError(null)
+    try {
+      const interval = isYearly ? 'year' : 'month'
+      const result = await api.upgradeSubscription(user.id, upgradeConfirm.planKey, interval)
+      if (result.data?.success) {
+        setUpgradeConfirm(null)
+        const updated = await api.getSubscription(user.id)
+        setSub(updated.data?.subscription ?? null)
+      } else {
+        setCheckoutError(result.error ?? (lang === 'zh' ? '升级失败，请稍后重试' : 'Upgrade failed. Please try again.'))
+        setUpgradeConfirm(null)
+      }
+    } catch {
+      setCheckoutError(lang === 'zh' ? '网络错误，请稍后重试' : 'Network error. Please try again.')
+      setUpgradeConfirm(null)
+    } finally {
+      setUpgradeLoading(false)
+    }
+  }, [user?.id, upgradeConfirm, isYearly, lang])
 
   const handleReactivate = useCallback(async () => {
     if (!user?.id) return
@@ -439,14 +464,14 @@ function PricingPageInner() {
                     }
 
                     if (state === 'upgrade' || state === 'downgrade') {
-                      const isThisPortalLoading = portalLoading === planKey
+                      const isThisUpgrading = upgradeLoading && upgradeConfirm?.planKey === planKey
                       return (
                         <button
-                          onClick={() => handlePortalRedirect(planKey)}
-                          disabled={!!portalLoading}
+                          onClick={() => setUpgradeConfirm({ planKey, planName: plan.name })}
+                          disabled={upgradeLoading}
                           className={`${btnBase} cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${btnColors}`}
                         >
-                          {isThisPortalLoading ? <>{spinnerSvg}{redirectingLabel}</> : (
+                          {isThisUpgrading ? <>{spinnerSvg}{redirectingLabel}</> : (
                             state === 'upgrade'
                               ? (lang === 'zh' ? '升级套餐 →' : 'Upgrade →')
                               : (lang === 'zh' ? '降级套餐' : 'Downgrade')
@@ -490,6 +515,55 @@ function PricingPageInner() {
       </section>
 
       <Footer />
+
+      {/* Upgrade / downgrade confirmation modal */}
+      {upgradeConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-surface p-8 shadow-2xl">
+            <h3 className="text-lg font-semibold text-ink">
+              {lang === 'zh'
+                ? `确认切换到 ${upgradeConfirm.planName}？`
+                : `Switch to ${upgradeConfirm.planName}?`}
+            </h3>
+            <p className="mt-3 text-sm text-ink-2">
+              {lang === 'zh'
+                ? '切换立即生效。当前周期剩余金额将按比例计入下次账单（差价补退）。'
+                : 'Change takes effect immediately. A prorated amount will be charged or credited on your next invoice.'}
+            </p>
+            <div className="mt-4 rounded-xl border border-divider bg-surface-warm p-4 text-sm">
+              <div className="flex items-baseline justify-between">
+                <span className="text-ink-2">{lang === 'zh' ? '新套餐' : 'New plan'}</span>
+                <span className="font-semibold text-ink">
+                  {upgradeConfirm.planName} — $
+                  {isYearly
+                    ? Math.round(PLAN_PRICE[upgradeConfirm.planKey]?.yearly ?? 0)
+                    : (PLAN_PRICE[upgradeConfirm.planKey]?.monthly ?? 0)}
+                  /{lang === 'zh' ? '月' : 'mo'}
+                  {isYearly ? (lang === 'zh' ? '（年付）' : ' (billed yearly)') : ''}
+                </span>
+              </div>
+            </div>
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setUpgradeConfirm(null)}
+                disabled={upgradeLoading}
+                className="flex-1 rounded-xl border border-divider py-2.5 text-sm font-medium text-ink-2 transition-colors hover:bg-surface-warm disabled:opacity-50"
+              >
+                {lang === 'zh' ? '取消' : 'Cancel'}
+              </button>
+              <button
+                onClick={handleConfirmUpgrade}
+                disabled={upgradeLoading}
+                className="flex-1 rounded-xl bg-ink py-2.5 text-sm font-semibold text-ink-inv transition-colors hover:bg-[#2d2d2c] disabled:opacity-60"
+              >
+                {upgradeLoading
+                  ? (lang === 'zh' ? '处理中...' : 'Processing...')
+                  : (lang === 'zh' ? '确认切换' : 'Confirm')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -2262,6 +2262,17 @@ class APIClient {
     );
   }
 
+  async upgradeSubscription(user_id: string, target_plan: string, billing_interval: string) {
+    return this.request<{ success: boolean; plan: string; billing_interval: string }>(
+      '/api/stripe/upgrade-subscription',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id, target_plan, billing_interval }),
+      }
+    );
+  }
+
   async adminResetCredits(user_id: string) {
     return this.request<CreditBalance>('/api/stripe/admin/reset-credits', {
       method: 'POST',
