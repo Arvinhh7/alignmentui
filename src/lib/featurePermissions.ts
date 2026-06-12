@@ -6,9 +6,6 @@
  *   - useFeatureNav (source-side guard for cross-page CTAs)
  *   - FeatureGate   (destination-side guard inside DashboardLayout)
  *   - admin/team    (for the admin to grant permissions)
- *
- * IMPORTANT: this list MUST stay in sync with PERMISSION_KEYS in
- * src/app/dashboard/admin/team/page.tsx.
  */
 import type { UserRole, PermissionsMap } from '@/hooks/useAuth'
 
@@ -39,29 +36,35 @@ export interface FeatureInfo {
   label: string
   /** Base path under /dashboard. featureFromPath() matches this as a prefix. */
   path: string
+  /** Admin-facing grouping for Team Management. */
+  group: string
+  /** Sort order for Team Management and generated permission UIs. */
+  order: number
 }
 
 export const FEATURES: Record<FeatureKey, FeatureInfo> = {
-  'overview':         { key: 'overview',         label: 'Overview',              path: '/dashboard/overview' },
-  'explore':          { key: 'explore',          label: 'Explore',               path: '/dashboard/explore' },
-  'ai-search':        { key: 'ai-search',        label: 'AI Research',           path: '/dashboard/ai-search' },
-  'shopping':         { key: 'shopping',         label: 'Shopping',              path: '/dashboard/shopping' },
-  'geo-monitor':      { key: 'geo-monitor',      label: 'Answer Engine Insights', path: '/dashboard/geo-monitor' },
-  'analysis':         { key: 'analysis',         label: 'Analysis',              path: '/dashboard/analysis' },
-  'geo-audit':        { key: 'geo-audit',        label: 'GEO Audit',             path: '/dashboard/geo-audit' },
-  'geo-content':      { key: 'geo-content',      label: 'GEO Content',           path: '/dashboard/geo-content' },
-  'ads':              { key: 'ads',              label: 'AI Ads',                path: '/dashboard/ads' },
-  'gci':              { key: 'gci',              label: 'GCI',                   path: '/dashboard/gci' },
-  'prompts':          { key: 'prompts',          label: 'Prompt Library',        path: '/dashboard/prompts' },
-  'brand-hub':        { key: 'brand-hub',        label: 'Brand Hub',             path: '/dashboard/brand-hub' },
-  'visibility-proxy': { key: 'visibility-proxy', label: 'Visibility Proxy',      path: '/dashboard/visibility-proxy' },
-  'geo-optimization': { key: 'geo-optimization', label: 'GEO Optimization',      path: '/dashboard/geo-optimization' },
-  'geo-distribution': { key: 'geo-distribution', label: 'GEO Distribution',      path: '/dashboard/geo-distribution' },
-  'ga4-attribution':  { key: 'ga4-attribution',  label: 'GA4 Attribution',       path: '/dashboard/ga4-attribution' },
-  'ops':              { key: 'ops',              label: 'Managed Service',       path: '/dashboard/ops' },
-  'agentic-commerce': { key: 'agentic-commerce', label: 'Agentic Commerce',      path: '/dashboard/agentic-commerce' },
-  'customers':        { key: 'customers',        label: 'Customers',             path: '/dashboard/admin/customers' },
+  'overview':         { key: 'overview',         label: 'Overview',               path: '/dashboard/overview',          group: 'Analytics',    order: 10 },
+  'explore':          { key: 'explore',          label: 'Explore',                path: '/dashboard/explore',           group: 'Insights',     order: 20 },
+  'ai-search':        { key: 'ai-search',        label: 'AI Research',            path: '/dashboard/ai-search',         group: 'Insights',     order: 30 },
+  'shopping':         { key: 'shopping',         label: 'Shopping',               path: '/dashboard/shopping',          group: 'Insights',     order: 40 },
+  'geo-monitor':      { key: 'geo-monitor',      label: 'Monitoring',             path: '/dashboard/geo-monitor',       group: 'Actions',      order: 50 },
+  'analysis':         { key: 'analysis',         label: 'Analysis',               path: '/dashboard/analysis',          group: 'Actions',      order: 60 },
+  'geo-audit':        { key: 'geo-audit',        label: 'Web Infrastructure',      path: '/dashboard/geo-audit',         group: 'Assistant',    order: 70 },
+  'prompts':          { key: 'prompts',          label: 'Prompt Library',         path: '/dashboard/prompts',           group: 'Context',      order: 80 },
+  'brand-hub':        { key: 'brand-hub',        label: 'Brand Hub',              path: '/dashboard/brand-hub',         group: 'Context',      order: 90 },
+  'visibility-proxy': { key: 'visibility-proxy', label: 'Visibility Proxy',       path: '/dashboard/visibility-proxy',  group: 'Integrations', order: 100 },
+  'ga4-attribution':  { key: 'ga4-attribution',  label: 'GA4 Attribution',        path: '/dashboard/ga4-attribution',   group: 'Integrations', order: 110 },
+  'geo-optimization': { key: 'geo-optimization', label: 'GEO Optimization',       path: '/dashboard/geo-optimization',  group: 'Hidden',       order: 120 },
+  'ads':              { key: 'ads',              label: 'AI Ads',                 path: '/dashboard/ads',               group: 'Hidden',       order: 130 },
+  'gci':              { key: 'gci',              label: 'GCI',                    path: '/dashboard/gci',               group: 'Hidden',       order: 140 },
+  'geo-content':      { key: 'geo-content',      label: 'Agent',                  path: '/dashboard/geo-content',       group: 'Hidden',       order: 150 },
+  'geo-distribution': { key: 'geo-distribution', label: 'GEO Distribute',         path: '/dashboard/geo-distribution',  group: 'Hidden',       order: 160 },
+  'agentic-commerce': { key: 'agentic-commerce', label: 'Agentic Commerce',       path: '/dashboard/agentic-commerce',  group: 'Hidden',       order: 170 },
+  'ops':              { key: 'ops',              label: 'Managed Service',        path: '/dashboard/ops',               group: 'Operations',   order: 180 },
+  'customers':        { key: 'customers',        label: 'Customers',              path: '/dashboard/admin/customers',   group: 'Admin',        order: 190 },
 }
+
+export const TEAM_MANAGEMENT_FEATURES = Object.values(FEATURES).sort((a, b) => a.order - b.order)
 
 export type PlanKey = 'starter' | 'standard' | 'pro' | 'enterprise' | 'growth' | 'trial' | 'admin'
 

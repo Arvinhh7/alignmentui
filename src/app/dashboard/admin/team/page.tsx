@@ -2,33 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/hooks/useAuth'
+import { TEAM_MANAGEMENT_FEATURES, type FeatureKey } from '@/lib/featurePermissions'
 import { Users, RefreshCw, UserPlus } from 'lucide-react'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
 
-// ── Permission definitions ─────────────────────────────────────────────────────
-
-const PERMISSION_KEYS: { key: string; label: string; group: string }[] = [
-  { key: 'overview',          label: 'Overview',          group: 'Analytics' },
-  { key: 'explore',           label: 'Explore',           group: 'Insights' },
-  { key: 'ai-search',         label: 'AI Research',       group: 'Insights' },
-  { key: 'shopping',          label: 'Shopping',          group: 'Insights' },
-  { key: 'geo-monitor',       label: 'Monitoring',        group: 'Actions' },
-  { key: 'analysis',          label: 'Analysis',          group: 'Actions' },
-  { key: 'geo-audit',         label: 'Web Infrastructure', group: 'Assistant' },
-  { key: 'prompts',           label: 'Prompt Library',    group: 'Context' },
-  { key: 'brand-hub',         label: 'Brand Hub',         group: 'Context' },
-  { key: 'visibility-proxy',  label: 'Visibility Proxy',  group: 'Integrations' },
-  { key: 'ga4-attribution',   label: 'GA4 Attribution',   group: 'Integrations' },
-  { key: 'geo-optimization',  label: 'GEO Optimization',  group: 'Hidden' },
-  { key: 'ads',               label: 'AI Ads',            group: 'Hidden' },
-  { key: 'gci',               label: 'GCI',               group: 'Hidden' },
-  { key: 'geo-content',       label: 'Agent',             group: 'Hidden' },
-  { key: 'geo-distribution',  label: 'GEO Distribute',    group: 'Hidden' },
-  { key: 'agentic-commerce',  label: 'Agentic Commerce',  group: 'Hidden' },
-  { key: 'ops',               label: 'Managed Service',   group: 'Operations' },
-  { key: 'customers',         label: 'Customers',         group: 'Admin' },
-]
+const PERMISSION_KEYS = TEAM_MANAGEMENT_FEATURES
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -112,7 +91,7 @@ export default function TeamManagement() {
   }
 
   // ── Toggle single permission ───────────────────────────────────────────
-  const togglePermission = (userId: string, key: string) => {
+  const togglePermission = (userId: string, key: FeatureKey) => {
     setLocalPerms(prev => ({
       ...prev,
       [userId]: { ...(prev[userId] ?? {}), [key]: !prev[userId]?.[key] },
