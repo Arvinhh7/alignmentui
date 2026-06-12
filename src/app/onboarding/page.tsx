@@ -8,6 +8,7 @@ import { getSupabase } from '@/lib/supabase'
 import {
   ArrowRight, ArrowLeft, Loader2, Plus, X, ChevronDown, ChevronRight,
   Check, Globe, Clock, Languages, Building2, Briefcase, Users, RefreshCw,
+  Home, LogOut,
 } from 'lucide-react'
 import { gaEvent } from '@/lib/gtag'
 
@@ -105,7 +106,7 @@ function ProgressBar({ step }: { step: number }) {
 // ─── Main Component ───────────────────────────────────
 export default function OnboardingPage() {
   const router = useRouter()
-  const { user, isLoading: authLoading, isAuthenticated } = useAuth()
+  const { user, isLoading: authLoading, isAuthenticated, signOut } = useAuth()
   const [step, setStep] = useState(1)
   const [authChecked, setAuthChecked] = useState(false)
 
@@ -147,6 +148,22 @@ export default function OnboardingPage() {
 
   // Completing
   const [isCompleting, setIsCompleting] = useState(false)
+  const [isSigningOut, setIsSigningOut] = useState(false)
+
+  const handleGoHome = useCallback(() => {
+    window.location.href = '/'
+  }, [])
+
+  const handleLogout = useCallback(async () => {
+    if (isSigningOut) return
+    setIsSigningOut(true)
+    try {
+      localStorage.removeItem(ONBOARDING_SESSION_KEY)
+      await signOut()
+    } finally {
+      window.location.replace('/login')
+    }
+  }, [isSigningOut, signOut])
 
   // ─── GA4 purchase event on Stripe success redirect ──
   useEffect(() => {
@@ -535,9 +552,23 @@ export default function OnboardingPage() {
             </div>
             <span className="font-semibold text-ink text-sm">Alignment Agent</span>
           </div>
-          <button onClick={() => router.push('/login')} className="text-xs text-ink-3 hover:text-ink-2 transition-colors">
-            Logout
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleGoHome}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-divider-light bg-surface px-3 py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-surface-warm hover:text-ink"
+            >
+              <Home className="h-3.5 w-3.5" />
+              Homepage
+            </button>
+            <button
+              onClick={handleLogout}
+              disabled={isSigningOut}
+              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-red-soft transition-colors hover:bg-red-soft-bg disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isSigningOut ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <LogOut className="h-3.5 w-3.5" />}
+              {isSigningOut ? 'Logging out…' : 'Logout'}
+            </button>
+          </div>
         </div>
 
         {/* Form content */}
