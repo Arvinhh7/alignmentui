@@ -71,6 +71,25 @@ async function fetchUserProfile(userId: string): Promise<{ role: UserRole; permi
 
 const REMEMBER_KEY = 'alignment_remember_session';
 
+function clearLocalAuthStorage() {
+  if (typeof window === 'undefined') return;
+
+  localStorage.removeItem(REMEMBER_KEY);
+  sessionStorage.removeItem(REMEMBER_KEY);
+
+  for (const storage of [localStorage, sessionStorage]) {
+    for (let i = storage.length - 1; i >= 0; i -= 1) {
+      const key = storage.key(i);
+      if (
+        key &&
+        (key.startsWith('sb-') && key.endsWith('-auth-token'))
+      ) {
+        storage.removeItem(key);
+      }
+    }
+  }
+}
+
 // ── Preview mode: bypass Supabase auth so Claude Preview sandbox can reach the
 //    dashboard without making any calls to supabase.co (which is blocked).
 //    Enable by adding NEXT_PUBLIC_PREVIEW_MODE=true to .env.local.
@@ -242,19 +261,22 @@ export function useAuth() {
 
   const signOut = useCallback(async () => {
     const supabase = getSupabase();
-    if (!supabase) return true;
     setError(null);
+
+    clearLocalAuthStorage();
+    setAuthFromSession(null);
+    setAuthState({ user: null, session: null, isLoading: false, isAuthenticated: false, role: null, permissions: {} });
+
+    if (!supabase) return true;
+
     try {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem(REMEMBER_KEY);
-        sessionStorage.removeItem(REMEMBER_KEY);
-      }
-      const { error } = await supabase.auth.signOut();
-      if (error) { setError(error.message); return false; }
+      const remoteSignOut = supabase.auth.signOut({ scope: 'local' });
+      const timeout = new Promise<{ error: null }>((resolve) => setTimeout(() => resolve({ error: null }), 1500));
+      await Promise.race([remoteSignOut, timeout]);
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Sign out failed');
-      return false;
+      console.warn('[auth] Remote sign out failed after local cleanup:', err);
+      return true;
     }
   }, []);
 

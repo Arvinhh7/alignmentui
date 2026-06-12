@@ -135,7 +135,7 @@ export function useSubscription(
     // then replay the session as a webhook fallback before polling.
     const isFromCheckout =
       typeof window !== 'undefined' &&
-      window.location.search.includes('subscription=success')
+      (window.location.search.includes('subscription=success') || Boolean(getCheckoutSessionId()))
 
     if (isFromCheckout) {
       setTimeout(() => { if (mounted) void syncCheckoutAndCheck() }, 500)

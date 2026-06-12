@@ -187,6 +187,17 @@ export default function OnboardingPage() {
     if (authLoading) return
     if (!isAuthenticated) { window.location.href = '/login'; return }
     const check = async () => {
+      const params = new URLSearchParams(window.location.search)
+      const checkoutSessionId = params.get('session_id')
+      if (user?.id && checkoutSessionId) {
+        try {
+          await api.syncCheckoutSession({ user_id: user.id, session_id: checkoutSessionId })
+        } catch {
+          // The Stripe webhook remains the source of truth; this browser replay
+          // is a fallback for success redirects that arrive before the webhook.
+        }
+      }
+
       const supabase = getSupabase()
       if (supabase && user) {
         const { data } = await supabase

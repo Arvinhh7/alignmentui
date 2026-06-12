@@ -182,7 +182,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
   const handleLogout = async () => {
     setShowUserMenu(false)
     const ok = await signOut()
-    if (ok) router.push('/login')
+    if (ok) window.location.replace('/login')
   }
 
   // ── Navigation groups (4-pillar IA: Insights / Actions / Assistant / Manage) ──
