@@ -46,6 +46,7 @@ function PricingPageInner() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const [sub, setSub] = useState<SubscriptionStatus | null>(null)
   const [portalLoading, setPortalLoading] = useState<string | null>(null)
+  const [reactivateLoading, setReactivateLoading] = useState(false)
 
   useEffect(() => {
     if (!user?.id) { setSub(null); return }
@@ -84,6 +85,26 @@ function PricingPageInner() {
       setPortalLoading(null)
     }
   }, [user?.id, user?.email, isYearly])
+
+  const handleReactivate = useCallback(async () => {
+    if (!user?.id) return
+    setReactivateLoading(true)
+    setCheckoutError(null)
+    try {
+      const result = await api.reactivateSubscription(user.id)
+      if (result.data?.success) {
+        // Refresh subscription state so button updates immediately
+        const updated = await api.getSubscription(user.id)
+        setSub(updated.data?.subscription ?? null)
+      } else {
+        setCheckoutError(result.error ?? (lang === 'zh' ? '恢复订阅失败，请稍后再试' : 'Failed to reactivate subscription. Please try again.'))
+      }
+    } catch {
+      setCheckoutError(lang === 'zh' ? '网络错误，请稍后再试' : 'Network error. Please try again.')
+    } finally {
+      setReactivateLoading(false)
+    }
+  }, [user?.id, lang])
 
   const handleStartTrial = useCallback(async (planName: string) => {
     const planKey = PLAN_KEY_MAP[planName]
@@ -384,11 +405,24 @@ function PricingPageInner() {
                       : 'bg-ink text-ink-inv hover:bg-[#2d2d2c]'
 
                     if (state === 'current') {
+                      const isCanceling = sub?.cancel_at_period_end === true
                       return (
                         <div className="space-y-2">
-                          <button disabled className={`${btnBase} cursor-not-allowed opacity-40 ${btnColors}`}>
-                            {lang === 'zh' ? '当前套餐' : 'Current Plan'}
-                          </button>
+                          {isCanceling ? (
+                            <button
+                              onClick={handleReactivate}
+                              disabled={reactivateLoading}
+                              className={`${btnBase} cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${btnColors}`}
+                            >
+                              {reactivateLoading
+                                ? <>{spinnerSvg}{redirectingLabel}</>
+                                : (lang === 'zh' ? '恢复订阅' : 'Reactivate Plan')}
+                            </button>
+                          ) : (
+                            <button disabled className={`${btnBase} cursor-not-allowed opacity-40 ${btnColors}`}>
+                              {lang === 'zh' ? '当前套餐' : 'Current Plan'}
+                            </button>
+                          )}
                           <button
                             onClick={() => handlePortalRedirect()}
                             disabled={!!portalLoading}
