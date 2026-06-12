@@ -205,7 +205,14 @@ export default function OnboardingPage() {
           .select('onboarding_completed, company, company_website, job_title, industry, company_size')
           .eq('id', user.id)
           .single()
-        if (data?.onboarding_completed) { window.location.href = '/dashboard/geo-audit'; return }
+        if (data?.onboarding_completed) {
+          // Preserve session_id so dashboard's useSubscription can sync the checkout
+          const dest = checkoutSessionId
+            ? `/dashboard/geo-audit?subscription=success&session_id=${encodeURIComponent(checkoutSessionId)}`
+            : '/dashboard/geo-audit'
+          window.location.href = dest
+          return
+        }
         if (data?.company) setProfileCompany(data.company)
         if (data?.company_website) setBrandUrl(data.company_website)
         if (data?.job_title) setProfileJobTitle(data.job_title)
