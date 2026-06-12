@@ -337,10 +337,15 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
   const [cancelLoading, setCancelLoading] = useState(false)
   const [cancelDone, setCancelDone] = useState(false)
   const [cancelEndDate, setCancelEndDate] = useState<string | null>(null)
+  const [cancelError, setCancelError] = useState<string | null>(null)
 
   const handleFinalCancel = useCallback(async () => {
-    if (!user?.id) return
+    if (!user?.id) {
+      setCancelError(isZh ? '登录状态已过期，请刷新页面后重试。' : 'Session expired — please refresh the page and try again.')
+      return
+    }
     setCancelLoading(true)
+    setCancelError(null)
     try {
       const result = await api.cancelSubscription(user.id)
       if (result.data?.success) {
@@ -353,7 +358,16 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
         }
         // Refresh subscription info so banner reflects cancellation state
         setSub(prev => prev ? { ...prev, cancel_at_period_end: true } : prev)
+      } else {
+        setCancelError(
+          result.error ||
+          (isZh
+            ? '取消失败，请稍后重试或联系 contact@alignmenttech.ai'
+            : 'Cancellation failed. Please try again or email contact@alignmenttech.ai.')
+        )
       }
+    } catch {
+      setCancelError(isZh ? '网络错误，请稍后重试。' : 'Network error. Please try again.')
     } finally {
       setCancelLoading(false)
     }
@@ -361,7 +375,7 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
 
   // Listen for cancel modal trigger from anywhere in the app (e.g. Settings page)
   useEffect(() => {
-    const handler = () => { setShowCancelModal(true); setCancelStep('reason'); setCancelDone(false) }
+    const handler = () => { setShowCancelModal(true); setCancelStep('reason'); setCancelDone(false); setCancelError(null) }
     window.addEventListener('openCancelModal', handler)
     return () => window.removeEventListener('openCancelModal', handler)
   }, [])
@@ -695,6 +709,9 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
                           ? (isZh ? '处理中…' : 'Processing…')
                           : (isZh ? '确认取消订阅' : 'Confirm cancellation')}
                       </button>
+                      {cancelError && (
+                        <p className="text-xs text-red-soft mt-2 leading-relaxed">{cancelError}</p>
+                      )}
                     </div>
                   </>
                 )}

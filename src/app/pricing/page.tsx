@@ -7,7 +7,7 @@ import { useLanguage } from '@/lib/LanguageContext'
 import Footer from '@/components/Footer'
 import PublicNavbar from '@/components/PublicNavbar'
 import { useAuth } from '@/hooks/useAuth'
-import { api } from '@/lib/api'
+import { api, SubscriptionStatus } from '@/lib/api'
 import { gaEvent } from '@/lib/gtag'
 
 const PLAN_KEY_MAP: Record<string, string> = {
@@ -35,6 +35,8 @@ export default function PricingPage() {
   )
 }
 
+const PLAN_ORDER = ['starter', 'standard', 'pro']
+
 function PricingPageInner() {
   const { lang } = useLanguage()
   const { user, isAuthenticated } = useAuth()
@@ -42,12 +44,43 @@ function PricingPageInner() {
   const [isYearly, setIsYearly] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
+  const [sub, setSub] = useState<SubscriptionStatus | null>(null)
+  const [portalLoading, setPortalLoading] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!user?.id) { setSub(null); return }
+    api.getSubscription(user.id).then(r => setSub(r.data?.subscription ?? null))
+  }, [user?.id])
 
   useEffect(() => {
     if (searchParams.get('checkout_error')) {
       setCheckoutError('Unable to start checkout. Please try again or contact support.')
     }
   }, [searchParams])
+
+  // Determine what action a plan button should take for the current user
+  const getPlanState = useCallback((planKey: string): 'subscribe' | 'current' | 'upgrade' | 'downgrade' => {
+    if (planKey === 'enterprise') return 'subscribe'
+    if (!sub || sub.status === 'canceled' || sub.status === 'past_due') return 'subscribe'
+    // Normalize 'growth' (legacy) to 'standard' for comparison
+    const currentPlan = sub.plan === 'growth' ? 'standard' : sub.plan
+    if (currentPlan === planKey) return 'current'
+    const currentIdx = PLAN_ORDER.indexOf(currentPlan)
+    const targetIdx = PLAN_ORDER.indexOf(planKey)
+    if (currentIdx === -1 || targetIdx === -1) return 'subscribe'
+    return targetIdx > currentIdx ? 'upgrade' : 'downgrade'
+  }, [sub])
+
+  const handlePortalRedirect = useCallback(async (planKey: string) => {
+    if (!user?.id) return
+    setPortalLoading(planKey)
+    try {
+      const result = await api.createPortalSession(user.id)
+      if (result.data?.portal_url) window.location.href = result.data.portal_url
+    } finally {
+      setPortalLoading(null)
+    }
+  }, [user?.id])
 
   const handleStartTrial = useCallback(async (planName: string) => {
     const planKey = PLAN_KEY_MAP[planName]
@@ -333,23 +366,69 @@ function PricingPageInner() {
                     ))}
                   </ul>
 
-                  <button
-                    onClick={() => handleStartTrial(plan.name)}
-                    disabled={isThisLoading || checkoutLoading !== null}
-                    className={`flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl py-3 font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-60 ${
-                      plan.popular ? 'bg-surface text-ink hover:bg-surface-muted' : 'bg-ink text-ink-inv hover:bg-[#2d2d2c]'
-                    }`}
-                  >
-                    {isThisLoading ? (
-                      <>
-                        <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                        </svg>
-                        {lang === 'zh' ? '跳转中...' : 'Redirecting...'}
-                      </>
-                    ) : plan.cta}
-                  </button>
+                  {(() => {
+                    const state = getPlanState(planKey)
+                    const spinnerSvg = (
+                      <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                    )
+                    const redirectingLabel = lang === 'zh' ? '跳转中...' : 'Redirecting...'
+                    const btnBase = `flex w-full items-center justify-center gap-2 rounded-xl py-3 font-semibold transition-all`
+                    const btnColors = plan.popular
+                      ? 'bg-surface text-ink hover:bg-surface-muted'
+                      : 'bg-ink text-ink-inv hover:bg-[#2d2d2c]'
+
+                    if (state === 'current') {
+                      return (
+                        <div className="space-y-2">
+                          <button disabled className={`${btnBase} cursor-not-allowed opacity-40 ${btnColors}`}>
+                            {lang === 'zh' ? '当前套餐' : 'Current Plan'}
+                          </button>
+                          <button
+                            onClick={() => handlePortalRedirect(planKey)}
+                            disabled={!!portalLoading}
+                            className={`w-full text-xs underline underline-offset-2 transition-colors disabled:opacity-50 ${
+                              plan.popular ? 'text-ink-inv/60 hover:text-ink-inv/90' : 'text-ink-3 hover:text-ink-2'
+                            }`}
+                          >
+                            {portalLoading === planKey
+                              ? redirectingLabel
+                              : (lang === 'zh' ? '管理订阅' : 'Manage subscription')}
+                          </button>
+                        </div>
+                      )
+                    }
+
+                    if (state === 'upgrade' || state === 'downgrade') {
+                      const isThisPortalLoading = portalLoading === planKey
+                      return (
+                        <button
+                          onClick={() => handlePortalRedirect(planKey)}
+                          disabled={!!portalLoading}
+                          className={`${btnBase} cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${btnColors}`}
+                        >
+                          {isThisPortalLoading ? <>{spinnerSvg}{redirectingLabel}</> : (
+                            state === 'upgrade'
+                              ? (lang === 'zh' ? '升级套餐 →' : 'Upgrade →')
+                              : (lang === 'zh' ? '降级套餐' : 'Downgrade')
+                          )}
+                        </button>
+                      )
+                    }
+
+                    // 'subscribe' — normal checkout flow
+                    return (
+                      <button
+                        onClick={() => handleStartTrial(plan.name)}
+                        disabled={isThisLoading || checkoutLoading !== null}
+                        className={`${btnBase} cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${btnColors}`}
+                      >
+                        {isThisLoading ? <>{spinnerSvg}{redirectingLabel}</> : plan.cta}
+                      </button>
+                    )
+                  })()}
                 </div>
               )
             })}
