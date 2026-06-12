@@ -10,7 +10,6 @@
 import type { UserRole, PermissionsMap } from '@/hooks/useAuth'
 
 export type FeatureKey =
-  | 'overview'
   | 'explore'
   | 'ai-search'
   | 'shopping'
@@ -43,7 +42,6 @@ export interface FeatureInfo {
 }
 
 export const FEATURES: Record<FeatureKey, FeatureInfo> = {
-  'overview':         { key: 'overview',         label: 'Overview',               path: '/dashboard/overview',          group: 'Analytics',    order: 10 },
   'explore':          { key: 'explore',          label: 'Explore',                path: '/dashboard/explore',           group: 'Insights',     order: 20 },
   'ai-search':        { key: 'ai-search',        label: 'AI Research',            path: '/dashboard/ai-search',         group: 'Insights',     order: 30 },
   'shopping':         { key: 'shopping',         label: 'Shopping',               path: '/dashboard/shopping',          group: 'Insights',     order: 40 },
@@ -89,7 +87,6 @@ const PLAN_RANK: Record<PlanKey, number> = {
 }
 
 export const LAUNCH_VISIBLE_FEATURES = new Set<FeatureKey>([
-  'overview',
   'explore',
   'ai-search',
   'shopping',
@@ -111,7 +108,6 @@ export const LAUNCH_HIDDEN_FEATURES = new Set<FeatureKey>([
 ])
 
 const MIN_PLAN_BY_FEATURE: Partial<Record<FeatureKey, PlanKey>> = {
-  overview: 'starter',
   explore: 'starter',
   'ai-search': 'starter',
   shopping: 'starter',
@@ -158,8 +154,8 @@ export function hasPlanFeatureAccess(
 export function featureFromPath(path: string): FeatureKey | null {
   if (!path) return null
 
-  // Special case: bare /dashboard or /dashboard/ → treat as overview
-  if (path === '/dashboard' || path === '/dashboard/') return 'overview'
+  // Special case: bare /dashboard or /dashboard/ → treat as the default audit entry.
+  if (path === '/dashboard' || path === '/dashboard/') return 'geo-audit'
 
   // Admin sub-pages that ARE feature-gated (must be checked BEFORE the admin blanket skip below)
   if (path === '/dashboard/admin/customers' || path.startsWith('/dashboard/admin/customers/')) return 'customers'

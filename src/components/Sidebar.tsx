@@ -12,7 +12,7 @@ import {
   ShieldCheck, Zap, PenTool, BarChart3, Activity,
   LogOut, Settings, Wrench, PanelLeftClose, PanelLeft,
   Sparkles, ExternalLink, HelpCircle, Home, ChevronRight, CreditCard,
-  LineChart, LayoutDashboard, Search, MessageSquare,
+  LineChart, Search, MessageSquare,
   BookOpen, TrendingUp, Database, X, Globe, Users, ShoppingCart, Briefcase,
   Compass, Plug, Cpu, Megaphone, Bot, Share2,
 } from 'lucide-react'
@@ -190,7 +190,6 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
     {
       labelKey: 'navGroupInsights',
       items: [
-        { href: '/dashboard/overview',  icon: LayoutDashboard, labelKey: 'Overview' as never, permissionKey: 'overview' },
         { href: '/dashboard/explore',   icon: Compass,      labelKey: 'exploreNav',   permissionKey: 'explore',   isBeta: true },
         { href: '/dashboard/ai-search', icon: TrendingUp,   labelKey: 'aiSearchNav',  permissionKey: 'ai-search', isNew: true },
         { href: '/dashboard/shopping',  icon: ShoppingCart, labelKey: 'shoppingNav',  permissionKey: 'shopping',  isNew: true },
