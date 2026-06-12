@@ -7,12 +7,12 @@ import { useAuth } from '@/hooks/useAuth'
 import { api, customersApi, type CustomerSummary } from '@/lib/api'
 import {
   ACTIVE_CUSTOMER_EVENT,
-  ACTIVE_CUSTOMER_KEY,
-  CUSTOMER_CACHE_KEY,
-  CUSTOMER_PROFILE_CONFIRMED_KEY,
+  activeCustomerStorageKey,
+  customerCacheStorageKey,
 } from '@/app/dashboard/geo-monitor/components/shared/constants'
 
 const DEFAULT_ENTRY = '/dashboard/geo-audit'
+const ONBOARDING_ENTRY = '/onboarding'
 const PROFILE_ENTRY = '/dashboard/ai-search'
 const PROMPTS_ENTRY = '/dashboard/prompts'
 const MONITOR_ENTRY = '/dashboard/geo-monitor'
@@ -38,40 +38,38 @@ const STAFF_ENTRY_PRIORITY = [
   { key: 'customers', href: '/dashboard/admin/customers' },
 ]
 
-function syncActiveCustomer(customer: CustomerSummary) {
+function syncActiveCustomer(customer: CustomerSummary, userId: string) {
   if (typeof window === 'undefined') return
 
   try {
-    localStorage.setItem(ACTIVE_CUSTOMER_KEY, customer.id)
+    localStorage.setItem(activeCustomerStorageKey(userId), customer.id)
     const cache: Record<string, { brand_name: string; domain: string }> =
-      JSON.parse(localStorage.getItem(CUSTOMER_CACHE_KEY) || '{}')
+      JSON.parse(localStorage.getItem(customerCacheStorageKey(userId)) || '{}')
     cache[customer.id] = { brand_name: customer.brand_name, domain: customer.domain }
-    localStorage.setItem(CUSTOMER_CACHE_KEY, JSON.stringify(cache))
+    localStorage.setItem(customerCacheStorageKey(userId), JSON.stringify(cache))
     window.dispatchEvent(new CustomEvent(ACTIVE_CUSTOMER_EVENT, { detail: customer.id }))
   } catch {
     // Storage is a speed optimization only; routing still works without it.
   }
 }
 
-function chooseCustomer(customers: CustomerSummary[]): CustomerSummary | null {
+function chooseCustomer(customers: CustomerSummary[], userId: string): CustomerSummary | null {
   if (customers.length === 0 || typeof window === 'undefined') return customers[0] ?? null
 
   try {
-    const activeId = localStorage.getItem(ACTIVE_CUSTOMER_KEY)
+    const activeId = localStorage.getItem(activeCustomerStorageKey(userId))
     return customers.find(customer => customer.id === activeId) ?? customers[0] ?? null
   } catch {
     return customers[0] ?? null
   }
 }
 
-function isCustomerProfileConfirmed(customer: CustomerSummary): boolean {
-  if (typeof window === 'undefined') return false
-  try {
-    const confirmed = JSON.parse(localStorage.getItem(CUSTOMER_PROFILE_CONFIRMED_KEY) || '{}') as Record<string, boolean>
-    return confirmed[`customer:${customer.id}`] === true
-  } catch {
-    return false
-  }
+function isCustomerProfileComplete(config: Record<string, unknown> | null | undefined): boolean {
+  return Boolean(
+    String(config?.industry ?? '').trim() &&
+    String(config?.product_space ?? '').trim() &&
+    String(config?.target_market ?? '').trim()
+  )
 }
 
 export default function DashboardRootPage() {
@@ -100,15 +98,18 @@ export default function DashboardRootPage() {
         const customers = await customersApi.list(user.id, false)
         if (cancelled) return
 
-        const activeCustomer = chooseCustomer(customers)
+        const activeCustomer = chooseCustomer(customers, user.id)
         if (!activeCustomer) {
-          router.replace(DEFAULT_ENTRY)
+          router.replace(ONBOARDING_ENTRY)
           return
         }
 
-        syncActiveCustomer(activeCustomer)
+        syncActiveCustomer(activeCustomer, user.id)
 
-        if (!isCustomerProfileConfirmed(activeCustomer)) {
+        const detail = await customersApi.get(activeCustomer.id, user.id)
+        if (cancelled) return
+
+        if (!isCustomerProfileComplete(detail.config_json)) {
           router.replace(PROFILE_ENTRY)
           return
         }

@@ -9,7 +9,6 @@ import {
   api,
   customersApi,
   CustomerSummary,
-  WarehouseSummary,
   notifyCreditUsed,
   MonitorScanResult,
   MonitorPrompt,
@@ -26,13 +25,12 @@ import {
   SCAN_HISTORY_KEY,
   GAP_RESULTS_KEY,
   ADV_MENTIONS_KEY,
-  RECENT_BRANDS_KEY,
   DISCOVER_RESULT_KEY,
-  ACTIVE_CUSTOMER_KEY,
   ACTIVE_CUSTOMER_EVENT,
-  CUSTOMER_CACHE_KEY,
-  CUSTOMER_PROFILE_CONFIRMED_KEY,
-  SNAPSHOTS_KEY,
+  activeCustomerStorageKey,
+  customerCacheStorageKey,
+  recentBrandsStorageKey,
+  snapshotsStorageKey,
   autoClassify,
   sanitizeBrandConfig,
   type BrandConfig,
@@ -109,6 +107,8 @@ interface UnifiedState {
   brandConfig: BrandConfig
   setBrandConfig: (c: BrandConfig) => void
   isConfigured: boolean
+  isProfileComplete: boolean
+  profileMissingFields: string[]
   showConfig: boolean
   setShowConfig: (v: boolean) => void
   configError: string
@@ -259,27 +259,35 @@ export function useUnified() {
 
 // ─── Provider ────────────────────────────────────────
 
-// ── Preview mode: auto-load preset brand config from env vars ──────────────
-// Set NEXT_PUBLIC_PREVIEW_MODE=true + NEXT_PUBLIC_PREVIEW_BRAND_* in .env.local.
-// Never set these in production — stripped at build time.
+const _IS_PREVIEW = process.env.NEXT_PUBLIC_PREVIEW_MODE === 'true'
+const EMPTY_BRAND_CONFIG: BrandConfig = {
+  brand_name: '',
+  domain: '',
+  keywords: [],
+  competitors: [],
+  industry: '',
+  product_space: '',
+  one_liner: '',
+  target_audience: '',
+  target_market: '',
+  differentiation: '',
+  source_domains: [],
+}
+
+// ── Preview mode: only use an explicit env-provided brand. No hard-coded demo
+// brand is allowed here because NEXT_PUBLIC_* values can leak into production.
 const _PREVIEW_BRAND: BrandConfig | null =
-  process.env.NEXT_PUBLIC_PREVIEW_MODE === 'true'
+  _IS_PREVIEW && process.env.NEXT_PUBLIC_PREVIEW_BRAND_NAME && process.env.NEXT_PUBLIC_PREVIEW_BRAND_DOMAIN
     ? {
-        brand_name:      process.env.NEXT_PUBLIC_PREVIEW_BRAND_NAME      || 'RedMagic',
-        domain:          process.env.NEXT_PUBLIC_PREVIEW_BRAND_DOMAIN     || 'https://global.redmagic.gg/',
-        product_space:   'Gaming phones',
-        one_liner:       process.env.NEXT_PUBLIC_PREVIEW_BRAND_ONELINER   || '',
-        target_market:   process.env.NEXT_PUBLIC_PREVIEW_BRAND_MARKET     || 'UAE',
-        industry:        'Consumer Electronics',
-        target_audience: 'Competitive mobile gamers aged 18–35',
-        differentiation: 'Active turbo fan cooling (22,000 RPM) vs passive cooling competitors',
-        keywords:        ['best gaming phone UAE', 'gaming phone with cooling fan', 'best phone for PUBG Mobile'],
-        competitors:     ['ASUS ROG Phone 9 Pro', 'Samsung Galaxy S25 Ultra', 'iQOO 13', 'POCO F7 Ultra'],
-        source_domains:  ['redmagic.gg', 'gsmarena.com', 'notebookcheck.net'],
+        ...EMPTY_BRAND_CONFIG,
+        brand_name:      process.env.NEXT_PUBLIC_PREVIEW_BRAND_NAME,
+        domain:          process.env.NEXT_PUBLIC_PREVIEW_BRAND_DOMAIN,
+        product_space:   process.env.NEXT_PUBLIC_PREVIEW_BRAND_PRODUCT_SPACE || '',
+        one_liner:       process.env.NEXT_PUBLIC_PREVIEW_BRAND_ONELINER || '',
+        target_market:   process.env.NEXT_PUBLIC_PREVIEW_BRAND_MARKET || '',
+        industry:        process.env.NEXT_PUBLIC_PREVIEW_BRAND_INDUSTRY || '',
       }
     : null
-
-const _IS_PREVIEW = process.env.NEXT_PUBLIC_PREVIEW_MODE === 'true'
 // Preview lands on this real customer so prompts/scan hydrate with real data.
 const _PREVIEW_CUSTOMER_ID = process.env.NEXT_PUBLIC_PREVIEW_CUSTOMER_ID || null
 
@@ -297,34 +305,8 @@ function missingRequiredProfileFields(config: BrandConfig) {
     .map(field => field.label)
 }
 
-function profileConfirmationId(customerId: string | null, config: Pick<BrandConfig, 'brand_name' | 'domain'>) {
-  if (customerId) return `customer:${customerId}`
-  const brand = config.brand_name.trim().toLowerCase()
-  const domain = config.domain.trim().toLowerCase()
-  return `local:${brand}:${domain}`
-}
-
-function isProfileConfirmed(customerId: string | null, config: Pick<BrandConfig, 'brand_name' | 'domain'>) {
-  if (typeof window === 'undefined') return false
-  try {
-    const id = profileConfirmationId(customerId, config)
-    const confirmed = JSON.parse(localStorage.getItem(CUSTOMER_PROFILE_CONFIRMED_KEY) || '{}') as Record<string, boolean>
-    return confirmed[id] === true
-  } catch {
-    return false
-  }
-}
-
-function markProfileConfirmed(customerId: string | null, config: Pick<BrandConfig, 'brand_name' | 'domain'>) {
-  if (typeof window === 'undefined') return
-  try {
-    const id = profileConfirmationId(customerId, config)
-    const confirmed = JSON.parse(localStorage.getItem(CUSTOMER_PROFILE_CONFIRMED_KEY) || '{}') as Record<string, boolean>
-    confirmed[id] = true
-    localStorage.setItem(CUSTOMER_PROFILE_CONFIRMED_KEY, JSON.stringify(confirmed))
-  } catch {
-    // Non-critical; server/local profile persistence still succeeds.
-  }
+function isProfileComplete(config: BrandConfig) {
+  return missingRequiredProfileFields(config).length === 0
 }
 
 export function UnifiedProvider({ children }: { children: ReactNode }) {
@@ -337,12 +319,14 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
 
   // ── Brand config ────────────────────────────────
   const [brandConfig, setBrandConfig] = useState<BrandConfig>(
-    _PREVIEW_BRAND ?? { brand_name: '', domain: '', keywords: [], competitors: [], industry: '', product_space: '', one_liner: '', target_audience: '', target_market: '', differentiation: '', source_domains: [] }
+    _PREVIEW_BRAND ?? EMPTY_BRAND_CONFIG
   )
   const [isConfigured, setIsConfigured] = useState(_PREVIEW_BRAND !== null)
   const [showConfig, setShowConfig] = useState(_PREVIEW_BRAND === null)
   const [configError, setConfigError] = useState('')
   const [recentBrands, setRecentBrands] = useState<RecentBrandRecord[]>([])
+  const profileMissingFields = useMemo(() => missingRequiredProfileFields(brandConfig), [brandConfig])
+  const profileComplete = profileMissingFields.length === 0
 
   // ── Date / Filter ───────────────────────────────
   const [datePreset, setDatePreset] = useState<'7d' | '30d' | '90d' | 'custom'>('30d')
@@ -429,10 +413,8 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const reportAbortRef = useRef<AbortController | null>(null)
   const discoverAbortRef = useRef<AbortController | null>(null)
   const autoScanTriggered = useRef(false)
-  // Guard so the mount-init runs exactly once. React 18 StrictMode double-invokes
-  // effects in dev; without this the 2nd run reads the (already-stripped) URL and
-  // the preview-default fallback would clobber the real ?customer= selection.
-  const mountInitDone = useRef(false)
+  const initializedForAuth = useRef<string | null>(null)
+  const persistedBrandRef = useRef((_PREVIEW_BRAND?.brand_name ?? '').trim().toLowerCase())
 
   // ── Filtered prompts ────────────────────────────
   const filteredPrompts = useMemo(() => {
@@ -476,8 +458,11 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   // ═══ Load on mount: customer-mode or localStorage ═══
 
   useEffect(() => {
-    if (mountInitDone.current) return  // StrictMode guard — run once
-    mountInitDone.current = true
+    const initKey = user?.id ?? (_IS_PREVIEW ? 'preview' : null)
+    if (!initKey) return
+    if (initializedForAuth.current === initKey) return
+    initializedForAuth.current = initKey
+
     try {
       const params = new URLSearchParams(window.location.search)
       const tabParam = params.get('tab')
@@ -485,46 +470,82 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
         setActiveTab(tabParam as TabKey)
       }
 
-      // ── Phase 4: customer mode — hydrate from backend, skip localStorage ──
-      // Preview falls back to a default customer so the demo lands on real data.
-      // Priority: explicit ?customer= param > last-selected (localStorage) > preview default.
-      // The localStorage fallback makes the dropdown selection survive page refresh.
-      const cid = params.get('customer')
-        || (typeof window !== 'undefined' ? localStorage.getItem(ACTIVE_CUSTOMER_KEY) : null)
-        || (_IS_PREVIEW ? _PREVIEW_CUSTOMER_ID : null)
-      if (cid) {
-        setActiveCustomerId(cid)
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(ACTIVE_CUSTOMER_KEY, cid)
-          // Tell the global sidebar switcher which customer we landed on
-          window.dispatchEvent(new CustomEvent(ACTIVE_CUSTOMER_EVENT, { detail: cid }))
-        }
-        // ④ Pre-fill brand name from cache so new tabs show the brand instantly
-        // (no "Loading..." flash — backend hydration overwrites when it completes)
-        try {
-          const nameCache: Record<string, { brand_name: string; domain: string }> =
-            JSON.parse(localStorage.getItem(CUSTOMER_CACHE_KEY) || '{}')
-          if (nameCache[cid]) {
-            setBrandConfig(prev => ({
-              ...prev,
-              brand_name: nameCache[cid].brand_name,
-              domain: nameCache[cid].domain || prev.domain,
+      const urlCustomerId = params.get('customer')
+
+      // Authenticated dashboards are customer/warehouse-first. The browser may
+      // remember the user's selected customer id, but it cannot hydrate private
+      // brand, scan, discover, or analysis data.
+      if (user?.id) {
+        const autoScan = params.get('autoScan') === 'true'
+        setScanResult(null)
+        setScanHistory([])
+        setGapResult(null)
+        setAdvancedMentions(null)
+        setIntelReport(null)
+        setAiResearchResult(null)
+        setDiscoverResults({})
+        setMultiBrandTrends(null)
+        setWarehouseLoaded(false)
+        setLastRefreshed(null)
+        customersApi.list(user.id, false)
+          .then(list => {
+            setCustomers(list)
+            const savedCustomerId = localStorage.getItem(activeCustomerStorageKey(user.id))
+            const requestedCustomerId = urlCustomerId || savedCustomerId
+            const selected = (requestedCustomerId ? list.find(c => c.id === requestedCustomerId) : null)
+              ?? list[0]
+              ?? null
+
+            if (!selected) {
+              setActiveCustomerId(null)
+              setBrandConfig(EMPTY_BRAND_CONFIG)
+              setIsConfigured(false)
+              setShowConfig(true)
+              setWarehouseLoaded(false)
+              setLastRefreshed(null)
+              return
+            }
+
+            localStorage.setItem(activeCustomerStorageKey(user.id), selected.id)
+            const cache: Record<string, { brand_name: string; domain: string }> =
+              JSON.parse(localStorage.getItem(customerCacheStorageKey(user.id)) || '{}')
+            cache[selected.id] = { brand_name: selected.brand_name, domain: selected.domain }
+            localStorage.setItem(customerCacheStorageKey(user.id), JSON.stringify(cache))
+
+            setBrandConfig(sanitizeBrandConfig({
+              ...EMPTY_BRAND_CONFIG,
+              brand_name: selected.brand_name,
+              domain: selected.domain,
             }))
             setIsConfigured(true)
-          }
-        } catch { /* cache miss is safe to ignore */ }
-        // Capture autoScan BEFORE the early return — the backend hydration effect
-        // sets isConfigured after loading the customer, which then triggers the
-        // autoScan watcher (line ~659). This is how onboarding → first scan works.
-        if (params.get('autoScan') === 'true' && !autoScanTriggered.current) {
-          autoScanTriggered.current = true
-        }
-        // Remove params from URL so refreshes don't re-trigger
-        window.history.replaceState({}, '', window.location.pathname)
-        return // skip localStorage hydration; backend effect handles the rest
+            setCustomerHydrating(true)
+            setActiveCustomerId(selected.id)
+            window.dispatchEvent(new CustomEvent(ACTIVE_CUSTOMER_EVENT, { detail: selected.id }))
+          })
+          .catch(() => {
+            setCustomers([])
+            setActiveCustomerId(null)
+            setBrandConfig(EMPTY_BRAND_CONFIG)
+            setIsConfigured(false)
+            setShowConfig(true)
+          })
+
+        if (autoScan && !autoScanTriggered.current) autoScanTriggered.current = true
+        if (window.location.search) window.history.replaceState({}, '', window.location.pathname)
+        return
+      }
+
+      const cid = urlCustomerId || (_IS_PREVIEW ? _PREVIEW_CUSTOMER_ID : null)
+      if (cid) {
+        setActiveCustomerId(cid)
+        if (params.get('autoScan') === 'true' && !autoScanTriggered.current) autoScanTriggered.current = true
+        if (window.location.search) window.history.replaceState({}, '', window.location.pathname)
+        return
       }
 
       // ── Normal localStorage hydration ─────────────────────────────────────
+      // Standalone/no-auth fallback only. Authenticated users never reach this
+      // branch because their customer data must come from backend customer APIs.
       const saved = localStorage.getItem(BRAND_CONFIG_KEY)
       if (saved) {
         const config = sanitizeBrandConfig(JSON.parse(saved) as BrandConfig)
@@ -532,6 +553,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
           setBrandConfig(config)
           setIsConfigured(true)
           setShowConfig(false)
+          persistedBrandRef.current = config.brand_name.trim().toLowerCase()
         }
       }
       const savedResults = localStorage.getItem(SCAN_RESULTS_KEY)
@@ -563,16 +585,16 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
           setDiscoverResults(reClassified)
         }
       }
-      const savedRecent = localStorage.getItem(RECENT_BRANDS_KEY)
+      const savedRecent = localStorage.getItem(recentBrandsStorageKey(null))
       if (savedRecent) setRecentBrands(JSON.parse(savedRecent))
-      const savedSnaps = localStorage.getItem(SNAPSHOTS_KEY)
+      const savedSnaps = localStorage.getItem(snapshotsStorageKey(null))
       if (savedSnaps) setSavedSnapshots(JSON.parse(savedSnaps))
       if (params.get('autoScan') === 'true' && !autoScanTriggered.current) {
         autoScanTriggered.current = true
         window.history.replaceState({}, '', window.location.pathname)
       }
     } catch { /* ignore */ }
-  }, [])
+  }, [user?.id])
 
   // ═══ Phase 4: hydrate from backend when customer + user are both ready ═══
 
@@ -590,6 +612,8 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     setAiResearchResult(null)
     setDiscoverResults({})
     setMultiBrandTrends(null)
+    setWarehouseLoaded(false)
+    setLastRefreshed(null)
 
     customersApi.getLatest(activeCustomerId, user.id)
       .then(data => {
@@ -609,16 +633,17 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
         })
         setBrandConfig(hydratedConfig)
         setIsConfigured(true)
-        setShowConfig(!isProfileConfirmed(activeCustomerId, hydratedConfig))
+        setShowConfig(!isProfileComplete(hydratedConfig))
+        persistedBrandRef.current = hydratedConfig.brand_name.trim().toLowerCase()
         // ④ Write brand name to cache so future new tabs show it immediately
         try {
           const nameCache: Record<string, { brand_name: string; domain: string }> =
-            JSON.parse(localStorage.getItem(CUSTOMER_CACHE_KEY) || '{}')
+            JSON.parse(localStorage.getItem(customerCacheStorageKey(user.id)) || '{}')
           nameCache[activeCustomerId!] = {
             brand_name: data.customer.brand_name,
             domain:     data.customer.domain,
           }
-          localStorage.setItem(CUSTOMER_CACHE_KEY, JSON.stringify(nameCache))
+          localStorage.setItem(customerCacheStorageKey(user.id), JSON.stringify(nameCache))
         } catch { /* non-critical */ }
 
         if (data.latest_scan) {
@@ -665,43 +690,17 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
           if (ac.ai_research)       setAiResearchResult(ac.ai_research as Record<string, unknown>)
         }
       })
-      .catch(err => console.warn('[UnifiedContext] customer hydration failed:', err))
+      .catch(err => {
+        console.warn('[UnifiedContext] customer hydration failed:', err)
+        setBrandConfig(EMPTY_BRAND_CONFIG)
+        setIsConfigured(false)
+        setShowConfig(true)
+      })
       .finally(() => setCustomerHydrating(false))
 
-    // ── Warehouse pre-load: fetch aggregated data so dashboard shows
-    //    historical data IMMEDIATELY without requiring a manual scan.
-    //    Runs in parallel with getLatest, fills scanHistory from agg_brand_daily.
-    customersApi.getLatest(activeCustomerId, user.id)
-      .then(data => {
-        // Only load warehouse if we don't already have scan history from the
-        // /latest endpoint (scan history from real scans is more accurate).
-        const brandName = data.customer?.brand_name
-        if (!brandName) return
-        return api.getWarehouseSummary(brandName, 30)
-      })
-      .then(whResp => {
-        if (!whResp?.data?.has_data) return
-        const wh = whResp.data
-        // Merge warehouse history into scanHistory IF it's richer than what
-        // /latest returned (agg covers full 30 days; /latest only 30 raw scans).
-        // Use agg data as the baseline; real scan results sit on top.
-        setScanHistory(prev => {
-          if (prev.length >= (wh.history?.length ?? 0)) return prev  // real data wins
-          return (wh.history ?? []).map(h => ({
-            scan_id:          h.scan_id,
-            date:             h.date,
-            visibility_score: h.visibility_score,
-            mentions_found:   h.mentions_found,
-            total_prompts:    h.total_prompts,
-            citation_count:   h.citation_count,
-            positive_pct:     h.positive_pct,
-            engines_used:     h.engines_used,
-          } as ScanHistoryEntry))
-        })
-        setLastRefreshed(wh.last_refreshed ?? null)
-        setWarehouseLoaded(true)
-      })
-      .catch(() => { /* warehouse load is non-critical */ })
+    // Private customer dashboards must not read the global agg_brand_daily
+    // rollup by brand name. That warehouse table is public/brand-scoped today;
+    // Monitor + Analysis use customer-scoped scan history from /customers/:id/latest.
   }, [activeCustomerId, user?.id])
 
   // ═══ Load the customer list for the header dropdown switcher ═══
@@ -712,19 +711,35 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       .catch(() => setCustomers([]))
   }, [user?.id])
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const savedRecent = localStorage.getItem(recentBrandsStorageKey(user?.id))
+      setRecentBrands(savedRecent ? JSON.parse(savedRecent) : [])
+    } catch {
+      setRecentBrands([])
+    }
+    try {
+      const savedSnaps = localStorage.getItem(snapshotsStorageKey(activeCustomerId))
+      setSavedSnapshots(savedSnaps ? JSON.parse(savedSnaps) : [])
+    } catch {
+      setSavedSnapshots([])
+    }
+  }, [activeCustomerId, user?.id])
+
   // ═══ Switch to another customer (dropdown) — instant, no navigation ═══
   const switchCustomer = useCallback((customerId: string) => {
     if (!customerId || customerId === activeCustomerId) return
-    if (typeof window !== 'undefined') localStorage.setItem(ACTIVE_CUSTOMER_KEY, customerId)
+    if (typeof window !== 'undefined' && user?.id) localStorage.setItem(activeCustomerStorageKey(user.id), customerId)
     // ④ Pre-cache brand name from the already-loaded customers list so the new
     // tab shows it immediately without waiting for the backend hydration round-trip.
     const found = customers.find(c => c.id === customerId)
     if (found) {
       try {
         const cache: Record<string, { brand_name: string; domain: string }> =
-          JSON.parse(localStorage.getItem(CUSTOMER_CACHE_KEY) || '{}')
+          JSON.parse(localStorage.getItem(customerCacheStorageKey(user?.id)) || '{}')
         cache[customerId] = { brand_name: found.brand_name, domain: found.domain }
-        localStorage.setItem(CUSTOMER_CACHE_KEY, JSON.stringify(cache))
+        localStorage.setItem(customerCacheStorageKey(user?.id), JSON.stringify(cache))
       } catch { /* non-critical */ }
     }
     setActiveCustomerId(customerId)  // triggers hydration effect (clears + loads new data)
@@ -732,7 +747,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent(ACTIVE_CUSTOMER_EVENT, { detail: customerId }))
     }
-  }, [activeCustomerId, customers])
+  }, [activeCustomerId, customers, user?.id])
 
   // ═══ React to customer switches from the global sidebar switcher ═══
   // The sidebar lives outside UnifiedProvider, so it signals via a window
@@ -776,11 +791,11 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     }
     setSavedSnapshots(prev => {
       const updated = [snapshot, ...prev]
-      try { localStorage.setItem(SNAPSHOTS_KEY, JSON.stringify(updated)) } catch { /* storage full */ }
+      try { localStorage.setItem(snapshotsStorageKey(activeCustomerId), JSON.stringify(updated)) } catch { /* storage full */ }
       return updated
     })
     return snapshot
-  }, [brandConfig, datePreset, startDate, endDate, scanResult, scanHistory])
+  }, [activeCustomerId, brandConfig, datePreset, startDate, endDate, scanResult, scanHistory])
 
   // ═══ Brand config handlers ═══════════════════════
 
@@ -790,16 +805,16 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     setRecentBrands(prev => {
       const filtered = prev.filter(r => !(r.brand_name === entry.brand_name && r.domain === entry.domain))
       const updated = [entry, ...filtered].slice(0, 10)
-      localStorage.setItem(RECENT_BRANDS_KEY, JSON.stringify(updated))
+      localStorage.setItem(recentBrandsStorageKey(user?.id), JSON.stringify(updated))
       return updated
     })
-  }, [brandConfig])
+  }, [brandConfig, user?.id])
 
   const loadRecentBrand = (rec: RecentBrandRecord) => {
     setBrandConfig({ brand_name: rec.brand_name, domain: rec.domain, keywords: rec.keywords, competitors: rec.competitors, industry: rec.industry ?? '', product_space: rec.product_space ?? '', one_liner: rec.one_liner ?? '', target_audience: rec.target_audience ?? '', target_market: rec.target_market ?? '', differentiation: rec.differentiation ?? '', source_domains: rec.source_domains ?? [] })
   }
 
-  const clearRecentBrands = () => { localStorage.removeItem(RECENT_BRANDS_KEY); setRecentBrands([]) }
+  const clearRecentBrands = () => { localStorage.removeItem(recentBrandsStorageKey(user?.id)); setRecentBrands([]) }
 
   const handleSaveConfig = (pendingKeyword = '', pendingCompetitor = '', pendingSource = '') => {
     // Merge any still-typed (unsubmitted) text from TagInputs.
@@ -827,16 +842,17 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     setConfigError('')
     setBrandConfig(merged)
 
-    // ── Level 1: Detect brand change → read OLD brand BEFORE overwriting localStorage ──
-    // The edit form updates brandConfig in real-time, so we can't rely on React state for "old" brand.
-    // Read the previously-persisted value from localStorage as the authoritative old brand.
-    const savedConfigRaw = localStorage.getItem(BRAND_CONFIG_KEY)
-    const savedBrand = savedConfigRaw ? (JSON.parse(savedConfigRaw) as BrandConfig).brand_name?.trim().toLowerCase() : ''
+    const savedConfigRaw = activeCustomerId ? null : localStorage.getItem(BRAND_CONFIG_KEY)
+    const savedBrand = activeCustomerId
+      ? persistedBrandRef.current
+      : savedConfigRaw ? (JSON.parse(savedConfigRaw) as BrandConfig).brand_name?.trim().toLowerCase() : ''
     const newBrand = merged.brand_name.trim().toLowerCase()
     const brandChanged = isConfigured && savedBrand && savedBrand !== newBrand
 
-    // Now persist the new config (localStorage = fast local cache)
-    localStorage.setItem(BRAND_CONFIG_KEY, JSON.stringify(merged))
+    if (!activeCustomerId) {
+      localStorage.setItem(BRAND_CONFIG_KEY, JSON.stringify(merged))
+    }
+    persistedBrandRef.current = newBrand
 
     // ── Persist config_json to DB so it survives logout (customer mode) ──
     // The customer record is the source of truth that getLatest() re-hydrates
@@ -857,6 +873,13 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
           differentiation: merged.differentiation,
           source_domains:  merged.source_domains,
         },
+      }).then(() => {
+        try {
+          const cache: Record<string, { brand_name: string; domain: string }> =
+            JSON.parse(localStorage.getItem(customerCacheStorageKey(user.id)) || '{}')
+          cache[activeCustomerId] = { brand_name: merged.brand_name.trim(), domain: merged.domain.trim() }
+          localStorage.setItem(customerCacheStorageKey(user.id), JSON.stringify(cache))
+        } catch { /* non-critical */ }
       }).catch(err => {
         console.error('[UnifiedContext] config persist to DB failed:', err)
         setConfigError('Saved locally but failed to sync to server — click Save again to retry.')
@@ -864,12 +887,13 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     }
 
     if (brandChanged) {
-      // Clear all result caches from localStorage
-      localStorage.removeItem(SCAN_RESULTS_KEY)
-      localStorage.removeItem(SCAN_HISTORY_KEY)
-      localStorage.removeItem(GAP_RESULTS_KEY)
-      localStorage.removeItem(ADV_MENTIONS_KEY)
-      localStorage.removeItem(DISCOVER_RESULT_KEY)
+      if (!activeCustomerId) {
+        localStorage.removeItem(SCAN_RESULTS_KEY)
+        localStorage.removeItem(SCAN_HISTORY_KEY)
+        localStorage.removeItem(GAP_RESULTS_KEY)
+        localStorage.removeItem(ADV_MENTIONS_KEY)
+        localStorage.removeItem(DISCOVER_RESULT_KEY)
+      }
       // Clear all result state
       setScanResult(null)
       setScanHistory([])
@@ -882,7 +906,6 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       autoScanTriggered.current = true
     }
 
-    markProfileConfirmed(activeCustomerId, merged)
     setIsConfigured(true); setShowConfig(false)
 
     // Save to recent brands with merged config (avoids stale closure in saveRecentBrand)
@@ -890,16 +913,19 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     setRecentBrands(prev => {
       const filtered = prev.filter(r => !(r.brand_name === entry.brand_name && r.domain === entry.domain))
       const updated = [entry, ...filtered].slice(0, 10)
-      localStorage.setItem(RECENT_BRANDS_KEY, JSON.stringify(updated))
+      localStorage.setItem(recentBrandsStorageKey(user?.id), JSON.stringify(updated))
       return updated
     })
   }
 
   const handleClearConfig = () => {
-    localStorage.removeItem(BRAND_CONFIG_KEY); localStorage.removeItem(SCAN_RESULTS_KEY)
-    localStorage.removeItem(SCAN_HISTORY_KEY); localStorage.removeItem(GAP_RESULTS_KEY); localStorage.removeItem(ADV_MENTIONS_KEY)
-    localStorage.removeItem(DISCOVER_RESULT_KEY)
-    setBrandConfig({ brand_name: '', domain: '', keywords: [], competitors: [], industry: '', product_space: '', one_liner: '', target_audience: '', target_market: '', differentiation: '', source_domains: [] })
+    if (!activeCustomerId) {
+      localStorage.removeItem(BRAND_CONFIG_KEY); localStorage.removeItem(SCAN_RESULTS_KEY)
+      localStorage.removeItem(SCAN_HISTORY_KEY); localStorage.removeItem(GAP_RESULTS_KEY); localStorage.removeItem(ADV_MENTIONS_KEY)
+      localStorage.removeItem(DISCOVER_RESULT_KEY)
+    }
+    setBrandConfig(EMPTY_BRAND_CONFIG)
+    persistedBrandRef.current = ''
     setIsConfigured(false); setShowConfig(true)
     setScanResult(null); setScanHistory([]); setGapResult(null); setAdvancedMentions(null); setIntelReport(null); setAiResearchResult(null); setDiscoverResults({})
   }
@@ -931,7 +957,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     try {
       const res = await api.runAdvancedMentionAnalysis({ brand_name: brandConfig.brand_name, domain: brandConfig.domain, keywords: brandConfig.keywords, competitors: brandConfig.competitors }, ctrl.signal, user?.id)
       if (res.error === '__ABORTED__') { setIsRunningAdvMentions(false); return }
-      if (res.error) { setAdvMentionsError(res.error) } else if (res.data) { setAdvancedMentions(res.data); localStorage.setItem(ADV_MENTIONS_KEY, JSON.stringify(res.data)); if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'advanced_mentions', res.data).catch(() => {}) }
+      if (res.error) { setAdvMentionsError(res.error) } else if (res.data) { setAdvancedMentions(res.data); if (!activeCustomerId) localStorage.setItem(ADV_MENTIONS_KEY, JSON.stringify(res.data)); if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'advanced_mentions', res.data).catch(() => {}) }
     } catch (e: any) { if (e.name !== 'AbortError') setAdvMentionsError(e.message || 'Auto advanced analysis failed') }
     advMentionsAbortRef.current = null; setIsRunningAdvMentions(false)
   }
@@ -992,7 +1018,6 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
             if (latest.latest_scan) {
               const fullScan = latest.latest_scan as unknown as MonitorScanResult
               setScanResult(fullScan)
-              localStorage.setItem(SCAN_RESULTS_KEY, JSON.stringify(fullScan))
               window.dispatchEvent(new CustomEvent('scanCompleted'))
 
               // Build history entry from full scan data
@@ -1078,7 +1103,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     try {
       const res = await api.runGapAnalysis({ brand_name: brandConfig.brand_name, domain: brandConfig.domain, keywords: brandConfig.keywords, competitors: brandConfig.competitors }, controller.signal, user?.id)
       if (res.error === '__ABORTED__') { setIsRunningGap(false); return }
-      if (res.error) { setGapError(res.error) } else if (res.data) { setGapResult(res.data); localStorage.setItem(GAP_RESULTS_KEY, JSON.stringify(res.data)); if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'gap', res.data).catch(() => {}); notifyCreditUsed() }
+      if (res.error) { setGapError(res.error) } else if (res.data) { setGapResult(res.data); if (!activeCustomerId) localStorage.setItem(GAP_RESULTS_KEY, JSON.stringify(res.data)); if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'gap', res.data).catch(() => {}); notifyCreditUsed() }
     } catch (e: any) { if (e.name !== 'AbortError') setGapError(e.message || 'Gap analysis failed') }
     gapAbortRef.current = null; setIsRunningGap(false)
   }
@@ -1094,7 +1119,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     try {
       const res = await api.runAdvancedMentionAnalysis({ brand_name: brandConfig.brand_name, domain: brandConfig.domain, keywords: brandConfig.keywords, competitors: brandConfig.competitors }, controller.signal, user?.id)
       if (res.error === '__ABORTED__') { setIsRunningAdvMentions(false); return }
-      if (res.error) { setAdvMentionsError(res.error) } else if (res.data) { setAdvancedMentions(res.data); localStorage.setItem(ADV_MENTIONS_KEY, JSON.stringify(res.data)); if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'advanced_mentions', res.data).catch(() => {}); notifyCreditUsed() }
+      if (res.error) { setAdvMentionsError(res.error) } else if (res.data) { setAdvancedMentions(res.data); if (!activeCustomerId) localStorage.setItem(ADV_MENTIONS_KEY, JSON.stringify(res.data)); if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'advanced_mentions', res.data).catch(() => {}); notifyCreditUsed() }
     } catch (e: any) { if (e.name !== 'AbortError') setAdvMentionsError(e.message || 'Analysis failed') }
     advMentionsAbortRef.current = null; setIsRunningAdvMentions(false)
   }
@@ -1227,7 +1252,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
         const classified = applyBrandClassification(res.data, brandConfig.domain, brandConfig.competitors)
         setDiscoverResults(prev => {
           const updated = { ...prev, [discoverEngine]: classified }
-          localStorage.setItem(DISCOVER_RESULT_KEY, JSON.stringify(updated))
+          if (!activeCustomerId) localStorage.setItem(DISCOVER_RESULT_KEY, JSON.stringify(updated))
           return updated
         })
         notifyCreditUsed()
@@ -1262,7 +1287,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
         const classified = applyBrandClassification(res.data, brandConfig.domain, brandConfig.competitors)
         setDiscoverResults(prev => {
           const updated = { ...prev, [discoverEngine]: classified }
-          localStorage.setItem(DISCOVER_RESULT_KEY, JSON.stringify(updated))
+          if (!activeCustomerId) localStorage.setItem(DISCOVER_RESULT_KEY, JSON.stringify(updated))
           return updated
         })
         notifyCreditUsed()
@@ -1314,7 +1339,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   // ═══ Context value ═══════════════════════════════
 
   const value: UnifiedState = {
-    brandConfig, setBrandConfig, isConfigured, showConfig, setShowConfig, configError, recentBrands,
+    brandConfig, setBrandConfig, isConfigured, isProfileComplete: profileComplete, profileMissingFields, showConfig, setShowConfig, configError, recentBrands,
     loadRecentBrand, clearRecentBrands, handleSaveConfig, handleClearConfig,
     datePreset, handleDatePreset, startDate, setStartDate, endDate, setEndDate,
     filterTimeRange, setFilterTimeRange, filterModel, setFilterModel,

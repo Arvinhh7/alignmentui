@@ -39,6 +39,28 @@ export const CUSTOMER_PROFILE_CONFIRMED_KEY = 'alignment_customer_profile_confir
 // Frozen report snapshots — metrics locked at save time, never overwritten by new scans
 export const SNAPSHOTS_KEY = 'alignment_monitor_report_snapshots'
 
+export const activeCustomerStorageKey = (userId?: string | null) =>
+  userId ? `${ACTIVE_CUSTOMER_KEY}:${userId}` : ACTIVE_CUSTOMER_KEY
+
+export const customerCacheStorageKey = (userId?: string | null) =>
+  userId ? `${CUSTOMER_CACHE_KEY}:${userId}` : CUSTOMER_CACHE_KEY
+
+export const recentBrandsStorageKey = (userId?: string | null) =>
+  userId ? `${RECENT_BRANDS_KEY}:${userId}` : RECENT_BRANDS_KEY
+
+export const snapshotsStorageKey = (customerId?: string | null) =>
+  customerId ? `${SNAPSHOTS_KEY}:customer:${customerId}` : SNAPSHOTS_KEY
+
+export const LEGACY_CUSTOMER_DATA_KEYS = [
+  BRAND_CONFIG_KEY,
+  SCAN_RESULTS_KEY,
+  SCAN_HISTORY_KEY,
+  GAP_RESULTS_KEY,
+  ADV_MENTIONS_KEY,
+  DISCOVER_RESULT_KEY,
+  CUSTOMER_PROFILE_CONFIRMED_KEY,
+] as const
+
 export interface ReportSnapshot {
   id: string
   name: string

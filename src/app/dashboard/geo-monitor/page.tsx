@@ -1,6 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
 import dynamic from 'next/dynamic'
+import { useRouter } from 'next/navigation'
 import { Loader2, BarChart3, Tag, Compass } from 'lucide-react'
 import { UnifiedProvider, useUnified, type TabKey } from './components/UnifiedContext'
 import { ControlBar } from './components/ControlBar'
@@ -16,6 +18,22 @@ const FanOutTab  = dynamic(() => import('./components/tabs/FanOutTab').then(m =>
 
 function MonitoringContent() {
   const ctx = useUnified()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (ctx.customerHydrating) return
+    if (ctx.activeCustomerId && !ctx.isProfileComplete) {
+      router.replace('/dashboard/ai-search')
+    }
+  }, [ctx.activeCustomerId, ctx.customerHydrating, ctx.isProfileComplete, router])
+
+  if (ctx.activeCustomerId && !ctx.customerHydrating && !ctx.isProfileComplete) {
+    return (
+      <div className="min-h-screen bg-canvas flex items-center justify-center">
+        <Loader2 className="w-5 h-5 animate-spin text-ink-3" />
+      </div>
+    )
+  }
 
   const tabs: { key: TabKey; label: string; icon: React.ReactNode; badge?: string; isBeta?: boolean }[] = [
     {

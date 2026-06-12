@@ -6,6 +6,11 @@ import { api, customersApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 import { getSupabase } from '@/lib/supabase'
 import {
+  LEGACY_CUSTOMER_DATA_KEYS,
+  activeCustomerStorageKey,
+  customerCacheStorageKey,
+} from '@/app/dashboard/geo-monitor/components/shared/constants'
+import {
   ArrowRight, ArrowLeft, Loader2, Plus, X, ChevronDown, ChevronRight,
   Check, Globe, Clock, Languages, Building2, Briefcase, Users, RefreshCw,
   Home, LogOut,
@@ -13,7 +18,6 @@ import {
 import { gaEvent } from '@/lib/gtag'
 
 // ─── Constants ────────────────────────────────────────
-const BRAND_CONFIG_KEY = 'alignment_monitor_brand_config'
 const ONBOARDING_DONE_KEY = 'alignment_onboarding_done'
 const ONBOARDING_SESSION_KEY = 'alignment_onboarding_session'
 const ONBOARDING_VERSION = 4
@@ -148,6 +152,7 @@ export default function OnboardingPage() {
 
   // Completing
   const [isCompleting, setIsCompleting] = useState(false)
+  const [completionError, setCompletionError] = useState('')
   const [isSigningOut, setIsSigningOut] = useState(false)
 
   const handleGoHome = useCallback(() => {
@@ -411,25 +416,25 @@ export default function OnboardingPage() {
   // ─── Complete ─────────────────────────────────────
   const handleComplete = useCallback(async () => {
     setIsCompleting(true)
+    setCompletionError('')
     const bn = brandName.trim()
     const du = normalizeUrl(brandUrl)
     const compNames = selectedCompetitors.map(c => c.brand_name)
+    const targetMarket = LOCATIONS.find(item => item.code === location)?.label ?? location
+    const productSpace = selectedTopicNames.length
+      ? selectedTopicNames.join(', ')
+      : profileIndustry || bn
+    const sourceDomains = du ? [du] : []
 
-    localStorage.setItem(BRAND_CONFIG_KEY, JSON.stringify({
-      brand_name: bn, domain: du, keywords: selectedTopicNames, competitors: compNames,
-    }))
-    if (du) {
-      localStorage.setItem('geo_audit_session', JSON.stringify({ url: du, auditingUrl: '', auditResult: null }))
-      localStorage.setItem('geo_optimization_session', JSON.stringify({ url: du, result: null, loadingUrl: '' }))
+    try {
+      for (const key of LEGACY_CUSTOMER_DATA_KEYS) localStorage.removeItem(key)
+      localStorage.removeItem('geo_audit_session')
+      localStorage.removeItem('geo_optimization_session')
+      localStorage.removeItem('geo_content_session')
+      localStorage.removeItem('geo_distribution_session')
+    } catch {
+      // Non-critical cleanup only.
     }
-    localStorage.setItem('geo_content_session', JSON.stringify({
-      selectedType: 'faq', selectedChannel: 'official_website',
-      brandName: bn, productName: '', topic: '', forbiddenClaims: '', generated: null,
-    }))
-    localStorage.setItem('geo_distribution_session', JSON.stringify({
-      brandName: bn, domain: du, industry: 'tech',
-      brandDescTags: selectedTopicNames, competitorTags: compNames, strategy: null,
-    }))
 
     // ── Step 1: Create a Customer record (the canonical tenant for this brand) ──
     // This is the source of truth: every prompt and scan is bound to this customer_id.
@@ -442,18 +447,36 @@ export default function OnboardingPage() {
           config_json: {
             keywords:        selectedTopicNames,
             competitors:     compNames,
-            industry:        '',
-            product_space:   selectedTopicNames[0] ?? '',
+            industry:        profileIndustry,
+            product_space:   productSpace,
             one_liner:       '',
-            target_audience: '',
-            target_market:   '',
+            target_audience: profileJobTitle ? `${profileJobTitle} and ${targetMarket} buyers` : '',
+            target_market:   targetMarket,
             differentiation: '',
-            source_domains:  du ? [du] : [],
+            source_domains:  sourceDomains,
+            onboarding: {
+              company_name: profileCompany,
+              job_title: profileJobTitle,
+              company_size: profileCompanySize,
+              location,
+              language,
+              timezone,
+            },
           },
         })
         customerId = customer.id
+        localStorage.setItem(activeCustomerStorageKey(user.id), customer.id)
+        const cache: Record<string, { brand_name: string; domain: string }> =
+          JSON.parse(localStorage.getItem(customerCacheStorageKey(user.id)) || '{}')
+        cache[customer.id] = { brand_name: bn, domain: du }
+        localStorage.setItem(customerCacheStorageKey(user.id), JSON.stringify(cache))
       }
-    } catch { /* non-critical — fall back to old flow */ }
+    } catch (err) {
+      console.error('[Onboarding] customer creation failed:', err)
+      setCompletionError('We could not create your customer workspace. Please try again.')
+      setIsCompleting(false)
+      return
+    }
 
     // ── Step 2: Also create (or reuse) the Brand record for GA4 Attribution ──
     try {
@@ -496,12 +519,12 @@ export default function OnboardingPage() {
       }
     } catch { /* continue */ }
 
-    // ── Step 4: Redirect into Monitor with customer context + autoScan ────────
+    // ── Step 4: Redirect into AI Research with customer context ───────────────
     const redirectUrl = customerId
-      ? `/dashboard/geo-monitor?customer=${customerId}&autoScan=true`
-      : '/dashboard/geo-monitor?autoScan=true'
+      ? `/dashboard/ai-search?customer=${customerId}`
+      : '/dashboard/ai-search'
     router.push(redirectUrl)
-  }, [brandName, brandUrl, selectedTopicNames, selectedCompetitors, topicPrompts, router, user])
+  }, [brandName, brandUrl, selectedTopicNames, selectedCompetitors, topicPrompts, router, user, profileIndustry, profileJobTitle, profileCompany, profileCompanySize, location, language, timezone])
 
   // ─── Add custom items ──────────────────────────────
   const addCustomTopic = () => {
@@ -940,6 +963,10 @@ export default function OnboardingPage() {
                     : <>Complete Setup <ArrowRight className="w-4 h-4" /></>}
                 </button>
               </div>
+
+              {completionError && (
+                <p className="text-sm text-red-soft text-center">{completionError}</p>
+              )}
 
               {/* Skip option */}
               {!isCompleting && (

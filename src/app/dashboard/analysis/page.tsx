@@ -1,6 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
 import dynamic from 'next/dynamic'
+import { useRouter } from 'next/navigation'
 import { Loader2, LineChart, Eye, MessageSquare, Link2, ThumbsUp, Users, UserCircle2 } from 'lucide-react'
 import { UnifiedProvider, useUnified, type TabKey } from '../geo-monitor/components/UnifiedContext'
 import { ControlBar } from '../geo-monitor/components/ControlBar'
@@ -21,6 +23,22 @@ const PersonasTab    = dynamic(() => import('../geo-monitor/components/tabs/Pers
 
 function AnalysisContent() {
   const ctx = useUnified()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (ctx.customerHydrating) return
+    if (ctx.activeCustomerId && !ctx.isProfileComplete) {
+      router.replace('/dashboard/ai-search')
+    }
+  }, [ctx.activeCustomerId, ctx.customerHydrating, ctx.isProfileComplete, router])
+
+  if (ctx.activeCustomerId && !ctx.customerHydrating && !ctx.isProfileComplete) {
+    return (
+      <div className="min-h-screen bg-canvas flex items-center justify-center">
+        <Loader2 className="w-5 h-5 animate-spin text-ink-3" />
+      </div>
+    )
+  }
 
   const tabs: { key: TabKey; label: string; icon: React.ReactNode; badge?: string }[] = [
     { key: 'visibility',  label: 'Overview',     icon: <Eye className="w-4 h-4" /> },

@@ -7,9 +7,9 @@ import { useAuth } from '@/hooks/useAuth'
 import { customersApi, CustomerSummary } from '@/lib/api'
 import { BrandLogo } from '@/components/BrandLogo'
 import {
-  ACTIVE_CUSTOMER_KEY,
-  CUSTOMER_CACHE_KEY,
   ACTIVE_CUSTOMER_EVENT,
+  activeCustomerStorageKey,
+  customerCacheStorageKey,
 } from '@/app/dashboard/geo-monitor/components/shared/constants'
 
 interface Props {
@@ -42,7 +42,18 @@ export function SidebarCustomerSwitcher({ expanded, mobileOpen, onRequestExpand 
     let cancelled = false
     setLoading(true)
     customersApi.list(user.id, false)
-      .then(list => { if (!cancelled) setCustomers(list) })
+      .then(list => {
+        if (cancelled) return
+        setCustomers(list)
+        try {
+          const saved = localStorage.getItem(activeCustomerStorageKey(user.id))
+          const selected = (saved ? list.find(c => c.id === saved) : null) ?? list[0] ?? null
+          setActiveId(selected?.id ?? null)
+          if (selected) localStorage.setItem(activeCustomerStorageKey(user.id), selected.id)
+        } catch {
+          setActiveId(list[0]?.id ?? null)
+        }
+      })
       .catch(() => { if (!cancelled) setCustomers([]) })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
@@ -50,8 +61,9 @@ export function SidebarCustomerSwitcher({ expanded, mobileOpen, onRequestExpand 
 
   // ── Read the active id from localStorage + stay in sync via the event ──
   useEffect(() => {
+    if (!user?.id) return
     try {
-      const saved = localStorage.getItem(ACTIVE_CUSTOMER_KEY)
+      const saved = localStorage.getItem(activeCustomerStorageKey(user.id))
       if (saved) setActiveId(saved)
     } catch { /* ignore */ }
 
@@ -61,7 +73,7 @@ export function SidebarCustomerSwitcher({ expanded, mobileOpen, onRequestExpand 
     }
     window.addEventListener(ACTIVE_CUSTOMER_EVENT, onChange as EventListener)
     return () => window.removeEventListener(ACTIVE_CUSTOMER_EVENT, onChange as EventListener)
-  }, [])
+  }, [user?.id])
 
   // ── Close dropdown on outside click ───────────────────────────────────
   useEffect(() => {
@@ -78,19 +90,19 @@ export function SidebarCustomerSwitcher({ expanded, mobileOpen, onRequestExpand 
     if (id === activeId) return
     setActiveId(id)
     try {
-      localStorage.setItem(ACTIVE_CUSTOMER_KEY, id)
+      if (user?.id) localStorage.setItem(activeCustomerStorageKey(user.id), id)
       // Pre-cache brand name/domain so engine pages render instantly
       const found = customers.find(c => c.id === id)
       if (found) {
         const cache: Record<string, { brand_name: string; domain: string }> =
-          JSON.parse(localStorage.getItem(CUSTOMER_CACHE_KEY) || '{}')
+          JSON.parse(localStorage.getItem(customerCacheStorageKey(user?.id)) || '{}')
         cache[id] = { brand_name: found.brand_name, domain: found.domain }
-        localStorage.setItem(CUSTOMER_CACHE_KEY, JSON.stringify(cache))
+        localStorage.setItem(customerCacheStorageKey(user?.id), JSON.stringify(cache))
       }
     } catch { /* storage unavailable */ }
     // Notify the engine-page context (UnifiedContext) to re-hydrate
     window.dispatchEvent(new CustomEvent(ACTIVE_CUSTOMER_EVENT, { detail: id }))
-  }, [activeId, customers])
+  }, [activeId, customers, user?.id])
 
   // Nothing to switch between → render nothing (regular users, or no customers)
   if (!loading && customers.length === 0) return null
