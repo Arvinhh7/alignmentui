@@ -459,7 +459,9 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
                   : isPaused && sub.pause_resumes_at
                   ? (isZh ? `订阅已暂停 — ${new Date(sub.pause_resumes_at).toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' })} 恢复` : `Subscription paused — resumes ${new Date(sub.pause_resumes_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`)
                   : isCancelScheduled
-                  ? (isZh ? `订阅将于 ${periodEnd} 取消` : `Subscription cancels ${periodEnd}`)
+                  ? periodEnd
+                    ? (isZh ? `订阅将于 ${periodEnd} 取消` : `Subscription cancels ${periodEnd}`)
+                    : (isZh ? '订阅已安排取消' : 'Subscription cancellation scheduled')
                   : daysLeft !== null
                   ? (isZh ? `免费试用还剩 ${daysLeft} 天 — 订阅后继续使用全部功能` : `Free trial ends in ${daysLeft} day${daysLeft !== 1 ? 's' : ''} — subscribe to keep full access`)
                   : ''}
@@ -471,20 +473,11 @@ function SubscriptionBannerInner({ lang = 'en' }: Props) {
               {(isUrgentTrial || isCancelScheduled) && sub.plan !== 'enterprise' && (
                 <Link
                   href="/pricing"
-                  className="text-xs font-semibold text-red-soft border border-red-soft/30 hover:bg-red-soft-bg px-3 py-1.5 rounded-lg transition-colors"
+                  className="inline-flex items-center justify-center rounded-xl bg-[#F9D66B] px-7 py-3 text-[15px] font-black text-ink shadow-[0_0_0_1px_rgba(249,214,107,0.45),0_10px_24px_rgba(249,214,107,0.24)] transition-all hover:-translate-y-0.5 hover:bg-[#FFE38A] active:translate-y-0"
                 >
-                  {isZh ? '升级计划' : 'Upgrade'}
+                  {isZh ? '立即升级 →' : 'Upgrade now →'}
                 </Link>
               )}
-              <button
-                onClick={handleManagePortal}
-                disabled={portalLoading}
-                className="text-xs font-medium text-ink-2 hover:text-ink px-3 py-1.5 border border-divider-light rounded-lg hover:bg-surface transition-colors disabled:opacity-50"
-              >
-                {portalLoading
-                  ? (isZh ? '跳转中...' : 'Redirecting…')
-                  : (isZh ? '管理订阅' : 'Manage subscription')}
-              </button>
             </div>
           </div>
         </div>
