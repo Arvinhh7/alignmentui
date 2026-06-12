@@ -322,7 +322,7 @@ function WorkflowSteps({
   hasScan: boolean
 }) {
   const steps = [
-    { label: 'Customer Profile', detail: 'Market, brand, competitors', done: hasProfile },
+    { label: 'Brand Profile', detail: 'Market, brand, competitors', done: hasProfile },
     { label: 'AI Research', detail: 'Diagnosis and gaps', done: hasResearch },
     { label: 'Sources Map', detail: 'Trusted sources AI cites', done: hasSources },
     { label: 'Design Prompts', detail: activePrompts ? `${activePrompts} active prompts` : 'Prompt plan', done: activePrompts > 0 },
@@ -484,11 +484,18 @@ function EmptyState({ brandName, canRun, onRun, running }: {
   running: boolean
 }) {
   const ctx = useUnified()
+  const profileMissing = [
+    !ctx.brandConfig.brand_name.trim() ? 'Brand Name' : null,
+    !ctx.brandConfig.domain.trim() ? 'Domain' : null,
+    !String(ctx.brandConfig.industry ?? '').trim() ? 'Industry' : null,
+    !String(ctx.brandConfig.product_space ?? '').trim() ? 'Product Space' : null,
+    !String(ctx.brandConfig.target_market ?? '').trim() ? 'Target Country' : null,
+  ].filter(Boolean) as string[]
   const missingReason = !ctx.activeCustomerId
     ? 'Select a customer workspace first so the research run can be saved.'
-    : !ctx.brandConfig.domain
-      ? 'Add the brand domain in the Customer Intelligence Profile first.'
-      : 'Complete the Customer Intelligence Profile first.'
+    : profileMissing.length > 0
+      ? `Complete the Brand Profile first: ${profileMissing.join(', ')}`
+      : 'Complete the Brand Profile first.'
 
   return (
     <div className="bg-surface rounded-2xl border border-divider-light p-8 text-center">
@@ -497,7 +504,7 @@ function EmptyState({ brandName, canRun, onRun, running }: {
       </div>
       <h3 className="text-[16px] font-bold text-ink mb-2">AI Research</h3>
       <p className="text-[13px] text-ink-3 max-w-md mx-auto mb-6">
-        Create a customer-scoped research run from the Customer Intelligence Profile, active prompts, market, product space, and competitors.
+        Create a customer-scoped research run from the Brand Profile, active prompts, market, product space, and competitors.
       </p>
       <button
         onClick={onRun}
@@ -521,9 +528,16 @@ export function AIResearchTab() {
 
   const result = useMemo(() => asResearchResult(run?.result_json), [run])
   const brandName = ctx.brandConfig.brand_name || ''
-  const canRun = Boolean(ctx.activeCustomerId && brandName && ctx.brandConfig.domain)
   const activePrompts = ctx.prompts.filter(p => p.is_active).length
-  const hasProfile = Boolean(ctx.activeCustomerId && ctx.brandConfig.brand_name && ctx.brandConfig.domain)
+  const hasProfile = Boolean(
+    ctx.activeCustomerId &&
+    ctx.brandConfig.brand_name.trim() &&
+    ctx.brandConfig.domain.trim() &&
+    String(ctx.brandConfig.industry ?? '').trim() &&
+    String(ctx.brandConfig.product_space ?? '').trim() &&
+    String(ctx.brandConfig.target_market ?? '').trim(),
+  )
+  const canRun = hasProfile
   const hasSources = Boolean(ctx.discoverResult?.source_domains?.length)
   const hasScan = Boolean(ctx.scanResult)
   const handleGeneratePrompts = () => ctx.setShowGeneratePromptsModal(true)

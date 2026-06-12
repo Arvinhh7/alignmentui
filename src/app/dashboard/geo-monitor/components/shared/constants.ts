@@ -33,7 +33,7 @@ export const ACTIVE_CUSTOMER_KEY = 'alignment_monitor_active_customer'
 export const ACTIVE_CUSTOMER_EVENT = 'alignment:active-customer-changed'
 // Customer name cache: {customerId → {brand_name, domain}} — pre-fills header instantly on new tab
 export const CUSTOMER_CACHE_KEY = 'alignment_monitor_customer_cache'
-// Customer Intelligence Profile confirmation map. Once a profile is saved for a
+// Brand Profile confirmation map. Once a profile is saved for a
 // customer, modules consume it silently instead of expanding the setup form.
 export const CUSTOMER_PROFILE_CONFIRMED_KEY = 'alignment_customer_profile_confirmed'
 // Frozen report snapshots — metrics locked at save time, never overwritten by new scans

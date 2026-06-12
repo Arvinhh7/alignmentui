@@ -283,6 +283,20 @@ const _IS_PREVIEW = process.env.NEXT_PUBLIC_PREVIEW_MODE === 'true'
 // Preview lands on this real customer so prompts/scan hydrate with real data.
 const _PREVIEW_CUSTOMER_ID = process.env.NEXT_PUBLIC_PREVIEW_CUSTOMER_ID || null
 
+const REQUIRED_PROFILE_FIELDS: Array<{ key: keyof BrandConfig; label: string }> = [
+  { key: 'brand_name', label: 'Brand Name' },
+  { key: 'domain', label: 'Domain' },
+  { key: 'industry', label: 'Industry' },
+  { key: 'product_space', label: 'Product Space' },
+  { key: 'target_market', label: 'Target Country' },
+]
+
+function missingRequiredProfileFields(config: BrandConfig) {
+  return REQUIRED_PROFILE_FIELDS
+    .filter(field => !String(config[field.key] ?? '').trim())
+    .map(field => field.label)
+}
+
 function profileConfirmationId(customerId: string | null, config: Pick<BrandConfig, 'brand_name' | 'domain'>) {
   if (customerId) return `customer:${customerId}`
   const brand = config.brand_name.trim().toLowerCase()
@@ -804,7 +818,12 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       source_domains: mergedSources,
     })
 
-    if (!merged.brand_name.trim()) { setConfigError('Brand name is required'); return }
+    const missingRequired = missingRequiredProfileFields(merged)
+    if (missingRequired.length > 0) {
+      setConfigError(`Complete required fields: ${missingRequired.join(', ')}`)
+      return
+    }
+
     setConfigError('')
     setBrandConfig(merged)
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, type ReactNode } from 'react'
 import { Settings, Save, X, ChevronDown, Trash2, AlertTriangle, Pencil, CheckCircle2 } from 'lucide-react'
 import { useUnified } from './UnifiedContext'
 import { TagInput } from './shared/ChartComponents'
@@ -22,6 +22,15 @@ function SectionLabel({ label }: { label: string }) {
       </span>
       <div className="flex-1 h-px bg-divider" />
     </div>
+  )
+}
+
+function FieldLabel({ children, required = false }: { children: ReactNode; required?: boolean }) {
+  return (
+    <label className="block text-xs font-medium text-ink-2 mb-1.5">
+      {children}
+      {required && <span className="ml-1 text-red-soft">*</span>}
+    </label>
   )
 }
 
@@ -93,6 +102,14 @@ export function BrandSetupPanel() {
   const [keywordInput, setKeywordInput]       = useState('')
   const [competitorInput, setCompetitorInput] = useState('')
   const [sourceInput, setSourceInput] = useState('')
+  const missingRequired = [
+    !ctx.brandConfig.brand_name.trim() ? 'Brand Name' : null,
+    !ctx.brandConfig.domain.trim() ? 'Domain' : null,
+    !String(ctx.brandConfig.industry ?? '').trim() ? 'Industry' : null,
+    !String(ctx.brandConfig.product_space ?? '').trim() ? 'Product Space' : null,
+    !String(ctx.brandConfig.target_market ?? '').trim() ? 'Target Country' : null,
+  ].filter(Boolean) as string[]
+  const canSaveProfile = missingRequired.length === 0
 
   // ── P2: Competitor industry-mismatch warning ───────────────────────────────
   // Warn when a competitor tag looks like an educational/gov institution while
@@ -131,7 +148,7 @@ export function BrandSetupPanel() {
           <BrandLogo domain={ctx.brandConfig.domain} name={ctx.brandConfig.brand_name} size={36} />
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-sm font-bold text-ink">Customer Intelligence Profile</h3>
+              <h3 className="text-sm font-bold text-ink">Brand Profile</h3>
               <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sage-bg text-sage">
                 <CheckCircle2 className="w-3 h-3" />
                 {readiness}% ready
@@ -153,9 +170,9 @@ export function BrandSetupPanel() {
         </div>
         <button
           onClick={() => ctx.setShowConfig(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-ink text-ink-inv rounded-xl text-sm font-semibold hover:bg-ink/80 transition-colors"
+          className="inline-flex items-center gap-2 px-5 py-3 bg-ink text-ink-inv rounded-xl text-base font-semibold hover:bg-ink/80 transition-colors"
         >
-          <Pencil className="w-4 h-4" />
+          <Pencil className="w-5 h-5" />
           Edit Profile
         </button>
       </div>
@@ -170,7 +187,7 @@ export function BrandSetupPanel() {
       <div className="px-6 py-4 border-b border-divider-light flex items-center justify-between bg-canvas">
         <div className="flex items-center gap-2">
           <Settings className="w-5 h-5 text-ink-3" />
-          <h3 className="text-sm font-semibold text-ink">Customer Intelligence Profile</h3>
+          <h3 className="text-sm font-semibold text-ink">Brand Profile</h3>
         </div>
         {ctx.isConfigured && (
           <button
@@ -189,7 +206,7 @@ export function BrandSetupPanel() {
 
         {/* Brand Name + Recent */}
         <div>
-          <label className="block text-xs font-medium text-ink-2 mb-1.5">Brand Name</label>
+          <FieldLabel required>Brand Name</FieldLabel>
           <div className="relative">
             <input
               type="text"
@@ -233,7 +250,7 @@ export function BrandSetupPanel() {
 
         {/* Domain */}
         <div>
-          <label className="block text-xs font-medium text-ink-2 mb-1.5">Domain</label>
+          <FieldLabel required>Domain</FieldLabel>
           <input
             type="text"
             placeholder="e.g. https://us.ecoflow.com/"
@@ -245,7 +262,7 @@ export function BrandSetupPanel() {
 
         {/* Industry */}
         <div>
-          <label className="block text-xs font-medium text-ink-2 mb-1.5">Industry</label>
+          <FieldLabel required>Industry</FieldLabel>
           <SelectField
             value={ctx.brandConfig.industry ?? ''}
             onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, industry: v })}
@@ -259,7 +276,7 @@ export function BrandSetupPanel() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-ink-2 mb-1.5">Product Space</label>
+          <FieldLabel required>Product Space</FieldLabel>
           <input
             type="text"
             placeholder="e.g. Portable power stations, gaming phones, projectors"
@@ -274,7 +291,7 @@ export function BrandSetupPanel() {
 
         {/* One-liner */}
         <div>
-          <label className="block text-xs font-medium text-ink-2 mb-1.5">One-liner</label>
+          <FieldLabel>One-liner</FieldLabel>
           <CharInput
             value={ctx.brandConfig.one_liner ?? ''}
             onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, one_liner: v })}
@@ -286,7 +303,7 @@ export function BrandSetupPanel() {
 
         {/* Differentiation */}
         <div>
-          <label className="block text-xs font-medium text-ink-2 mb-1.5">Differentiation</label>
+          <FieldLabel>Differentiation</FieldLabel>
           <CharInput
             value={ctx.brandConfig.differentiation ?? ''}
             onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, differentiation: v })}
@@ -301,7 +318,7 @@ export function BrandSetupPanel() {
 
         {/* Target Country */}
         <div>
-          <label className="block text-xs font-medium text-ink-2 mb-1.5">Target Country</label>
+          <FieldLabel required>Target Country</FieldLabel>
           <SelectField
             value={ctx.brandConfig.target_market ?? ''}
             onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, target_market: v })}
@@ -315,7 +332,7 @@ export function BrandSetupPanel() {
 
         {/* Target Audience */}
         <div>
-          <label className="block text-xs font-medium text-ink-2 mb-1.5">Target Audience</label>
+          <FieldLabel>Target Audience</FieldLabel>
           <input
             type="text"
             placeholder="e.g. outdoor enthusiasts, RV owners, homeowners aged 30-55"
@@ -330,7 +347,7 @@ export function BrandSetupPanel() {
 
         {/* SEO Keywords */}
         <div>
-          <label className="block text-xs font-medium text-ink-2 mb-1.5">SEO Keywords</label>
+          <FieldLabel>SEO Keywords</FieldLabel>
           <TagInput
             value={ctx.brandConfig.keywords}
             onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, keywords: v })}
@@ -342,7 +359,7 @@ export function BrandSetupPanel() {
 
         {/* Competitors */}
         <div>
-          <label className="block text-xs font-medium text-ink-2 mb-1.5">Competitors</label>
+          <FieldLabel>Competitors</FieldLabel>
           <TagInput
             value={ctx.brandConfig.competitors}
             onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, competitors: v })}
@@ -363,7 +380,7 @@ export function BrandSetupPanel() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-ink-2 mb-1.5">Source Seeds</label>
+          <FieldLabel>Source Seeds</FieldLabel>
           <TagInput
             value={ctx.brandConfig.source_domains ?? []}
             onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, source_domains: v })}
@@ -375,17 +392,23 @@ export function BrandSetupPanel() {
 
         {/* Error */}
         {ctx.configError && <p className="text-xs text-red-soft">{ctx.configError}</p>}
+        {!canSaveProfile && !ctx.configError && (
+          <p className="text-xs text-ink-3">
+            Complete required fields to save: {missingRequired.join(', ')}
+          </p>
+        )}
 
         {/* Buttons */}
         <div className="flex items-center gap-3 pt-2">
           <button
+            disabled={!canSaveProfile}
             onClick={() => {
               ctx.handleSaveConfig(keywordInput, competitorInput, sourceInput)
               setKeywordInput('')
               setCompetitorInput('')
               setSourceInput('')
             }}
-            className="flex items-center gap-2 px-5 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-xl text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-xl text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-ink"
           >
             <Save className="w-4 h-4" /> Save
           </button>
