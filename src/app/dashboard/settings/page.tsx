@@ -530,7 +530,6 @@ export default function SettingsPage() {
 
   // Subscription
   const [subLoading, setSubLoading] = useState(true)
-  const [portalLoading, setPortalLoading] = useState(false)
   const [subscription, setSubscription] = useState<{
     plan: string; status: string; billing_interval: string;
     trial_ends_at: string | null; current_period_end: string | null;
@@ -680,24 +679,6 @@ export default function SettingsPage() {
       setPasswordFeedback({ type: 'error', msg: 'Failed to send reset email.' })
     } finally {
       setPasswordSending(false)
-    }
-  }
-
-  const handleManageSubscription = async () => {
-    if (!user?.id) return
-    setPortalLoading(true)
-    try {
-      const res = await api.createPortalSession(user.id, user.email)
-      if (res.data?.portal_url) {
-        window.location.href = res.data.portal_url
-      } else {
-        alert(res.error || 'Unable to open billing portal. Please try again or contact support@alignmenttech.ai.')
-        setPortalLoading(false)
-      }
-    } catch (err) {
-      console.error('Portal session error:', err)
-      alert(err instanceof Error ? err.message : 'Unable to open billing portal. Please try again or contact support@alignmenttech.ai.')
-      setPortalLoading(false)
     }
   }
 
@@ -903,17 +884,6 @@ export default function SettingsPage() {
                     <p>Your subscription will cancel at the end of the current period. Reactivate anytime in the portal.</p>
                   </div>
                 )}
-
-                <button
-                  onClick={handleManageSubscription}
-                  disabled={portalLoading}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium rounded-xl transition-all disabled:opacity-50">
-                  {portalLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
-                  {portalLoading ? 'Redirecting…' : 'Update Billing & Payment'}
-                </button>
-                <p className="text-xs text-ink-3 mt-1">
-                  Update payment method, view invoices, or change plan interval.
-                </p>
 
                 {/* Cancel — buried deep below billing to maximise retention */}
                 {(subscription.status === 'trialing' || subscription.status === 'active') && !subscription.cancel_at_period_end && (

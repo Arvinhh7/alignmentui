@@ -713,9 +713,9 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                       <Link
                         href="/pricing"
                         onClick={() => setShowUserMenu(false)}
-                        className="text-[10px] font-bold text-ink bg-ink-inv hover:bg-surface-muted px-2 py-0.5 rounded-md transition-colors"
+                        className="inline-flex items-center justify-center rounded-lg bg-[#F9D66B] px-4 py-2 text-[13px] font-black text-ink shadow-[0_0_0_1px_rgba(249,214,107,0.35),0_8px_22px_rgba(249,214,107,0.18)] transition-all hover:-translate-y-0.5 hover:bg-[#FFE38A] active:translate-y-0"
                       >
-                        Upgrade
+                        Upgrade →
                       </Link>
                     )}
                   </div>
