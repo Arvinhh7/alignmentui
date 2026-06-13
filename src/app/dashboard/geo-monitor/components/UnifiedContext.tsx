@@ -5,6 +5,7 @@ import {
   type ReactNode,
 } from 'react'
 import { useAuth } from '@/hooks/useAuth'
+import { useSubscription } from '@/hooks/useSubscription'
 import {
   api,
   customersApi,
@@ -39,6 +40,22 @@ import {
   type ReportSnapshot,
 } from './shared/constants'
 import { formatDate } from './shared/ChartComponents'
+
+const PLAN_PROMPT_LIMITS: Record<string, number> = {
+  trial: 10,
+  starter: 50,
+  standard: 100,
+  pro: 300,
+  enterprise: -1,
+  growth: 100,
+  admin: -1,
+}
+
+function nextPromptPlan(plan: string | null | undefined) {
+  if (plan === 'standard' || plan === 'growth') return 'pro'
+  if (plan === 'pro' || plan === 'enterprise') return 'enterprise'
+  return 'standard'
+}
 
 // ─── Client-side domain re-classification ───────────────────────────────────
 // Re-classifies YOU/CORPORATE/COMPETITOR from brand config without a backend
@@ -197,6 +214,14 @@ interface UnifiedState {
 
   // Prompts
   prompts: MonitorPrompt[]
+  promptQuota: {
+    plan: string
+    limit: number
+    activeCount: number
+    remaining: number
+    targetPlan: string
+    isUnlimited: boolean
+  }
   isLoadingPrompts: boolean
   loadPrompts: () => void
   showAddPrompt: boolean
@@ -222,6 +247,7 @@ interface UnifiedState {
   toggleSelectAllPrompts: () => void
   handleBatchDelete: () => void
   cancelBatchDelete: () => void
+  handleUpgradePromptPlan: () => Promise<void>
   isBatchDeleting: boolean
   batchConfirmStep: boolean
 
@@ -311,6 +337,7 @@ function isProfileComplete(config: BrandConfig) {
 
 export function UnifiedProvider({ children }: { children: ReactNode }) {
   const { user, role: userRole } = useAuth()
+  const subscription = useSubscription(user?.id, userRole)
 
   // ── Tab ─────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<TabKey>('prompts')
@@ -385,6 +412,30 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const [selectedPromptIds, setSelectedPromptIds] = useState<Set<string>>(new Set())
   const [isBatchDeleting, setIsBatchDeleting] = useState(false)
   const [batchConfirmStep, setBatchConfirmStep] = useState(false)
+  const activePromptCount = useMemo(() => prompts.filter(p => p.is_active).length, [prompts])
+  const promptPlan = userRole === 'admin' || userRole === 'staff' || userRole === 'demo'
+    ? 'admin'
+    : subscription.status === 'trialing'
+      ? 'trial'
+      : subscription.plan || 'starter'
+  const promptLimit = PLAN_PROMPT_LIMITS[promptPlan] ?? PLAN_PROMPT_LIMITS.starter
+  const promptQuota = useMemo(() => {
+    const isUnlimited = promptLimit === -1
+    return {
+      plan: promptPlan,
+      limit: promptLimit,
+      activeCount: activePromptCount,
+      remaining: isUnlimited ? -1 : Math.max(0, promptLimit - activePromptCount),
+      targetPlan: nextPromptPlan(promptPlan),
+      isUnlimited,
+    }
+  }, [activePromptCount, promptLimit, promptPlan])
+
+  const promptLimitMessage = useCallback((extra = 1) => {
+    if (promptQuota.isUnlimited) return ''
+    const attempted = promptQuota.activeCount + extra
+    return `Your ${promptQuota.plan} plan includes ${promptQuota.limit} active monitored prompts. You are trying to use ${attempted}. Upgrade to add more prompts.`
+  }, [promptQuota])
 
   // ── Discover ─────────────────────────────────────
   const [discoverResults, setDiscoverResults] = useState<Record<string, DiscoverResult>>({})
@@ -1173,11 +1224,35 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     return prompts.some(p => p.template.trim().toLowerCase() === normalized && p.id !== excludeId)
   }
 
+  const handleUpgradePromptPlan = async () => {
+    const targetPlan = promptQuota.targetPlan
+    const fallback = targetPlan === 'enterprise' ? '/pricing#enterprise' : `/pricing?plan=${targetPlan}`
+    if (!user?.id) {
+      window.location.href = fallback
+      return
+    }
+    try {
+      const res = await api.createPortalSession(
+        user.id,
+        user.email ?? null,
+        targetPlan === 'enterprise' ? undefined : targetPlan,
+        'month',
+      )
+      window.location.href = res.data?.portal_url || fallback
+    } catch {
+      window.location.href = fallback
+    }
+  }
+
   const handleAddPrompt = async () => {
     if (!newPromptForm.template.trim()) return
     setPromptError('')
     if (isDuplicatePrompt(newPromptForm.template)) { setPromptError('Prompt already exists.'); return }
     if (!activeCustomerId) { setPromptError('Select a customer first.'); return }
+    if (!promptQuota.isUnlimited && promptQuota.activeCount >= promptQuota.limit) {
+      setPromptError(promptLimitMessage())
+      return
+    }
     try {
       const { category } = autoClassify(newPromptForm.template)
       const res = await api.createMonitorPrompt({ template: newPromptForm.template, category, customer_id: activeCustomerId })
@@ -1199,9 +1274,24 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   }
 
   const handleTogglePrompt = async (id: string, active: boolean) => {
+    if (!active && !promptQuota.isUnlimited && promptQuota.activeCount >= promptQuota.limit) {
+      setPromptError(promptLimitMessage())
+      return
+    }
     setTogglingPromptId(id)
-    try { const res = await api.toggleMonitorPrompt(id); if (res.data) setPrompts(prev => prev.map(p => p.id === id ? { ...p, is_active: !active } : p)); await loadPrompts() } catch { /* ignore */ }
-    setTogglingPromptId(null)
+    try {
+      const res = await api.toggleMonitorPrompt(id)
+      if (res.error) {
+        setPromptError(res.error)
+        return
+      }
+      if (res.data) setPrompts(prev => prev.map(p => p.id === id ? { ...p, is_active: !active } : p))
+      await loadPrompts()
+    } catch (e: any) {
+      setPromptError(e.message || 'Could not update prompt status.')
+    } finally {
+      setTogglingPromptId(null)
+    }
   }
 
   const handleDeletePrompt = async (id: string) => {
@@ -1310,9 +1400,19 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     if (!activeCustomerId) return
     const existing = new Set(prompts.map(p => p.template.trim().toLowerCase()))
     const toSave = newPrompts.filter(p => !existing.has(p.template.trim().toLowerCase()))
-    await Promise.all(
-      toSave.map(p => api.createMonitorPrompt({ template: p.template, category: p.intent, customer_id: activeCustomerId }))
-    )
+    if (!promptQuota.isUnlimited && toSave.length > promptQuota.remaining) {
+      setPromptError(promptLimitMessage(toSave.length))
+      setActiveTab('prompts')
+      return
+    }
+    for (const p of toSave) {
+      const res = await api.createMonitorPrompt({ template: p.template, category: p.intent, customer_id: activeCustomerId })
+      if (res.error) {
+        setPromptError(res.error)
+        setActiveTab('prompts')
+        break
+      }
+    }
     await loadPrompts()
   }
 
@@ -1352,13 +1452,13 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     multiBrandTrends, isLoadingTrends,
     discoverResult, discoverResults, isRunningDiscover, isRunningDeepDiscover, discoverError, discoverEngine, setDiscoverEngine, availableEngines, engineModels, userRole, handleRunDiscover, handleRunDeepDiscover, handleStopDiscover, showGeneratePromptsModal, setShowGeneratePromptsModal, handleBatchSavePrompts,
     aeoUrl, setAeoUrl, aeoResult, aeoHistory, isRunningAeo, aeoError, handleRunAeo,
-    prompts, isLoadingPrompts, loadPrompts, showAddPrompt, setShowAddPrompt,
+    prompts, promptQuota, isLoadingPrompts, loadPrompts, showAddPrompt, setShowAddPrompt,
     newPromptForm, setNewPromptForm, editingPrompt, setEditingPrompt,
     promptError, setPromptError, handleAddPrompt, handleUpdatePrompt,
     handleTogglePrompt, handleDeletePrompt, togglingPromptId,
     promptFilter, setPromptFilter, filterTopic, setFilterTopic, filteredPrompts,
     selectedPromptIds, togglePromptSelect, toggleSelectAllPrompts,
-    handleBatchDelete, cancelBatchDelete, isBatchDeleting, batchConfirmStep,
+    handleBatchDelete, cancelBatchDelete, handleUpgradePromptPlan, isBatchDeleting, batchConfirmStep,
     activeCustomerId, customerHydrating, customers, switchCustomer,
     warehouseLoaded, lastRefreshed,
     savedSnapshots, saveSnapshot,

@@ -65,6 +65,7 @@ function promptStatus(prompt: { is_active: boolean; scan_count?: number | null; 
 
 export function PromptsTab() {
   const ctx = useUnified()
+  const quotaReached = !ctx.promptQuota.isUnlimited && ctx.promptQuota.activeCount >= ctx.promptQuota.limit
 
   // ── Local state for intent filter ──────────────────────
   const [intentFilter, setIntentFilter] = useState<'all' | 'info_cognition' | 'solution_explore' | 'comparison_decision' | 'action_choice'>('all')
@@ -178,6 +179,13 @@ export function PromptsTab() {
             )}
             {' '}prompts
           </span>
+          <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${
+            quotaReached ? 'bg-caution-bg text-caution' : 'bg-sage-bg text-sage'
+          }`}>
+            {ctx.promptQuota.isUnlimited
+              ? `${ctx.promptQuota.activeCount} active`
+              : `${ctx.promptQuota.activeCount}/${ctx.promptQuota.limit} active`}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           {ctx.isConfigured && (
@@ -209,11 +217,23 @@ export function PromptsTab() {
             Export CSV
           </button>
           <button
-            onClick={() => { ctx.setShowAddPrompt(true); ctx.setPromptError('') }}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-lg text-sm font-medium transition-colors"
+            onClick={() => {
+              if (quotaReached) {
+                ctx.setPromptError(`Your ${ctx.promptQuota.plan} plan includes ${ctx.promptQuota.limit} active monitored prompts. Upgrade to add more prompts.`)
+                ctx.setShowAddPrompt(false)
+                return
+              }
+              ctx.setShowAddPrompt(true)
+              ctx.setPromptError('')
+            }}
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              quotaReached
+                ? 'bg-[#F9D66B] hover:bg-[#FFE38A] text-ink'
+                : 'bg-ink hover:bg-[#2d2d2c] text-ink-inv'
+            }`}
           >
             <Plus className="w-4 h-4" />
-            Add Prompt
+            {quotaReached ? 'Upgrade Plan' : 'Add Prompt'}
           </button>
         </div>
       </div>
@@ -292,6 +312,23 @@ export function PromptsTab() {
               Add brand prompt
             </button>
           </div>
+        </div>
+      )}
+
+      {ctx.promptError && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-red-soft/25 bg-red-soft-bg px-4 py-3 text-sm text-red-soft">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <span>{ctx.promptError}</span>
+          </div>
+          {ctx.promptError.toLowerCase().includes('upgrade') && (
+            <button
+              onClick={ctx.handleUpgradePromptPlan}
+              className="rounded-lg bg-ink px-3 py-1.5 text-xs font-semibold text-ink-inv hover:bg-[#2d2d2c] transition-colors"
+            >
+              Upgrade plan
+            </button>
+          )}
         </div>
       )}
 
@@ -388,13 +425,6 @@ export function PromptsTab() {
                   </>
                 )
               })()}
-            </div>
-          )}
-
-          {ctx.promptError && (
-            <div className="flex items-center gap-2 text-sm text-red-soft bg-red-soft-bg rounded-lg px-3 py-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              {ctx.promptError}
             </div>
           )}
 
