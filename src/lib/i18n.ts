@@ -307,7 +307,7 @@ export const translations = {
       // Insights items
       exploreNav: 'Explore',
       aiSearchNav: 'AI Research',
-      sourcesNav: 'Sources Gap',
+      sourcesNav: 'Sources',
       shoppingNav: 'Shopping',
       adsNav: 'Ads',
       // Actions items
@@ -1002,7 +1002,7 @@ export const translations = {
       // 洞察
       exploreNav: '探索',
       aiSearchNav: 'AI Research',
-      sourcesNav: 'Sources Gap',
+      sourcesNav: 'Sources',
       shoppingNav: '电商',
       adsNav: '广告',
       // 行动

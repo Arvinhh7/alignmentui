@@ -191,6 +191,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
       labelKey: 'navGroupInsights',
       items: [
         { href: '/dashboard/explore',   icon: Compass,      labelKey: 'exploreNav',   permissionKey: 'explore',   isBeta: true },
+        { href: '/dashboard/sources',   icon: Globe,        labelKey: 'sourcesNav',   permissionKey: 'sources' },
         { href: '/dashboard/ai-search', icon: TrendingUp,   labelKey: 'aiSearchNav',  permissionKey: 'ai-search', isNew: true },
         { href: '/dashboard/shopping',  icon: ShoppingCart, labelKey: 'shoppingNav',  permissionKey: 'shopping',  isNew: true },
       ],

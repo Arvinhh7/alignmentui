@@ -11,6 +11,7 @@ import type { UserRole, PermissionsMap } from '@/hooks/useAuth'
 
 export type FeatureKey =
   | 'explore'
+  | 'sources'
   | 'ai-search'
   | 'shopping'
   | 'geo-monitor'
@@ -43,6 +44,7 @@ export interface FeatureInfo {
 
 export const FEATURES: Record<FeatureKey, FeatureInfo> = {
   'explore':          { key: 'explore',          label: 'Explore',                path: '/dashboard/explore',           group: 'Insights',     order: 20 },
+  'sources':          { key: 'sources',          label: 'Sources',                path: '/dashboard/sources',           group: 'Insights',     order: 25 },
   'ai-search':        { key: 'ai-search',        label: 'AI Research',            path: '/dashboard/ai-search',         group: 'Insights',     order: 30 },
   'shopping':         { key: 'shopping',         label: 'Shopping',               path: '/dashboard/shopping',          group: 'Insights',     order: 40 },
   'geo-monitor':      { key: 'geo-monitor',      label: 'Monitoring',             path: '/dashboard/geo-monitor',       group: 'Actions',      order: 50 },
@@ -88,6 +90,7 @@ const PLAN_RANK: Record<PlanKey, number> = {
 
 export const LAUNCH_VISIBLE_FEATURES = new Set<FeatureKey>([
   'explore',
+  'sources',
   'ai-search',
   'shopping',
   'geo-monitor',
@@ -109,6 +112,7 @@ export const LAUNCH_HIDDEN_FEATURES = new Set<FeatureKey>([
 
 const MIN_PLAN_BY_FEATURE: Partial<Record<FeatureKey, PlanKey>> = {
   explore: 'starter',
+  sources: 'starter',
   'ai-search': 'starter',
   shopping: 'starter',
   'geo-monitor': 'starter',
