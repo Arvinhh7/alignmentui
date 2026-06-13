@@ -176,27 +176,26 @@ export function FanOutTab() {
                 </span>
               </div>
 
-              <div className="divide-y divide-divider-light">
-                {path.variants.map((variant, index) => (
-                  <div key={`${path.prompt.id}-${index}`} className="grid grid-cols-1 xl:grid-cols-[minmax(320px,0.9fr)_36px_minmax(420px,1.1fr)] gap-3 px-4 py-4 items-center">
-                    <div className="min-w-0">
-                      {index === 0 && (
-                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-ink-3">Original prompt</p>
-                      )}
-                      <p className="text-sm font-medium text-ink leading-snug">{path.original}</p>
-                    </div>
-                    <ArrowRight className="hidden xl:block w-4 h-4 text-ink-3 justify-self-center" />
-                    <div className="min-w-0">
-                      {index === 0 && (
-                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-ink-3">Possible fan-out prompt</p>
-                      )}
-                      <div className="inline-flex max-w-full items-start gap-2 rounded-lg bg-canvas border border-divider-light px-3 py-2">
+              <div className="grid grid-cols-1 xl:grid-cols-[minmax(320px,0.9fr)_36px_minmax(420px,1.1fr)] gap-4 px-4 py-4 items-start">
+                <div className="min-w-0">
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-ink-3">Original prompt</p>
+                  <p className="text-sm font-medium text-ink leading-snug">{path.original}</p>
+                </div>
+                <ArrowRight className="hidden xl:block w-4 h-4 text-ink-3 justify-self-center mt-8" />
+                <div className="min-w-0">
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-ink-3">Possible fan-out prompts</p>
+                  <div className="space-y-2">
+                    {path.variants.map((variant, index) => (
+                      <div key={`${path.prompt.id}-${index}`} className="flex max-w-full items-start gap-2 rounded-lg bg-canvas border border-divider-light px-3 py-2">
+                        <span className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-surface-muted text-[10px] font-semibold text-ink-3">
+                          {index + 1}
+                        </span>
                         <Search className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-ink-3" />
                         <span className="text-sm text-ink-2 leading-snug">{variant}</span>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
             </div>
           )
