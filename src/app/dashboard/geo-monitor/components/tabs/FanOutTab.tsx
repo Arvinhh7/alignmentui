@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { ArrowRight, GitBranch, Search, Sparkles } from 'lucide-react'
+import { ArrowRight, Search } from 'lucide-react'
 import { useUnified } from '../UnifiedContext'
 import { CATEGORY_LABEL_MAP, INTENT_COLORS, resolveIntent } from '../shared/constants'
 
@@ -30,7 +30,6 @@ interface FanoutPath {
   original: string
   intent: string
   variants: string[]
-  coreTerms: string[]
 }
 
 function normalizeIntent(value: string) {
@@ -114,7 +113,6 @@ function buildFanoutPaths(prompts: PromptInput[], brandName: string): FanoutPath
       original,
       intent,
       variants: buildVariants(original, intent, brandName, terms),
-      coreTerms: terms.slice(0, 4),
     }
   })
 }
@@ -139,38 +137,12 @@ export function FanOutTab() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-surface border border-divider rounded-xl p-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <GitBranch className="w-4 h-4 text-ink-3" />
-              <h3 className="text-sm font-semibold text-ink">Query FanOut Paths</h3>
-            </div>
-            <p className="text-xs text-ink-3 mt-1 max-w-4xl">
-              Representative ways users may rewrite each tracked prompt into adjacent questions. Each prompt gets 3 likely fan-out prompts.
-            </p>
-          </div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-canvas border border-divider-light px-3 py-1.5 text-xs font-medium text-ink-3">
-            <Sparkles className="w-3.5 h-3.5" />
-            Generated locally
-          </div>
-        </div>
-      </div>
-
       <div className="space-y-4">
         {paths.map(path => {
           const intentStyle = INTENT_COLORS[path.intent] ?? INTENT_COLORS.info_cognition
           return (
             <div key={path.prompt.id} className="bg-surface border border-divider rounded-xl overflow-hidden shadow-sm">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider-light px-4 py-3">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h4 className="text-sm font-semibold text-ink truncate">{path.coreTerms.join(' ') || ctx.brandConfig.brand_name || 'Tracked prompt'}</h4>
-                    <span className="rounded-full bg-surface-muted px-2 py-0.5 text-[11px] font-semibold text-ink-3">
-                      Top 3 paths
-                    </span>
-                  </div>
-                </div>
+              <div className="flex justify-end border-b border-divider-light px-4 py-3">
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${intentStyle.color}`}>
                   {CATEGORY_LABEL_MAP[path.intent] ?? titleCase(path.intent)}
                 </span>
@@ -200,12 +172,6 @@ export function FanOutTab() {
             </div>
           )
         })}
-      </div>
-
-      <div className="rounded-xl border border-divider bg-surface px-4 py-3">
-        <p className="text-xs text-ink-3 leading-relaxed">
-          Fan-out generation is a lightweight local estimate for planning. Monitoring cost starts only when prompts are run against AI platforms.
-        </p>
       </div>
     </div>
   )
