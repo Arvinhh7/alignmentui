@@ -72,6 +72,10 @@ export function VisibilityTab() {
   }, [ctx.scanResult, ctx.brandConfig.brand_name])
 
   const hasScanData = !!ctx.scanResult
+  const activePromptCount = useMemo(
+    () => ctx.prompts.filter(p => p.is_active).length,
+    [ctx.prompts],
+  )
 
   // ── P5: Citation Health — CTM summary for Visibility tab ──
   const ctmRows = useMemo(() => {
@@ -116,14 +120,19 @@ export function VisibilityTab() {
     const errorResults = scan.mention_results.filter(m => isErrorResponse(m.response_text))
     if (errorResults.length > 0) {
       const firstErr = errorResults[0]?.response_text ?? ''
-      const isQuota = firstErr.includes('insufficient_quota') || firstErr.includes('exceeded your current quota')
+      const lowerErr = firstErr.toLowerCase()
+      const isQuota =
+        lowerErr.includes('insufficient_quota')
+        || lowerErr.includes('exceeded your current quota')
+        || lowerErr.includes('resource_exhausted')
+        || lowerErr.includes('prepayment credits are depleted')
       return {
         type: 'api_error' as const,
         message: isQuota
-          ? `OpenAI API quota exceeded — all ${errorResults.length} scans failed. Please top up your OpenAI account credits.`
+          ? `${errorResults.length} of ${scan.total_prompts} scans failed because an AI platform quota is exhausted.`
           : `${errorResults.length} of ${scan.total_prompts} scans returned API errors. Check your API key configuration.`,
         detail: isQuota
-          ? 'Go to platform.openai.com → Billing → Add credits, then re-run the scan.'
+          ? firstErr.slice(0, 160)
           : firstErr.slice(0, 120),
       }
     }
@@ -178,7 +187,9 @@ export function VisibilityTab() {
           <div className="flex items-center gap-3 mb-3">
             <Loader2 className="w-5 h-5 text-ink animate-spin" />
             <span className="text-sm font-medium text-ink-2">Scanning AI platforms...</span>
-            <span className="text-xs text-ink-3 ml-auto">Running across 4 engines</span>
+            <span className="text-xs text-ink-3 ml-auto">
+              Running {activePromptCount || 'active'} prompt{activePromptCount === 1 ? '' : 's'}
+            </span>
           </div>
           <div className="w-full h-2 bg-surface-warm rounded-full overflow-hidden">
             <div className="h-full bg-ink rounded-full transition-all duration-700 animate-pulse" style={{ width: '60%' }} />
@@ -189,7 +200,7 @@ export function VisibilityTab() {
       {ctx.isScanning && hasScanData && (
         <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface border border-divider text-sm text-ink-2">
           <Loader2 className="w-3.5 h-3.5 text-ink animate-spin flex-shrink-0" />
-          <span>Re-scanning across 4 AI engines — results below are from the previous run</span>
+          <span>Re-running active prompts — results below are from the previous run</span>
         </div>
       )}
 

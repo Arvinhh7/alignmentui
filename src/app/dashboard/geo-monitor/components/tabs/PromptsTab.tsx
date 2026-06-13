@@ -38,6 +38,14 @@ function flagForCountry(code: string) {
   return String.fromCodePoint(...code.split('').map(char => 127397 + char.charCodeAt(0)))
 }
 
+function hasPromptScan(prompt: { scan_count?: number | null; last_scanned_at?: string | null }) {
+  return Boolean(prompt.last_scanned_at) || (prompt.scan_count ?? 0) > 0
+}
+
+function hasPromptMention(prompt: { last_mentioned?: boolean | null; mention_rate?: number | null }) {
+  return prompt.last_mentioned === true || (prompt.mention_rate ?? 0) > 0
+}
+
 export function PromptsTab() {
   const ctx = useUnified()
 
@@ -76,15 +84,28 @@ export function PromptsTab() {
     })
   }, [ctx.filteredPrompts, intentFilter, promptSearch])
 
+  const brandPromptDiagnostic = useMemo(() => {
+    const scan = ctx.scanResult
+    if (!scan || scan.visibility_score > 0 || scan.mentions_found > 0) return null
+    const activePrompts = ctx.prompts.filter(p => p.is_active)
+    if (activePrompts.length === 0) return null
+    const hasBrandPrompts = activePrompts.some(p => p.template?.includes('{brand}'))
+    if (hasBrandPrompts) return null
+    return {
+      count: scan.total_prompts || activePrompts.length,
+      brand: ctx.brandConfig.brand_name || 'your brand',
+    }
+  }, [ctx.scanResult, ctx.prompts, ctx.brandConfig.brand_name])
+
   // ── CSV export ─────────────────────────────────────────
   const exportCSV = () => {
     const headers = ['Prompt', 'Intent', 'Visibility Rate', 'Avg Position', 'Sentiment', 'Status', 'Country']
     const rows = displayPrompts.map(p => [
       p.template,
       p.intent || '',
-      String(p.mention_rate ?? ''),
-      String(p.last_position_score ?? ''),
-      p.last_sentiment || '',
+      hasPromptScan(p) ? String(p.mention_rate ?? 0) : '',
+      hasPromptMention(p) ? String(p.last_position_score ?? '') : '',
+      hasPromptMention(p) ? (p.last_sentiment || '') : 'not_mentioned',
       p.is_active ? 'Active' : 'Inactive',
       normalizeCountry(p.location),
     ])
@@ -98,8 +119,16 @@ export function PromptsTab() {
   }
 
   // ── Sentiment badge helper ─────────────────────────────
-  const sentimentBadge = (sentiment: string | null | undefined) => {
-    if (!sentiment) return <span className="text-xs text-ink-3">--</span>
+  const sentimentBadge = (sentiment: string | null | undefined, state: 'pending' | 'not_mentioned' | 'mentioned') => {
+    if (state === 'pending') return <span className="text-xs text-ink-3">—</span>
+    if (state === 'not_mentioned') {
+      return (
+        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-caution-bg text-caution">
+          Not mentioned
+        </span>
+      )
+    }
+    if (!sentiment) return <span className="text-xs text-ink-3">—</span>
     const colors: Record<string, string> = {
       positive: 'bg-sage-bg text-sage',
       neutral: 'bg-surface-muted text-ink-3',
@@ -218,6 +247,35 @@ export function PromptsTab() {
           </select>
         </div>
       </div>
+
+      {brandPromptDiagnostic && (
+        <div className="rounded-xl border border-caution/30 bg-caution-bg px-4 py-3 text-caution">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold">
+                0 of {brandPromptDiagnostic.count} prompts mentioned "{brandPromptDiagnostic.brand}"
+              </p>
+              <p className="mt-1 text-xs leading-relaxed">
+                Your active prompts are generic discovery queries. Add at least one prompt that directly references the brand to match the Analysis recommendation.
+              </p>
+              <div className="mt-2 rounded-lg bg-caution-bg px-3 py-2 text-xs font-mono">
+                Try: <strong>&ldquo;What is {'{brand}'}?&rdquo;</strong> or <strong>&ldquo;Tell me about {'{brand}'}&apos;s features&rdquo;</strong>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                ctx.setNewPromptForm({ template: 'What is {brand}?' })
+                ctx.setShowAddPrompt(true)
+                ctx.setPromptError('')
+              }}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-ink px-3 py-2 text-xs font-semibold text-ink-inv hover:bg-[#2d2d2c] transition-colors"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Add brand prompt
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ═══ C) Batch action bar ════════════════════════ */}
       {ctx.selectedPromptIds.size > 0 && (
@@ -380,8 +438,11 @@ export function PromptsTab() {
                 {displayPrompts.map(prompt => {
                   const isSelected = ctx.selectedPromptIds.has(prompt.id)
                   const intentConfig = INTENT_COLORS[prompt.intent] || INTENT_COLORS[prompt.category]
-                  const mentionRate = prompt.mention_rate ?? 0
-                  const avgPos = prompt.last_position_score
+                  const hasScan = hasPromptScan(prompt)
+                  const hasMention = hasPromptMention(prompt)
+                  const mentionRate = hasScan ? (prompt.mention_rate ?? 0) : null
+                  const avgPos = hasMention ? prompt.last_position_score : null
+                  const sentimentState = !hasScan ? 'pending' : hasMention ? 'mentioned' : 'not_mentioned'
                   const isToggling = ctx.togglingPromptId === prompt.id
                   const country = normalizeCountry(prompt.location)
 
@@ -424,13 +485,13 @@ export function PromptsTab() {
                           <div className="w-16 h-1.5 bg-surface-warm rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all duration-700 ${
-                                mentionRate >= 60 ? 'bg-sage' : mentionRate >= 30 ? 'bg-caution' : 'bg-red-soft'
+                                (mentionRate ?? 0) >= 60 ? 'bg-sage' : (mentionRate ?? 0) >= 30 ? 'bg-caution' : 'bg-red-soft'
                               }`}
-                              style={{ width: `${Math.min(mentionRate, 100)}%` }}
+                              style={{ width: `${Math.min(mentionRate ?? 0, 100)}%` }}
                             />
                           </div>
                           <span className="text-xs font-mono font-medium text-ink">
-                            {formatPct(mentionRate)}
+                            {mentionRate == null ? '—' : formatPct(mentionRate)}
                           </span>
                         </div>
                       </td>
@@ -442,7 +503,7 @@ export function PromptsTab() {
 
                       {/* Sentiment */}
                       <td className="px-4 py-3">
-                        {sentimentBadge(prompt.last_sentiment)}
+                        {sentimentBadge(prompt.last_sentiment, sentimentState)}
                       </td>
 
                       {/* Status toggle */}
