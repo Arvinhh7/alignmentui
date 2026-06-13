@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { Loader2, LineChart, Eye, MessageSquare, Link2, ThumbsUp, Users, UserCircle2 } from 'lucide-react'
 import { UnifiedProvider, useUnified, type TabKey } from '../geo-monitor/components/UnifiedContext'
-import { ControlBar } from '../geo-monitor/components/ControlBar'
+import { DateRangeControls } from '../geo-monitor/components/ControlBar'
 
 const TabLoader = () => (
   <div className="flex items-center justify-center py-12">
@@ -70,8 +70,6 @@ function AnalysisContent() {
       </div>
 
       <div className="p-6 space-y-6">
-        <ControlBar />
-
         {ctx.scanError && (
           <div className="bg-red-soft-bg border border-red-soft/30 rounded-xl p-4">
             <span className="text-sm text-red-soft">{ctx.scanError}</span>
@@ -79,26 +77,31 @@ function AnalysisContent() {
         )}
 
         {/* Tab bar */}
-        <div className="flex items-center gap-1 bg-surface border border-divider-light rounded-xl p-1 overflow-x-auto">
-          {tabs.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => ctx.setActiveTab(tab.key)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                activeTab === tab.key
-                  ? 'bg-ink text-ink-inv shadow-sm'
-                  : 'text-ink-2 hover:bg-surface-warm'
-              }`}
-            >
-              {tab.icon}
-              {tab.label}
-              {tab.badge && (
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                  activeTab === tab.key ? 'bg-[rgba(250,245,236,0.2)] text-ink-inv' : 'bg-surface-muted text-ink-3'
-                }`}>{tab.badge}</span>
-              )}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-surface border border-divider-light rounded-xl p-1">
+          <div className="flex items-center gap-1 overflow-x-auto">
+            {tabs.map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => ctx.setActiveTab(tab.key)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                  activeTab === tab.key
+                    ? 'bg-ink text-ink-inv shadow-sm'
+                    : 'text-ink-2 hover:bg-surface-warm'
+                }`}
+              >
+                {tab.icon}
+                {tab.label}
+                {tab.badge && (
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                    activeTab === tab.key ? 'bg-[rgba(250,245,236,0.2)] text-ink-inv' : 'bg-surface-muted text-ink-3'
+                  }`}>{tab.badge}</span>
+                )}
+              </button>
+            ))}
+          </div>
+          <div className="px-1">
+            <DateRangeControls />
+          </div>
         </div>
 
         {/* Tab content */}

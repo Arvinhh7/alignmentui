@@ -4,6 +4,48 @@ import { useState, useMemo } from 'react'
 import { Search, StopCircle, RefreshCw, Bookmark } from 'lucide-react'
 import { useUnified } from './UnifiedContext'
 
+export function DateRangeControls() {
+  const ctx = useUnified()
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-1 bg-canvas rounded-xl p-1 border border-divider-light">
+        {(['7d', '30d', '90d', 'custom'] as const).map(preset => (
+          <button
+            key={preset}
+            onClick={() => ctx.handleDatePreset(preset)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              ctx.datePreset === preset
+                ? 'bg-ink text-ink-inv shadow-sm'
+                : 'text-ink-2 hover:bg-surface-muted'
+            }`}
+          >
+            {preset === 'custom' ? 'Custom' : preset.toUpperCase()}
+          </button>
+        ))}
+      </div>
+
+      {ctx.datePreset === 'custom' && (
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            value={ctx.startDate}
+            onChange={e => ctx.setStartDate(e.target.value)}
+            className="px-3 py-1.5 text-xs border border-divider rounded-lg bg-surface"
+          />
+          <span className="text-xs text-ink-3">to</span>
+          <input
+            type="date"
+            value={ctx.endDate}
+            onChange={e => ctx.setEndDate(e.target.value)}
+            className="px-3 py-1.5 text-xs border border-divider rounded-lg bg-surface"
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
 /**
  * Scan controls shared by Monitoring and Analysis.
  * Customer profile editing lives in AI Research; this bar only consumes profile
@@ -35,26 +77,7 @@ export function ControlBar() {
 
   return (
     <div className="bg-surface rounded-xl border border-divider p-4 flex flex-wrap items-center gap-4">
-      {/* Date presets */}
-      <div className="flex items-center gap-1 bg-canvas rounded-xl p-1">
-        {(['7d', '30d', '90d', 'custom'] as const).map(preset => (
-          <button key={preset} onClick={() => ctx.handleDatePreset(preset)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${ctx.datePreset === preset ? 'bg-ink text-ink-inv shadow-sm' : 'text-ink-2 hover:bg-surface-muted'}`}>
-            {preset === 'custom' ? 'Custom' : preset.toUpperCase()}
-          </button>
-        ))}
-      </div>
-
-      {/* Custom dates */}
-      {ctx.datePreset === 'custom' && (
-        <div className="flex items-center gap-2">
-          <input type="date" value={ctx.startDate} onChange={e => ctx.setStartDate(e.target.value)}
-            className="px-3 py-1.5 text-xs border border-divider rounded-lg bg-surface" />
-          <span className="text-xs text-ink-3">to</span>
-          <input type="date" value={ctx.endDate} onChange={e => ctx.setEndDate(e.target.value)}
-            className="px-3 py-1.5 text-xs border border-divider rounded-lg bg-surface" />
-        </div>
-      )}
+      <DateRangeControls />
 
       {/* Last refreshed badge — shows when warehouse data is pre-loaded */}
       {refreshLabel && !ctx.isScanning && (

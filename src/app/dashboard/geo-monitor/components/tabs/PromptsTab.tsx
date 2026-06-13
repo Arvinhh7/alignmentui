@@ -1,16 +1,49 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Tag, Plus, Edit2, Trash2, Save, X, ToggleLeft, ToggleRight, Download, Loader2, Square, CheckCircle, AlertCircle, Filter } from 'lucide-react'
+import { Tag, Plus, Edit2, Trash2, Save, X, Download, Loader2, Square, CheckCircle, AlertCircle, Filter, Search, StopCircle } from 'lucide-react'
 import { useUnified } from '../UnifiedContext'
 import { formatPct } from '../shared/ChartComponents'
 import { CATEGORY_LABEL_MAP, CATEGORY_COLORS, INTENT_COLORS, autoClassify } from '../shared/constants'
+
+const COUNTRY_LABELS: Record<string, string> = {
+  'united states': 'US',
+  usa: 'US',
+  us: 'US',
+  'united kingdom': 'GB',
+  uk: 'GB',
+  gb: 'GB',
+  canada: 'CA',
+  ca: 'CA',
+  australia: 'AU',
+  au: 'AU',
+  germany: 'DE',
+  de: 'DE',
+  france: 'FR',
+  fr: 'FR',
+  japan: 'JP',
+  jp: 'JP',
+  china: 'CN',
+  cn: 'CN',
+}
+
+function normalizeCountry(value: string | null | undefined) {
+  const raw = (value || 'US').trim()
+  if (!raw) return 'US'
+  return COUNTRY_LABELS[raw.toLowerCase()] || raw.slice(0, 2).toUpperCase()
+}
+
+function flagForCountry(code: string) {
+  if (!/^[A-Z]{2}$/.test(code)) return '🌐'
+  return String.fromCodePoint(...code.split('').map(char => 127397 + char.charCodeAt(0)))
+}
 
 export function PromptsTab() {
   const ctx = useUnified()
 
   // ── Local state for intent filter ──────────────────────
   const [intentFilter, setIntentFilter] = useState<'all' | 'info_cognition' | 'solution_explore' | 'comparison_decision' | 'action_choice'>('all')
+  const [promptSearch, setPromptSearch] = useState('')
 
   // ── Auto-classify preview for add/edit forms ───────────
   const addPreview = useMemo(
@@ -24,7 +57,7 @@ export function PromptsTab() {
 
   // ── Filtered prompts with intent filter applied ────────
   const displayPrompts = useMemo(() => {
-    if (intentFilter === 'all') return ctx.filteredPrompts
+    const search = promptSearch.trim().toLowerCase()
     const OLD_TO_NEW: Record<string, string> = {
       recommendation: 'action_choice',
       comparison: 'comparison_decision',
@@ -34,21 +67,26 @@ export function PromptsTab() {
     }
     return ctx.filteredPrompts.filter(p => {
       const resolved = OLD_TO_NEW[p.category] || p.category
-      return resolved === intentFilter
+      const matchesIntent = intentFilter === 'all' || resolved === intentFilter
+      const matchesSearch = !search
+        || p.template.toLowerCase().includes(search)
+        || (p.intent || '').toLowerCase().includes(search)
+        || (p.category || '').toLowerCase().includes(search)
+      return matchesIntent && matchesSearch
     })
-  }, [ctx.filteredPrompts, intentFilter])
+  }, [ctx.filteredPrompts, intentFilter, promptSearch])
 
   // ── CSV export ─────────────────────────────────────────
   const exportCSV = () => {
-    const headers = ['Template', 'Category', 'Intent', 'Visibility Rate', 'Avg Position', 'Sentiment', 'Status']
-    const rows = ctx.filteredPrompts.map(p => [
+    const headers = ['Prompt', 'Intent', 'Visibility Rate', 'Avg Position', 'Sentiment', 'Status', 'Country']
+    const rows = displayPrompts.map(p => [
       p.template,
-      p.category,
       p.intent || '',
       String(p.mention_rate ?? ''),
       String(p.last_position_score ?? ''),
       p.last_sentiment || '',
       p.is_active ? 'Active' : 'Inactive',
+      normalizeCountry(p.location),
     ])
     const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
@@ -95,6 +133,27 @@ export function PromptsTab() {
           </span>
         </div>
         <div className="flex items-center gap-2">
+          {ctx.isConfigured && (
+            ctx.isScanning ? (
+              <button
+                onClick={ctx.handleStopScan}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-caution-bg text-caution rounded-lg text-sm font-medium hover:bg-caution/20 transition-colors"
+              >
+                <StopCircle className="w-4 h-4" />
+                Stop Run
+              </button>
+            ) : (
+              <button
+                onClick={() => ctx.handleRunScan()}
+                disabled={ctx.isScanning}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                title={ctx.warehouseLoaded ? 'Data is pre-loaded. Run to force a fresh visibility check.' : 'Run active prompts to measure AI visibility.'}
+              >
+                <Search className="w-4 h-4" />
+                {ctx.warehouseLoaded ? 'Run Fresh Check' : 'Run Prompts'}
+              </button>
+            )
+          )}
           <button
             onClick={exportCSV}
             className="inline-flex items-center gap-1.5 px-3 py-2 bg-canvas hover:bg-surface-muted border border-divider rounded-lg text-sm text-ink-2 transition-colors"
@@ -114,6 +173,16 @@ export function PromptsTab() {
 
       {/* ═══ B) Filter tabs ═════════════════════════════ */}
       <div className="flex flex-wrap items-center gap-3">
+        <div className="relative w-full sm:w-72">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-3" />
+          <input
+            value={promptSearch}
+            onChange={e => setPromptSearch(e.target.value)}
+            placeholder="Search prompts..."
+            className="w-full pl-9 pr-3 py-2 border border-divider rounded-lg text-xs text-ink-2 bg-surface focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
+          />
+        </div>
+
         <div className="flex gap-1">
           {([
             { key: 'active' as const, label: 'Active' },
@@ -297,13 +366,13 @@ export function PromptsTab() {
                       }
                     </button>
                   </th>
-                  <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Template</th>
+                  <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Prompt</th>
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Intent</th>
-                  <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Baseline</th>
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">Visibility Rate</th>
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">Avg Position</th>
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Sentiment</th>
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-center">Status</th>
+                  <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Country</th>
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
@@ -314,6 +383,7 @@ export function PromptsTab() {
                   const mentionRate = prompt.mention_rate ?? 0
                   const avgPos = prompt.last_position_score
                   const isToggling = ctx.togglingPromptId === prompt.id
+                  const country = normalizeCountry(prompt.location)
 
                   return (
                     <tr key={prompt.id} className={`transition-colors ${isSelected ? 'bg-canvas' : 'hover:bg-surface-warm'}`}>
@@ -330,10 +400,10 @@ export function PromptsTab() {
                         </button>
                       </td>
 
-                      {/* Template */}
-                      <td className="px-4 py-3 text-sm text-ink max-w-[300px]">
+                      {/* Prompt */}
+                      <td className="px-4 py-3 text-sm text-ink min-w-[320px] max-w-[520px]">
                         <span title={prompt.template}>
-                          {prompt.template.length > 60 ? prompt.template.slice(0, 60) + '...' : prompt.template}
+                          {prompt.template.length > 96 ? prompt.template.slice(0, 96) + '...' : prompt.template}
                         </span>
                       </td>
 
@@ -346,29 +416,6 @@ export function PromptsTab() {
                         ) : (
                           <span className="text-xs text-ink-3">{prompt.intent || '—'}</span>
                         )}
-                      </td>
-
-                      {/* Baseline status */}
-                      <td className="px-4 py-3">
-                        {(() => {
-                          const bs = prompt.baseline_status
-                          if (!bs) return <span className="text-[11px] text-ink-3">—</span>
-                          if (bs === 'recommended') return (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sage/15 text-sage">
-                              ✦ Recommended
-                            </span>
-                          )
-                          if (bs === 'mentioned') return (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-caution/15 text-caution">
-                              ◎ Mentioned
-                            </span>
-                          )
-                          return (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-soft/15 text-red-soft">
-                              ✕ Missing
-                            </span>
-                          )
-                        })()}
                       </td>
 
                       {/* Visibility Rate */}
@@ -403,17 +450,29 @@ export function PromptsTab() {
                         <button
                           onClick={() => ctx.handleTogglePrompt(prompt.id, prompt.is_active)}
                           disabled={isToggling}
-                          className="text-ink-3 hover:text-ink-2 transition-colors disabled:opacity-50"
+                          className={`inline-flex min-w-[78px] justify-center items-center px-2.5 py-1 rounded-full text-xs font-semibold transition-colors disabled:opacity-50 ${
+                            prompt.is_active
+                              ? 'bg-sage-bg text-sage hover:bg-sage/15'
+                              : 'bg-surface-muted text-ink-3 hover:bg-surface-warm'
+                          }`}
                           title={prompt.is_active ? 'Deactivate' : 'Activate'}
                         >
                           {isToggling ? (
-                            <Loader2 className="w-5 h-5 animate-spin text-ink-3" />
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           ) : prompt.is_active ? (
-                            <ToggleRight className="w-5 h-5 text-sage" />
+                            'Active'
                           ) : (
-                            <ToggleLeft className="w-5 h-5 text-ink-3" />
+                            'Inactive'
                           )}
                         </button>
+                      </td>
+
+                      {/* Country */}
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-2">
+                          <span aria-hidden="true">{flagForCountry(country)}</span>
+                          {country}
+                        </span>
                       </td>
 
                       {/* Actions */}
