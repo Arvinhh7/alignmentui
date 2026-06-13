@@ -347,7 +347,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         )}
       </div>
 
-      {/* ── Customer / Workspace switcher (GEOly-style, under the logo) ────── */}
+      {/* ── Customer / Workspace switcher, under the logo ────── */}
       <div className="mt-3">
         <SidebarCustomerSwitcher
           expanded={displayExpanded}

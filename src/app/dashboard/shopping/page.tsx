@@ -135,7 +135,7 @@ function ProductSpacePicker({
       >
         <span className="inline-flex min-w-0 items-center gap-2">
           <Layers className="h-4 w-4 shrink-0 text-ink-3" />
-          <span className="truncate">{active?.name ?? 'Product spaces'}</span>
+          <span className="truncate">{active?.name ?? 'Categories'}</span>
         </span>
         <ChevronDown className="h-4 w-4 shrink-0 text-ink-3" />
       </button>
@@ -321,7 +321,7 @@ function BarRow({
 
 export default function ShoppingPage() {
   const [spaces, setSpaces] = useState<ProductSpace[]>([])
-  const [activeSlug, setActiveSlug] = useState('projectors')
+  const [activeSlug, setActiveSlug] = useState('')
   const [data, setData] = useState<ShoppingResponse | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
@@ -337,7 +337,7 @@ export default function ShoppingPage() {
       .then((payload) => {
         const loaded = payload.product_spaces ?? []
         setSpaces(loaded)
-        if (loaded.length && !loaded.some((space: ProductSpace) => space.slug === activeSlug)) {
+        if (loaded.length && (!activeSlug || !loaded.some((space: ProductSpace) => space.slug === activeSlug))) {
           setActiveSlug(loaded[0].slug)
         }
       })
@@ -347,6 +347,7 @@ export default function ShoppingPage() {
   useEffect(() => {
     const controller = new AbortController()
     const timer = window.setTimeout(() => {
+      if (!activeSlug) return
       setLoading(true)
       setError(null)
       const params = new URLSearchParams({ limit: '24' })
@@ -365,7 +366,7 @@ export default function ShoppingPage() {
         })
         .catch((err) => {
           if (err instanceof DOMException && err.name === 'AbortError') return
-          setError('Shopping data is not available. Apply the shopping migration and seed first.')
+          setError('Shopping data is not available yet. Please try again after the warehouse sync finishes.')
           setData(null)
           setSelectedId(null)
         })
@@ -397,7 +398,7 @@ export default function ShoppingPage() {
             <div>
               <h1 className="heading-dash">Shopping</h1>
               <p className="max-w-4xl text-sm text-ink-3">
-                AI-recommended products grouped by product space, persisted in the Alignment warehouse after quality cleaning.
+                AI-recommended products grouped by category, persisted in the Alignment warehouse after quality cleaning.
               </p>
             </div>
           </div>
@@ -425,7 +426,7 @@ export default function ShoppingPage() {
         {data?.product_space ? (
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-lg border border-divider-light bg-surface p-4">
-              <div className="text-[11px] font-black uppercase text-ink-3">Product space</div>
+              <div className="text-[11px] font-black uppercase text-ink-3">Category</div>
               <div className="mt-2 text-2xl font-black text-ink">{data.product_space.name}</div>
             </div>
             <div className="rounded-lg border border-divider-light bg-surface p-4">
