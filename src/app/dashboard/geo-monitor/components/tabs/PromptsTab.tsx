@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Tag, Plus, Edit2, Trash2, Save, X, Download, Loader2, Square, CheckCircle, AlertCircle, Filter, Search, StopCircle } from 'lucide-react'
+import { Tag, Plus, Edit2, Trash2, Save, X, Download, Loader2, Square, CheckCircle, AlertCircle, Filter, Search, StopCircle, Power } from 'lucide-react'
 import { useUnified } from '../UnifiedContext'
 import { formatPct } from '../shared/ChartComponents'
 import { CATEGORY_LABEL_MAP, CATEGORY_COLORS, INTENT_COLORS, autoClassify } from '../shared/constants'
@@ -44,6 +44,23 @@ function hasPromptScan(prompt: { scan_count?: number | null; last_scanned_at?: s
 
 function hasPromptMention(prompt: { last_mentioned?: boolean | null; mention_rate?: number | null }) {
   return prompt.last_mentioned === true || (prompt.mention_rate ?? 0) > 0
+}
+
+function promptStatus(prompt: { is_active: boolean; scan_count?: number | null; last_scanned_at?: string | null }) {
+  if (prompt.is_active && hasPromptScan(prompt)) {
+    return {
+      label: 'Active',
+      title: prompt.last_scanned_at ? `Last run: ${new Date(prompt.last_scanned_at).toLocaleString()}` : 'This prompt is enabled and has completed at least one real run.',
+      className: 'bg-sage-bg text-sage',
+    }
+  }
+  return {
+    label: 'Inactive',
+    title: prompt.is_active
+      ? 'This prompt is enabled but has not completed a real run yet.'
+      : 'This prompt is disabled and is not included in manual or scheduled runs.',
+    className: 'bg-surface-muted text-ink-3',
+  }
 }
 
 export function PromptsTab() {
@@ -99,13 +116,14 @@ export function PromptsTab() {
 
   // ── CSV export ─────────────────────────────────────────
   const exportCSV = () => {
-    const headers = ['Prompt', 'Intent', 'Visibility Rate', 'Avg Position', 'Sentiment', 'Status', 'Country']
+    const headers = ['Prompt', 'Intent', 'Visibility Rate', 'Avg Position', 'Sentiment', 'Status', 'Enabled', 'Country']
     const rows = displayPrompts.map(p => [
       p.template,
       p.intent || '',
       hasPromptScan(p) ? String(p.mention_rate ?? 0) : '',
       hasPromptMention(p) ? String(p.last_position_score ?? '') : '',
       hasPromptMention(p) ? (p.last_sentiment || '') : 'not_mentioned',
+      promptStatus(p).label,
       p.is_active ? 'Active' : 'Inactive',
       normalizeCountry(p.location),
     ])
@@ -445,6 +463,7 @@ export function PromptsTab() {
                   const sentimentState = !hasScan ? 'pending' : hasMention ? 'mentioned' : 'not_mentioned'
                   const isToggling = ctx.togglingPromptId === prompt.id
                   const country = normalizeCountry(prompt.location)
+                  const status = promptStatus(prompt)
 
                   return (
                     <tr key={prompt.id} className={`transition-colors ${isSelected ? 'bg-canvas' : 'hover:bg-surface-warm'}`}>
@@ -506,26 +525,14 @@ export function PromptsTab() {
                         {sentimentBadge(prompt.last_sentiment, sentimentState)}
                       </td>
 
-                      {/* Status toggle */}
+                      {/* Status */}
                       <td className="px-4 py-3 text-center">
-                        <button
-                          onClick={() => ctx.handleTogglePrompt(prompt.id, prompt.is_active)}
-                          disabled={isToggling}
-                          className={`inline-flex min-w-[78px] justify-center items-center px-2.5 py-1 rounded-full text-xs font-semibold transition-colors disabled:opacity-50 ${
-                            prompt.is_active
-                              ? 'bg-sage-bg text-sage hover:bg-sage/15'
-                              : 'bg-surface-muted text-ink-3 hover:bg-surface-warm'
-                          }`}
-                          title={prompt.is_active ? 'Deactivate' : 'Activate'}
+                        <span
+                          className={`inline-flex min-w-[82px] justify-center items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${status.className}`}
+                          title={status.title}
                         >
-                          {isToggling ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : prompt.is_active ? (
-                            'Active'
-                          ) : (
-                            'Inactive'
-                          )}
-                        </button>
+                          {status.label}
+                        </span>
                       </td>
 
                       {/* Country */}
@@ -539,6 +546,18 @@ export function PromptsTab() {
                       {/* Actions */}
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => ctx.handleTogglePrompt(prompt.id, prompt.is_active)}
+                            disabled={isToggling || ctx.isScanning}
+                            className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 ${
+                              prompt.is_active
+                                ? 'hover:bg-caution-bg text-ink-3 hover:text-caution'
+                                : 'hover:bg-sage-bg text-ink-3 hover:text-sage'
+                            }`}
+                            title={prompt.is_active ? 'Disable scheduled runs' : 'Enable scheduled runs'}
+                          >
+                            {isToggling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Power className="w-3.5 h-3.5" />}
+                          </button>
                           <button
                             onClick={() => { ctx.setEditingPrompt(prompt); ctx.setPromptError('') }}
                             className="p-1.5 rounded-lg hover:bg-surface-warm text-ink-3 hover:text-ink-2 transition-colors"
