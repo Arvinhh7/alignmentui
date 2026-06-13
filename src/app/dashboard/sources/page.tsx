@@ -5,14 +5,15 @@ import { useMemo, useState } from 'react'
 import { Database, ExternalLink, Filter, Search, ShieldCheck } from 'lucide-react'
 import {
   PUBLIC_SOURCE_DOMAINS,
+  SOURCE_TYPE_DISTRIBUTION,
   SOURCE_TYPES,
   SOURCE_TYPE_STYLES,
   faviconUrl,
   type SourceType,
 } from './source-data'
 
-const TOTAL_DOMAINS = 82080
-const TOTAL_CITATIONS = 1018391
+const TOTAL_DOMAINS = 103530
+const TOTAL_CITATIONS = 2438763
 const maxCitations = PUBLIC_SOURCE_DOMAINS[0]?.citations ?? 1
 
 function formatNumber(value: number) {
@@ -45,17 +46,10 @@ export default function SourcesPage() {
   }, [query, typeFilter])
 
   const typeDistribution = useMemo(() => {
-    const total = PUBLIC_SOURCE_DOMAINS.reduce((sum, source) => sum + source.citations, 0)
-    return SOURCE_TYPES.map(type => {
-      const sources = PUBLIC_SOURCE_DOMAINS.filter(source => source.type === type)
-      const citations = sources.reduce((sum, source) => sum + source.citations, 0)
-      return {
-        type,
-        count: sources.length,
-        citations,
-        share: total > 0 ? citations / total * 100 : 0,
-      }
-    }).filter(item => item.count > 0)
+    return SOURCE_TYPES.map(type => ({
+      type,
+      ...SOURCE_TYPE_DISTRIBUTION[type],
+    })).filter(item => item.count > 0)
   }, [])
 
   return (
@@ -85,12 +79,12 @@ export default function SourcesPage() {
           <div className="rounded-xl border border-divider bg-surface p-5">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-3">Source Domains</p>
             <p className="mt-3 font-mono text-3xl font-bold text-ink">{formatNumber(TOTAL_DOMAINS)}</p>
-            <p className="mt-1 text-xs text-ink-3">public domains tracked</p>
+            <p className="mt-1 text-xs text-ink-3">domains across AI models</p>
           </div>
           <div className="rounded-xl border border-divider bg-surface p-5">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-3">Citations</p>
             <p className="mt-3 font-mono text-3xl font-bold text-ink">{formatNumber(TOTAL_CITATIONS)}</p>
-            <p className="mt-1 text-xs text-ink-3">source citations observed</p>
+            <p className="mt-1 text-xs text-ink-3">citations across AI models</p>
           </div>
           <div className="rounded-xl border border-divider bg-surface p-5">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-3">Featured Sources</p>
@@ -100,15 +94,15 @@ export default function SourcesPage() {
           <div className="rounded-xl border border-divider bg-surface p-5">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-3">Top Source Share</p>
             <p className="mt-3 font-mono text-3xl font-bold text-ink">{PUBLIC_SOURCE_DOMAINS[0].share.toFixed(1)}%</p>
-            <p className="mt-1 text-xs text-ink-3">Reddit across public topics</p>
+            <p className="mt-1 text-xs text-ink-3">Reddit across AI models</p>
           </div>
         </section>
 
         <section className="rounded-xl border border-divider bg-surface p-5">
           <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 className="text-base font-semibold text-ink">Source Type Distribution</h2>
-              <p className="mt-1 text-sm text-ink-3">Source categories for where AI systems tend to cite evidence.</p>
+              <h2 className="text-base font-semibold text-ink">Sources by Distribution</h2>
+              <p className="mt-1 text-sm text-ink-3">Domain types for where AI models cite evidence.</p>
             </div>
             <span className="text-xs font-medium text-ink-3">{typeDistribution.length} active source types</span>
           </div>
@@ -148,7 +142,7 @@ export default function SourcesPage() {
               <div>
                 <h2 className="text-base font-semibold text-ink">Most-Cited Source Domains</h2>
                 <p className="mt-1 text-sm text-ink-3">
-                  {formatNumber(TOTAL_DOMAINS)} domains · {formatNumber(TOTAL_CITATIONS)} citations across public topics
+                  {formatNumber(TOTAL_DOMAINS)} domains, {formatNumber(TOTAL_CITATIONS)} citations cross AI models
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
