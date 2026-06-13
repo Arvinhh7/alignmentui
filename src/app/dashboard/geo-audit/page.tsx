@@ -1934,6 +1934,7 @@ export default function GEOAuditPage() {
   const [auditingUrl, setAuditingUrl] = useState('')
   const [showRecentDropdown, setShowRecentDropdown] = useState(false)
   const resultRef = useRef<HTMLDivElement>(null)
+  const autoRunRequestedRef = useRef(false)
   // Tracks whether the current auditResult came from a live run (true) or was
   // restored from localStorage (false). Auto-scroll only fires for live runs.
   const isLiveAuditRef = useRef(false)
@@ -1946,6 +1947,7 @@ export default function GEOAuditPage() {
     const paramUrl = params.get('url')
     if (paramUrl) {
       setUrl(paramUrl)
+      if (params.get('run') === '1') autoRunRequestedRef.current = true
       return
     }
     // Otherwise restore previous session
@@ -2021,6 +2023,13 @@ export default function GEOAuditPage() {
 
     setIsAuditing(false)
   }
+
+  useEffect(() => {
+    if (!autoRunRequestedRef.current || !url.trim() || isAuditing || auditResult) return
+    autoRunRequestedRef.current = false
+    handleRunAudit()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url, isAuditing, auditResult])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !isAuditing) {
