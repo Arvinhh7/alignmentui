@@ -46,8 +46,8 @@ export const SOURCE_TYPE_STYLES: Record<SourceType, { badge: string; bar: string
 }
 
 export const SOURCE_TYPE_DISTRIBUTION: Record<SourceType, { count: number; citations: number; share: number }> = {
-  UGC: { count: 4812, citations: 701318, share: 28.8 },
-  Editorial: { count: 32741, citations: 836482, share: 34.3 },
+  UGC: { count: 4812, citations: 971305, share: 39.8 },
+  Editorial: { count: 32741, citations: 566495, share: 23.2 },
   Corporate: { count: 21904, citations: 316716, share: 13.0 },
   Reference: { count: 9848, citations: 170713, share: 7.0 },
   Marketplace: { count: 3126, citations: 80479, share: 3.3 },
@@ -58,7 +58,7 @@ export const SOURCE_TYPE_DISTRIBUTION: Record<SourceType, { count: number; citat
 }
 
 export const PUBLIC_SOURCE_DOMAINS: PublicSourceDomain[] = [
-  { rank: 1, name: 'Reddit', domain: 'reddit.com', type: 'UGC', citations: 412867, share: 16.9, avgPosition: 4.1, topics: 18420, sampleTopics: ['fast electric bikes', 'folding electric bikes', 'fat tire electric bikes'] },
+  { rank: 1, name: 'Reddit', domain: 'reddit.com', type: 'UGC', citations: 682854, share: 28.0, avgPosition: 4.1, topics: 18420, sampleTopics: ['fast electric bikes', 'folding electric bikes', 'fat tire electric bikes'] },
   { rank: 2, name: 'TechRadar', domain: 'techradar.com', type: 'Editorial', citations: 68420, share: 2.8, avgPosition: 3.5, topics: 6410, sampleTopics: ['enclosed 3d printers', 'waterproof swimming headphones', 'printer brands and drivers'] },
   { rank: 3, name: "Tom's Guide", domain: 'tomsguide.com', type: 'Editorial', citations: 62184, share: 2.5, avgPosition: 3.3, topics: 6895, sampleTopics: ['outdoor security cameras', 'folding electric bikes', 'smart home hubs with screen'] },
   { rank: 4, name: 'Forbes', domain: 'forbes.com', type: 'Editorial', citations: 43892, share: 1.8, avgPosition: 2.6, topics: 5124, sampleTopics: ["women's electric shavers", 'intimate apparel', 'weighted silk eye masks'] },
@@ -71,7 +71,7 @@ export const PUBLIC_SOURCE_DOMAINS: PublicSourceDomain[] = [
   { rank: 11, name: 'WIRED', domain: 'wired.com', type: 'Editorial', citations: 23690, share: 1.0, avgPosition: 4.0, topics: 3984, sampleTopics: ['fat tire electric bikes', 'class 1 electric bikes', 'water filter pitchers'] },
   { rank: 12, name: 'Consumer Reports', domain: 'consumerreports.org', type: 'Reference', citations: 22538, share: 0.9, avgPosition: 2.2, topics: 2886, sampleTopics: ['best wall ovens', 'Keurig and K-Cup coffee makers', 'single wall ovens'] },
   { rank: 13, name: 'Home Depot', domain: 'homedepot.com', type: 'Retailer', citations: 21417, share: 0.9, avgPosition: 3.2, topics: 4551, sampleTopics: ['gas ranges for propane', 'gas ranges with double ovens', 'white gas ranges'] },
-  { rank: 14, name: 'YouTube', domain: 'youtube.com', type: 'UGC', citations: 20735, share: 0.8, avgPosition: 4.0, topics: 5272, sampleTopics: ['hearing aids for tinnitus', 'short throw projectors', 'setting powder for dry skin'] },
+  { rank: 14, name: 'YouTube', domain: 'youtube.com', type: 'UGC', citations: 20735, share: 0.9, avgPosition: 4.0, topics: 5272, sampleTopics: ['hearing aids for tinnitus', 'short throw projectors', 'setting powder for dry skin'] },
   { rank: 15, name: 'RTINGS', domain: 'rtings.com', type: 'Reference', citations: 19684, share: 0.8, avgPosition: 2.1, topics: 2210, sampleTopics: ['4 slice toasters', 'cordless stick vacuum cleaners', 'loud Bluetooth speakers'] },
   { rank: 16, name: 'Who What Wear', domain: 'whowhatwear.com', type: 'Editorial', citations: 18926, share: 0.8, avgPosition: 3.4, topics: 3088, sampleTopics: ['drugstore setting powder', 'setting powder for dry skin', 'lengthening mascara'] },
   { rank: 17, name: 'Real Simple', domain: 'realsimple.com', type: 'Editorial', citations: 18175, share: 0.7, avgPosition: 3.8, topics: 3895, sampleTopics: ['vintage cafe curtains', 'steam cleaners for grout and tile', 'faux fur blankets'] },

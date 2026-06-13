@@ -20,6 +20,10 @@ function formatNumber(value: number) {
   return value.toLocaleString('en-US')
 }
 
+function citationShare(citations: number) {
+  return citations / TOTAL_CITATIONS * 100
+}
+
 function TypeBadge({ type }: { type: SourceType }) {
   const style = SOURCE_TYPE_STYLES[type]
   return (
@@ -49,6 +53,7 @@ export default function SourcesPage() {
     return SOURCE_TYPES.map(type => ({
       type,
       ...SOURCE_TYPE_DISTRIBUTION[type],
+      share: citationShare(SOURCE_TYPE_DISTRIBUTION[type].citations),
     })).filter(item => item.count > 0)
   }, [])
 
@@ -93,7 +98,7 @@ export default function SourcesPage() {
           </div>
           <div className="rounded-xl border border-divider bg-surface p-5">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-3">Top Source Share</p>
-            <p className="mt-3 font-mono text-3xl font-bold text-ink">{PUBLIC_SOURCE_DOMAINS[0].share.toFixed(1)}%</p>
+            <p className="mt-3 font-mono text-3xl font-bold text-ink">{citationShare(PUBLIC_SOURCE_DOMAINS[0].citations).toFixed(1)}%</p>
             <p className="mt-1 text-xs text-ink-3">Reddit across AI models</p>
           </div>
         </section>
@@ -227,7 +232,7 @@ export default function SourcesPage() {
                         <span className="font-mono text-sm font-semibold text-ink">{formatNumber(source.citations)}</span>
                       </div>
                     </td>
-                    <td className="px-5 py-4 align-top text-right font-mono text-sm font-semibold text-ink">{source.share.toFixed(1)}%</td>
+                    <td className="px-5 py-4 align-top text-right font-mono text-sm font-semibold text-ink">{citationShare(source.citations).toFixed(1)}%</td>
                     <td className="px-5 py-4 align-top text-right font-mono text-sm text-ink-2">{source.avgPosition.toFixed(1)}</td>
                     <td className="px-5 py-4 align-top text-right font-mono text-sm text-ink-2">{formatNumber(source.topics)}</td>
                   </tr>
