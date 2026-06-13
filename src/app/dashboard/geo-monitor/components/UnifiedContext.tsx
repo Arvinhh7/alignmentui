@@ -717,7 +717,35 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
               positive_pct:     Number(r.positive_pct ?? r.sentiment_positive ?? 0),
             }
           }).filter(e => e.date)  // drop any row without a usable date
+          const latestScan = data.latest_scan as unknown as MonitorScanResult | null
+          if (latestScan && normalized.length > 0) {
+            const matchedIndex = normalized.findIndex(e => e.scan_id && e.scan_id === latestScan.scan_id)
+            const latestIndex = matchedIndex >= 0 ? matchedIndex : normalized.length - 1
+            normalized[latestIndex] = {
+              ...normalized[latestIndex],
+              scan_id: latestScan.scan_id || normalized[latestIndex].scan_id,
+              date: latestScan.scanned_at || normalized[latestIndex].date,
+              visibility_score: Number(latestScan.visibility_score ?? normalized[latestIndex].visibility_score),
+              mentions_found: Number(latestScan.mentions_found ?? normalized[latestIndex].mentions_found),
+              total_prompts: Number(latestScan.total_prompts ?? normalized[latestIndex].total_prompts),
+              citation_count: Number(latestScan.citation_count ?? normalized[latestIndex].citation_count),
+              positive_pct: Number(latestScan.sentiment_breakdown?.positive_pct ?? normalized[latestIndex].positive_pct),
+              engines_used: latestScan.engines_used ?? normalized[latestIndex].engines_used,
+            }
+          }
           setScanHistory(normalized)
+        } else if (data.latest_scan) {
+          const latestScan = data.latest_scan as unknown as MonitorScanResult
+          setScanHistory([{
+            scan_id: latestScan.scan_id,
+            date: latestScan.scanned_at,
+            visibility_score: Number(latestScan.visibility_score ?? 0),
+            mentions_found: Number(latestScan.mentions_found ?? 0),
+            total_prompts: Number(latestScan.total_prompts ?? 0),
+            citation_count: Number(latestScan.citation_count ?? 0),
+            positive_pct: Number(latestScan.sentiment_breakdown?.positive_pct ?? 0),
+            engines_used: latestScan.engines_used ?? ['chatgpt'],
+          }])
         }
         if (data.latest_discover) {
           // New format: { results_by_engine: { chatgpt: DiscoverResult, ... } }

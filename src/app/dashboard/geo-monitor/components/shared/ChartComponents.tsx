@@ -588,9 +588,10 @@ export function UnifiedTrendChart({ data, brandName, scanHistory }: {
     if (!entry.date || typeof entry.date !== 'string') continue
     const date = entry.date.split('T')[0]
     if (!dateMap[date]) dateMap[date] = {}
-    if (dateMap[date][brandName] === undefined) {
-      dateMap[date][brandName] = Math.max(0, Math.min(100, entry.visibility_score))
-    }
+    // Customer-scoped scan history is the source of truth for the user's own
+    // brand. Multi-brand trend data can be brand-level/stale, so it must not
+    // override the latest customer scan value shown in the KPI cards.
+    dateMap[date][brandName] = Math.max(0, Math.min(100, entry.visibility_score))
   }
 
   const dates = Object.keys(dateMap).sort()
