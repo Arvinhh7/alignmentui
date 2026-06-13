@@ -100,9 +100,11 @@ function MonitoringContent() {
               </button>
             ))}
           </div>
-          <div className="px-1">
-            <DateRangeControls />
-          </div>
+          {ctx.activeTab === 'prompts' && (
+            <div className="px-1">
+              <DateRangeControls />
+            </div>
+          )}
         </div>
 
         {/* Tab content */}
