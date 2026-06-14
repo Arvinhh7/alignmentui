@@ -311,11 +311,11 @@ export const translations = {
       shoppingNav: 'Shopping',
       adsNav: 'Ads',
       // Actions items
-      monitoringNav: 'Monitoring',
+      monitoringNav: 'Prompt',
       analysisNav: 'Analysis',
       // Assistant items
       agentNav: 'Agent',
-      webInfraNav: 'Web Infrastructure',
+      webInfraNav: 'Agent Audit',
       mcpIntegrationNav: 'MCP Integration',
       // Search
       searchPlaceholder: 'Search topics, prompts, content...',
@@ -1006,11 +1006,11 @@ export const translations = {
       shoppingNav: '电商',
       adsNav: '广告',
       // 行动
-      monitoringNav: '监控',
+      monitoringNav: 'Prompt',
       analysisNav: '分析',
       // Assistant
       agentNav: 'Agent',
-      webInfraNav: 'Web 基础设施',
+      webInfraNav: 'Agent Audit',
       mcpIntegrationNav: 'MCP 集成',
       // Search
       searchPlaceholder: '搜索话题、Prompt、内容...',

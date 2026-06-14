@@ -326,7 +326,7 @@ function WorkflowSteps({
     { label: 'AI Research', detail: 'Diagnosis and gaps', done: hasResearch },
     { label: 'Sources Map', detail: 'Trusted sources AI cites', done: hasSources },
     { label: 'Design Prompts', detail: activePrompts ? `${activePrompts} active prompts` : 'Prompt plan', done: activePrompts > 0 },
-    { label: 'Monitoring', detail: 'Track performance daily', done: hasScan },
+    { label: 'Prompt', detail: 'Track performance daily', done: hasScan },
   ]
 
   return (
@@ -366,9 +366,9 @@ function ResearchStatusCard({
   const nextStep = !hasSources
     ? 'Run Sources Map to find the external domains AI already trusts.'
     : activePrompts === 0
-      ? 'Generate recommended prompts from the gaps, then move them into Monitoring.'
+      ? 'Generate recommended prompts from the gaps, then move them into Prompt.'
       : !hasScan
-        ? 'Open Monitoring and run a scan to measure prompt visibility.'
+        ? 'Open Prompt and run a scan to measure prompt visibility.'
         : 'Review the diagnosis, then refresh research after source or prompt changes.'
 
   return (
@@ -409,7 +409,7 @@ function ResearchStatusCard({
         </button>
         <Link href="/dashboard/geo-monitor?tab=prompts" className="inline-flex items-center gap-2 rounded-xl border border-divider-light bg-canvas px-4 py-2 text-[12px] font-semibold text-ink hover:bg-surface-warm">
           <Target className="h-3.5 w-3.5" />
-          Open Monitoring
+          Open Prompt
         </Link>
       </div>
     </div>

@@ -16,7 +16,7 @@ function AISearchContent() {
           <div>
             <h1 className="heading-dash">AI Research</h1>
             <p className="text-sm text-ink-3">
-              Start from the customer profile, diagnose source and prompt gaps, then send actions into Monitoring
+              Start from the customer profile, diagnose source and prompt gaps, then send actions into Prompt
             </p>
           </div>
         </div>

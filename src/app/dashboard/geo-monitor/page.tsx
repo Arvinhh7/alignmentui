@@ -16,7 +16,7 @@ const TabLoader = () => (
 const PromptsTab  = dynamic(() => import('./components/tabs/PromptsTab').then(m => ({ default: m.PromptsTab })),   { loading: TabLoader })
 const FanOutTab  = dynamic(() => import('./components/tabs/FanOutTab').then(m => ({ default: m.FanOutTab })),   { loading: TabLoader })
 
-function MonitoringContent() {
+function PromptContent() {
   const ctx = useUnified()
   const router = useRouter()
 
@@ -59,7 +59,7 @@ function MonitoringContent() {
             <BarChart3 className="w-5 h-5 text-sage" />
           </div>
           <div>
-            <h1 className="heading-dash">Monitoring</h1>
+            <h1 className="heading-dash">Prompt</h1>
             <p className="text-sm text-ink-3">Manage prompts, run scans, and monitor visibility performance</p>
           </div>
         </div>
@@ -118,7 +118,7 @@ function MonitoringContent() {
 export default function GeoMonitorPage() {
   return (
     <UnifiedProvider>
-      <MonitoringContent />
+      <PromptContent />
     </UnifiedProvider>
   )
 }
