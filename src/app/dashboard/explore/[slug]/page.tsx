@@ -14,6 +14,7 @@ const EXPLORE_CATEGORY_SLUGS = [
   'espresso-machines',
   'air-purifiers',
   'portable-power-stations',
+  'outdoor-lights',
   'skincare-serums',
   'electric-toothbrushes',
   'protein-powder',

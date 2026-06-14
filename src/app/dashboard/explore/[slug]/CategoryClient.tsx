@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import {
   ArrowLeft, Play, Loader2, RefreshCw, BarChart2, Link2, Tag,
   CheckCircle2, Quote, ExternalLink, Search, X, MessageSquareText,
-  ChevronRight, Database, AlertCircle,
+  ChevronRight, Database, AlertCircle, ShoppingBag, FileText,
 } from 'lucide-react'
 import { BrandLogo } from '@/components/BrandLogo'
 import { API_BASE_URL, fetchWithRetry } from '@/lib/api'
@@ -102,6 +102,15 @@ function shortDate(value?: string | null): string {
   return new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+function money(value?: number | null, currency = 'USD'): string {
+  if (value === null || value === undefined) return '-'
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: value % 1 === 0 ? 0 : 2,
+  }).format(value)
+}
+
 function snippet(text: string, max = 260): string {
   const clean = (text || '').replace(/\s+/g, ' ').trim()
   if (clean.length <= max) return clean
@@ -129,6 +138,7 @@ interface CategoryDetail {
   topics: Topic[]
   latest_scan: ScanRun | null
   recent_answers: RecentAnswer[]
+  collected_brand_detail?: CollectedBrandDetail
 }
 
 interface Brand {
@@ -191,6 +201,56 @@ interface RecentAnswer {
   search_sources: Citation[]
   scanned_at?: string
   engine?: string
+}
+
+interface CollectedBrandDetail {
+  brand: {
+    brand_name?: string
+    primary_domain?: string
+    rank?: number
+    topic_count?: number
+    total_mentions?: number
+  }
+  profile: {
+    covered_topics?: number
+    ai_visibility?: number
+    total_mentions?: number
+    total_citations?: number
+    brand_owned_citations?: number
+    third_party_citations?: number
+  }
+  products: CollectedProduct[]
+  brand_cited_pages: CollectedBrandPage[]
+  third_party_sources: CollectedThirdPartySource[]
+}
+
+interface CollectedProduct {
+  title: string
+  image_url?: string
+  product_url?: string
+  source_domain?: string
+  recommend_count?: number
+  price_usd?: number
+  currency?: string
+  rating?: number
+  review_count?: number
+}
+
+interface CollectedBrandPage {
+  rank?: number
+  page_title?: string
+  url: string
+  path?: string
+  citations?: number
+  directly_cited_pct?: number
+}
+
+interface CollectedThirdPartySource {
+  rank?: number
+  domain: string
+  favicon_url?: string
+  citations?: number
+  directly_cited_pct?: number
 }
 
 function EnginePill({ engine, active = false }: { engine: string; active?: boolean }) {
@@ -398,6 +458,144 @@ function RenderAIResponse({ record, brands }: { record: RecentAnswer; brands: Br
   )
 }
 
+function CollectedBrandDetailSection({ detail }: { detail: CollectedBrandDetail }) {
+  const brandName = detail.brand.brand_name || 'Brand'
+  const domain = detail.brand.primary_domain || guessBrandDomain(brandName)
+  const metrics: [string, number][] = [
+    ['Products', detail.products.length],
+    ['Covered Topics', detail.profile.covered_topics || detail.brand.topic_count || 0],
+    ['Mentions', Math.round(detail.profile.total_mentions || detail.brand.total_mentions || 0)],
+    ['Citations', detail.profile.total_citations || 0],
+    ['Third-party', detail.profile.third_party_citations || 0],
+  ]
+
+  return (
+    <section className="rounded-2xl border border-divider-light bg-surface p-6">
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <BrandLogo domain={domain} name={brandName} size={40} />
+          <div>
+            <h2 className="text-[18px] font-bold text-ink">{brandName}</h2>
+            <p className="text-[12px] text-ink-3">{domain} · rank #{detail.brand.rank || '-'}</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+          {metrics.map(([label, value]) => (
+            <div key={label} className="min-w-[110px] rounded-xl border border-divider-light bg-canvas px-3 py-2">
+              <div className="text-[18px] font-bold text-ink">{value.toLocaleString()}</div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-3">{label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.9fr)]">
+        <div>
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="flex items-center gap-2 text-[14px] font-bold text-ink">
+              <ShoppingBag className="h-4 w-4 text-ink-3" />
+              AI-Recommended Products
+            </h3>
+            <span className="text-[11px] text-ink-3">{detail.products.length} products</span>
+          </div>
+          {detail.products.length ? (
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              {detail.products.slice(0, 8).map((product, idx) => (
+                <a
+                  key={`${product.title}-${idx}`}
+                  href={product.product_url || '#'}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="grid grid-cols-[96px_minmax(0,1fr)] gap-3 rounded-xl border border-divider-light bg-canvas p-3 transition hover:border-ink/20"
+                >
+                  <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-lg bg-white">
+                    {product.image_url ? (
+                      <img src={product.image_url} alt="" className="h-full w-full object-contain" />
+                    ) : (
+                      <ShoppingBag className="h-6 w-6 text-ink-3" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="line-clamp-2 text-[12px] font-bold text-ink">{product.title}</div>
+                    <div className="mt-2 text-[16px] font-bold text-ink">{money(product.price_usd, product.currency || 'USD')}</div>
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] text-ink-3">
+                      {product.source_domain && (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-divider-light bg-surface px-2 py-1">
+                          <img src={`https://www.google.com/s2/favicons?domain=${product.source_domain}&sz=32`} alt="" className="h-3.5 w-3.5 rounded" />
+                          {product.source_domain}
+                        </span>
+                      )}
+                      {!!product.recommend_count && <span>{product.recommend_count} rec</span>}
+                      {!!product.rating && <span>star {product.rating}</span>}
+                      {!!product.review_count && <span>{product.review_count.toLocaleString()} reviews</span>}
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-dashed border-divider-light bg-canvas px-4 py-8 text-center">
+              <ShoppingBag className="mx-auto mb-2 h-6 w-6 text-ink-3 opacity-50" />
+              <p className="text-[12px] font-semibold text-ink">No products surfaced yet</p>
+              <p className="mt-1 text-[11px] text-ink-3">Product recommendations will appear here when this brand has shopping coverage.</p>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-5">
+          <div>
+            <h3 className="mb-3 flex items-center gap-2 text-[14px] font-bold text-ink">
+              <Link2 className="h-4 w-4 text-ink-3" />
+              Third-Party Citation Sources
+            </h3>
+            <div className="space-y-2">
+              {detail.third_party_sources.slice(0, 10).map(source => (
+                <div key={source.domain} className="flex items-center gap-2 rounded-xl border border-divider-light bg-canvas px-3 py-2 text-[12px]">
+                  <span className="w-5 text-right text-[10px] font-semibold text-ink-3">{source.rank}</span>
+                  <img src={source.favicon_url || `https://www.google.com/s2/favicons?domain=${source.domain}&sz=32`} alt="" className="h-4 w-4 rounded" />
+                  <span className="min-w-0 flex-1 truncate font-semibold text-ink">{source.domain}</span>
+                  <span className="text-[10px] text-ink-3">{(source.citations || 0).toLocaleString()}x</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="mb-3 flex items-center gap-2 text-[14px] font-bold text-ink">
+              <FileText className="h-4 w-4 text-ink-3" />
+              Most Cited Brand Pages
+            </h3>
+            {detail.brand_cited_pages.length ? (
+              <div className="space-y-2">
+                {detail.brand_cited_pages.slice(0, 10).map(page => (
+                  <a
+                    key={page.url}
+                    href={page.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex gap-2 rounded-xl border border-divider-light bg-canvas px-3 py-2 text-[12px] transition hover:border-ink/20"
+                  >
+                    <span className="w-5 shrink-0 text-right text-[10px] font-semibold text-ink-3">{page.rank}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="line-clamp-1 font-semibold text-ink">{page.page_title || page.path || page.url}</span>
+                      <span className="line-clamp-1 text-[10px] text-ink-3">{page.path || page.url}</span>
+                    </span>
+                    <ExternalLink className="h-3.5 w-3.5 shrink-0 text-ink-3" />
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-divider-light bg-canvas px-4 py-5 text-[12px] text-ink-3">
+                No brand-owned pages surfaced yet.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export default function CategoryClient({ slug }: { slug: string }) {
   const searchParams = useSearchParams()
   const [data, setData] = useState<CategoryDetail | null>(null)
@@ -406,6 +604,9 @@ export default function CategoryClient({ slug }: { slug: string }) {
   const [scanRunId, setScanRunId] = useState<string | null>(null)
   const [scanProgress, setScanProgress] = useState(0)
   const [selectedRecord, setSelectedRecord] = useState<RecentAnswer | null>(null)
+  const [selectedBrandDetail, setSelectedBrandDetail] = useState<CollectedBrandDetail | null>(null)
+  const [brandDetailLoading, setBrandDetailLoading] = useState(false)
+  const [brandDetailError, setBrandDetailError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const loadData = useCallback(() => {
@@ -464,6 +665,26 @@ export default function CategoryClient({ slug }: { slug: string }) {
       if (res.status === 'already_running' && res.run_id) setScanRunId(res.run_id)
     } catch {
       setScanning(false)
+    }
+  }
+
+  const openBrandDetail = async (brand: Brand) => {
+    setBrandDetailLoading(true)
+    setBrandDetailError(null)
+    setSelectedBrandDetail(null)
+    try {
+      const r = await fetchWithRetry(
+        `${API_BASE_URL}/api/explore/categories/${slug}/brands/${encodeURIComponent(brand.brand_name)}`,
+        {},
+        { timeoutMs: 9000, budgetMs: 15000 }
+      )
+      if (!r.ok) throw new Error(`HTTP ${r.status}`)
+      const detail = await r.json()
+      setSelectedBrandDetail(detail)
+    } catch {
+      setBrandDetailError(`${brand.brand_name} detail is not available yet.`)
+    } finally {
+      setBrandDetailLoading(false)
     }
   }
 
@@ -607,10 +828,12 @@ export default function CategoryClient({ slug }: { slug: string }) {
                   {visibleBrands.map((brand, i) => {
                     const isHighlighted = highlightKey(brand.brand_name) === highlightBrand
                     return (
-                    <div
+                    <button
+                      type="button"
+                      onClick={() => openBrandDetail(brand)}
                       key={brand.brand_name}
                       id={`brand-${highlightKey(brand.brand_name)}`}
-                      className={`flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors ${
+                      className={`flex w-full items-center gap-3 rounded-xl px-2 py-1.5 text-left transition-colors hover:bg-canvas ${
                         isHighlighted ? 'bg-sage-bg ring-1 ring-sage/30' : ''
                       }`}
                     >
@@ -628,7 +851,8 @@ export default function CategoryClient({ slug }: { slug: string }) {
                       </div>
                       <span className="w-12 shrink-0 text-right text-[11px] font-bold text-ink">{brand.som_pct.toFixed(1)}%</span>
                       <span className="w-16 shrink-0 text-right text-[10px] text-ink-3">{brand.mentions} mentions</span>
-                    </div>
+                      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-ink-3" />
+                    </button>
                   )})}
                 </div>
               )}
@@ -851,6 +1075,47 @@ export default function CategoryClient({ slug }: { slug: string }) {
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {(brandDetailLoading || brandDetailError || selectedBrandDetail) && (
+        <div className="fixed inset-0 z-50 bg-black/20">
+          <div className="absolute inset-y-0 right-0 flex w-full max-w-6xl flex-col border-l border-divider-light bg-canvas shadow-2xl">
+            <div className="flex items-start justify-between border-b border-divider-light bg-surface px-6 py-4">
+              <div>
+                <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-ink-3">Brand Detail</p>
+                <h3 className="text-[15px] font-bold text-ink">
+                  {selectedBrandDetail?.brand.brand_name || 'Loading brand'}
+                </h3>
+              </div>
+              <button
+                onClick={() => {
+                  setSelectedBrandDetail(null)
+                  setBrandDetailError(null)
+                  setBrandDetailLoading(false)
+                }}
+                className="rounded-lg p-2 text-ink-3 hover:bg-canvas hover:text-ink"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              {brandDetailLoading && (
+                <div className="flex min-h-[320px] items-center justify-center">
+                  <Loader2 className="h-6 w-6 animate-spin text-ink-3" />
+                </div>
+              )}
+              {!brandDetailLoading && brandDetailError && (
+                <div className="mx-auto mt-12 flex max-w-md flex-col items-center gap-3 rounded-2xl border border-divider-light bg-surface p-8 text-center">
+                  <AlertCircle className="h-8 w-8 text-caution" />
+                  <p className="text-sm font-semibold text-ink">{brandDetailError}</p>
+                </div>
+              )}
+              {!brandDetailLoading && selectedBrandDetail && (
+                <CollectedBrandDetailSection detail={selectedBrandDetail} />
+              )}
             </div>
           </div>
         </div>
