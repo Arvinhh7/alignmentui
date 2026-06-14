@@ -6,6 +6,8 @@ import {
   ArrowUpRight,
   CalendarDays,
   Check,
+  ChevronLeft,
+  ChevronRight,
   ChevronDown,
   Layers,
   Loader2,
@@ -87,6 +89,14 @@ interface ShoppingResponse {
   products: ShoppingProduct[]
   channel_stats: ChannelStat[]
   price_bands: PriceBand[]
+  pagination?: {
+    limit: number
+    offset: number
+    total: number
+    returned: number
+    has_next: boolean
+    has_previous: boolean
+  }
   quality: {
     cleaning_rules: string[]
     returned_products: number
@@ -320,11 +330,13 @@ function BarRow({
 }
 
 export default function ShoppingPage() {
+  const pageSize = 24
   const [spaces, setSpaces] = useState<ProductSpace[]>([])
   const [activeSlug, setActiveSlug] = useState('')
   const [data, setData] = useState<ShoppingResponse | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -350,7 +362,10 @@ export default function ShoppingPage() {
       if (!activeSlug) return
       setLoading(true)
       setError(null)
-      const params = new URLSearchParams({ limit: '24' })
+      const params = new URLSearchParams({
+        limit: String(pageSize),
+        offset: String((page - 1) * pageSize),
+      })
       if (search.trim()) params.set('search', search.trim())
 
       fetchWithRetry(`${API_BASE_URL}/api/shopping/product-spaces/${activeSlug}?${params.toString()}`, {
@@ -377,7 +392,7 @@ export default function ShoppingPage() {
       window.clearTimeout(timer)
       controller.abort()
     }
-  }, [activeSlug, search])
+  }, [activeSlug, search, page])
 
   const selected = useMemo(() => {
     if (!data?.products.length) return null
@@ -386,6 +401,11 @@ export default function ShoppingPage() {
 
   const maxChannelShare = Math.max(...(data?.channel_stats.map((row) => row.share_pct) ?? [0]))
   const maxBandShare = Math.max(...(data?.price_bands.map((row) => row.share_pct) ?? [0]))
+  const pagination = data?.pagination
+  const totalProducts = pagination?.total ?? data?.product_space.product_count ?? 0
+  const totalPages = Math.max(1, Math.ceil(totalProducts / pageSize))
+  const pageStart = totalProducts > 0 ? (page - 1) * pageSize + 1 : 0
+  const pageEnd = pagination ? Math.min(pagination.offset + pagination.returned, totalProducts) : Math.min(page * pageSize, totalProducts)
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -410,6 +430,7 @@ export default function ShoppingPage() {
               onChange={(slug) => {
                 setActiveSlug(slug)
                 setSearch('')
+                setPage(1)
               }}
             />
             <span className="rounded-full border border-divider-light bg-surface px-4 py-2 text-[13px] font-bold">US · en</span>
@@ -455,7 +476,10 @@ export default function ShoppingPage() {
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
                 <input
                   value={search}
-                  onChange={(event) => setSearch(event.target.value)}
+                  onChange={(event) => {
+                    setSearch(event.target.value)
+                    setPage(1)
+                  }}
                   placeholder="Search products"
                   className="h-10 w-full rounded-lg border border-divider-light bg-surface pl-9 pr-3 text-[13px] focus:outline-none focus:border-ink-3"
                 />
@@ -472,15 +496,45 @@ export default function ShoppingPage() {
                 <p className="max-w-md text-sm font-semibold text-ink-3">{error}</p>
               </div>
             ) : data?.products.length ? (
-              <div className="grid grid-cols-1 gap-3 p-3 md:grid-cols-2 2xl:grid-cols-3">
-                {data.products.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    selected={product.id === selected?.id}
-                    onSelect={() => setSelectedId(product.id)}
-                  />
-                ))}
+              <div>
+                <div className="grid grid-cols-1 gap-3 p-3 md:grid-cols-2 2xl:grid-cols-3">
+                  {data.products.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      selected={product.id === selected?.id}
+                      onSelect={() => setSelectedId(product.id)}
+                    />
+                  ))}
+                </div>
+                <div className="flex flex-col gap-3 border-t border-divider-light px-5 py-4 md:flex-row md:items-center md:justify-between">
+                  <div className="text-[13px] font-semibold text-ink-3">
+                    Showing {pageStart.toLocaleString()}-{pageEnd.toLocaleString()} of {totalProducts.toLocaleString()} products
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={loading || page <= 1}
+                      onClick={() => setPage((value) => Math.max(1, value - 1))}
+                      className="inline-flex h-10 items-center gap-2 rounded-lg border border-divider-light bg-surface px-3 text-[13px] font-bold text-ink transition-colors hover:border-ink-3 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </button>
+                    <span className="min-w-[92px] text-center text-[13px] font-bold text-ink">
+                      Page {page} / {totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={loading || page >= totalPages || pagination?.has_next === false}
+                      onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+                      className="inline-flex h-10 items-center gap-2 rounded-lg border border-divider-light bg-surface px-3 text-[13px] font-bold text-ink transition-colors hover:border-ink-3 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="flex min-h-[420px] items-center justify-center p-8 text-sm font-semibold text-ink-3">
