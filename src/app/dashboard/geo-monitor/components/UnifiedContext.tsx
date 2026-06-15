@@ -57,6 +57,41 @@ function nextPromptPlan(plan: string | null | undefined) {
   return 'standard'
 }
 
+function normalizeScanResult(value: unknown): MonitorScanResult {
+  const scan = (value ?? {}) as Partial<MonitorScanResult>
+  return {
+    ...scan,
+    scan_id: scan.scan_id ?? '',
+    brand_name: scan.brand_name ?? '',
+    visibility_score: Number(scan.visibility_score ?? 0),
+    total_prompts: Number(scan.total_prompts ?? 0),
+    mentions_found: Number(scan.mentions_found ?? 0),
+    citation_count: Number(scan.citation_count ?? 0),
+    sentiment_breakdown: scan.sentiment_breakdown ?? {
+      positive: 0,
+      neutral: 0,
+      negative: 0,
+      positive_pct: 0,
+      neutral_pct: 0,
+      negative_pct: 0,
+    },
+    mention_results: Array.isArray(scan.mention_results) ? scan.mention_results : [],
+    source_domains: Array.isArray(scan.source_domains) ? scan.source_domains : [],
+    competitor_comparison: Array.isArray(scan.competitor_comparison) ? scan.competitor_comparison : [],
+    scanned_at: scan.scanned_at ?? '',
+    scan_duration_seconds: Number(scan.scan_duration_seconds ?? 0),
+    all_referenced_sources: Array.isArray(scan.all_referenced_sources) ? scan.all_referenced_sources : [],
+    mention_quality_avg: Number(scan.mention_quality_avg ?? 0),
+    sub_type_distribution: scan.sub_type_distribution ?? {},
+    brand_positioning_summary: scan.brand_positioning_summary ?? '',
+    share_of_voice: scan.share_of_voice ?? {},
+    per_prompt_metrics: scan.per_prompt_metrics ?? {},
+    suggested_brands: Array.isArray(scan.suggested_brands) ? scan.suggested_brands : [],
+    url_analyses: Array.isArray(scan.url_analyses) ? scan.url_analyses : [],
+    intent_distribution: scan.intent_distribution ?? {},
+  } as MonitorScanResult
+}
+
 // ─── Client-side domain re-classification ───────────────────────────────────
 // Re-classifies YOU/CORPORATE/COMPETITOR from brand config without a backend
 // round-trip. Applied after loading from localStorage and after API cache hits
@@ -608,7 +643,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
         }
       }
       const savedResults = localStorage.getItem(SCAN_RESULTS_KEY)
-      if (savedResults) setScanResult(JSON.parse(savedResults))
+      if (savedResults) setScanResult(normalizeScanResult(JSON.parse(savedResults)))
       const savedHistory = localStorage.getItem(SCAN_HISTORY_KEY)
       if (savedHistory) setScanHistory(JSON.parse(savedHistory))
       const savedGap = localStorage.getItem(GAP_RESULTS_KEY)
@@ -698,7 +733,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
         } catch { /* non-critical */ }
 
         if (data.latest_scan) {
-          setScanResult(data.latest_scan as unknown as MonitorScanResult)
+          setScanResult(normalizeScanResult(data.latest_scan))
         }
         if (data.scan_history_summary?.length) {
           // Normalize backend rows → ScanHistoryEntry. The /latest endpoint
@@ -717,7 +752,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
               positive_pct:     Number(r.positive_pct ?? r.sentiment_positive ?? 0),
             }
           }).filter(e => e.date)  // drop any row without a usable date
-          const latestScan = data.latest_scan as unknown as MonitorScanResult | null
+          const latestScan = data.latest_scan ? normalizeScanResult(data.latest_scan) : null
           if (latestScan && normalized.length > 0) {
             const matchedIndex = normalized.findIndex(e => e.scan_id && e.scan_id === latestScan.scan_id)
             const latestIndex = matchedIndex >= 0 ? matchedIndex : normalized.length - 1
@@ -735,7 +770,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
           }
           setScanHistory(normalized)
         } else if (data.latest_scan) {
-          const latestScan = data.latest_scan as unknown as MonitorScanResult
+          const latestScan = normalizeScanResult(data.latest_scan)
           setScanHistory([{
             scan_id: latestScan.scan_id,
             date: latestScan.scanned_at,
@@ -1095,7 +1130,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
             // Customer mode: reload via getLatest which returns full scan
             const latest = await customersApi.getLatest(activeCustomerId, user.id)
             if (latest.latest_scan) {
-              const fullScan = latest.latest_scan as unknown as MonitorScanResult
+              const fullScan = normalizeScanResult(latest.latest_scan)
               setScanResult(fullScan)
               window.dispatchEvent(new CustomEvent('scanCompleted'))
 
@@ -1122,8 +1157,9 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
             const histRes = await api.getMonitorHistory(brandConfig.brand_name)
             const latest = histRes.data?.[0]
             if (latest) {
-              setScanResult(latest)
-              localStorage.setItem(SCAN_RESULTS_KEY, JSON.stringify(latest))
+              const normalizedLatest = normalizeScanResult(latest)
+              setScanResult(normalizedLatest)
+              localStorage.setItem(SCAN_RESULTS_KEY, JSON.stringify(normalizedLatest))
               window.dispatchEvent(new CustomEvent('scanCompleted'))
             }
           }

@@ -58,8 +58,8 @@ function promptStatus(prompt: { is_active: boolean; scan_count?: number | null; 
     }
   }
   return {
-    label: 'Paused',
-    title: 'This prompt is paused and is not included in manual or scheduled runs.',
+    label: 'Inactive',
+    title: 'This prompt is inactive and is not included in manual or scheduled runs.',
     className: 'border border-divider-light bg-surface-muted text-ink-3',
     dotClassName: 'bg-ink-3/50',
   }
@@ -592,7 +592,7 @@ export function PromptsTab() {
                                 ? 'hover:bg-caution-bg text-ink-3 hover:text-caution'
                                 : 'hover:bg-sage-bg text-ink-3 hover:text-sage'
                             }`}
-                            title={prompt.is_active ? 'Pause scheduled runs' : 'Resume scheduled runs'}
+                            title={prompt.is_active ? 'Set inactive' : 'Set active'}
                           >
                             {isToggling
                               ? <Loader2 className="w-3.5 h-3.5 animate-spin" />

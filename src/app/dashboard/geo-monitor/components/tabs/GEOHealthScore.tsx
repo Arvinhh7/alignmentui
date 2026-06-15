@@ -35,7 +35,8 @@ export function computeGEOScore(
       metricMap.set(m.prompt_template, m.visibility)
     }
   } else {
-    for (const m of scanResult.mention_results) {
+    const mentionResults = Array.isArray(scanResult.mention_results) ? scanResult.mention_results : []
+    for (const m of mentionResults) {
       metricMap.set(m.prompt_text, (metricMap.get(m.prompt_text) ?? false) || m.mentioned)
     }
   }

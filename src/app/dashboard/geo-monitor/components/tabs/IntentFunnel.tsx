@@ -51,7 +51,8 @@ export function computeIntentFunnel(
 
   // Fallback: aggregate from mention_results by prompt_text
   if (metricMap.size === 0) {
-    for (const m of scanResult.mention_results) {
+    const mentionResults = Array.isArray(scanResult.mention_results) ? scanResult.mention_results : []
+    for (const m of mentionResults) {
       const prev = metricMap.get(m.prompt_text)
       metricMap.set(m.prompt_text, prev || m.mentioned)
     }

@@ -30,7 +30,8 @@ function computePromptRows(
 
   // Fallback: aggregate from mention_results by prompt_text
   const promptMap = new Map<string, { mentioned: boolean; count: number }>()
-  for (const m of scanResult.mention_results) {
+  const mentionResults = Array.isArray(scanResult.mention_results) ? scanResult.mention_results : []
+  for (const m of mentionResults) {
     const key = m.prompt_text
     const prev = promptMap.get(key) ?? { mentioned: false, count: 0 }
     promptMap.set(key, {
