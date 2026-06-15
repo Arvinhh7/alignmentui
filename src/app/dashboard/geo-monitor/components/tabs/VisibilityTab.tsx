@@ -10,6 +10,7 @@ import { IntentFunnel } from './IntentFunnel'
 import {
   MetricCard,
   DonutChart,
+  EmptyVisibilityTrendChart,
   UnifiedTrendChart,
   ScanHistoryTrendChart,
   formatPct,
@@ -185,8 +186,18 @@ export function VisibilityTab() {
         ) : ctx.scanHistory.length > 0 ? (
           <ScanHistoryTrendChart data={ctx.scanHistory} />
         ) : (
-          <div className="flex items-center justify-center py-10 text-ink-3 text-sm">
-            Run your first scan to see visibility trends
+          <div>
+            <EmptyVisibilityTrendChart label={ctx.isScanning ? 'First scan running' : '0% baseline'} />
+            <div className="mt-3 rounded-xl border border-divider-light bg-canvas px-4 py-3">
+              <p className="text-[12px] font-semibold text-ink">
+                {ctx.isScanning ? 'Building your first Analysis view' : 'No prompt scan has completed yet'}
+              </p>
+              <p className="mt-1 text-[11px] text-ink-3">
+                {ctx.isScanning
+                  ? 'The first run usually takes 1-3 minutes. Results will replace this baseline automatically.'
+                  : 'Run Prompt once to turn this baseline into real visibility, mention, citation, and competitor data.'}
+              </p>
+            </div>
           </div>
         )}
       </div>

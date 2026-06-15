@@ -28,7 +28,7 @@ function AnalysisContent() {
   useEffect(() => {
     if (ctx.customerHydrating) return
     if (ctx.activeCustomerId && !ctx.isProfileComplete) {
-      router.replace('/dashboard/ai-search')
+      router.replace('/dashboard/brand-hub')
     }
   }, [ctx.activeCustomerId, ctx.customerHydrating, ctx.isProfileComplete, router])
 

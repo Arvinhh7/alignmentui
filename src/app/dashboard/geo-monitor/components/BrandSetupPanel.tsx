@@ -96,7 +96,7 @@ function CharInput({
   )
 }
 
-export function BrandSetupPanel() {
+export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) {
   const ctx = useUnified()
   const [showRecentDropdown, setShowRecentDropdown] = useState(false)
   const [keywordInput, setKeywordInput]       = useState('')
@@ -128,9 +128,9 @@ export function BrandSetupPanel() {
 
   // Don't show the config panel while customer data is loading — prevents a
   // 1-2s flash of an empty form before the DB-hydrated config arrives.
-  if (ctx.customerHydrating) return null
+  if (ctx.customerHydrating && !forceOpen) return null
 
-  if (!ctx.showConfig && ctx.isConfigured) {
+  if (!forceOpen && !ctx.showConfig && ctx.isConfigured) {
     const readinessItems = [
       Boolean(ctx.brandConfig.brand_name),
       Boolean(ctx.brandConfig.domain),
@@ -179,7 +179,7 @@ export function BrandSetupPanel() {
     )
   }
 
-  if (!ctx.showConfig) return null
+  if (!forceOpen && !ctx.showConfig) return null
 
   return (
     <div className="bg-surface rounded-xl border border-divider overflow-hidden">

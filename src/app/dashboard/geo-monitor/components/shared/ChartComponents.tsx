@@ -458,13 +458,81 @@ export function TrendLineChart({ data, label, color = '#000000' }: {
 
 // ─── ScanHistoryTrendChart ───────────────────────────
 
+function recentBaselineDates(anchorDate?: string, days = 7): string[] {
+  const anchor = anchorDate ? new Date(anchorDate) : new Date()
+  if (Number.isNaN(anchor.getTime())) return recentBaselineDates(undefined, days)
+  return Array.from({ length: days }, (_, i) => {
+    const d = new Date(anchor)
+    d.setDate(anchor.getDate() - (days - 1 - i))
+    return formatDate(d)
+  })
+}
+
+export function EmptyVisibilityTrendChart({ label = 'Waiting for first scan' }: { label?: string }) {
+  const dates = recentBaselineDates()
+  const option = {
+    backgroundColor: 'transparent',
+    animation: true,
+    animationDuration: 500,
+    grid: { left: 44, right: 64, top: 16, bottom: 36 },
+    xAxis: {
+      type: 'category',
+      data: dates,
+      boundaryGap: false,
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { show: false },
+      axisLabel: {
+        color: '#8C8070',
+        fontSize: 11,
+        interval: 0,
+        showMaxLabel: true,
+        formatter: (val: string) => fmtDateLabel(val),
+      },
+    },
+    yAxis: {
+      type: 'value',
+      min: 0,
+      max: 40,
+      splitNumber: 4,
+      splitLine: { lineStyle: { color: '#E8E2DA', width: 0.8, type: 'dashed' } },
+      axisLabel: { color: '#8C8070', fontSize: 11, formatter: '{value}%' },
+      axisLine: { show: false },
+      axisTick: { show: false },
+    },
+    tooltip: { show: false },
+    series: [{
+      name: 'Visibility Score',
+      type: 'line',
+      data: dates.map(() => 0),
+      smooth: 0.35,
+      showSymbol: false,
+      lineStyle: { color: '#C8BFB0', width: 2, type: 'dashed' },
+      itemStyle: { color: '#C8BFB0' },
+      endLabel: {
+        show: true,
+        formatter: () => label,
+        color: '#8C8070',
+        fontSize: 11,
+        fontWeight: '600',
+      },
+    }],
+  }
+
+  return (
+    <ReactEChartsCore
+      echarts={echartsCore}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      option={option as any}
+      style={{ height: '240px', width: '100%' }}
+      notMerge={true}
+    />
+  )
+}
+
 export function ScanHistoryTrendChart({ data }: { data: ScanHistoryEntry[] }) {
   if (data.length === 0) {
-    return (
-      <div className="text-center py-8 text-ink-3 text-sm">
-        No scan history yet. Run multiple scans to see trends.
-      </div>
-    )
+    return <EmptyVisibilityTrendChart />
   }
 
   // Normalize dates to YYYY-MM-DD, sort chronologically
@@ -472,8 +540,14 @@ export function ScanHistoryTrendChart({ data }: { data: ScanHistoryEntry[] }) {
     .filter(e => !!e.date)
     .sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''))
 
-  const dates = sorted.map(e => (e.date ?? '').split('T')[0])
-  const values = sorted.map(e => Math.max(0, Math.min(100, e.visibility_score)))
+  const singlePoint = sorted.length === 1
+  const firstDate = (sorted[0]?.date ?? '').split('T')[0]
+  const dates = singlePoint
+    ? recentBaselineDates(firstDate)
+    : sorted.map(e => (e.date ?? '').split('T')[0])
+  const values = singlePoint
+    ? dates.map(date => date === firstDate ? Math.max(0, Math.min(100, sorted[0].visibility_score)) : 0)
+    : sorted.map(e => Math.max(0, Math.min(100, e.visibility_score)))
 
   const option = {
     backgroundColor: 'transparent',

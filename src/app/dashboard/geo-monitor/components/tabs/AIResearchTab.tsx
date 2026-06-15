@@ -494,8 +494,8 @@ function EmptyState({ brandName, canRun, onRun, running }: {
   const missingReason = !ctx.activeCustomerId
     ? 'Select a customer workspace first so the research run can be saved.'
     : profileMissing.length > 0
-      ? `Complete the Brand Profile first: ${profileMissing.join(', ')}`
-      : 'Complete the Brand Profile first.'
+      ? `Complete the Customer Intelligence Profile in Brand Hub first: ${profileMissing.join(', ')}`
+      : 'Complete the Customer Intelligence Profile in Brand Hub first.'
 
   return (
     <div className="bg-surface rounded-2xl border border-divider-light p-8 text-center">
@@ -514,7 +514,14 @@ function EmptyState({ brandName, canRun, onRun, running }: {
         {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
         {running ? 'Running customer research...' : `Run AI Research${brandName ? ` on ${brandName}` : ''}`}
       </button>
-      {!canRun && <p className="text-[11px] text-ink-3 mt-2">{missingReason}</p>}
+      {!canRun && (
+        <div className="mt-3 space-y-2">
+          <p className="text-[11px] text-ink-3">{missingReason}</p>
+          <Link href="/dashboard/brand-hub" className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-ink underline underline-offset-4">
+            Open Brand Hub <ArrowRight className="h-3 w-3" />
+          </Link>
+        </div>
+      )}
     </div>
   )
 }
@@ -548,6 +555,9 @@ export function AIResearchTab() {
       return
     }
     let cancelled = false
+    const releaseLoading = window.setTimeout(() => {
+      if (!cancelled) setLoading(false)
+    }, 5000)
     setLoading(true)
     setError('')
     api.getLatestAIResearchRun(ctx.activeCustomerId)
@@ -559,9 +569,13 @@ export function AIResearchTab() {
         if (!cancelled) setError(err.message || 'Failed to load AI Research')
       })
       .finally(() => {
+        window.clearTimeout(releaseLoading)
         if (!cancelled) setLoading(false)
       })
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      window.clearTimeout(releaseLoading)
+    }
   }, [ctx.activeCustomerId])
 
   const handleRun = async () => {
