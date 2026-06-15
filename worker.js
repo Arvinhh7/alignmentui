@@ -7,6 +7,7 @@
  *
  * Key: pass only the rewritten URL to env.ASSETS.fetch() — no original
  * request as init, which avoids header/redirect conflicts.
+ * Deployment note: keep this Worker in sync with GitHub-triggered releases.
  */
 export default {
   async fetch(request, env) {
