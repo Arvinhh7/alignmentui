@@ -61,6 +61,49 @@ export function formatDate(d: Date): string {
   return `${y}-${m}-${day}`
 }
 
+function parseDateOnly(date: string): Date | null {
+  const [raw] = date.split('T')
+  const parts = raw.split('-').map(Number)
+  if (parts.length !== 3 || parts.some(Number.isNaN)) return null
+  return new Date(parts[0], parts[1] - 1, parts[2])
+}
+
+function addDays(date: string, days: number): string {
+  const d = parseDateOnly(date)
+  if (!d) return date
+  d.setDate(d.getDate() + days)
+  return formatDate(d)
+}
+
+function contiguousDates(startDate: string, endDate: string): string[] {
+  const start = parseDateOnly(startDate)
+  const end = parseDateOnly(endDate)
+  if (!start || !end || start > end) return [startDate]
+  const dates: string[] = []
+  const cursor = new Date(start)
+  while (cursor <= end) {
+    dates.push(formatDate(cursor))
+    cursor.setDate(cursor.getDate() + 1)
+  }
+  return dates
+}
+
+function buildRunBaselineDates(actualDates: string[], daysBeforeFirstRun = 14): string[] {
+  const normalized = Array.from(new Set(actualDates.map(d => d.split('T')[0]).filter(Boolean))).sort()
+  if (normalized.length === 0) return recentBaselineDates(undefined, 7)
+  return contiguousDates(addDays(normalized[0], -daysBeforeFirstRun), normalized[normalized.length - 1])
+}
+
+function carryForwardValues(dates: string[], valueByDate: Record<string, number>): number[] {
+  let last = 0
+  return dates.map(date => {
+    if (valueByDate[date] !== undefined) {
+      last = Math.max(0, Math.min(100, valueByDate[date]))
+    }
+    return last
+  })
+}
+
 export function formatNum(v: number | undefined | null, decimals = 1): string {
   if (v == null || isNaN(v)) return '—'
   if (Math.abs(v) >= 1000000) return (v / 1000000).toFixed(1) + 'M'
@@ -540,14 +583,14 @@ export function ScanHistoryTrendChart({ data }: { data: ScanHistoryEntry[] }) {
     .filter(e => !!e.date)
     .sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''))
 
-  const singlePoint = sorted.length === 1
-  const firstDate = (sorted[0]?.date ?? '').split('T')[0]
-  const dates = singlePoint
-    ? recentBaselineDates(firstDate)
-    : sorted.map(e => (e.date ?? '').split('T')[0])
-  const values = singlePoint
-    ? dates.map(date => date === firstDate ? Math.max(0, Math.min(100, sorted[0].visibility_score)) : 0)
-    : sorted.map(e => Math.max(0, Math.min(100, e.visibility_score)))
+  const valueByDate: Record<string, number> = {}
+  for (const entry of sorted) {
+    const date = (entry.date ?? '').split('T')[0]
+    if (!date) continue
+    valueByDate[date] = Math.max(0, Math.min(100, entry.visibility_score))
+  }
+  const dates = buildRunBaselineDates(Object.keys(valueByDate))
+  const values = carryForwardValues(dates, valueByDate)
 
   const option = {
     backgroundColor: 'transparent',
@@ -668,10 +711,16 @@ export function UnifiedTrendChart({ data, brandName, scanHistory }: {
     dateMap[date][brandName] = Math.max(0, Math.min(100, entry.visibility_score))
   }
 
-  const dates = Object.keys(dateMap).sort()
-  if (dates.length === 0) {
+  const actualDates = Object.keys(dateMap).sort()
+  if (actualDates.length === 0) {
     return <div className="text-center py-8 text-ink-3 text-sm">No trend data available yet.</div>
   }
+  const customerRunDates = scanHistory
+    .map(entry => (entry.date ?? '').split('T')[0])
+    .filter(Boolean)
+    .sort()
+  const firstRunDate = customerRunDates[0] ?? actualDates[0]
+  const dates = contiguousDates(addDays(firstRunDate, -14), actualDates[actualDates.length - 1])
 
   const brands = data.brands.length > 0 ? data.brands : [brandName]
   const competitors = brands.filter(b => b !== brandName)
@@ -686,7 +735,11 @@ export function UnifiedTrendChart({ data, brandName, scanHistory }: {
   const series = brands.map(brand => {
     const color = getBrandColor(brand)
     const isOwn = brand === brandName
-    const values = dates.map(date => dateMap[date]?.[brand] ?? 0)
+    const valueByDate = dates.reduce<Record<string, number>>((acc, date) => {
+      if (dateMap[date]?.[brand] !== undefined) acc[date] = dateMap[date][brand]
+      return acc
+    }, {})
+    const values = carryForwardValues(dates, valueByDate)
     return {
       name: brand,
       type: 'line',
