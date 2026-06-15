@@ -4,8 +4,7 @@ import { UnifiedProvider } from '../geo-monitor/components/UnifiedContext'
 import { useUnified } from '../geo-monitor/components/UnifiedContext'
 import { AIResearchTab } from '../geo-monitor/components/tabs/AIResearchTab'
 import { BrandLogo } from '@/components/BrandLogo'
-import { ArrowRight, CheckCircle2, Loader2, TrendingUp } from 'lucide-react'
-import Link from 'next/link'
+import { CheckCircle2, Loader2, TrendingUp } from 'lucide-react'
 
 function ProfileSnapshot() {
   const ctx = useUnified()
@@ -51,13 +50,6 @@ function ProfileSnapshot() {
             {!isReady && <p className="mt-2 text-[12px] text-caution">Complete in Brand Hub: {missing.join(', ')}</p>}
           </div>
         </div>
-        <Link
-          href="/dashboard/brand-hub"
-          className="inline-flex items-center gap-2 rounded-xl bg-ink px-4 py-2 text-[13px] font-semibold text-ink-inv hover:bg-ink/80"
-        >
-          {isReady ? 'Edit in Brand Hub' : 'Complete Brand Hub'}
-          <ArrowRight className="h-4 w-4" />
-        </Link>
       </div>
     </div>
   )

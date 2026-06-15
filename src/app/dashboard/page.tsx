@@ -11,9 +11,9 @@ import {
   customerCacheStorageKey,
 } from '@/app/dashboard/geo-monitor/components/shared/constants'
 
-const DEFAULT_ENTRY = '/dashboard/geo-audit'
+const DEFAULT_ENTRY = '/dashboard/brand-hub'
 const ONBOARDING_ENTRY = '/onboarding'
-const PROFILE_ENTRY = '/dashboard/ai-search'
+const PROFILE_ENTRY = '/dashboard/brand-hub'
 const PROMPTS_ENTRY = '/dashboard/prompts'
 const MONITOR_ENTRY = '/dashboard/geo-monitor'
 
@@ -127,7 +127,7 @@ export default function DashboardRootPage() {
         }
 
         if (promptCount === 0) {
-          router.replace(PROMPTS_ENTRY)
+          router.replace('/dashboard/ai-search')
           return
         }
 

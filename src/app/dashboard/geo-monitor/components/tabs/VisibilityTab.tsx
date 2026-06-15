@@ -181,7 +181,7 @@ export function VisibilityTab() {
           <TrendingUp className="w-4 h-4 text-ink-3" />
           Visibility Score Trend
         </h4>
-        {ctx.multiBrandTrends && ctx.scanHistory.length > 0 ? (
+        {ctx.multiBrandTrends && ctx.scanHistory.length > 1 ? (
           <UnifiedTrendChart data={ctx.multiBrandTrends} brandName={ctx.brandConfig.brand_name} scanHistory={ctx.scanHistory} />
         ) : ctx.scanHistory.length > 0 ? (
           <ScanHistoryTrendChart data={ctx.scanHistory} />

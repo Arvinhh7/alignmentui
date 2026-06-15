@@ -148,14 +148,14 @@ function LoginPageInner() {
     }
 
     // After email verification:
-    // — audit users go to dashboard to see their report
+    // — product users enter the Brand Hub-led setup flow
     // — everyone else goes to pricing to choose a plan
     if (verifiedParam) {
-      window.location.href = fromAudit ? '/dashboard/geo-audit' : '/pricing'
+      window.location.href = fromAudit ? '/dashboard' : '/pricing'
       return
     }
 
-    window.location.href = '/dashboard/geo-audit'
+    window.location.href = '/dashboard'
   }, [authLoading, isAuthenticated, user, planParam, intervalParam, verifiedParam, fromAudit])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -197,7 +197,7 @@ function LoginPageInner() {
           else sessionStorage.setItem(REMEMBER_KEY, 'true')
           gaEvent('sign_up', { method: 'email' })
           if (fromAudit) {
-            window.location.href = '/dashboard/geo-audit'
+            window.location.href = '/dashboard'
           } else if (fromROI) {
             window.location.href = '/roi-simulator?unlock=true'
           } else if (planParam && planParam !== 'enterprise') {
@@ -215,7 +215,7 @@ function LoginPageInner() {
           if (rememberMe) localStorage.setItem(REMEMBER_KEY, 'true')
           else sessionStorage.setItem(REMEMBER_KEY, 'true')
           if (!fromROI && !planParam) {
-            window.location.href = verifiedParam ? '/pricing' : '/dashboard/geo-audit'
+            window.location.href = verifiedParam ? '/pricing' : '/dashboard'
           } else if (fromROI) {
             window.location.href = '/roi-simulator?unlock=true'
           }
@@ -280,7 +280,7 @@ function LoginPageInner() {
     try {
       let redirectTo: string
       if (fromAudit) {
-        redirectTo = `${window.location.origin}/dashboard/geo-audit`
+        redirectTo = `${window.location.origin}/dashboard`
       } else if (fromROI) {
         redirectTo = `${window.location.origin}/roi-simulator?unlock=true`
       } else if (planParam) {

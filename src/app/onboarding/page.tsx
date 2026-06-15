@@ -109,8 +109,8 @@ export default function OnboardingPage() {
           .single()
         if (data?.onboarding_completed) {
           const dest = checkoutSessionId
-            ? `/dashboard/geo-audit?subscription=success&session_id=${encodeURIComponent(checkoutSessionId)}`
-            : '/dashboard/geo-audit'
+            ? `/dashboard/brand-hub?subscription=success&session_id=${encodeURIComponent(checkoutSessionId)}`
+            : '/dashboard/brand-hub'
           window.location.href = dest
           return
         }
@@ -193,7 +193,7 @@ export default function OnboardingPage() {
             source_domains: [du],
             onboarding: {
               version: ONBOARDING_VERSION,
-              completed_from: 'single_step_audit',
+              completed_from: 'brand_hub_profile',
             },
           },
         })
@@ -234,10 +234,10 @@ export default function OnboardingPage() {
     } catch {}
 
     localStorage.removeItem(ONBOARDING_SESSION_KEY)
-    const auditUrl = customerId
-      ? `/dashboard/geo-audit?customer=${customerId}&url=${encodeURIComponent(du)}&run=1`
-      : `/dashboard/geo-audit?url=${encodeURIComponent(du)}&run=1`
-    router.push(auditUrl)
+    const brandHubUrl = customerId
+      ? `/dashboard/brand-hub?customer=${customerId}&url=${encodeURIComponent(du)}`
+      : `/dashboard/brand-hub?url=${encodeURIComponent(du)}`
+    router.push(brandHubUrl)
   }, [brandName, brandUrl, router, user])
 
   if (authLoading || !authChecked) {
@@ -286,7 +286,7 @@ export default function OnboardingPage() {
               <p className="text-xs font-semibold uppercase tracking-wider text-ink-3">Brand Setup</p>
               <h1 className="mt-3 text-2xl font-bold text-ink">Set up your brand</h1>
               <p className="mt-2 text-sm leading-relaxed text-ink-3">
-                Enter your brand and website. We will take you straight to your first AI-readiness audit.
+                Enter your brand and website. We will take you to Brand Hub to finish the Customer Intelligence Profile.
               </p>
             </div>
 

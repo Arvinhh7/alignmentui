@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   AlertCircle,
   ArrowRight,
@@ -18,7 +18,7 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react'
-import { api, type AIResearchRun } from '@/lib/api'
+import { api, type AIResearchRun, type SmartPrompt } from '@/lib/api'
 import { BrandLogo } from '@/components/BrandLogo'
 import { useUnified } from '../UnifiedContext'
 import { DiscoverTab } from './DiscoverTab'
@@ -92,6 +92,51 @@ function asResearchResult(value: unknown): ResearchResult | null {
 
 function domainFromName(name: string) {
   return `${name.toLowerCase().replace(/[^a-z0-9]+/g, '')}.com`
+}
+
+function cleanText(value: string | undefined | null, fallback: string) {
+  const cleaned = String(value ?? '').trim()
+  return cleaned || fallback
+}
+
+function buildDefaultPrompts(result: ResearchResult, competitors: string[]): SmartPrompt[] {
+  const brand = cleanText(result.brand_name, 'this brand')
+  const productSpace = cleanText(result.product_space, 'this product category')
+  const market = cleanText(result.market, 'the target market')
+  const audience = cleanText(result.audience, 'buyers')
+  const competitor = competitors.find(c => c.trim().toLowerCase() !== brand.toLowerCase()) || result.gaps?.[0]?.top_competitor || 'top alternatives'
+  const provenance = {
+    target_domain: result.domain || null,
+    engines: result.engines?.length ? result.engines : ['chatgpt'],
+    why: 'Auto-created after AI Research so the first customer scan has a measurable baseline.',
+  }
+
+  return [
+    {
+      template: `What is ${brand} and what problem does it solve for ${audience} looking for ${productSpace}?`,
+      intent: 'info_cognition',
+      layer: 'foundation',
+      provenance,
+    },
+    {
+      template: `What are the best ${productSpace} options for ${audience} in ${market}?`,
+      intent: 'solution_explore',
+      layer: 'foundation',
+      provenance,
+    },
+    {
+      template: `How does ${brand} compare with ${competitor} for ${productSpace}?`,
+      intent: 'comparison_decision',
+      layer: 'gap',
+      provenance,
+    },
+    {
+      template: `Should I choose ${brand} for ${productSpace}, and what trusted sources support that decision?`,
+      intent: 'action_choice',
+      layer: 'gap',
+      provenance,
+    },
+  ]
 }
 
 function BlockHeader({ icon: Icon, title, question, number }: {
@@ -532,6 +577,8 @@ export function AIResearchTab() {
   const [loading, setLoading] = useState(false)
   const [running, setRunning] = useState(false)
   const [error, setError] = useState('')
+  const [autoBootstrapStatus, setAutoBootstrapStatus] = useState<'idle' | 'running' | 'done' | 'error'>('idle')
+  const autoBootstrappedKeys = useRef(new Set<string>())
 
   const result = useMemo(() => asResearchResult(run?.result_json), [run])
   const brandName = ctx.brandConfig.brand_name || ''
@@ -606,6 +653,50 @@ export function AIResearchTab() {
     }
   }
 
+  const bootstrapKey = result && ctx.activeCustomerId
+    ? `${ctx.activeCustomerId}:${run?.id ?? result.generated_at}`
+    : ''
+
+  useEffect(() => {
+    if (!result || !ctx.activeCustomerId || !bootstrapKey) return
+    if (!hasProfile || ctx.isLoadingPrompts || ctx.isScanning) return
+    if (ctx.prompts.length > 0 || activePrompts > 0) return
+    if (autoBootstrappedKeys.current.has(bootstrapKey)) return
+
+    autoBootstrappedKeys.current.add(bootstrapKey)
+    let cancelled = false
+
+    const bootstrap = async () => {
+      setAutoBootstrapStatus('running')
+      setError('')
+      try {
+        await ctx.handleBatchSavePrompts(buildDefaultPrompts(result, ctx.brandConfig.competitors))
+        if (cancelled) return
+        await ctx.loadPrompts()
+        if (cancelled) return
+        await ctx.handleRunScan(true)
+        if (!cancelled) setAutoBootstrapStatus('done')
+      } catch (err: any) {
+        if (!cancelled) {
+          setAutoBootstrapStatus('error')
+          setError(err?.message || 'AI Research finished, but default prompt setup failed.')
+        }
+      }
+    }
+
+    bootstrap()
+
+    return () => {
+      cancelled = true
+    }
+  }, [
+    activePrompts,
+    bootstrapKey,
+    ctx,
+    hasProfile,
+    result,
+  ])
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -651,6 +742,12 @@ export function AIResearchTab() {
         hasScan={hasScan}
       />
       {error && <div className="bg-red-soft-bg border border-red-soft/30 rounded-xl p-4 text-sm text-red-soft">{error}</div>}
+      {autoBootstrapStatus === 'running' && (
+        <div className="flex items-center gap-3 rounded-xl border border-sage/25 bg-sage-bg/45 px-4 py-3 text-[13px] font-semibold text-sage">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Creating default prompts and starting the first Prompt scan...
+        </div>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-surface rounded-xl border border-divider-light">
         <div className="flex items-center gap-3 min-w-0">
           <BrandLogo domain={result.domain} name={result.brand_name} size={32} />

@@ -100,7 +100,7 @@ function BrandHubContent() {
 
         <div className="space-y-6">
           <CompletionCard />
-          <BrandSetupPanel forceOpen />
+          <BrandSetupPanel forceOpen={!ctx.isProfileComplete} />
 
           {ctx.isProfileComplete && (
             <div className="rounded-2xl border border-divider-light bg-surface p-5">
