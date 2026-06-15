@@ -18,8 +18,8 @@ import {
   Loader2, Sparkles, TrendingUp, TrendingDown, Clock, ExternalLink,
   RotateCcw, X, History, Zap, Target, Award, Download, Share2,
   Eye, BookOpen, ShieldCheck, AlertCircle, RefreshCw, BarChart3,
-  Lock, Wrench, Bot, FileCode, ChevronDown, ChevronUp, Building2,
-  Timer, Wand2, Copy, CheckCheck, Terminal, AlertCircle as AlertCircleIcon,
+  Lock, Wrench, FileCode, ChevronDown, ChevronUp, Building2,
+  Wand2, Copy, CheckCheck, Terminal, AlertCircle as AlertCircleIcon,
   MinusCircle,
 } from 'lucide-react'
 
@@ -1370,10 +1370,6 @@ function Layer1CTA({ breakdown, isAdmin, auditUrl, onNavToFeature }: {
   onNavToFeature: NavToFeatureFn
 }) {
   const totalFail = breakdown.green_fail + breakdown.yellow_fail + breakdown.red_fail
-  const hoursLow = breakdown.fix_effort_hours_low
-  const hoursHigh = breakdown.fix_effort_hours_high
-  const weeksLow = Math.max(1, Math.ceil(hoursLow / 40))
-  const weeksHigh = Math.max(1, Math.ceil(hoursHigh / 40))
 
   const handleFixClick = () => {
     onNavToFeature('geo-optimization', buildOptUrl(auditUrl), () => {
@@ -1437,16 +1433,7 @@ function Layer1CTA({ breakdown, isAdmin, auditUrl, onNavToFeature }: {
         </p>
       </div>
 
-      {/* Fix Effort Estimator */}
-      <div className="px-6 py-4 grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-white/10">
-        <div className="bg-white/5 rounded-xl p-4 text-center">
-          <div className="flex items-center justify-center gap-1.5 mb-1">
-            <Timer className="w-4 h-4 text-white/60" />
-            <p className="text-xs text-white/60 font-medium">DIY Fix Estimate</p>
-          </div>
-          <p className="text-2xl font-bold text-white">{hoursLow}–{hoursHigh}h</p>
-          <p className="text-xs text-white/40 mt-1">≈ {weeksLow}–{weeksHigh} weeks solo</p>
-        </div>
+      <div className="px-6 py-4 border-b border-white/10">
         <div className="bg-white/5 rounded-xl p-4 text-center">
           <div className="flex items-center justify-center gap-1.5 mb-1">
             <Zap className="w-4 h-4 text-caution" />
@@ -1455,52 +1442,22 @@ function Layer1CTA({ breakdown, isAdmin, auditUrl, onNavToFeature }: {
           <p className="text-2xl font-bold text-caution">6–8 weeks</p>
           <p className="text-xs text-white/40 mt-1">Full-stack delivery · QA included</p>
         </div>
-        <div className="bg-white/5 rounded-xl p-4 text-center">
-          <div className="flex items-center justify-center gap-1.5 mb-1">
-            <Bot className="w-4 h-4 text-white/60" />
-            <p className="text-xs text-white/60 font-medium">Red Zone Issues</p>
-          </div>
-          <p className="text-2xl font-bold text-red-soft">{breakdown.red_fail}</p>
-          <p className="text-xs text-white/40 mt-1">Expert required — cannot DIY</p>
-        </div>
       </div>
 
-      {/* Pricing row */}
       <div className="px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <p className="text-sm text-white/80">
-            Yellow and Red zones require GEO expertise. Wrong fixes may trigger <span className="text-red-soft font-semibold">Google penalties or site crashes</span>.
+            Wrong fixes may trigger <span className="text-red-soft font-semibold">Google penalties or site crashes</span>.
           </p>
-          <div className="flex items-center gap-3 mt-2 flex-wrap">
-            {breakdown.yellow_fail > 0 && (
-              <span className="flex items-center gap-1 text-xs text-caution">
-                <Wrench className="w-3 h-3" />{breakdown.yellow_fail} Yellow need engineer
-              </span>
-            )}
-            {breakdown.red_fail > 0 && (
-              <span className="flex items-center gap-1 text-xs text-red-soft">
-                <AlertOctagon className="w-3 h-3" />{breakdown.red_fail} Red need manual fix
-              </span>
-            )}
-          </div>
         </div>
         <div className="flex flex-col gap-2 sm:flex-shrink-0">
-          {breakdown.green_fail > 0 && (
-            <button
-              onClick={handleFixClick}
-              className="px-5 py-2.5 bg-sage hover:bg-[#3D6B4E] text-ink-inv font-semibold rounded-xl transition-all text-sm whitespace-nowrap text-center flex items-center gap-2 justify-center"
-            >
-              <Zap className="w-4 h-4" />
-              Fix {breakdown.green_fail} Green Issues Now →
-            </button>
-          )}
-          <a
-            href="/pricing"
-            className="px-6 py-3 bg-surface hover:bg-surface-muted text-ink font-bold rounded-xl transition-all text-sm whitespace-nowrap text-center shadow-sm border border-divider"
+          <button
+            onClick={handleFixClick}
+            className="px-5 py-2.5 bg-sage hover:bg-[#3D6B4E] text-ink-inv font-semibold rounded-xl transition-all text-sm whitespace-nowrap text-center flex items-center gap-2 justify-center"
           >
-            View Layer 1 Service — from $2,999
-          </a>
-          <p className="text-[10px] text-white/40 text-center">One-time · 6–8 week delivery · 30-day tracking</p>
+            <Zap className="w-4 h-4" />
+            Fix Issues Now →
+          </button>
         </div>
       </div>
     </div>
@@ -2323,57 +2280,6 @@ export default function GEOAuditPage() {
               />
             )}
 
-            {/* ── Cross-Module CTAs: Next Steps ── */}
-            <div className="bg-surface-warm rounded-2xl border border-divider-light p-6">
-              <h3 className="text-sm font-bold text-ink uppercase tracking-wider mb-1">Next Steps</h3>
-              <p className="text-xs text-ink-3 mb-4">Based on your audit results, take action to improve AI visibility.</p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {/* Optimize Now → geo-optimization */}
-                <button
-                  onClick={() => navToFeature(
-                    'geo-optimization',
-                    buildOptUrl(auditResult.url),
-                    () => { if (auditResult.zone_breakdown) storeAuditContext(auditResult.url, auditResult.zone_breakdown) }
-                  )}
-                  className="flex items-center gap-3 px-4 py-3.5 bg-surface hover:bg-red-soft-bg border border-red-soft/30 rounded-xl transition-colors group text-left w-full">
-                  <div className="w-9 h-9 rounded-lg bg-red-soft-bg flex items-center justify-center text-red-soft group-hover:bg-red-soft-bg transition-colors flex-shrink-0">
-                    <Zap className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-ink">Optimize Now</p>
-                    <p className="text-[10px] text-ink-3">
-                      {auditResult.zone_breakdown
-                        ? `${auditResult.zone_breakdown.green_fail + auditResult.zone_breakdown.yellow_fail + auditResult.zone_breakdown.red_fail} issues → fix plan`
-                        : 'Generate fix plan & code'}
-                    </p>
-                  </div>
-                </button>
-                {/* Create Content → geo-content */}
-                <button
-                  onClick={() => navToFeature('geo-content')}
-                  className="flex items-center gap-3 px-4 py-3.5 bg-surface hover:bg-surface-warm border border-divider-light rounded-xl transition-colors group text-left w-full">
-                  <div className="w-9 h-9 rounded-lg bg-surface-warm flex items-center justify-center text-ink-2 group-hover:bg-surface-muted transition-colors">
-                    <FileText className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-ink">Create Content</p>
-                    <p className="text-[10px] text-ink-3">GEO-optimized articles</p>
-                  </div>
-                </button>
-                {/* Monitor Visibility → geo-monitor */}
-                <button
-                  onClick={() => navToFeature('geo-monitor')}
-                  className="flex items-center gap-3 px-4 py-3.5 bg-surface hover:bg-surface-warm border border-divider-light rounded-xl transition-colors group text-left w-full">
-                  <div className="w-9 h-9 rounded-lg bg-surface-warm flex items-center justify-center text-ink-2 group-hover:bg-surface-muted transition-colors">
-                    <BarChart3 className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-ink">Monitor Visibility</p>
-                    <p className="text-[10px] text-ink-3">Track AI brand mentions</p>
-                  </div>
-                </button>
-              </div>
-            </div>
           </div>
         )}
 

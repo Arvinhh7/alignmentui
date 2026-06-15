@@ -207,6 +207,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
       labelKey: 'navGroupAssistant',
       items: [
         { href: '/dashboard/geo-audit',        icon: ShieldCheck, labelKey: 'webInfraNav',       permissionKey: 'geo-audit' },
+        { href: '/dashboard/geo-optimization', icon: Zap,          labelKey: 'GEO Optimization' as never, permissionKey: 'geo-optimization' },
         { href: '/dashboard/brand-hub',        icon: Database,   labelKey: 'brandNav',           permissionKey: 'brand-hub' },
         { href: '/dashboard/visibility-proxy', icon: Plug,       labelKey: 'visibilityProxyNav', permissionKey: 'visibility-proxy', matchPrefix: true, isNew: true, sectionLabel: 'Integrations' },
         { href: '/dashboard/ga4-attribution',  icon: LineChart,  labelKey: 'GA4 Attribution' as never, permissionKey: 'ga4-attribution' },
@@ -219,7 +220,6 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
   // RULE: any item with a permissionKey can be assigned to staff via Team Management.
   const advancedFeatureItems: NavItem[] = [
     { href: '/dashboard/prompts',          icon: BookOpen,     labelKey: 'Prompt Library' as never,   permissionKey: 'prompts',          sectionLabel: 'Context' },
-    { href: '/dashboard/geo-optimization', icon: Zap,          labelKey: 'GEO Optimization' as never, permissionKey: 'geo-optimization', sectionLabel: 'Hidden' },
     { href: '/dashboard/ads',              icon: Megaphone,    labelKey: 'Ads' as never,              permissionKey: 'ads',              sectionLabel: 'Product Lab', isNew: true },
     { href: '/dashboard/gci',              icon: Activity,     labelKey: 'GCI' as never,              permissionKey: 'gci' },
     { href: '/dashboard/geo-content',      icon: Bot,          labelKey: 'Agent' as never,            permissionKey: 'geo-content',      matchPrefix: true },
