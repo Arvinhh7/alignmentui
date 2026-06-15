@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Tag, Plus, Edit2, Trash2, Save, X, Download, Loader2, Square, CheckCircle, AlertCircle, Filter, Search, StopCircle, Power } from 'lucide-react'
+import { Tag, Plus, Edit2, Trash2, Save, X, Download, Loader2, Square, CheckCircle, AlertCircle, Filter, Search, StopCircle, PauseCircle, PlayCircle } from 'lucide-react'
 import { useUnified } from '../UnifiedContext'
 import { formatPct } from '../shared/ChartComponents'
 import { CATEGORY_LABEL_MAP, CATEGORY_COLORS, INTENT_COLORS, autoClassify } from '../shared/constants'
@@ -47,25 +47,31 @@ function hasPromptMention(prompt: { last_mentioned?: boolean | null; mention_rat
 }
 
 function promptStatus(prompt: { is_active: boolean; scan_count?: number | null; last_scanned_at?: string | null }) {
-  if (prompt.is_active && hasPromptScan(prompt)) {
+  if (prompt.is_active) {
     return {
       label: 'Active',
-      title: prompt.last_scanned_at ? `Last run: ${new Date(prompt.last_scanned_at).toLocaleString()}` : 'This prompt is enabled and has completed at least one real run.',
-      className: 'bg-sage-bg text-sage',
+      title: prompt.last_scanned_at
+        ? `Enabled for scheduled runs. Last run: ${new Date(prompt.last_scanned_at).toLocaleString()}`
+        : 'Enabled for scheduled runs. Waiting for the first completed run.',
+      className: 'border border-sage/30 bg-sage-bg text-sage shadow-[0_0_0_1px_rgba(77,127,91,0.08)]',
+      dotClassName: 'bg-sage shadow-[0_0_0_4px_rgba(77,127,91,0.14)]',
     }
   }
   return {
-    label: 'Inactive',
-    title: prompt.is_active
-      ? 'This prompt is enabled but has not completed a real run yet.'
-      : 'This prompt is disabled and is not included in manual or scheduled runs.',
-    className: 'bg-surface-muted text-ink-3',
+    label: 'Paused',
+    title: 'This prompt is paused and is not included in manual or scheduled runs.',
+    className: 'border border-divider-light bg-surface-muted text-ink-3',
+    dotClassName: 'bg-ink-3/50',
   }
 }
 
 export function PromptsTab() {
   const ctx = useUnified()
   const quotaReached = !ctx.promptQuota.isUnlimited && ctx.promptQuota.activeCount >= ctx.promptQuota.limit
+  const totalPromptCount = ctx.prompts.length
+  const quotaLabel = ctx.promptQuota.isUnlimited
+    ? 'Unlimited slots'
+    : `${Math.max(0, ctx.promptQuota.limit - ctx.promptQuota.activeCount)} slots left`
 
   // ── Local state for intent filter ──────────────────────
   const [intentFilter, setIntentFilter] = useState<'all' | 'info_cognition' | 'solution_explore' | 'comparison_decision' | 'action_choice'>('all')
@@ -101,6 +107,7 @@ export function PromptsTab() {
       return matchesIntent && matchesSearch
     })
   }, [ctx.filteredPrompts, intentFilter, promptSearch])
+  const visiblePromptCount = displayPrompts.length
 
   const brandPromptDiagnostic = useMemo(() => {
     const scan = ctx.scanResult
@@ -173,19 +180,19 @@ export function PromptsTab() {
             </span>
           )}
           <span className="text-sm text-ink-3">
-            {ctx.filteredPrompts.length}
-            {ctx.promptFilter !== 'all' && (
-              <span className="text-ink-3/60"> / {ctx.prompts.length} total</span>
-            )}
-            {' '}prompts
+            <span className="font-semibold text-ink-2">{ctx.promptQuota.activeCount}</span> active
+            <span className="text-ink-3/60"> / {totalPromptCount} total prompts</span>
           </span>
           <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${
             quotaReached ? 'bg-caution-bg text-caution' : 'bg-sage-bg text-sage'
           }`}>
-            {ctx.promptQuota.isUnlimited
-              ? `${ctx.promptQuota.activeCount} active`
-              : `${ctx.promptQuota.activeCount}/${ctx.promptQuota.limit} active`}
+            {quotaLabel}
           </span>
+          {(ctx.promptFilter !== 'all' || intentFilter !== 'all' || promptSearch.trim()) && (
+            <span className="text-xs text-ink-3">
+              Showing {visiblePromptCount}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {ctx.isConfigured && (
@@ -558,9 +565,10 @@ export function PromptsTab() {
                       {/* Status */}
                       <td className="px-4 py-3 text-center">
                         <span
-                          className={`inline-flex min-w-[82px] justify-center items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${status.className}`}
+                          className={`inline-flex min-w-[88px] justify-center items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${status.className}`}
                           title={status.title}
                         >
+                          <span className={`h-1.5 w-1.5 rounded-full ${status.dotClassName}`} />
                           {status.label}
                         </span>
                       </td>
@@ -584,9 +592,13 @@ export function PromptsTab() {
                                 ? 'hover:bg-caution-bg text-ink-3 hover:text-caution'
                                 : 'hover:bg-sage-bg text-ink-3 hover:text-sage'
                             }`}
-                            title={prompt.is_active ? 'Disable scheduled runs' : 'Enable scheduled runs'}
+                            title={prompt.is_active ? 'Pause scheduled runs' : 'Resume scheduled runs'}
                           >
-                            {isToggling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Power className="w-3.5 h-3.5" />}
+                            {isToggling
+                              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              : prompt.is_active
+                                ? <PauseCircle className="w-3.5 h-3.5" />
+                                : <PlayCircle className="w-3.5 h-3.5" />}
                           </button>
                           <button
                             onClick={() => { ctx.setEditingPrompt(prompt); ctx.setPromptError('') }}
