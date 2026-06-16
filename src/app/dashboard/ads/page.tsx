@@ -15,9 +15,8 @@ import {
   ShieldCheck,
   Target,
 } from 'lucide-react'
-import { fetchWithRetry } from '@/lib/api'
+import { API_BASE_URL, fetchWithRetry } from '@/lib/api'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 interface Entity {
   id: string

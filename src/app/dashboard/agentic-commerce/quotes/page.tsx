@@ -2,9 +2,9 @@
 
 import { Fragment, useEffect, useRef, useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
+import { API_BASE_URL } from "@/lib/api";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
-const AC = `${API_BASE}/api/agentic-commerce`;
+const AC = `${API_BASE_URL}/api/agentic-commerce`;
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type BrokerEvent = {

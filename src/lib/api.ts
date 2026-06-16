@@ -4,10 +4,18 @@
 
 const DEFAULT_API_BASE_URL =
   process.env.NODE_ENV === 'production'
-    ? 'https://api.alignmenttech.ai'
+    ? ''
     : 'http://localhost:8000'
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_BASE_URL
+const configuredApiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_API_BASE_URL
+
+export function resolveApiBaseUrl(value = configuredApiBaseUrl) {
+  return process.env.NODE_ENV === 'production' && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(value)
+    ? ''
+    : value
+}
+
+export const API_BASE_URL = resolveApiBaseUrl()
 
 function xhrFetch(input: string, init: RequestInit = {}): Promise<Response> {
   return new Promise((resolve, reject) => {
