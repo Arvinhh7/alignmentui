@@ -90,10 +90,22 @@ export interface AuditOptContext {
     detail: string
     fix_suggestion: string | null | undefined
     fix_type: string
+    evidence_basis?: string
+    standard_ref?: string | null
   }>
 }
 
 const AUDIT_OPT_CONTEXT_KEY = 'audit_to_opt_context'
+
+const PAID_AUDIT_PLANS = new Set(['starter', 'standard', 'pro', 'enterprise', 'growth', 'admin'])
+
+function hasPaidAuditPlan(plan: string | null) {
+  return Boolean(plan && PAID_AUDIT_PLANS.has(plan))
+}
+
+function isAuditTrialPlan(plan: string | null) {
+  return !plan || plan === 'trial'
+}
 const AUDIT_OPT_TTL_MS = 60 * 60 * 1000 // 1 hour
 
 function storeAuditContext(url: string, breakdown: ZoneBreakdown) {
@@ -121,6 +133,8 @@ function storeAuditContext(url: string, breakdown: ZoneBreakdown) {
         detail: c.detail,
         fix_suggestion: c.fix_suggestion,
         fix_type: c.fix_type,
+        evidence_basis: c.evidence_basis,
+        standard_ref: c.standard_ref,
       })),
     }
     localStorage.setItem(AUDIT_OPT_CONTEXT_KEY, JSON.stringify(ctx))
@@ -1479,17 +1493,14 @@ function ZoneBreakdownSection({
   siteUrl?: string
 }) {
   // Gating logic:
-  // admin: full access
-  // standard/pro/enterprise: all zones visible. growth is a legacy alias.
-  // starter: green full, yellow/red locked
-  // trial (plan=null): green first 10, rest locked
-  const isFullAccess = isAdmin || plan === 'standard' || plan === 'pro' || plan === 'enterprise' || plan === 'growth'
-  const isStarterOnly = !isAdmin && (plan === 'starter')
-  const isTrial = !isAdmin && !plan
+  // admin or any paid plan: all zones visible
+  // trial/no plan: green first 10, rest locked
+  const isFullAccess = isAdmin || hasPaidAuditPlan(plan)
+  const isTrial = !isAdmin && isAuditTrialPlan(plan)
 
   const greenLocked = isTrial ? Math.max(0, breakdown.green_checks.length - 10) : 0
-  const yellowLocked = (isStarterOnly || isTrial) ? breakdown.yellow_checks.length : 0
-  const redLocked = (isStarterOnly || isTrial) ? breakdown.red_checks.length : 0
+  const yellowLocked = isTrial ? breakdown.yellow_checks.length : 0
+  const redLocked = isTrial ? breakdown.red_checks.length : 0
 
   return (
     <div className="space-y-4">
@@ -1504,7 +1515,7 @@ function ZoneBreakdownSection({
         {!isFullAccess && (
           <span className="text-xs text-ink-3 flex items-center gap-1">
             <Lock className="w-3 h-3" />
-            {plan === 'starter' ? 'Upgrade to Standard for Yellow/Red zones' : 'Subscribe to unlock all zones'}
+            Subscribe to unlock all zones
           </span>
         )}
       </div>
@@ -1776,9 +1787,8 @@ function UnifiedAuditSection({
   userId?: string
   siteUrl?: string
 }) {
-  const isFullAccess = isAdmin || plan === 'standard' || plan === 'pro' || plan === 'enterprise' || plan === 'growth'
-  const isStarterOnly = !isAdmin && plan === 'starter'
-  const isTrial = !isAdmin && !plan
+  const isFullAccess = isAdmin || hasPaidAuditPlan(plan)
+  const isTrial = !isAdmin && isAuditTrialPlan(plan)
 
   const allChecks = [
     ...breakdown.green_checks,
@@ -1806,7 +1816,7 @@ function UnifiedAuditSection({
           {!isFullAccess && (
             <span className="text-xs text-ink-3 flex items-center gap-1">
               <Lock className="w-3 h-3" />
-              {isStarterOnly ? 'Upgrade for Yellow/Red zones' : 'Subscribe to unlock all'}
+              Subscribe to unlock all
             </span>
           )}
         </div>
@@ -1832,11 +1842,6 @@ function UnifiedAuditSection({
             const hiddenGreen = greenChecks.length - visibleGreen.length
             lockedCount = hiddenGreen + yellowChecks.length + redChecks.length
             visibleChecks = visibleGreen
-            locked = lockedCount > 0
-          } else if (isStarterOnly) {
-            const greenChecks = dimChecks.filter(c => c.zone === 'green')
-            lockedCount = yellowChecks.length + redChecks.length
-            visibleChecks = [...greenChecks, ...yellowChecks.slice(0, 1), ...redChecks.slice(0, 1)]
             locked = lockedCount > 0
           }
         }

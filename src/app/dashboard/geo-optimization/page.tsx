@@ -35,6 +35,8 @@ interface AuditOptContext {
     detail: string
     fix_suggestion: string | null | undefined
     fix_type: string
+    evidence_basis?: string
+    standard_ref?: string | null
   }>
 }
 
@@ -1025,6 +1027,7 @@ export default function GEOOptimizationPage() {
         if (session.url) setUrl(session.url)
         if (session.result) setResult(session.result)
         if (session.loadingUrl) setLoadingUrl(session.loadingUrl)
+        if (session.auditContext) setAuditContext(session.auditContext)
       }
     } catch {}
   }, [])
@@ -1046,11 +1049,11 @@ export default function GEOOptimizationPage() {
     if (result || url) {
       try {
         localStorage.setItem('geo_optimization_session', JSON.stringify({
-          url, result, loadingUrl,
+          url, result, loadingUrl, auditContext,
         }))
       } catch {}
     }
-  }, [result, url, loadingUrl])
+  }, [result, url, loadingUrl, auditContext])
 
   useEffect(() => {
     if (result && resultRef.current) {
@@ -1073,7 +1076,7 @@ export default function GEOOptimizationPage() {
     setResult(null)
     setApplyResult(null)
 
-    const response = await api.generateOptimization(trimmed, user?.id)
+    const response = await api.generateOptimization(trimmed, user?.id, auditContext || undefined)
 
     if (response.error) {
       setError(response.error)
@@ -1126,7 +1129,7 @@ export default function GEOOptimizationPage() {
     setOptimizing(dimensionKey)
     setApplyResult(null)
 
-    const response = await api.applyOptimization(result.url, dimensionKey, undefined, user?.id)
+    const response = await api.applyOptimization(result.url, dimensionKey, undefined, user?.id, auditContext || undefined)
     if (response.error) {
       setError(response.error)
     } else if (response.data) {
@@ -1292,6 +1295,15 @@ export default function GEOOptimizationPage() {
                         <span className="text-ink-2">·</span>
                         <Clock className="w-3 h-3" />
                         {result.optimization_duration_seconds}s
+                        {result.audit_context_applied && (
+                          <>
+                            <span className="text-ink-2">·</span>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sage-bg text-sage text-[11px] font-semibold">
+                              <ClipboardList className="w-3 h-3" />
+                              Using {result.audit_issue_count || 0} audit issues
+                            </span>
+                          </>
+                        )}
                       </p>
                     </div>
                   </div>

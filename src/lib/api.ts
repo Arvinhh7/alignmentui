@@ -302,6 +302,9 @@ export interface OptimizationFix {
   requires_maintenance: boolean;
   code_snippet?: string;
   implementation_guide: string;
+  audit_check_id?: string;
+  audit_zone?: 'green' | 'yellow' | 'red';
+  fix_type?: string;
 }
 
 export interface DimensionOptimization {
@@ -327,6 +330,8 @@ export interface OptimizationResult {
   maintenance_fixes: number;
   generated_at: string;
   optimization_duration_seconds: number;
+  audit_issue_count?: number;
+  audit_context_applied?: boolean;
 }
 
 export interface ApplyOptimizationResult {
@@ -1551,15 +1556,15 @@ class APIClient {
   }
 
   // GEO Optimization endpoints
-  async generateOptimization(url: string, userId?: string) {
+  async generateOptimization(url: string, userId?: string, auditContext?: any) {
     const qs = userId ? `?user_id=${userId}` : '';
     return this.request<OptimizationResult>(`/api/optimization/${qs}`, {
       method: 'POST',
-      body: JSON.stringify({ url }),
+      body: JSON.stringify({ url, audit_context: auditContext }),
     });
   }
 
-  async applyOptimization(url: string, dimensionKey: string, fixIndices?: number[], userId?: string) {
+  async applyOptimization(url: string, dimensionKey: string, fixIndices?: number[], userId?: string, auditContext?: any) {
     const qs = userId ? `?user_id=${userId}` : '';
     return this.request<ApplyOptimizationResult>(`/api/optimization/apply${qs}`, {
       method: 'POST',
@@ -1567,6 +1572,7 @@ class APIClient {
         url,
         dimension_key: dimensionKey,
         fix_indices: fixIndices,
+        audit_context: auditContext,
       }),
     });
   }
