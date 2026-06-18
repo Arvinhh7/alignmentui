@@ -30,7 +30,7 @@ const EXPLORE_CATEGORY_SLUGS = [
 ]
 
 export function generateStaticParams() {
-  return EXPLORE_CATEGORY_SLUGS.map(slug => ({ slug }))
+  return [...EXPLORE_CATEGORY_SLUGS, '_'].map(slug => ({ slug }))
 }
 
 export default function CategoryPage({ params }: { params: { slug: string } }) {

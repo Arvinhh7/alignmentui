@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import {
   ArrowLeft, Play, Loader2, RefreshCw, BarChart2, Link2, Tag,
   CheckCircle2, Quote, ExternalLink, Search, X, MessageSquareText,
@@ -597,7 +597,10 @@ function CollectedBrandDetailSection({ detail }: { detail: CollectedBrandDetail 
 }
 
 export default function CategoryClient({ slug }: { slug: string }) {
+  const pathname = usePathname()
   const searchParams = useSearchParams()
+  const routeSlug = pathname?.match(/\/dashboard\/explore\/([^/?#]+)/)?.[1]
+  const activeSlug = routeSlug && routeSlug !== '_' ? decodeURIComponent(routeSlug) : slug
   const [data, setData] = useState<CategoryDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [scanning, setScanning] = useState(false)
@@ -612,7 +615,7 @@ export default function CategoryClient({ slug }: { slug: string }) {
   const loadData = useCallback(() => {
     setLoading(true)
     setError(null)
-    fetchWithRetry(`${API_BASE_URL}/api/explore/categories/${slug}`, {}, { timeoutMs: 9000, budgetMs: 20000 })
+    fetchWithRetry(`${API_BASE_URL}/api/explore/categories/${activeSlug}`, {}, { timeoutMs: 9000, budgetMs: 20000 })
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`)
         return r.json()
@@ -626,7 +629,7 @@ export default function CategoryClient({ slug }: { slug: string }) {
         setError('This category could not be loaded from the data API. Please retry in a moment.')
       })
       .finally(() => setLoading(false))
-  }, [slug])
+  }, [activeSlug])
 
   useEffect(() => { loadData() }, [loadData])
 
@@ -654,7 +657,7 @@ export default function CategoryClient({ slug }: { slug: string }) {
     setScanning(true)
     setScanProgress(0)
     try {
-      const r = await fetchWithRetry(`${API_BASE_URL}/api/explore/categories/${slug}/scan`, {
+      const r = await fetchWithRetry(`${API_BASE_URL}/api/explore/categories/${activeSlug}/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ engine: 'chatgpt' }),
@@ -674,7 +677,7 @@ export default function CategoryClient({ slug }: { slug: string }) {
     setSelectedBrandDetail(null)
     try {
       const r = await fetchWithRetry(
-        `${API_BASE_URL}/api/explore/categories/${slug}/brands/${encodeURIComponent(brand.brand_name)}`,
+        `${API_BASE_URL}/api/explore/categories/${activeSlug}/brands/${encodeURIComponent(brand.brand_name)}`,
         {},
         { timeoutMs: 9000, budgetMs: 15000 }
       )

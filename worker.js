@@ -3,7 +3,8 @@
  *
  * Next.js `output: export` only pre-builds [id]='_' placeholder pages.
  * This worker rewrites real UUIDs in visibility-proxy routes to '_'
- * so the client-side React router can take over.
+ * and dynamic Explore category slugs to '_' so the client-side React router
+ * can take over.
  *
  * Key: pass only the rewritten URL to env.ASSETS.fetch() — no original
  * request as init, which avoids header/redirect conflicts.
@@ -35,6 +36,12 @@ export default {
     // /dashboard/visibility-proxy/<uuid>[/] → serve /placeholder/
     if (new RegExp(`^/dashboard/visibility-proxy/${UUID}/?$`, 'i').test(path)) {
       const target = new URL('/dashboard/visibility-proxy/placeholder/', url).toString();
+      return env.ASSETS.fetch(new Request(target));
+    }
+
+    // /dashboard/explore/<category-slug>[/] → serve the static placeholder page.
+    if (/^\/dashboard\/explore\/[^/]+\/?$/i.test(path)) {
+      const target = new URL('/dashboard/explore/_/', url).toString();
       return env.ASSETS.fetch(new Request(target));
     }
 
