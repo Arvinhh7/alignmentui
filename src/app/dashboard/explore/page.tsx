@@ -11,6 +11,7 @@ interface Category {
   name: string
   vertical: string
   locale: string
+  depth_tier?: string | null
   topic_count: number
   brand_count: number
   citation_count: number
@@ -21,6 +22,8 @@ interface Category {
 }
 
 const VERTICAL_ORDER = [
+  'Public Market',
+  'Shopping',
   'Consumer Electronics & Audio',
   'Smart Home & Security',
   'Kitchen & Home Appliances',
@@ -34,6 +37,8 @@ const VERTICAL_ORDER = [
 ]
 
 const VERTICAL_ICON: Record<string, string> = {
+  'Public Market':                  '🧭',
+  'Shopping':                       '🛒',
   'Consumer Electronics & Audio':    '🎧',
   'Smart Home & Security':           '🏠',
   'Kitchen & Home Appliances':       '🍳',
@@ -66,7 +71,12 @@ const BASE_VISIBLE_CATEGORY_SLUGS = new Set([
 ])
 
 function isVisibleCategory(cat: Category): boolean {
-  return BASE_VISIBLE_CATEGORY_SLUGS.has(cat.slug) || cat.source === 'geoly_clean_public'
+  return Boolean(cat.slug && cat.name) && (
+    BASE_VISIBLE_CATEGORY_SLUGS.has(cat.slug)
+    || cat.source === 'geoly_clean_public'
+    || cat.depth_tier === 'public'
+    || Boolean(cat.last_scanned_at)
+  )
 }
 
 function fmt(n: number | null): string {
@@ -190,7 +200,10 @@ export default function ExplorePage() {
     grouped[cat.vertical].push(cat)
   }
 
-  const verticals = VERTICAL_ORDER.filter(v => grouped[v]?.length)
+  const verticals = [
+    ...VERTICAL_ORDER.filter(v => grouped[v]?.length),
+    ...Object.keys(grouped).filter(v => !VERTICAL_ORDER.includes(v)).sort(),
+  ]
 
   const totalScanned = displayCategories.filter(c => c.last_scanned_at).length
 
@@ -246,7 +259,12 @@ export default function ExplorePage() {
             >
               All
             </button>
-            {VERTICAL_ORDER.filter(v => categories.some(c => c.vertical === v)).map(v => (
+            {[
+              ...VERTICAL_ORDER.filter(v => categories.some(c => c.vertical === v)),
+              ...Array.from(new Set(categories.map(c => c.vertical).filter(Boolean)))
+                .filter(v => !VERTICAL_ORDER.includes(v))
+                .sort(),
+            ].map(v => (
               <button
                 key={v}
                 onClick={() => setActiveVertical(v === activeVertical ? null : v)}
