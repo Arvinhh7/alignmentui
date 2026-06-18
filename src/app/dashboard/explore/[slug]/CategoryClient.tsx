@@ -97,6 +97,15 @@ function fmt(n: number | null | undefined): string {
   return String(n)
 }
 
+function num(value: unknown): number {
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  if (typeof value === 'string') {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : 0
+  }
+  return 0
+}
+
 function shortDate(value?: string | null): string {
   if (!value) return '-'
   return new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
@@ -705,6 +714,10 @@ export default function CategoryClient({ slug }: { slug: string }) {
   const recentAnswers = data.recent_answers || []
   const latestScan = data.latest_scan || null
   const hasData = brands.length > 0
+  const brandTotal = num(cat.brand_count) || brands.length
+  const citationTotal = num(cat.source_count) || num(cat.citation_count) || citations.length
+  const topicTotal = num(cat.topic_count) || topics.length
+  const productTotal = num(cat.product_count)
   const currentEngine = latestScan?.engine || 'chatgpt'
   const highlightedBrand = highlightBrand
     ? brands.find(brand => highlightKey(brand.brand_name) === highlightBrand)
@@ -722,15 +735,16 @@ export default function CategoryClient({ slug }: { slug: string }) {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="heading-dash">{cat.name as string}</h1>
-            <p className="mt-0.5 text-sm text-ink-3">{cat.vertical as string} · {cat.topic_count as number} topics</p>
+            <p className="mt-0.5 text-sm text-ink-3">{cat.vertical as string} · {topicTotal.toLocaleString()} topics</p>
           </div>
         </div>
 
         {hasData && (
           <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3 text-[12px] text-ink-3">
-            <span><strong className="text-ink">{brands.length}</strong> brands tracked</span>
-            <span><strong className="text-ink">{citations.length}</strong> citation sources</span>
-            {topics.length > 0 && <span><strong className="text-ink">{topics.length}</strong> topics ranked</span>}
+            <span><strong className="text-ink">{brandTotal.toLocaleString()}</strong> brands tracked</span>
+            <span><strong className="text-ink">{citationTotal.toLocaleString()}</strong> citation sources</span>
+            {topicTotal > 0 && <span><strong className="text-ink">{topicTotal.toLocaleString()}</strong> topics ranked</span>}
+            {productTotal > 0 && <span><strong className="text-ink">{productTotal.toLocaleString()}</strong> products indexed</span>}
             {latestScan && (
               <span className="inline-flex flex-wrap items-center gap-2">
                 <CheckCircle2 className={`h-4 w-4 ${latestScan.status === 'completed' ? 'text-sage' : 'text-caution'}`} />
@@ -757,7 +771,7 @@ export default function CategoryClient({ slug }: { slug: string }) {
                   <BarChart2 className="h-4 w-4 text-ink-3" />
                   Brand Competitive Landscape
                 </h2>
-                <span className="text-[11px] text-ink-3">{brands.length} brands</span>
+                <span className="text-[11px] text-ink-3">{brandTotal.toLocaleString()} brands</span>
               </div>
               {!hasData ? (
                 <div className="py-12 text-center">
