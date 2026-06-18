@@ -17,6 +17,7 @@ interface Category {
   ai_traffic_mo: number | null
   est_revenue_mo: number | null
   last_scanned_at: string | null
+  source?: string | null
 }
 
 const VERTICAL_ORDER = [
@@ -43,6 +44,29 @@ const VERTICAL_ICON: Record<string, string> = {
   'Fashion, Apparel & Accessories':  '👟',
   'Furniture & Home Office':         '🛋️',
   'SaaS & Digital Tools':            '💻',
+}
+
+const BASE_VISIBLE_CATEGORY_SLUGS = new Set([
+  'bluetooth-speakers',
+  'laptops',
+  'mechanical-keyboards',
+  'wireless-earbuds',
+  'security-cameras',
+  'electric-toothbrushes',
+  'skincare-serums',
+  'mattresses',
+  'protein-powder',
+  'e-bikes',
+  'running-shoes',
+  'luggage',
+  'sunglasses',
+  'office-chairs',
+  'standing-desks',
+  'crm-software',
+])
+
+function isVisibleCategory(cat: Category): boolean {
+  return BASE_VISIBLE_CATEGORY_SLUGS.has(cat.slug) || cat.source === 'geoly_clean_public'
 }
 
 function fmt(n: number | null): string {
@@ -151,7 +175,9 @@ export default function ExplorePage() {
     }
   }, [])
 
-  const filtered = categories.filter(c => {
+  const displayCategories = categories.filter(isVisibleCategory)
+
+  const filtered = displayCategories.filter(c => {
     const matchSearch = !search || c.name.toLowerCase().includes(search.toLowerCase())
     const matchVertical = !activeVertical || c.vertical === activeVertical
     return matchSearch && matchVertical
@@ -166,7 +192,7 @@ export default function ExplorePage() {
 
   const verticals = VERTICAL_ORDER.filter(v => grouped[v]?.length)
 
-  const totalScanned = categories.filter(c => c.last_scanned_at).length
+  const totalScanned = displayCategories.filter(c => c.last_scanned_at).length
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -186,12 +212,12 @@ export default function ExplorePage() {
 
         {/* Summary stats */}
         <div className="flex items-center gap-6 text-[12px] text-ink-3">
-          <span><strong className="text-ink">{categories.length}</strong> categories</span>
-          <span><strong className="text-ink">{categories.reduce((a, c) => a + c.topic_count, 0)}</strong> topics</span>
+          <span><strong className="text-ink">{displayCategories.length}</strong> categories</span>
+          <span><strong className="text-ink">{displayCategories.reduce((a, c) => a + c.topic_count, 0)}</strong> topics</span>
           <span><strong className="text-ink">{totalScanned}</strong> scanned</span>
-          {totalScanned < categories.length && (
+          {totalScanned < displayCategories.length && (
             <span className="text-caution font-medium">
-              {categories.length - totalScanned} categories pending first scan
+              {displayCategories.length - totalScanned} categories pending first scan
             </span>
           )}
         </div>
