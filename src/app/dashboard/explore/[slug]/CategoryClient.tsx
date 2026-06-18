@@ -326,6 +326,13 @@ function brandListForRecord(record: RecentAnswer, allBrands: Brand[]): Mentioned
   return Array.from(byName.values()).filter(brand => (brand.name || '').length > 2)
 }
 
+function citationMetric(citation: Citation): string {
+  const citationCount = num(citation.citation_count)
+  const answerCount = num(citation.answer_count)
+  if (answerCount > 0) return `${citationCount.toLocaleString()}x · ${answerCount.toLocaleString()} answers`
+  return `${citationCount.toLocaleString()}x`
+}
+
 function stripEmphasisMarkers(text: string): string {
   return text
     .replace(/\*\*([^*]+)\*\*/g, '$1')
@@ -718,6 +725,7 @@ export default function CategoryClient({ slug }: { slug: string }) {
   const citationTotal = num(cat.source_count) || num(cat.citation_count) || citations.length
   const topicTotal = num(cat.topic_count) || topics.length
   const productTotal = num(cat.product_count)
+  const categoryVertical = String(cat.display_vertical || cat.industry_vertical || cat.vertical || 'Market')
   const currentEngine = latestScan?.engine || 'chatgpt'
   const highlightedBrand = highlightBrand
     ? brands.find(brand => highlightKey(brand.brand_name) === highlightBrand)
@@ -735,7 +743,7 @@ export default function CategoryClient({ slug }: { slug: string }) {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="heading-dash">{cat.name as string}</h1>
-            <p className="mt-0.5 text-sm text-ink-3">{cat.vertical as string} · {topicTotal.toLocaleString()} topics</p>
+            <p className="mt-0.5 text-sm text-ink-3">{categoryVertical} · {topicTotal.toLocaleString()} topics</p>
           </div>
         </div>
 
@@ -878,7 +886,7 @@ export default function CategoryClient({ slug }: { slug: string }) {
                     >
                       <img src={`https://www.google.com/s2/favicons?domain=${c.domain}&sz=32`} alt="" className="h-4 w-4 rounded" />
                       <span className="min-w-0 flex-1 truncate font-medium text-ink">{c.domain}</span>
-                      <span className="text-[10px] text-ink-3">{c.citation_count}x · {c.answer_count} answers</span>
+                      <span className="text-[10px] text-ink-3">{citationMetric(c)}</span>
                     </div>
                   )})}
                 </div>

@@ -10,6 +10,8 @@ interface Category {
   slug: string
   name: string
   vertical: string
+  display_vertical?: string | null
+  industry_vertical?: string | null
   locale: string
   depth_tier?: string | null
   topic_count: number
@@ -22,32 +24,34 @@ interface Category {
 }
 
 const VERTICAL_ORDER = [
-  'Public Market',
-  'Shopping',
   'Consumer Electronics & Audio',
+  'Computers, Gaming & Office Tech',
   'Smart Home & Security',
+  'Home & Living',
   'Kitchen & Home Appliances',
-  'Power, Energy & Outdoor Tech',
   'Beauty & Personal Care',
-  'Health, Wellness & Supplements',
+  'Health, Wellness & Baby',
   'Fitness, Sports & Outdoor',
   'Fashion, Apparel & Accessories',
-  'Furniture & Home Office',
+  'Pet Care',
+  'Tools, Auto & Industrial',
+  'Power, Energy & Outdoor Tech',
   'SaaS & Digital Tools',
 ]
 
 const VERTICAL_ICON: Record<string, string> = {
-  'Public Market':                  '🧭',
-  'Shopping':                       '🛒',
   'Consumer Electronics & Audio':    '🎧',
+  'Computers, Gaming & Office Tech': '🖥️',
   'Smart Home & Security':           '🏠',
+  'Home & Living':                   '🛋️',
   'Kitchen & Home Appliances':       '🍳',
-  'Power, Energy & Outdoor Tech':    '⚡',
   'Beauty & Personal Care':          '💄',
-  'Health, Wellness & Supplements':  '💊',
+  'Health, Wellness & Baby':         '💊',
   'Fitness, Sports & Outdoor':       '🏃',
   'Fashion, Apparel & Accessories':  '👟',
-  'Furniture & Home Office':         '🛋️',
+  'Pet Care':                        '🐾',
+  'Tools, Auto & Industrial':        '🧰',
+  'Power, Energy & Outdoor Tech':    '⚡',
   'SaaS & Digital Tools':            '💻',
 }
 
@@ -77,6 +81,10 @@ function isVisibleCategory(cat: Category): boolean {
     || cat.depth_tier === 'public'
     || Boolean(cat.last_scanned_at)
   )
+}
+
+function displayVertical(cat: Category): string {
+  return cat.display_vertical || cat.industry_vertical || cat.vertical || 'Other'
 }
 
 function fmt(n: number | null): string {
@@ -189,15 +197,16 @@ export default function ExplorePage() {
 
   const filtered = displayCategories.filter(c => {
     const matchSearch = !search || c.name.toLowerCase().includes(search.toLowerCase())
-    const matchVertical = !activeVertical || c.vertical === activeVertical
+    const matchVertical = !activeVertical || displayVertical(c) === activeVertical
     return matchSearch && matchVertical
   })
 
   // Group by vertical
   const grouped: Record<string, Category[]> = {}
   for (const cat of filtered) {
-    if (!grouped[cat.vertical]) grouped[cat.vertical] = []
-    grouped[cat.vertical].push(cat)
+    const vertical = displayVertical(cat)
+    if (!grouped[vertical]) grouped[vertical] = []
+    grouped[vertical].push(cat)
   }
 
   const verticals = [
@@ -260,8 +269,8 @@ export default function ExplorePage() {
               All
             </button>
             {[
-              ...VERTICAL_ORDER.filter(v => categories.some(c => c.vertical === v)),
-              ...Array.from(new Set(categories.map(c => c.vertical).filter(Boolean)))
+              ...VERTICAL_ORDER.filter(v => categories.some(c => displayVertical(c) === v)),
+              ...Array.from(new Set(categories.map(c => displayVertical(c)).filter(Boolean)))
                 .filter(v => !VERTICAL_ORDER.includes(v))
                 .sort(),
             ].map(v => (
@@ -309,7 +318,7 @@ export default function ExplorePage() {
         {!loading && !error && verticals.map(vertical => (
           <div key={vertical}>
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-lg">{VERTICAL_ICON[vertical]}</span>
+              <span className="text-lg">{VERTICAL_ICON[vertical] || '🧭'}</span>
               <h2 className="text-[13px] font-bold text-ink">{vertical}</h2>
               <span className="text-[11px] text-ink-3">({grouped[vertical].length})</span>
             </div>
