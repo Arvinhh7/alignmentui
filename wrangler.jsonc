@@ -1,5 +1,6 @@
 {
   "name": "alignmenttech",
+  "account_id": "9e63305a42a37af4e110ef3f1b226321",
   "compatibility_date": "2026-02-10",
   "main": "worker.js",
   "assets": {
