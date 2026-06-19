@@ -222,7 +222,7 @@ function PricingPageInner() {
       platforms: [
         { name: 'ChatGPT', logo: '/logos/openai.png' },
         { name: 'Perplexity', logo: '/logos/perplexity.png' },
-        { name: 'AI Overview', logo: '/logos/google.png' },
+        { name: 'AI Overview Data', logo: '/logos/google.png' },
         { name: 'Gemini', logo: '/logos/gemini.png' },
       ],
       features: lang === 'zh' ? [
@@ -256,7 +256,7 @@ function PricingPageInner() {
       platforms: [
         { name: 'ChatGPT', logo: '/logos/openai.png' },
         { name: 'Perplexity', logo: '/logos/perplexity.png' },
-        { name: 'AI Overview', logo: '/logos/google.png' },
+        { name: 'AI Overview Data', logo: '/logos/google.png' },
         { name: 'Gemini', logo: '/logos/gemini.png' },
       ],
       features: lang === 'zh' ? [
@@ -289,7 +289,7 @@ function PricingPageInner() {
       platforms: [
         { name: 'ChatGPT', logo: '/logos/openai.png' },
         { name: 'Perplexity', logo: '/logos/perplexity.png' },
-        { name: 'AI Overview', logo: '/logos/google.png' },
+        { name: 'AI Overview Data', logo: '/logos/google.png' },
         { name: 'Gemini', logo: '/logos/gemini.png' },
       ],
       features: lang === 'zh' ? [

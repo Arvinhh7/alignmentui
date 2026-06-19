@@ -196,7 +196,12 @@ function CounterOffer({ reason, plan, lang, onPause, onDowngrade, onContinueCanc
           </p>
           <ul className="text-ink-2 text-xs space-y-1 mb-3">
             <li>• {isZh ? '基于您自定义 Prompt 的真实 AI 可见度追踪' : 'Real AI visibility tracking driven by your own prompts'}</li>
-            <li>• {isZh ? '同时覆盖 ChatGPT、Perplexity、Grok、Google AI Overview' : 'Cross-platform: ChatGPT, Perplexity, Grok & Google AI'}</li>
+            <li>
+              •{' '}
+              {isZh
+                ? '套餐化监控：Starter 跑 ChatGPT；Standard/Pro 跑 ChatGPT、Perplexity、Gemini，并包含 AI Overview 数据覆盖'
+                : 'Plan-aware monitoring: Starter runs ChatGPT; Standard/Pro run ChatGPT, Perplexity, and Gemini, with AI Overview data coverage'}
+            </li>
             <li>• {isZh ? '从诊断到内容到分发的完整 GEO 闭环' : 'Full GEO loop: audit → content → distribution → monitor'}</li>
           </ul>
           <a
