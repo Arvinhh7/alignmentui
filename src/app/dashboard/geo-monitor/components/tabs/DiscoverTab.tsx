@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo } from 'react'
-import { Compass, Globe, Play, Square, ExternalLink, ArrowRight, Loader2, ScanSearch, Sparkles } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { AlertCircle, Compass, Globe, Play, Square, ExternalLink, ArrowRight, Loader2, ScanSearch, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useUnified } from '../UnifiedContext'
@@ -9,7 +9,31 @@ import { DOMAIN_TYPE_LABELS, DASHBOARD_ROUTES } from '../shared/constants'
 import { GeneratePromptsModal } from './GeneratePromptsModal'
 import { CitationTruthMap } from './CitationTruthMap'
 import { PromptIntelligence } from './PromptIntelligence'
-import type { DiscoverSourceItem } from '@/lib/api'
+import { API_BASE_URL, fetchWithRetry, type DiscoverSourceItem } from '@/lib/api'
+
+interface PublicCategoryRow {
+  slug: string
+  name: string
+  topic_count?: number
+  citation_count?: number
+  ai_traffic_mo?: number | null
+}
+
+interface PublicCitationRow {
+  domain: string
+  name?: string | null
+  logo_url?: string | null
+  source_type?: string | null
+  citation_count?: number
+  answer_count?: number
+}
+
+interface PublicSourceMapState {
+  status: 'loading' | 'ready' | 'missing' | 'empty' | 'error'
+  category?: PublicCategoryRow
+  sources: PublicCitationRow[]
+  message?: string
+}
 
 // ── Phase 4: Action CTA routing per domain type ──────
 const DISCOVER_ACTION: Record<string, {
@@ -36,6 +60,249 @@ const ENGINES: { key: string; label: string; fallbackDesc: string; logo: string 
   { key: 'gemini',     label: 'Gemini',     fallbackDesc: 'Google Search grounding',                     logo: 'https://www.google.com/s2/favicons?domain=gemini.google.com&sz=32' },
   { key: 'claude',     label: 'Claude',     fallbackDesc: 'web_search tool',                             logo: 'https://www.google.com/s2/favicons?domain=claude.ai&sz=32' },
 ]
+
+function normalizeMatchText(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ')
+}
+
+function findPublicCategory(categories: PublicCategoryRow[], productSpace: string, keywords: string[]) {
+  const candidates = [productSpace, ...keywords].map(normalizeMatchText).filter(Boolean)
+  const slugs = new Set(candidates.map(v => v.replace(/\s+/g, '-')))
+  return categories.find(cat => slugs.has(cat.slug))
+    ?? categories.find(cat => candidates.includes(normalizeMatchText(cat.name)))
+    ?? categories.find(cat => {
+      const name = normalizeMatchText(cat.name)
+      return candidates.some(candidate => candidate.length >= 4 && (name.includes(candidate) || candidate.includes(name)))
+    })
+}
+
+function PublicCategorySourcesMap() {
+  const ctx = useUnified()
+  const productSpace = ctx.brandConfig.product_space?.trim() || ctx.brandConfig.industry?.trim() || ''
+  const [state, setState] = useState<PublicSourceMapState>({ status: 'loading', sources: [] })
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadPublicSources() {
+      if (!productSpace) {
+        setState({
+          status: 'missing',
+          sources: [],
+          message: 'Complete Brand Hub first so Alignment can match this brand to a public category.',
+        })
+        return
+      }
+
+      setState({ status: 'loading', sources: [] })
+      try {
+        const categoriesRes = await fetchWithRetry(`${API_BASE_URL}/api/explore/categories`, {}, { timeoutMs: 8000, budgetMs: 18000 })
+        if (!categoriesRes.ok) throw new Error(`categories HTTP ${categoriesRes.status}`)
+        const categoriesJson = await categoriesRes.json()
+        const categories = (categoriesJson?.categories || []) as PublicCategoryRow[]
+        const matchTerms = [
+          ctx.brandConfig.industry,
+          ...(ctx.brandConfig.keywords || []),
+        ].filter((value): value is string => Boolean(value && value.trim()))
+        const matched = findPublicCategory(categories, productSpace, matchTerms)
+
+        if (!matched) {
+          if (!cancelled) {
+            setState({
+              status: 'missing',
+              sources: [],
+              message: `No public source map is available yet for "${productSpace}". This is a public data coverage gap: add the category to the Explore collection/backfill queue, then this section will read it automatically. Until then, use Analysis after the first prompt run for customer-specific evidence.`,
+            })
+          }
+          return
+        }
+
+        const detailRes = await fetchWithRetry(`${API_BASE_URL}/api/explore/categories/${matched.slug}`, {}, { timeoutMs: 9000, budgetMs: 20000 })
+        if (!detailRes.ok) throw new Error(`category HTTP ${detailRes.status}`)
+        const detail = await detailRes.json()
+        const sources = ((detail?.citations || []) as PublicCitationRow[])
+          .filter(source => source.domain)
+          .sort((a, b) => (b.citation_count || 0) - (a.citation_count || 0))
+
+        if (cancelled) return
+        if (!sources.length) {
+          setState({
+            status: 'empty',
+            category: matched,
+            sources: [],
+            message: `The public category "${matched.name}" is matched, but source citations have not been materialized yet.`,
+          })
+          return
+        }
+        setState({ status: 'ready', category: matched, sources })
+      } catch (error) {
+        if (!cancelled) {
+          setState({
+            status: 'error',
+            sources: [],
+            message: error instanceof Error ? error.message : 'Failed to load public category source map.',
+          })
+        }
+      }
+    }
+
+    loadPublicSources()
+    return () => { cancelled = true }
+  }, [ctx.brandConfig.keywords, productSpace])
+
+  const topSources = state.sources.slice(0, 18)
+  const totalCitations = state.sources.reduce((sum, source) => sum + (source.citation_count || 0), 0)
+  const categoryPath = state.category ? `/dashboard/explore/${state.category.slug}/?source=public` : '/dashboard/explore/'
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="min-w-0">
+          <h3 className="text-sm font-semibold text-ink">Sources Map</h3>
+          <p className="text-xs text-ink-3 mt-0.5">
+            {state.category
+              ? `Public category data · ${state.category.name} · ${topSources.length.toLocaleString()} shown`
+              : 'Public category data from Explore, matched from your Brand Hub profile.'}
+          </p>
+        </div>
+        {state.category && (
+          <Link
+            href={categoryPath}
+            className="flex items-center gap-2 px-4 py-2 bg-surface hover:bg-surface-warm text-ink-2 border border-divider rounded-xl text-sm font-medium transition-colors"
+          >
+            Open category source data
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        )}
+      </div>
+
+      {state.status === 'loading' && (
+        <div className="flex flex-col items-center justify-center py-16 gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-ink-3" />
+          <p className="text-sm font-medium text-ink-2">Loading public category source map...</p>
+        </div>
+      )}
+
+      {['missing', 'empty', 'error'].includes(state.status) && (
+        <div className="flex flex-col items-center justify-center py-16 text-center border border-divider-light rounded-2xl bg-canvas">
+          <AlertCircle className="w-10 h-10 mb-3 text-caution" />
+          <p className="text-sm font-semibold text-ink-2">
+            {state.status === 'missing' ? 'Public category source map pending' : state.status === 'empty' ? 'Source map not materialized yet' : 'Source map unavailable'}
+          </p>
+          <p className="text-xs text-ink-3 mt-1.5 max-w-lg leading-relaxed">{state.message}</p>
+          <p className="text-[11px] text-ink-3 mt-3">No customer API source scan is run from this section.</p>
+        </div>
+      )}
+
+      {state.status === 'ready' && (
+        <>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: 'Matched category', value: state.category?.name || 'Category' },
+              { label: 'Public sources', value: state.sources.length.toLocaleString() },
+              { label: 'Source citations', value: totalCitations.toLocaleString() },
+            ].map(stat => (
+              <div key={stat.label} className="bg-surface border border-divider rounded-xl p-4 text-center">
+                <p className="text-xl font-bold font-mono text-ink truncate">{stat.value}</p>
+                <p className="text-xs text-ink-3 mt-0.5">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <h4 className="text-sm font-semibold text-ink-2">Public Source Layer</h4>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-sage-bg text-sage font-semibold">
+                From category big data
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {topSources.map((source, index) => {
+                const share = totalCitations > 0 ? ((source.citation_count || 0) / totalCitations) * 100 : 0
+                return (
+                  <div key={source.domain} className="relative bg-surface rounded-xl border border-divider p-5 hover:shadow-md transition-shadow overflow-hidden">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-[10px] text-ink-3 font-mono flex-shrink-0 w-5 text-right">#{index + 1}</span>
+                        <img
+                          src={source.logo_url || `https://www.google.com/s2/favicons?domain=${source.domain}&sz=32`}
+                          onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                          className="w-4 h-4 flex-shrink-0 rounded-sm object-contain"
+                          alt=""
+                        />
+                        <span className="text-sm font-medium text-ink truncate">{source.name || source.domain}</span>
+                      </div>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-warm text-ink-3 font-semibold">
+                        {source.source_type || 'Source'}
+                      </span>
+                    </div>
+                    <div className="flex items-end justify-between mb-3">
+                      <div>
+                        <p className="text-xl font-bold font-mono text-ink leading-none">{(source.citation_count || 0).toLocaleString()}</p>
+                        <p className="text-xs text-ink-3 mt-0.5">citations</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xl font-bold font-mono text-ink-2 leading-none">{share.toFixed(1)}%</p>
+                        <p className="text-xs text-ink-3 mt-0.5">{(source.answer_count || 0).toLocaleString()} answers</p>
+                      </div>
+                    </div>
+                    <div className="pt-3 border-t border-divider-light">
+                      <a
+                        href={`https://${source.domain}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-xs font-medium text-ink-2 hover:text-ink transition-colors"
+                      >
+                        <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                        Visit source
+                      </a>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="bg-canvas border border-divider rounded-xl p-5">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="min-w-0">
+                <h4 className="text-sm font-semibold text-ink">Design Prompts</h4>
+                <p className="text-xs text-ink-3 mt-0.5">
+                  Turn this public category source map into monitorable prompts for buyer intents, competitor comparisons, and proof-source questions.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={() => ctx.setShowGeneratePromptsModal(true)}
+                  disabled={!ctx.isConfigured}
+                  className="flex items-center gap-2 px-4 py-2 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-xl text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Generate prompts
+                </button>
+                <Link
+                  href="/dashboard/geo-monitor?tab=prompts"
+                  className="flex items-center gap-2 px-4 py-2 bg-surface hover:bg-surface-warm text-ink-2 border border-divider rounded-xl text-sm font-medium transition-colors"
+                >
+                  Manage prompts
+                </Link>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {ctx.showGeneratePromptsModal && (
+        <GeneratePromptsModal onClose={() => ctx.setShowGeneratePromptsModal(false)} />
+      )}
+    </div>
+  )
+}
 
 // ── Source card ───────────────────────────────────────
 function SourceCard({ item, total, rank }: {
@@ -160,6 +427,10 @@ export function DiscoverTab({ variant = 'standalone' }: { variant?: 'standalone'
       .filter(item => item.intent_coverage < 4 && item.prompt_count >= 3)
       .slice(0, 18)
   }, [result])
+
+  if (isSourcesGap) {
+    return <PublicCategorySourcesMap />
+  }
 
   return (
     <div className="space-y-6">

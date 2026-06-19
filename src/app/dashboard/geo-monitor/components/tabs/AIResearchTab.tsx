@@ -488,12 +488,12 @@ function SourcesMapSection({ number }: { number: number }) {
         icon={GitBranch}
         number={number}
         title="Sources Map"
-        question="Which trusted external sources does AI already cite in this market?"
+        question="Which trusted external sources does AI already cite in my category?"
       />
       <div className="mb-5 rounded-xl border border-divider-light bg-canvas p-4">
         <p className="text-[13px] leading-relaxed text-ink-2">
-          Sources Map shows the domains AI already cites for this market. Use it to understand the current citation landscape,
-          then use Analysis to identify where your brand is missing and which sources should become content, PR, review, schema, or distribution actions.
+          Sources Map is matched from your Brand Hub product space to the public Explore category database. It shows which
+          domains AI already cites at the category level, then Analysis shows where your own brand is missing.
         </p>
       </div>
       <DiscoverTab variant="sources-gap" />
