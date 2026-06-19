@@ -75,12 +75,12 @@ export default function TermsPage() {
                   <tr className="border-t border-divider-light bg-surface">
                     <td className="px-4 py-2">Standard</td>
                     <td className="px-4 py-2">$199/month</td>
-                    <td className="px-4 py-2">12,000 credits/month, ChatGPT, Perplexity, and Gemini live Prompt runs, AI Overview data coverage, competitor analysis, custom reports</td>
+                    <td className="px-4 py-2">12,000 credits/month, ChatGPT, Perplexity, Gemini, and Claude live Prompt runs, competitor analysis, custom reports</td>
                   </tr>
                   <tr className="border-t border-divider-light">
                     <td className="px-4 py-2">Pro</td>
                     <td className="px-4 py-2">$399/month</td>
-                    <td className="px-4 py-2">30,000 credits/month, multi-brand workflows, ChatGPT, Perplexity, and Gemini live Prompt runs, AI Overview data coverage, advanced AI Research, API access</td>
+                    <td className="px-4 py-2">30,000 credits/month, multi-brand workflows, ChatGPT, Perplexity, Gemini, and Claude live Prompt runs, advanced AI Research, API access</td>
                   </tr>
                   <tr className="border-t border-divider-light bg-surface">
                     <td className="px-4 py-2">Enterprise</td>

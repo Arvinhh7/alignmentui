@@ -199,8 +199,8 @@ function CounterOffer({ reason, plan, lang, onPause, onDowngrade, onContinueCanc
             <li>
               •{' '}
               {isZh
-                ? '套餐化监控：Starter 跑 ChatGPT；Standard/Pro 跑 ChatGPT、Perplexity、Gemini，并包含 AI Overview 数据覆盖'
-                : 'Plan-aware monitoring: Starter runs ChatGPT; Standard/Pro run ChatGPT, Perplexity, and Gemini, with AI Overview data coverage'}
+                ? '套餐化监控：Starter 跑 ChatGPT；Standard/Pro 跑 ChatGPT、Perplexity、Gemini、Claude'
+                : 'Plan-aware monitoring: Starter runs ChatGPT; Standard/Pro run ChatGPT, Perplexity, Gemini, and Claude'}
             </li>
             <li>• {isZh ? '从诊断到内容到分发的完整 GEO 闭环' : 'Full GEO loop: audit → content → distribution → monitor'}</li>
           </ul>

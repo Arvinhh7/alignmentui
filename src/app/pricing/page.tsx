@@ -222,8 +222,8 @@ function PricingPageInner() {
       platforms: [
         { name: 'ChatGPT', logo: '/logos/openai.png' },
         { name: 'Perplexity', logo: '/logos/perplexity.png' },
-        { name: 'AI Overview Data', logo: '/logos/google.png' },
         { name: 'Gemini', logo: '/logos/gemini.png' },
+        { name: 'Claude', logo: '/logos/anthropic.png' },
       ],
       features: lang === 'zh' ? [
         '7 天免费试用',
@@ -256,8 +256,8 @@ function PricingPageInner() {
       platforms: [
         { name: 'ChatGPT', logo: '/logos/openai.png' },
         { name: 'Perplexity', logo: '/logos/perplexity.png' },
-        { name: 'AI Overview Data', logo: '/logos/google.png' },
         { name: 'Gemini', logo: '/logos/gemini.png' },
+        { name: 'Claude', logo: '/logos/anthropic.png' },
       ],
       features: lang === 'zh' ? [
         '7 天免费试用',
@@ -289,8 +289,8 @@ function PricingPageInner() {
       platforms: [
         { name: 'ChatGPT', logo: '/logos/openai.png' },
         { name: 'Perplexity', logo: '/logos/perplexity.png' },
-        { name: 'AI Overview Data', logo: '/logos/google.png' },
         { name: 'Gemini', logo: '/logos/gemini.png' },
+        { name: 'Claude', logo: '/logos/anthropic.png' },
       ],
       features: lang === 'zh' ? [
         '自定义 brands、seats 和 prompt volume',
