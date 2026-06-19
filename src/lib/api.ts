@@ -400,6 +400,8 @@ export interface SentimentTheme {
 export interface ScanMention {
   prompt_text: string;
   response_text: string;
+  response_status?: 'ok' | 'engine_error' | 'cached_placeholder' | string;
+  engine_error?: string | null;
   mentioned: boolean;
   sentiment: string;
   sentiment_score: number;
@@ -1824,11 +1826,16 @@ class APIClient {
     });
   }
 
-  async getAvailableEngines() {
+  async getAvailableEngines(userId?: string, customerId?: string) {
+    const params = new URLSearchParams();
+    if (userId) params.set('user_id', userId);
+    if (customerId) params.set('customer_id', customerId);
+    const qs = params.toString() ? `?${params.toString()}` : '';
     return this.request<{
       engines: string[]
       models?: Record<string, { quick: string; deep: string }>
-    }>('/api/monitor/engines');
+      plan?: string
+    }>(`/api/monitor/engines${qs}`);
   }
 
   async getQueryFanouts(customerId: string, promptId?: string) {

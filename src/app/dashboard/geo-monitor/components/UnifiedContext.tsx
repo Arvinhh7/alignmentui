@@ -42,7 +42,7 @@ import {
 import { formatDate } from './shared/ChartComponents'
 
 const PLAN_PROMPT_LIMITS: Record<string, number> = {
-  trial: 10,
+  trial: 50,
   starter: 50,
   standard: 100,
   pro: 300,
@@ -450,9 +450,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const activePromptCount = useMemo(() => prompts.filter(p => p.is_active).length, [prompts])
   const promptPlan = userRole === 'admin' || userRole === 'staff' || userRole === 'demo'
     ? 'admin'
-    : subscription.status === 'trialing'
-      ? 'trial'
-      : subscription.plan || 'starter'
+    : subscription.plan || 'starter'
   const promptLimit = PLAN_PROMPT_LIMITS[promptPlan] ?? PLAN_PROMPT_LIMITS.starter
   const promptQuota = useMemo(() => {
     const isUnlimited = promptLimit === -1
@@ -1057,11 +1055,11 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   useEffect(() => { loadPrompts() }, [loadPrompts])
 
   useEffect(() => {
-    api.getAvailableEngines().then(res => {
+    api.getAvailableEngines(user?.id, activeCustomerId ?? undefined).then(res => {
       if (res.data?.engines?.length) setAvailableEngines(res.data.engines)
       if (res.data?.models) setEngineModels(res.data.models)
     }).catch(() => { /* keep default */ })
-  }, [])
+  }, [activeCustomerId, user?.id])
 
   const autoTriggerAdvancedMentions = async () => {
     advMentionsAbortRef.current?.abort()

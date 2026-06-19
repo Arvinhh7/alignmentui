@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, Link2, ExternalLink, FileText, Target, Quote, Layers } from 'lucide-react'
+import { AlertCircle, ChevronDown, ChevronUp, Link2, ExternalLink, FileText, Target, Quote, MessageSquareText } from 'lucide-react'
 import { ScanMention } from '@/lib/api'
 import {
   SUB_TYPE_LABELS,
@@ -32,6 +32,26 @@ function shortUrl(url: string): string {
   }
 }
 
+export function isUnavailableMention(mention: ScanMention): boolean {
+  const status = mention.response_status || 'ok'
+  const response = (mention.response_text || '').trim()
+  return (
+    status === 'engine_error' ||
+    status === 'cached_placeholder' ||
+    response.startsWith('[Error:') ||
+    response.startsWith('[cached')
+  )
+}
+
+function engineLabel(platform?: string): string {
+  const key = (platform || 'chatgpt').toLowerCase()
+  if (key === 'chatgpt') return 'ChatGPT'
+  if (key === 'perplexity') return 'Perplexity'
+  if (key === 'gemini') return 'Gemini'
+  if (key === 'claude') return 'Claude'
+  return platform || 'AI'
+}
+
 export function MentionCard({ mention, brandName, index }: {
   mention: ScanMention; brandName: string; index: number
 }) {
@@ -41,17 +61,21 @@ export function MentionCard({ mention, brandName, index }: {
   const intentLabel = CATEGORY_LABEL_MAP[intentKey] || intentKey
   const intentColor = CATEGORY_COLORS[intentKey] || 'bg-surface-muted text-ink-3'
   const contentLinks = INTENT_CONTENT_MAP[intentKey] || []
+  const unavailable = isUnavailableMention(mention)
+  const cleanResponse = stripMarkdown(mention.response_text || '')
 
   return (
-    <div className={`bg-surface rounded-xl border overflow-hidden hover:shadow-sm transition-shadow ${mention.mentioned ? 'border-sage/30' : 'border-divider'}`}>
+    <div className={`bg-surface rounded-xl border overflow-hidden hover:shadow-sm transition-shadow ${mention.mentioned ? 'border-sage/30' : unavailable ? 'border-caution/30' : 'border-divider'}`}>
       <button onClick={() => setExpanded(!expanded)} className="w-full px-5 py-4 flex items-center justify-between text-left">
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${mention.mentioned ? 'bg-sage-bg text-sage' : 'bg-red-soft-bg text-red-soft'}`}>{index}</span>
+          <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${mention.mentioned ? 'bg-sage-bg text-sage' : unavailable ? 'bg-caution-bg text-caution' : 'bg-red-soft-bg text-red-soft'}`}>{index}</span>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-ink truncate">{displayPrompt(mention.prompt_text, brandName)}</p>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${intentColor}`}>{intentLabel}</span>
-              {mention.mentioned ? (
+              {unavailable ? (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-caution-bg text-caution font-medium">Engine unavailable</span>
+              ) : mention.mentioned ? (
                 <>
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${subInfo.color}`}>{subInfo.icon} {subInfo.label}</span>
                   <span className={`text-[10px] px-2 py-0.5 rounded-full ${mention.sentiment === 'positive' ? 'bg-sage-bg text-sage' : mention.sentiment === 'negative' ? 'bg-red-soft-bg text-red-soft' : 'bg-surface-warm text-ink-2'}`}>{mention.sentiment}</span>
@@ -77,7 +101,17 @@ export function MentionCard({ mention, brandName, index }: {
 
       {expanded && (
         <div className="px-5 pb-4 border-t border-divider-light">
-          {mention.mentioned ? (
+          {unavailable ? (
+            <div className="mt-3 rounded-xl border border-caution/30 bg-caution-bg p-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-caution">
+                <AlertCircle className="h-4 w-4" />
+                AI answer unavailable
+              </div>
+              <p className="mt-1 text-xs leading-5 text-ink-2">
+                {engineLabel(mention.platform)} did not return a usable answer for this prompt. This result is excluded from mention scoring; run the prompt again after the engine recovers.
+              </p>
+            </div>
+          ) : mention.mentioned ? (
             <>
               {mention.mention_context && (
                 <div className="mt-3 bg-caution-bg rounded-lg p-3 border border-caution/30">
@@ -141,13 +175,13 @@ export function MentionCard({ mention, brandName, index }: {
                   </div>
                 </div>
               )}
-              <div className="mt-3 bg-canvas rounded-lg p-4">
+              <div className="mt-3 rounded-xl border border-divider-light bg-canvas p-4">
                 <div className="flex items-center gap-1.5 mb-2">
-                  <Layers className="w-3 h-3 text-ink-3" />
-                  <p className="text-xs font-semibold text-ink-2">Full ranking context</p>
-                  <span className="text-[10px] text-ink-3">— competitive landscape AI presented</span>
+                  <MessageSquareText className="w-3.5 h-3.5 text-ink-3" />
+                  <p className="text-xs font-semibold text-ink-2">AI Response</p>
+                  <span className="text-[10px] text-ink-3">— {engineLabel(mention.platform)} answer to this prompt</span>
                 </div>
-                <p className="text-sm text-ink-2 whitespace-pre-wrap leading-relaxed">{highlightBrand(mention.response_text, brandName)}</p>
+                <p className="border-l-2 border-sage/50 pl-3 text-sm text-ink-2 whitespace-pre-wrap leading-relaxed">{highlightBrand(cleanResponse, brandName)}</p>
               </div>
               <div className="mt-3 grid grid-cols-3 gap-3">
                 {/* List Rank: ordinal position in AI's numbered list (meaningful) */}
@@ -265,13 +299,13 @@ export function MentionCard({ mention, brandName, index }: {
                 </div>
               )}
 
-              <div className="mt-3 bg-canvas rounded-lg p-4">
+              <div className="mt-3 rounded-xl border border-divider-light bg-canvas p-4">
                 <div className="flex items-center gap-1.5 mb-2">
-                  <Layers className="w-3 h-3 text-ink-3" />
-                  <p className="text-xs font-semibold text-ink-2">AI&apos;s recommended brands &amp; reasoning</p>
-                  <span className="text-[10px] text-ink-3">— full response below</span>
+                  <MessageSquareText className="w-3.5 h-3.5 text-ink-3" />
+                  <p className="text-xs font-semibold text-ink-2">AI Response</p>
+                  <span className="text-[10px] text-ink-3">— {engineLabel(mention.platform)} answer to this prompt</span>
                 </div>
-                <p className="text-sm text-ink-2 whitespace-pre-wrap leading-relaxed">{stripMarkdown(mention.response_text)}</p>
+                <p className="border-l-2 border-sage/50 pl-3 text-sm text-ink-2 whitespace-pre-wrap leading-relaxed">{highlightBrand(cleanResponse, brandName)}</p>
               </div>
 
               {contentLinks.length > 0 && (

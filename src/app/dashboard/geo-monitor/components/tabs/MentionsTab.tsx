@@ -1,10 +1,10 @@
 'use client'
 
 import { useMemo } from 'react'
-import { MessageSquare, Eye, ThumbsUp, Link2, AlertTriangle } from 'lucide-react'
+import { MessageSquare, Eye, Link2, AlertTriangle } from 'lucide-react'
 import { useUnified } from '../UnifiedContext'
-import { MentionCard } from '../shared/MentionCard'
-import { HorizontalBar, MetricCard, DonutChart, formatNum, formatPct } from '../shared/ChartComponents'
+import { isUnavailableMention, MentionCard } from '../shared/MentionCard'
+import { MetricCard, DonutChart, formatNum, formatPct } from '../shared/ChartComponents'
 import {
   INTENT_FUNNEL,
   CATEGORY_LABEL_MAP,
@@ -17,6 +17,16 @@ import {
 export function MentionsTab() {
   const ctx = useUnified()
   const scanResult = ctx.scanResult
+
+  const availableMentionResults = useMemo(
+    () => scanResult?.mention_results.filter(m => !isUnavailableMention(m)) ?? [],
+    [scanResult],
+  )
+
+  const unavailableMentionResults = useMemo(
+    () => scanResult?.mention_results.filter(isUnavailableMention) ?? [],
+    [scanResult],
+  )
 
   // ── Group mention_results by intent ──────────────────
   const intentStats = useMemo(() => {
@@ -38,7 +48,7 @@ export function MentionsTab() {
     for (const key of Object.keys(INTENT_FUNNEL)) {
       groups[key] = { total: 0, mentioned: 0 }
     }
-    for (const m of scanResult.mention_results) {
+    for (const m of availableMentionResults) {
       // Prefer stored category → resolveIntent handles old enum values → autoClassify fallback
       const rawCategory =
         storedCategoryMap[m.prompt_text] || autoClassify(m.prompt_text).category
@@ -58,21 +68,21 @@ export function MentionsTab() {
         ? (groups[key].mentioned / groups[key].total) * 100
         : 0,
     }))
-  }, [scanResult, ctx.filteredPrompts])
+  }, [scanResult, ctx.filteredPrompts, availableMentionResults])
 
   // ── Quick stats ──────────────────────────────────────
   const { totalPrompts, mentionedCount, notMentionedCount, avgCitations } = useMemo(() => {
     if (!scanResult) return { totalPrompts: 0, mentionedCount: 0, notMentionedCount: 0, avgCitations: 0 }
-    const mentioned = scanResult.mention_results.filter(m => m.mentioned)
-    const notMentioned = scanResult.mention_results.filter(m => !m.mentioned)
+    const mentioned = availableMentionResults.filter(m => m.mentioned)
+    const notMentioned = availableMentionResults.filter(m => !m.mentioned)
     const citationSum = mentioned.reduce((sum, m) => sum + (m.cited_urls?.length ?? 0), 0)
     return {
-      totalPrompts: scanResult.total_prompts,
+      totalPrompts: availableMentionResults.length,
       mentionedCount: mentioned.length,
       notMentionedCount: notMentioned.length,
       avgCitations: mentioned.length > 0 ? citationSum / mentioned.length : 0,
     }
-  }, [scanResult])
+  }, [scanResult, availableMentionResults])
 
   // ── Sub-type distribution donut segments ─────────────
   const subTypeSegments = useMemo(() => {
@@ -89,12 +99,12 @@ export function MentionsTab() {
 
   // ── Split mention results ────────────────────────────
   const notMentionedResults = useMemo(
-    () => scanResult?.mention_results.filter(m => !m.mentioned) ?? [],
-    [scanResult],
+    () => availableMentionResults.filter(m => !m.mentioned),
+    [availableMentionResults],
   )
   const mentionedResults = useMemo(
-    () => scanResult?.mention_results.filter(m => m.mentioned) ?? [],
-    [scanResult],
+    () => availableMentionResults.filter(m => m.mentioned),
+    [availableMentionResults],
   )
 
   // ── No data notice ───────────────────────────────────
@@ -152,7 +162,7 @@ export function MentionsTab() {
           icon={<Eye className="w-5 h-5 text-ink-2" />}
           label="Prompts Used"
           value={formatNum(totalPrompts, 0)}
-          subtitle={`${mentionedCount} mentioned / ${notMentionedCount} not mentioned`}
+          subtitle={`${mentionedCount} mentioned / ${notMentionedCount} not mentioned${unavailableMentionResults.length ? ` · ${unavailableMentionResults.length} unavailable` : ''}`}
           color="text-ink-2"
           bgColor="bg-surface-warm"
         />
@@ -177,6 +187,18 @@ export function MentionsTab() {
               size={180}
             />
           </div>
+        </div>
+      )}
+
+      {unavailableMentionResults.length > 0 && (
+        <div className="rounded-xl border border-caution/30 bg-caution-bg px-4 py-3 text-sm text-ink-2">
+          <div className="flex items-center gap-2 font-semibold text-caution">
+            <AlertTriangle className="h-4 w-4" />
+            {unavailableMentionResults.length} AI answer{unavailableMentionResults.length > 1 ? 's were' : ' was'} unavailable
+          </div>
+          <p className="mt-1 text-xs leading-5 text-ink-2">
+            Engine quota or cache placeholders are excluded from Mentioned / Not Mentioned scoring. Retry the scan after the engine is available.
+          </p>
         </div>
       )}
 
