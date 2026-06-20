@@ -145,6 +145,7 @@ interface CategoryDetail {
   brands: Brand[]
   citations: Citation[]
   topics: Topic[]
+  ai_traffic_summary?: AiTrafficSummary | null
   latest_scan: ScanRun | null
   recent_answers: RecentAnswer[]
   collected_brand_detail?: CollectedBrandDetail
@@ -176,6 +177,21 @@ interface Topic {
   leader_mentions?: number | null
   total_mentions?: number | null
   ai_traffic_mo: number | null
+  traffic_display?: string | null
+  ai_revenue_scale_usd?: number | null
+  ai_revenue_scale_display?: string | null
+  leader_visibility_pct?: number | null
+  data_source?: string | null
+  captured_at?: string | null
+}
+
+interface AiTrafficSummary {
+  data_source?: string
+  captured_topic_count?: number
+  shown_topic_count?: number
+  total_ai_traffic_mo?: number
+  total_revenue_scale_usd?: number
+  latest_captured_at?: string | null
 }
 
 interface ScanRun {
@@ -718,6 +734,7 @@ export default function CategoryClient({ slug }: { slug: string }) {
   const brands = data.brands || []
   const citations = data.citations || []
   const topics = data.topics || []
+  const aiTrafficSummary = data.ai_traffic_summary || null
   const recentAnswers = data.recent_answers || []
   const latestScan = data.latest_scan || null
   const hasData = brands.length > 0
@@ -762,6 +779,18 @@ export default function CategoryClient({ slug }: { slug: string }) {
                 <span>Completed {shortDate(latestScan.completed_at)}</span>
               </span>
             )}
+          </div>
+        )}
+
+        {aiTrafficSummary && num(aiTrafficSummary.captured_topic_count) > 0 && (
+          <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-divider-light bg-canvas px-4 py-3 text-[12px] text-ink-3">
+            <span className="font-semibold text-ink">AI demand signals</span>
+            <span><strong className="text-ink">{num(aiTrafficSummary.captured_topic_count).toLocaleString()}</strong> topics measured</span>
+            <span><strong className="text-ink">{fmt(aiTrafficSummary.total_ai_traffic_mo)}</strong> estimated AI demand / mo</span>
+            {num(aiTrafficSummary.total_revenue_scale_usd) > 0 && (
+              <span><strong className="text-ink">{money(num(aiTrafficSummary.total_revenue_scale_usd))}</strong> revenue scale</span>
+            )}
+            {aiTrafficSummary.latest_captured_at && <span>Updated {shortDate(aiTrafficSummary.latest_captured_at)}</span>}
           </div>
         )}
 
@@ -922,7 +951,7 @@ export default function CategoryClient({ slug }: { slug: string }) {
               <div className="grid grid-cols-[minmax(280px,1fr)_130px_110px_180px_36px] bg-canvas px-4 py-3 text-[10px] font-bold uppercase tracking-[0.18em] text-ink-3">
                 <span>Topic</span>
                 <span className="text-right">AI Traffic / Mo</span>
-                <span className="text-right">Mentions</span>
+                <span className="text-right">{aiTrafficSummary ? 'Brands' : 'Mentions'}</span>
                 <span>Leader</span>
                 <span />
               </div>
@@ -945,7 +974,7 @@ export default function CategoryClient({ slug }: { slug: string }) {
                       <span className="text-[10px] text-ink-3">US · en</span>
                     </div>
                   </div>
-                  <span className="text-right font-medium text-ink">{fmt(topic.ai_traffic_mo)}</span>
+                  <span className="text-right font-medium text-ink">{topic.traffic_display || fmt(topic.ai_traffic_mo)}</span>
                   <span className="text-right font-medium text-ink">{topic.total_mentions ?? topic.leader_mentions ?? 0}</span>
                   <span className="flex min-w-0 items-center gap-2 font-semibold text-ink">
                     {topic.leader_brand ? (
