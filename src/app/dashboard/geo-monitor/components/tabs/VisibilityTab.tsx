@@ -138,7 +138,9 @@ export function VisibilityTab() {
             subtitle={
               (!ctx.scanResult?.share_of_voice || Object.keys(ctx.scanResult.share_of_voice ?? {}).length === 0)
                 ? 'Add competitors to enable'
-                : 'vs listed competitors'
+                : ctx.scanResult?.has_discovered_brands
+                  ? 'vs auto-discovered brands'
+                  : 'vs listed competitors'
             }
             color={METRIC_COLORS.sov.color}
             bgColor={METRIC_COLORS.sov.bgColor}
@@ -230,6 +232,7 @@ export function VisibilityTab() {
                       <td className="px-4 py-3 text-sm font-medium text-ink">
                         {comp.name}
                         {isOwnBrand && <span className="ml-2 text-[10px] px-1.5 py-0.5 bg-surface-warm text-ink-2 rounded-full font-semibold">You</span>}
+                        {!isOwnBrand && comp.is_discovered && <span className="ml-2 text-[10px] px-1.5 py-0.5 bg-sage/10 text-sage rounded-full font-semibold">Discovered</span>}
                       </td>
                       <td className="px-4 py-3 text-sm text-right font-mono font-medium text-ink">{formatPct(comp.visibility_pct)}</td>
                       <td className="px-4 py-3 text-sm text-right font-mono text-ink-2">{formatNum(comp.avg_position_score)}</td>
@@ -256,7 +259,11 @@ export function VisibilityTab() {
               <BarChart3 className="w-4 h-4 text-caution" />
               Mention Share
             </h4>
-            <p className="text-xs text-ink-3 mb-4">Brand mentions vs listed competitors across all AI responses</p>
+            <p className="text-xs text-ink-3 mb-4">
+              {ctx.scanResult?.has_discovered_brands
+                ? 'Auto-discovered brands from AI responses — add them in settings to track over time'
+                : 'Brand mentions vs listed competitors across all AI responses'}
+            </p>
             {sovSegments.length > 0 ? (
               <DonutChart segments={sovSegments} centerLabel={`${sovSegments.reduce((s, seg) => s + seg.value, 0).toFixed(0)}%`} />
             ) : (

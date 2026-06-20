@@ -443,6 +443,8 @@ export interface CompetitorVisibility {
   avg_position_score: number;
   key_phrases: string[];
   positioning: string;
+  // Auto-discovered (no manual competitor config required)
+  is_discovered?: boolean;
 }
 
 // ── Sprint 5: Weighted SOV ──────────────────────────────
@@ -788,6 +790,8 @@ export interface MonitorScanResult {
   avg_ordinal_rank?: number | null;
   // Sprint 5: Weighted SOV
   weighted_sov?: WeightedSOVData;
+  // Auto-discovered brands (no manual competitor config required)
+  has_discovered_brands?: boolean;
 }
 
 export interface PromptMetrics {
