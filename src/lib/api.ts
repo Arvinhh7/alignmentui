@@ -17,6 +17,30 @@ export function resolveApiBaseUrl(value = configuredApiBaseUrl) {
 
 export const API_BASE_URL = resolveApiBaseUrl()
 
+// ─────────────────────────────────────────────────────────────
+// Central auth token (P0a) — mirrors the Supabase access token so that
+// standalone fetch helpers (customersApi, proxyApi, connectionsApi, …) and the
+// fetchWithRetry wrapper can attach `Authorization: Bearer <jwt>` exactly like
+// the APIClient singleton does. Kept in sync by setAuthFromSession().
+// ─────────────────────────────────────────────────────────────
+let _authToken: string | null = null
+
+export function setAuthToken(token: string | null) {
+  _authToken = token
+}
+
+export function getAuthToken(): string | null {
+  return _authToken
+}
+
+/** Build request headers with the current Bearer token attached. */
+export function authHeaders(extra?: Record<string, string>): Record<string, string> {
+  const h: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (_authToken) h['Authorization'] = `Bearer ${_authToken}`
+  if (extra) Object.assign(h, extra)
+  return h
+}
+
 function xhrFetch(input: string, init: RequestInit = {}): Promise<Response> {
   return new Promise((resolve, reject) => {
     if (typeof XMLHttpRequest === 'undefined') {
@@ -94,6 +118,18 @@ export async function fetchWithRetry(
   const method = (init.method || 'GET').toUpperCase();
   // Only idempotent reads retry. Mutations run exactly once (no double-submit).
   const retryable = method === 'GET' || method === 'HEAD';
+
+  // P0a safety net: attach the Bearer token for backend API requests unless the
+  // caller already set an Authorization header. Covers every fetchWithRetry call
+  // site so none can silently fall back to the (spoofable) ?user_id= param once
+  // strict JWT mode is enabled on the backend.
+  if (_authToken && (input.startsWith(API_BASE_URL + '/api/') || input.startsWith('/api/'))) {
+    const existing = new Headers(init.headers as HeadersInit | undefined);
+    if (!existing.has('Authorization')) {
+      existing.set('Authorization', `Bearer ${_authToken}`);
+      init = { ...init, headers: existing };
+    }
+  }
   const callerSignal = init.signal as AbortSignal | undefined;
   const deadline = Date.now() + (retryable ? budgetMs : 0);
   let attempt = 0;
@@ -1998,7 +2034,7 @@ class APIClient {
     try {
       const res = await fetch(`${this.baseUrl}/api/distribution/reddit-strategy-progressive`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(data),
         signal,
       });
@@ -2135,7 +2171,7 @@ class APIClient {
   async generateContent(body: ContentGenerateRequest, signal?: AbortSignal, userId?: string) {
     const qs = userId ? `?user_id=${userId}` : '';
     return this.request<ContentGenerateResult>(`/api/content/generate${qs}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: authHeaders(),
       body: JSON.stringify(body), signal,
     });
   }
@@ -2143,7 +2179,7 @@ class APIClient {
   async validateContent(body: { content_type: string; article_content: string }, userId?: string) {
     const qs = userId ? `?user_id=${userId}` : '';
     return this.request<ContentValidateResult>(`/api/content/validate${qs}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: authHeaders(),
       body: JSON.stringify(body),
     });
   }
@@ -2162,7 +2198,7 @@ class APIClient {
   async updateContentTemplate(contentType: string, template: ContentTemplate) {
     return this.request<ContentTemplate>(`/api/content/templates/${contentType}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify(template),
     });
   }
@@ -2172,7 +2208,7 @@ class APIClient {
   async onboardingSuggestTopics(data: { brand_name: string; domain?: string; industry?: string }) {
     return this.request<{ topics: { topic: string; description: string }[] }>('/api/onboarding/suggest-topics', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify(data),
     });
   }
@@ -2180,7 +2216,7 @@ class APIClient {
   async onboardingGeneratePrompts(data: { brand_name: string; topics: string[] }) {
     return this.request<{ topic_prompts: Record<string, { prompt_text: string; intent: string }[]>; total_count: number }>('/api/onboarding/generate-prompts', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify(data),
     });
   }
@@ -2188,7 +2224,7 @@ class APIClient {
   async onboardingSuggestCompetitors(data: { brand_name: string; domain?: string; topics?: string[] }) {
     return this.request<{ competitors: { brand_name: string; domain: string; reason: string }[] }>('/api/onboarding/suggest-competitors', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify(data),
     });
   }
@@ -2214,7 +2250,7 @@ class APIClient {
       result_explanation: string;
     }>('/api/roi/calculate', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify(data),
     });
   }
@@ -2229,7 +2265,7 @@ class APIClient {
   }) {
     return this.request<{ checkout_url: string }>('/api/stripe/create-checkout-session', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify(params),
     });
   }
@@ -2242,7 +2278,7 @@ class APIClient {
   ) {
     return this.request<{ portal_url: string }>('/api/stripe/create-portal-session', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ user_id, user_email, target_plan, billing_interval }),
     });
   }
@@ -2252,7 +2288,7 @@ class APIClient {
       '/api/stripe/sync-checkout-session',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(params),
       }
     );
@@ -2275,7 +2311,7 @@ class APIClient {
       '/api/stripe/cancel-subscription',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({ user_id }),
       }
     );
@@ -2286,7 +2322,7 @@ class APIClient {
       '/api/stripe/reactivate-subscription',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({ user_id }),
       }
     );
@@ -2297,7 +2333,7 @@ class APIClient {
       '/api/stripe/upgrade-subscription',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({ user_id, target_plan, billing_interval }),
       }
     );
@@ -2306,7 +2342,7 @@ class APIClient {
   async adminResetCredits(user_id: string) {
     return this.request<CreditBalance>('/api/stripe/admin/reset-credits', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ user_id }),
     });
   }
@@ -2314,7 +2350,7 @@ class APIClient {
   async adminGrantCredits(user_id: string, amount: number) {
     return this.request<CreditBalance>('/api/stripe/admin/grant-credits', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ user_id, amount }),
     });
   }
@@ -2322,7 +2358,7 @@ class APIClient {
   async adminResetUser(user_id: string) {
     return this.request<{ success: boolean; message: string }>('/api/stripe/admin/reset-user', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ user_id }),
     });
   }
@@ -2332,7 +2368,7 @@ class APIClient {
   async ga4Connect(params: { brand_id: string; ga4_property_id: string; service_account_json: string }) {
     return this.request<{ success: boolean; connection_id: string }>('/api/ga4/connect', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify(params),
     });
   }
@@ -2386,7 +2422,7 @@ class APIClient {
   async ga4LogOptimizationEvent(params: { brand_id: string; event_type: string; event_date: string; description?: string }) {
     return this.request<{ success: boolean }>('/api/ga4/optimization-event', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify(params),
     });
   }
@@ -2406,7 +2442,7 @@ class APIClient {
   }) {
     return this.request<{ success: boolean }>('/api/ga4/roi-estimate', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify(estimate),
     });
   }
@@ -2627,7 +2663,7 @@ async function opsGet<T>(path: string): Promise<T> {
 async function opsPost<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${OPS_BASE}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify(body),
   })
   if (!res.ok) throw new Error(await res.text())
@@ -2637,7 +2673,7 @@ async function opsPost<T>(path: string, body: unknown): Promise<T> {
 async function opsPatch<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${OPS_BASE}${path}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify(body),
   })
   if (!res.ok) throw new Error(await res.text())
@@ -2916,7 +2952,7 @@ export const connectionsApi = {
   test: async (req: TestConnectionRequest): Promise<ConnectionTestResult> => {
     const r = await fetch(`${API_BASE_URL}/api/connections/test`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify(req),
     })
     if (!r.ok) throw new Error(await r.text())
@@ -2926,7 +2962,7 @@ export const connectionsApi = {
   create: async (req: CreateConnectionRequest, userId: string): Promise<WebsiteConnection> => {
     const r = await fetch(`${API_BASE_URL}/api/connections?user_id=${encodeURIComponent(userId)}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify(req),
     })
     if (!r.ok) throw new Error(await r.text())
@@ -2934,7 +2970,9 @@ export const connectionsApi = {
   },
 
   list: async (userId: string): Promise<WebsiteConnection[]> => {
-    const r = await fetch(`${API_BASE_URL}/api/connections?user_id=${encodeURIComponent(userId)}`)
+    const r = await fetch(`${API_BASE_URL}/api/connections?user_id=${encodeURIComponent(userId)}`, {
+      headers: authHeaders(),
+    })
     if (!r.ok) throw new Error(await r.text())
     return r.json()
   },
@@ -2942,7 +2980,7 @@ export const connectionsApi = {
   remove: async (connectionId: string, userId: string): Promise<void> => {
     const r = await fetch(
       `${API_BASE_URL}/api/connections/${connectionId}?user_id=${encodeURIComponent(userId)}`,
-      { method: 'DELETE' }
+      { method: 'DELETE', headers: authHeaders() }
     )
     if (!r.ok) throw new Error(await r.text())
   },
@@ -2950,7 +2988,7 @@ export const connectionsApi = {
   reverify: async (connectionId: string, userId: string): Promise<WebsiteConnection> => {
     const r = await fetch(
       `${API_BASE_URL}/api/connections/${connectionId}/verify?user_id=${encodeURIComponent(userId)}`,
-      { method: 'POST' }
+      { method: 'POST', headers: authHeaders() }
     )
     if (!r.ok) throw new Error(await r.text())
     return r.json()
@@ -3079,7 +3117,7 @@ export const fixApi = {
       `${API_BASE_URL}/api/fixes/plan?user_id=${encodeURIComponent(req.user_id)}`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(req),
       }
     )
@@ -3093,7 +3131,7 @@ export const fixApi = {
       `${API_BASE_URL}/api/fixes/apply?user_id=${encodeURIComponent(req.user_id)}`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(req),
       }
     )
@@ -3118,7 +3156,7 @@ export const fixApi = {
       `${API_BASE_URL}/api/fixes/verify?user_id=${encodeURIComponent(userId)}`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({ plan_id: planId, check_id: checkId, site_url: siteUrl, user_id: userId }),
       }
     )
@@ -3160,13 +3198,13 @@ export const fixApi = {
 // Export singleton instance
 export const api = new APIClient(API_BASE_URL);
 
-// Helper function to set auth token from Supabase session
+// Helper function to set auth token from Supabase session.
+// Syncs BOTH the APIClient singleton and the module-level _authToken so that
+// standalone fetch helpers and fetchWithRetry attach the same Bearer token.
 export const setAuthFromSession = (session: { access_token: string } | null) => {
-  if (session?.access_token) {
-    api.setToken(session.access_token);
-  } else {
-    api.setToken(null);
-  }
+  const token = session?.access_token ?? null;
+  api.setToken(token);
+  setAuthToken(token);
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -3311,7 +3349,9 @@ export interface ProxyAnalytics {
 
 export const proxyApi = {
   listDomains: async (userId: string): Promise<ProxyDomain[]> => {
-    const r = await fetch(`${API_BASE_URL}/api/proxy/domains?user_id=${encodeURIComponent(userId)}`)
+    const r = await fetch(`${API_BASE_URL}/api/proxy/domains?user_id=${encodeURIComponent(userId)}`, {
+      headers: authHeaders(),
+    })
     if (!r.ok) throw new Error(await r.text())
     return r.json()
   },
@@ -3319,7 +3359,7 @@ export const proxyApi = {
   createDomain: async (userId: string, domain: string, originUrl: string, proxyMode: 'full' | 'sidecar' = 'full'): Promise<ProxyDomain> => {
     const r = await fetch(`${API_BASE_URL}/api/proxy/domains?user_id=${encodeURIComponent(userId)}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ domain, origin_url: originUrl, proxy_mode: proxyMode }),
     })
     if (!r.ok) {
@@ -3330,7 +3370,9 @@ export const proxyApi = {
   },
 
   getDomain: async (domainId: string, userId: string): Promise<ProxyDomain> => {
-    const r = await fetch(`${API_BASE_URL}/api/proxy/domains/${domainId}?user_id=${encodeURIComponent(userId)}`)
+    const r = await fetch(`${API_BASE_URL}/api/proxy/domains/${domainId}?user_id=${encodeURIComponent(userId)}`, {
+      headers: authHeaders(),
+    })
     if (!r.ok) throw new Error(await r.text())
     return r.json()
   },
@@ -3338,7 +3380,7 @@ export const proxyApi = {
   updateDomain: async (domainId: string, userId: string, updates: Partial<ProxyDomain>): Promise<ProxyDomain> => {
     const r = await fetch(`${API_BASE_URL}/api/proxy/domains/${domainId}?user_id=${encodeURIComponent(userId)}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify(updates),
     })
     if (!r.ok) throw new Error(await r.text())
@@ -3348,18 +3390,23 @@ export const proxyApi = {
   deleteDomain: async (domainId: string, userId: string): Promise<void> => {
     const r = await fetch(`${API_BASE_URL}/api/proxy/domains/${domainId}?user_id=${encodeURIComponent(userId)}`, {
       method: 'DELETE',
+      headers: authHeaders(),
     })
     if (!r.ok && r.status !== 204) throw new Error(await r.text())
   },
 
   getDomainStatus: async (domainId: string, userId: string): Promise<ProxyDomainStatus> => {
-    const r = await fetch(`${API_BASE_URL}/api/proxy/domains/${domainId}/status?user_id=${encodeURIComponent(userId)}`)
+    const r = await fetch(`${API_BASE_URL}/api/proxy/domains/${domainId}/status?user_id=${encodeURIComponent(userId)}`, {
+      headers: authHeaders(),
+    })
     if (!r.ok) throw new Error(await r.text())
     return r.json()
   },
 
   getAssets: async (domainId: string, userId: string): Promise<ProxyAllAssets> => {
-    const r = await fetch(`${API_BASE_URL}/api/proxy/domains/${domainId}/assets?user_id=${encodeURIComponent(userId)}`)
+    const r = await fetch(`${API_BASE_URL}/api/proxy/domains/${domainId}/assets?user_id=${encodeURIComponent(userId)}`, {
+      headers: authHeaders(),
+    })
     if (!r.ok) throw new Error(await r.text())
     return r.json()
   },
@@ -3374,7 +3421,7 @@ export const proxyApi = {
       `${API_BASE_URL}/api/proxy/domains/${domainId}/assets/${moduleType}?user_id=${encodeURIComponent(userId)}`,
       {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({ content }),
       },
     )
@@ -3385,7 +3432,7 @@ export const proxyApi = {
   sync: async (domainId: string, userId: string): Promise<ProxySyncResult> => {
     const r = await fetch(
       `${API_BASE_URL}/api/proxy/domains/${domainId}/sync?user_id=${encodeURIComponent(userId)}`,
-      { method: 'POST' },
+      { method: 'POST', headers: authHeaders() },
     )
     if (!r.ok) throw new Error(await r.text())
     return r.json()
@@ -3394,6 +3441,7 @@ export const proxyApi = {
   getAnalytics: async (domainId: string, userId: string, days = 30): Promise<ProxyAnalytics> => {
     const r = await fetch(
       `${API_BASE_URL}/api/proxy/domains/${domainId}/analytics?user_id=${encodeURIComponent(userId)}&days=${days}`,
+      { headers: authHeaders() },
     )
     if (!r.ok) throw new Error(await r.text())
     return r.json()
@@ -3406,7 +3454,7 @@ export const proxyApi = {
   autoFill: async (domainId: string, userId: string): Promise<ProxyAutoFillResult> => {
     const r = await fetch(
       `${API_BASE_URL}/api/proxy/domains/${domainId}/auto-fill?user_id=${encodeURIComponent(userId)}`,
-      { method: 'POST' },
+      { method: 'POST', headers: authHeaders() },
     )
     if (!r.ok) {
       const err = await r.json().catch(() => ({ detail: 'Auto-fill failed' }))
@@ -3418,6 +3466,7 @@ export const proxyApi = {
   verifyDomain: async (domainId: string, userId: string, quick = false): Promise<ProxyVerifyResult> => {
     const r = await fetch(
       `${API_BASE_URL}/api/proxy/domains/${domainId}/verify?user_id=${encodeURIComponent(userId)}&quick=${quick}`,
+      { headers: authHeaders() },
     )
     if (!r.ok) {
       const err = await r.json().catch(() => ({ detail: 'Verification failed' }))
@@ -3510,7 +3559,7 @@ export const adminApi = {
       `${API_BASE_URL}/api/domain-check?user_id=${encodeURIComponent(userId)}`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({ domain }),
       },
     )
@@ -3538,7 +3587,7 @@ export const adminApi = {
   ): Promise<ProxyTokenInfo> => {
     const r = await fetch(`${API_BASE_URL}/api/admin/proxy-tokens`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ shop, tier, label: label ?? '' }),
     })
     if (!r.ok) {
@@ -3627,7 +3676,7 @@ export const customersApi = {
       `${API_BASE_URL}/api/customers?user_id=${encodeURIComponent(userId)}`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(data),
       },
     )
@@ -3654,7 +3703,7 @@ export const customersApi = {
       `${API_BASE_URL}/api/customers/${encodeURIComponent(customerId)}?user_id=${encodeURIComponent(userId)}`,
       {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(data),
       },
     )
@@ -3668,7 +3717,7 @@ export const customersApi = {
   archive: async (customerId: string, userId: string): Promise<{ ok: boolean }> => {
     const r = await fetch(
       `${API_BASE_URL}/api/customers/${encodeURIComponent(customerId)}?user_id=${encodeURIComponent(userId)}`,
-      { method: 'DELETE' },
+      { method: 'DELETE', headers: authHeaders() },
     )
     if (!r.ok) {
       const err = await r.json().catch(() => ({ detail: 'Failed to archive customer' }))
@@ -3693,7 +3742,7 @@ export const customersApi = {
       `${API_BASE_URL}/api/customers/${encodeURIComponent(customerId)}/import-scans?user_id=${encodeURIComponent(userId)}`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({ scans }),
       },
     )
