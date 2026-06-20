@@ -515,13 +515,18 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
 
   // ── Filtered scan history ───────────────────────
   const filteredScanHistory = useMemo(() => {
-    if (filterTimeRange === 'all') return scanHistory
+    const modelScopedHistory = scanHistory.filter(s => {
+      if (!filterModel || filterModel === 'all') return true
+      const engines = s.engines_used ?? []
+      return engines.length === 0 || engines.includes(filterModel)
+    })
+    if (filterTimeRange === 'all') return modelScopedHistory
     const daysMap: Record<string, number> = { '7d': 7, '30d': 30, '90d': 90 }
     const days = daysMap[filterTimeRange] || 0
-    if (!days) return scanHistory
+    if (!days) return modelScopedHistory
     const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
-    return scanHistory.filter(s => s.date >= cutoff)
-  }, [scanHistory, filterTimeRange])
+    return modelScopedHistory.filter(s => s.date >= cutoff)
+  }, [scanHistory, filterTimeRange, filterModel])
 
   const metricTrends = useMemo(() => {
     if (filteredScanHistory.length < 2) return null
@@ -740,6 +745,15 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
           // entry.date is undefined and fmtDate(...).split('T') crashes the page.
           const normalized: ScanHistoryEntry[] = (data.scan_history_summary as unknown[]).map((row) => {
             const r = row as Record<string, unknown>
+            const resultJson = r.result_json && typeof r.result_json === 'object'
+              ? r.result_json as Record<string, unknown>
+              : null
+            const rawEngines = r.engines_used ?? resultJson?.engines_used
+            const enginesUsed = Array.isArray(rawEngines)
+              ? rawEngines.map(String).filter(Boolean)
+              : typeof rawEngines === 'string' && rawEngines.trim()
+                ? rawEngines.split(',').map(engine => engine.trim()).filter(Boolean)
+                : ['chatgpt']
             return {
               scan_id:          String(r.scan_id ?? ''),
               date:             String(r.date ?? r.scanned_at ?? ''),
@@ -748,6 +762,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
               total_prompts:    Number(r.total_prompts ?? 0),
               citation_count:   Number(r.citation_count ?? 0),
               positive_pct:     Number(r.positive_pct ?? r.sentiment_positive ?? 0),
+              engines_used:      enginesUsed,
             }
           }).filter(e => e.date)  // drop any row without a usable date
           const latestScan = data.latest_scan ? normalizeScanResult(data.latest_scan) : null

@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
-import { Loader2, LineChart, Eye, MessageSquare, Link2, ThumbsUp, Users, UserCircle2 } from 'lucide-react'
+import { Loader2, LineChart, Eye, MessageSquare, Link2, ThumbsUp, Users, UserCircle2, Lock } from 'lucide-react'
 import { UnifiedProvider, useUnified, type TabKey } from '../geo-monitor/components/UnifiedContext'
 import { DateRangeControls } from '../geo-monitor/components/ControlBar'
 
@@ -21,9 +21,29 @@ const SentimentTab   = dynamic(() => import('../geo-monitor/components/tabs/Sent
 const CompetitorsTab = dynamic(() => import('../geo-monitor/components/tabs/CompetitorsTab').then(m => ({ default: m.CompetitorsTab })), { loading: TabLoader })
 const PersonasTab    = dynamic(() => import('../geo-monitor/components/tabs/PersonasTab').then(m => ({ default: m.PersonasTab })),       { loading: TabLoader })
 
+const ANALYSIS_MODELS = [
+  { key: 'chatgpt', label: 'ChatGPT' },
+  { key: 'perplexity', label: 'Perplexity' },
+  { key: 'gemini', label: 'Gemini' },
+  { key: 'claude', label: 'Claude' },
+] as const
+
 function AnalysisContent() {
   const ctx = useUnified()
   const router = useRouter()
+  const { filterModel, setFilterModel } = ctx
+  const normalizedPlan = String(ctx.promptQuota.plan || 'starter').toLowerCase()
+  const starterLocked = normalizedPlan === 'starter' || normalizedPlan === 'trial'
+  const allowedModels = useMemo(
+    () => starterLocked ? ['chatgpt'] : ANALYSIS_MODELS.map(model => model.key),
+    [starterLocked],
+  )
+
+  useEffect(() => {
+    if (!allowedModels.includes(filterModel as typeof allowedModels[number])) {
+      setFilterModel('chatgpt')
+    }
+  }, [allowedModels, filterModel, setFilterModel])
 
   useEffect(() => {
     if (ctx.customerHydrating) return
@@ -101,6 +121,38 @@ function AnalysisContent() {
           </div>
           <div className="px-1">
             <DateRangeControls />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-surface border border-divider-light rounded-xl px-4 py-3">
+          <div>
+            <div className="text-xs uppercase tracking-wider text-ink-3 font-semibold">AI Model</div>
+            <div className="text-sm text-ink-3">Metrics recalculate for the selected model.</div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {ANALYSIS_MODELS.map(model => {
+              const enabled = allowedModels.includes(model.key)
+              const selected = filterModel === model.key
+              return (
+                <button
+                  key={model.key}
+                  type="button"
+                  disabled={!enabled}
+                  onClick={() => enabled && setFilterModel(model.key)}
+                  title={enabled ? `View ${model.label} metrics` : 'Starter includes ChatGPT only. Upgrade to unlock this model.'}
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold transition-all ${
+                    selected
+                      ? 'border-ink bg-ink text-ink-inv'
+                      : enabled
+                        ? 'border-divider bg-canvas text-ink-2 hover:bg-surface-warm'
+                        : 'cursor-not-allowed border-divider-light bg-surface-muted text-ink-3 opacity-55'
+                  }`}
+                >
+                  {model.label}
+                  {!enabled && <Lock className="h-3.5 w-3.5" />}
+                </button>
+              )
+            })}
           </div>
         </div>
 

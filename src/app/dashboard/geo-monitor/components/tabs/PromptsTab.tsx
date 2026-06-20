@@ -3,7 +3,6 @@
 import { useState, useMemo } from 'react'
 import { Tag, Plus, Edit2, Trash2, Save, X, Download, Loader2, Square, CheckCircle, AlertCircle, Filter, Search, StopCircle, PauseCircle, PlayCircle } from 'lucide-react'
 import { useUnified } from '../UnifiedContext'
-import { formatPct } from '../shared/ChartComponents'
 import { CATEGORY_LABEL_MAP, CATEGORY_COLORS, INTENT_COLORS, autoClassify } from '../shared/constants'
 
 const COUNTRY_LABELS: Record<string, string> = {
@@ -51,7 +50,7 @@ function clampPct(value: number | null | undefined) {
   return Math.max(0, Math.min(100, Number(value)))
 }
 
-function promptAigvrScore(prompt: {
+function promptAiVolume(prompt: {
   scan_count?: number | null
   last_scanned_at?: string | null
   last_mentioned?: boolean | null
@@ -65,10 +64,10 @@ function promptAigvrScore(prompt: {
   const citationPresence =
     (prompt.last_quality_score ?? 0) > 0 || (prompt.last_mention_count ?? 0) > 0 ? 100 : 0
 
-  // Weights total 90%, so normalize to a full 0-100 score.
-  return clampPct(
+  // Weights total 90%, so normalize to a whole-number 0-100 product score.
+  return Math.round(clampPct(
     ((visibilityLevel * 0.4) + (mentionFrequency * 0.25) + (citationPresence * 0.25)) / 0.9,
-  )
+  ))
 }
 
 function promptStatus(prompt: { is_active: boolean; scan_count?: number | null; last_scanned_at?: string | null }) {
@@ -149,13 +148,13 @@ export function PromptsTab() {
 
   // ── CSV export ─────────────────────────────────────────
   const exportCSV = () => {
-    const headers = ['Prompt', 'Intent', 'AIGVR Score', 'Avg Position', 'Sentiment', 'Status', 'Enabled', 'Country']
+    const headers = ['Prompt', 'Intent', 'AI Volume', 'Avg Position', 'Sentiment', 'Status', 'Enabled', 'Country']
     const rows = displayPrompts.map(p => [
       p.template,
       p.intent || '',
       (() => {
-        const score = promptAigvrScore(p)
-        return score == null ? '' : score.toFixed(1)
+        const score = promptAiVolume(p)
+        return score == null ? '' : String(score)
       })(),
       hasPromptMention(p) ? String(p.last_position_score ?? '') : '',
       hasPromptMention(p) ? (p.last_sentiment || '') : 'not_mentioned',
@@ -511,9 +510,9 @@ export function PromptsTab() {
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Intent</th>
                   <th
                     className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-right"
-                    title="AI Generated Visibility Rate, 0-100%. Weighted from visibility level (40%), mention frequency (25%), and citation presence (25%), normalized to 100%."
+                    title="AI Volume, 0-100. Weighted from visibility level (40%), mention frequency (25%), and citation presence (25%)."
                   >
-                    AIGVR Score
+                    AI Volume
                   </th>
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">Avg Position</th>
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Sentiment</th>
@@ -528,7 +527,7 @@ export function PromptsTab() {
                   const intentConfig = INTENT_COLORS[prompt.intent] || INTENT_COLORS[prompt.category]
                   const hasScan = hasPromptScan(prompt)
                   const hasMention = hasPromptMention(prompt)
-                  const aigvrScore = hasScan ? promptAigvrScore(prompt) : null
+                  const aiVolume = hasScan ? promptAiVolume(prompt) : null
                   const avgPos = hasMention ? prompt.last_position_score : null
                   const sentimentState = !hasScan ? 'pending' : hasMention ? 'mentioned' : 'not_mentioned'
                   const isToggling = ctx.togglingPromptId === prompt.id
@@ -568,19 +567,19 @@ export function PromptsTab() {
                         )}
                       </td>
 
-                      {/* AIGVR Score */}
+                      {/* AI Volume */}
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <div className="w-16 h-1.5 bg-surface-warm rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all duration-700 ${
-                                (aigvrScore ?? 0) >= 60 ? 'bg-sage' : (aigvrScore ?? 0) >= 30 ? 'bg-caution' : 'bg-red-soft'
+                                (aiVolume ?? 0) >= 60 ? 'bg-sage' : (aiVolume ?? 0) >= 30 ? 'bg-caution' : 'bg-red-soft'
                               }`}
-                              style={{ width: `${Math.min(aigvrScore ?? 0, 100)}%` }}
+                              style={{ width: `${Math.min(aiVolume ?? 0, 100)}%` }}
                             />
                           </div>
                           <span className="text-xs font-mono font-medium text-ink">
-                            {aigvrScore == null ? '—' : formatPct(aigvrScore)}
+                            {aiVolume == null ? '—' : aiVolume}
                           </span>
                         </div>
                       </td>
