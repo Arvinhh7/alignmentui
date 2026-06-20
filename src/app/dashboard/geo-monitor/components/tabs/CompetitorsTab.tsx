@@ -183,11 +183,30 @@ export function CompetitorsTab() {
     return map
   }, [brandConfig])
 
-  // Ordered brand list for consistent color assignment
+  // ── SOV source selection ────────────────────────────
+  // A scan carries two distinct competitor data paths:
+  //   1. weighted_sov   — position×prominence SOV, computed ONLY from the
+  //                       competitors the user configured. Drives Prompt/Sourcing SOV.
+  //   2. share_of_voice — simple count-based SOV. When NO competitors are configured,
+  //                       the backend auto-discovers brands from the AI responses and
+  //                       writes them here (has_discovered_brands=true).
+  // The Overview tab (VisibilityTab) reads share_of_voice, so when brands were
+  // auto-discovered we read it here too — otherwise Overall SOV would show only the
+  // own brand (weighted_sov has no competitors) and disagree with Overview.
   const wsov: WeightedSOVData | undefined = scanResult.weighted_sov
+  const usingDiscovered =
+    !!scanResult.has_discovered_brands &&
+    Object.keys(scanResult.share_of_voice ?? {}).length > 1
+
+  const overallSov: Record<string, number> = usingDiscovered
+    ? (scanResult.share_of_voice ?? {})
+    : (wsov?.overall_sov ?? scanResult.share_of_voice ?? {})
+
   const orderedBrands = useMemo(() => {
-    if (wsov?.overall_sov) {
-      return Object.entries(wsov.overall_sov)
+    const source = usingDiscovered ? (scanResult.share_of_voice ?? {}) : (wsov?.overall_sov ?? {})
+    const entries = Object.entries(source)
+    if (entries.length) {
+      return entries
         .sort(([a, aShare], [b, bShare]) => {
           if (Math.abs(aShare - bShare) < 0.01) {
             if (a === brandConfig.brand_name) return -1
@@ -198,12 +217,13 @@ export function CompetitorsTab() {
         .map(([brand]) => brand)
     }
     return [brandConfig.brand_name, ...brandConfig.competitors]
-  }, [wsov, brandConfig])
+  }, [wsov, brandConfig, usingDiscovered, scanResult.share_of_voice])
 
-  // Fallback: if no weighted_sov, use simple share_of_voice
-  const overallSov: Record<string, number> = wsov?.overall_sov ?? scanResult.share_of_voice ?? {}
   const maxShare = Math.max(...Object.values(overallSov), 0.01)
-  const hasWeightedSov = !!wsov
+  // The "weighted" path is only truly active for configured competitors. In the
+  // auto-discovered case the per-prompt / per-domain weighted breakdowns don't
+  // exist, so treat Overall SOV as a count-based (non-weighted) result.
+  const hasWeightedSov = !!wsov && !usingDiscovered
 
   const sovSegments = useMemo(() =>
     orderedBrands
@@ -226,8 +246,19 @@ export function CompetitorsTab() {
         </div>
       )}
 
-      {/* ── Old scan banner (no weighted_sov) ──────────── */}
-      {!hasWeightedSov && (
+      {/* ── Auto-discovered brands note ────────────────── */}
+      {usingDiscovered && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface border border-divider text-ink-3 text-sm">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0 text-caution" />
+          <span>
+            Showing brands <strong className="text-ink-2">auto-discovered</strong> from AI responses (count-based share — same brands as the Overview tab).
+            Add competitors in <strong className="text-ink-2">brand settings</strong> to unlock weighted <strong className="text-ink-2">Prompt SOV</strong> and <strong className="text-ink-2">Sourcing SOV</strong>.
+          </span>
+        </div>
+      )}
+
+      {/* ── Old scan banner (no weighted_sov at all) ───── */}
+      {!wsov && !usingDiscovered && (
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface border border-divider text-ink-3 text-sm">
           <AlertTriangle className="w-4 h-4 flex-shrink-0 text-caution" />
           <span>
@@ -271,22 +302,27 @@ export function CompetitorsTab() {
       )}
 
       {/* ═══ Prompt SOV ════════════════════════════════════ */}
+      {/* Weighted per-prompt data only exists for configured competitors. In the
+          auto-discovered case force the empty state instead of a table that would
+          show discovered brand columns with no weights. */}
       {ctx.competitorsSubTab === 'prompt_sov' && (
         <PromptSOVTab
-          perPrompt={wsov?.per_prompt ?? []}
+          perPrompt={usingDiscovered ? [] : (wsov?.per_prompt ?? [])}
           orderedBrands={orderedBrands}
           brandName={brandConfig.brand_name}
           brandDomainMap={brandDomainMap}
+          needsCompetitors={usingDiscovered}
         />
       )}
 
       {/* ═══ Sourcing SOV ══════════════════════════════════ */}
       {ctx.competitorsSubTab === 'sourcing_sov' && (
         <SourcingSOVTab
-          perDomain={wsov?.per_domain ?? []}
+          perDomain={usingDiscovered ? [] : (wsov?.per_domain ?? [])}
           orderedBrands={orderedBrands}
           brandName={brandConfig.brand_name}
           brandDomainMap={brandDomainMap}
+          needsCompetitors={usingDiscovered}
         />
       )}
     </div>
@@ -387,12 +423,13 @@ function OverallSOVTab({
 
 // ─── Prompt SOV sub-tab ───────────────────────────────
 function PromptSOVTab({
-  perPrompt, orderedBrands, brandName, brandDomainMap,
+  perPrompt, orderedBrands, brandName, brandDomainMap, needsCompetitors = false,
 }: {
   perPrompt: PromptSOVEntry[]
   orderedBrands: string[]
   brandName: string
   brandDomainMap: Record<string, string>
+  needsCompetitors?: boolean
 }) {
   if (!perPrompt.length) {
     return (
@@ -400,7 +437,9 @@ function PromptSOVTab({
         <Hash className="w-10 h-10 text-ink-3 mx-auto mb-3 opacity-40" />
         <p className="text-sm font-medium text-ink-3 mb-1">No prompt-level data</p>
         <p className="text-xs text-ink-3">
-          This scan predates weighted SOV. Click <strong>Scan</strong> to run a fresh scan and populate per-prompt data.
+          {needsCompetitors
+            ? <>Per-prompt SOV weighs your brand against named competitors. Add competitors in <strong>brand settings</strong>, then run a scan to populate this view.</>
+            : <>This scan predates weighted SOV. Click <strong>Scan</strong> to run a fresh scan and populate per-prompt data.</>}
         </p>
       </div>
     )
@@ -516,12 +555,13 @@ function PromptSOVTab({
 
 // ─── Sourcing SOV sub-tab ─────────────────────────────
 function SourcingSOVTab({
-  perDomain, orderedBrands, brandName, brandDomainMap,
+  perDomain, orderedBrands, brandName, brandDomainMap, needsCompetitors = false,
 }: {
   perDomain: DomainSOVEntry[]
   orderedBrands: string[]
   brandName: string
   brandDomainMap: Record<string, string>
+  needsCompetitors?: boolean
 }) {
   if (!perDomain.length) {
     return (
@@ -529,7 +569,9 @@ function SourcingSOVTab({
         <Globe className="w-10 h-10 text-ink-3 mx-auto mb-3 opacity-40" />
         <p className="text-sm font-medium text-ink-3 mb-1">No sourcing data</p>
         <p className="text-xs text-ink-3">
-          This scan predates weighted SOV, or no citation URLs were returned. Click <strong>Scan</strong> to generate domain-level data.
+          {needsCompetitors
+            ? <>Sourcing SOV compares competitors across citation sources. Add competitors in <strong>brand settings</strong>, then run a scan to populate this view.</>
+            : <>This scan predates weighted SOV, or no citation URLs were returned. Click <strong>Scan</strong> to generate domain-level data.</>}
         </p>
       </div>
     )

@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
-import { Loader2, LineChart, Eye, MessageSquare, Link2, ThumbsUp, Users, UserCircle2, Lock } from 'lucide-react'
+import { Loader2, LineChart, Eye, MessageSquare, Link2, ThumbsUp, Users, Lock } from 'lucide-react'
 import { UnifiedProvider, useUnified, type TabKey } from '../geo-monitor/components/UnifiedContext'
 import { DateRangeControls } from '../geo-monitor/components/ControlBar'
 
@@ -19,7 +19,8 @@ const MentionsTab    = dynamic(() => import('../geo-monitor/components/tabs/Ment
 const CitationsTab   = dynamic(() => import('../geo-monitor/components/tabs/CitationsTab').then(m => ({ default: m.CitationsTab })),     { loading: TabLoader })
 const SentimentTab   = dynamic(() => import('../geo-monitor/components/tabs/SentimentTab').then(m => ({ default: m.SentimentTab })),     { loading: TabLoader })
 const CompetitorsTab = dynamic(() => import('../geo-monitor/components/tabs/CompetitorsTab').then(m => ({ default: m.CompetitorsTab })), { loading: TabLoader })
-const PersonasTab    = dynamic(() => import('../geo-monitor/components/tabs/PersonasTab').then(m => ({ default: m.PersonasTab })),       { loading: TabLoader })
+// Persona tab archived 2026-06-20 — hidden from UI pending a clearer purpose.
+// Component file (tabs/PersonasTab.tsx) is kept intact for future revival.
 
 const ANALYSIS_MODELS = [
   { key: 'chatgpt', label: 'ChatGPT' },
@@ -66,11 +67,10 @@ function AnalysisContent() {
     { key: 'citations',   label: 'Citations',     icon: <Link2 className="w-4 h-4" /> },
     { key: 'sentiment',   label: 'Sentiment',     icon: <ThumbsUp className="w-4 h-4" /> },
     { key: 'competitors', label: 'Competitors',   icon: <Users className="w-4 h-4" />, badge: ctx.scanResult?.suggested_brands?.length ? `${ctx.scanResult.suggested_brands.length}` : undefined },
-    { key: 'personas',    label: 'Persona',       icon: <UserCircle2 className="w-4 h-4" /> },
   ]
 
   // Default to 'visibility' on first load
-  const activeTab = (['mentions', 'citations', 'sentiment', 'competitors', 'personas'] as TabKey[]).includes(ctx.activeTab)
+  const activeTab = (['mentions', 'citations', 'sentiment', 'competitors'] as TabKey[]).includes(ctx.activeTab)
     ? ctx.activeTab
     : 'visibility'
 
@@ -162,7 +162,6 @@ function AnalysisContent() {
         {activeTab === 'citations'   && <CitationsTab />}
         {activeTab === 'sentiment'   && <SentimentTab />}
         {activeTab === 'competitors' && <CompetitorsTab />}
-        {activeTab === 'personas'    && <PersonasTab />}
       </div>
     </div>
   )
