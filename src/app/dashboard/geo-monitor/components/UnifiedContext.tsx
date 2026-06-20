@@ -288,6 +288,7 @@ interface UnifiedState {
 
   // Customer mode (admin)
   activeCustomerId: string | null
+  userId: string | null
   customerHydrating: boolean
   customers: CustomerSummary[]
   switchCustomer: (customerId: string) => void
@@ -1084,7 +1085,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     try {
       const res = await api.runAdvancedMentionAnalysis({ brand_name: brandConfig.brand_name, domain: brandConfig.domain, keywords: brandConfig.keywords, competitors: brandConfig.competitors }, ctrl.signal, user?.id)
       if (res.error === '__ABORTED__') { setIsRunningAdvMentions(false); return }
-      if (res.error) { setAdvMentionsError(res.error) } else if (res.data) { setAdvancedMentions(res.data); if (!activeCustomerId) localStorage.setItem(ADV_MENTIONS_KEY, JSON.stringify(res.data)); if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'advanced_mentions', res.data).catch(() => {}) }
+      if (res.error) { setAdvMentionsError(res.error) } else if (res.data) { setAdvancedMentions(res.data); if (!activeCustomerId) localStorage.setItem(ADV_MENTIONS_KEY, JSON.stringify(res.data)); if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'advanced_mentions', res.data, user?.id).catch(() => {}) }
     } catch (e: any) { if (e.name !== 'AbortError') setAdvMentionsError(e.message || 'Auto advanced analysis failed') }
     advMentionsAbortRef.current = null; setIsRunningAdvMentions(false)
   }
@@ -1231,7 +1232,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     try {
       const res = await api.runGapAnalysis({ brand_name: brandConfig.brand_name, domain: brandConfig.domain, keywords: brandConfig.keywords, competitors: brandConfig.competitors }, controller.signal, user?.id)
       if (res.error === '__ABORTED__') { setIsRunningGap(false); return }
-      if (res.error) { setGapError(res.error) } else if (res.data) { setGapResult(res.data); if (!activeCustomerId) localStorage.setItem(GAP_RESULTS_KEY, JSON.stringify(res.data)); if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'gap', res.data).catch(() => {}); notifyCreditUsed() }
+      if (res.error) { setGapError(res.error) } else if (res.data) { setGapResult(res.data); if (!activeCustomerId) localStorage.setItem(GAP_RESULTS_KEY, JSON.stringify(res.data)); if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'gap', res.data, user?.id).catch(() => {}); notifyCreditUsed() }
     } catch (e: any) { if (e.name !== 'AbortError') setGapError(e.message || 'Gap analysis failed') }
     gapAbortRef.current = null; setIsRunningGap(false)
   }
@@ -1247,7 +1248,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     try {
       const res = await api.runAdvancedMentionAnalysis({ brand_name: brandConfig.brand_name, domain: brandConfig.domain, keywords: brandConfig.keywords, competitors: brandConfig.competitors }, controller.signal, user?.id)
       if (res.error === '__ABORTED__') { setIsRunningAdvMentions(false); return }
-      if (res.error) { setAdvMentionsError(res.error) } else if (res.data) { setAdvancedMentions(res.data); if (!activeCustomerId) localStorage.setItem(ADV_MENTIONS_KEY, JSON.stringify(res.data)); if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'advanced_mentions', res.data).catch(() => {}); notifyCreditUsed() }
+      if (res.error) { setAdvMentionsError(res.error) } else if (res.data) { setAdvancedMentions(res.data); if (!activeCustomerId) localStorage.setItem(ADV_MENTIONS_KEY, JSON.stringify(res.data)); if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'advanced_mentions', res.data, user?.id).catch(() => {}); notifyCreditUsed() }
     } catch (e: any) { if (e.name !== 'AbortError') setAdvMentionsError(e.message || 'Analysis failed') }
     advMentionsAbortRef.current = null; setIsRunningAdvMentions(false)
   }
@@ -1264,7 +1265,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     try {
       const res = await api.generateIntelReport({ brand_name: brandConfig.brand_name, domain: brandConfig.domain, keywords: brandConfig.keywords, competitors: brandConfig.competitors }, controller.signal, user?.id)
       if (res.error === '__ABORTED__') { setIsGeneratingReport(false); return }
-      if (res.error) { setReportError(res.error) } else if (res.data) { setIntelReport(res.data); if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'intel', res.data).catch(() => {}); notifyCreditUsed() }
+      if (res.error) { setReportError(res.error) } else if (res.data) { setIntelReport(res.data); if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'intel', res.data, user?.id).catch(() => {}); notifyCreditUsed() }
     } catch (e: any) { if (e.name !== 'AbortError') setReportError(e.message || 'Report generation failed') }
     reportAbortRef.current = null; setIsGeneratingReport(false)
   }
@@ -1274,7 +1275,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   // Save → DB (monitor_analysis_cache 'ai_research'); hydrated by getLatest on load.
   const saveAiResearch = useCallback((result: Record<string, unknown>) => {
     setAiResearchResult(result)
-    if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'ai_research', result).catch(() => {})
+    if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'ai_research', result, user?.id).catch(() => {})
   }, [activeCustomerId])
   const clearAiResearch = useCallback(() => setAiResearchResult(null), [])
 
@@ -1536,7 +1537,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     promptFilter, setPromptFilter, filterTopic, setFilterTopic, filteredPrompts,
     selectedPromptIds, togglePromptSelect, toggleSelectAllPrompts,
     handleBatchDelete, cancelBatchDelete, handleUpgradePromptPlan, isBatchDeleting, batchConfirmStep,
-    activeCustomerId, customerHydrating, customers, switchCustomer,
+    activeCustomerId, userId: user?.id ?? null, customerHydrating, customers, switchCustomer,
     warehouseLoaded, lastRefreshed,
     savedSnapshots, saveSnapshot,
     activeTab, setActiveTab,

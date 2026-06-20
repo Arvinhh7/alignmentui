@@ -1842,23 +1842,26 @@ class APIClient {
     }>(`/api/monitor/engines${qs}`);
   }
 
-  async getQueryFanouts(customerId: string, promptId?: string) {
+  async getQueryFanouts(customerId: string, promptId?: string, userId?: string) {
     const params = new URLSearchParams({ customer_id: customerId });
     if (promptId) params.set('prompt_id', promptId);
+    if (userId) params.set('user_id', userId);
     return this.request<{ ok: boolean; rows: QueryFanoutRow[]; error?: string }>(
       `/api/monitor/query-fanouts?${params.toString()}`,
     );
   }
 
-  async saveQueryFanouts(customerId: string, rows: QueryFanoutRow[]) {
-    return this.request<{ ok: boolean; upserted?: number; error?: string }>('/api/monitor/query-fanouts', {
+  async saveQueryFanouts(customerId: string, rows: QueryFanoutRow[], userId?: string) {
+    const qs = userId ? `?user_id=${encodeURIComponent(userId)}` : '';
+    return this.request<{ ok: boolean; upserted?: number; error?: string }>(`/api/monitor/query-fanouts${qs}`, {
       method: 'POST',
       body: JSON.stringify({ customer_id: customerId, rows }),
     });
   }
 
-  async getLatestAIResearchRun(customerId: string) {
+  async getLatestAIResearchRun(customerId: string, userId?: string) {
     const params = new URLSearchParams({ customer_id: customerId });
+    if (userId) params.set('user_id', userId);
     return this.request<{ ok: boolean; run: AIResearchRun | null; error?: string }>(
       `/api/monitor/ai-research/runs/latest?${params.toString()}`,
     );
@@ -1869,8 +1872,9 @@ class APIClient {
     brand_config: Record<string, unknown>;
     prompts: Array<{ id?: string; template: string; category?: string; intent?: string | null }>;
     engines?: string[];
-  }) {
-    return this.request<{ ok: boolean; run?: AIResearchRun; error?: string }>('/api/monitor/ai-research/runs', {
+  }, userId?: string) {
+    const qs = userId ? `?user_id=${encodeURIComponent(userId)}` : '';
+    return this.request<{ ok: boolean; run?: AIResearchRun; error?: string }>(`/api/monitor/ai-research/runs${qs}`, {
       method: 'POST',
       body: JSON.stringify(payload),
     });
@@ -1881,8 +1885,9 @@ class APIClient {
    * analysisType: 'gap' | 'intel' | 'advanced_mentions'
    * Fire-and-forget — non-fatal if it fails (result still shows in-session).
    */
-  async saveAnalysisCache(customerId: string, analysisType: string, resultJson: unknown) {
-    return this.request<{ ok: boolean }>('/api/monitor/analysis-cache', {
+  async saveAnalysisCache(customerId: string, analysisType: string, resultJson: unknown, userId?: string) {
+    const qs = userId ? `?user_id=${encodeURIComponent(userId)}` : '';
+    return this.request<{ ok: boolean }>(`/api/monitor/analysis-cache${qs}`, {
       method: 'POST',
       body: JSON.stringify({ customer_id: customerId, analysis_type: analysisType, result_json: resultJson }),
     });

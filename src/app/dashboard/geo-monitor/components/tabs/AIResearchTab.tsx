@@ -607,7 +607,7 @@ export function AIResearchTab() {
     }, 5000)
     setLoading(true)
     setError('')
-    api.getLatestAIResearchRun(ctx.activeCustomerId)
+    api.getLatestAIResearchRun(ctx.activeCustomerId, ctx.userId ?? undefined)
       .then(res => {
         if (cancelled) return
         setRun(res.data?.run ?? null)
@@ -640,7 +640,7 @@ export function AIResearchTab() {
           intent: p.intent,
         })),
         engines: ctx.availableEngines.length ? ctx.availableEngines : ['chatgpt', 'perplexity'],
-      })
+      }, ctx.userId ?? undefined)
       if (res.error || !res.data?.run) {
         setError(res.error || res.data?.error || 'AI Research run failed')
       } else {
