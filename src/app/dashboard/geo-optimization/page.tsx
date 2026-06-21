@@ -408,6 +408,100 @@ function MarkdownLite({ text }: { text: string }) {
 }
 
 // ─── Fix Preview Modal — code = terminal editor, content = readable document ──
+// ─── Dependency-free code highlighter ──────────────────
+// Tokenises a line into typed spans (no innerHTML → no XSS). Covers the langs a
+// GEO code fix actually produces after the file-driven classification: HTML/XML
+// <head> tags, JSON-LD schema, robots.txt / sitemap. Prose (llms.txt) is content
+// and renders via MarkdownLite instead, so it never reaches here.
+type CodeTok = { type: string; text: string }
+
+const TOK_COLOR: Record<string, string> = {
+  comment: '#6b7280', tag: '#79c0ff', attr: '#d2a8ff', string: '#a5d6ff',
+  number: '#f0883e', literal: '#ff7b72', key: '#7ee787', url: '#a5d6ff',
+  punct: '#8b949e', plain: '#c9d1d9',
+}
+
+// All rules are ^-anchored and exec'd against the remaining slice, so the next
+// token must start exactly at the cursor (no sticky `y` flag — that needs an ES6
+// tsc target; the project targets ES5).
+const LANG_RULES: Record<string, Array<[string, RegExp]>> = {
+  json: [
+    ['key', /^"(?:\\.|[^"\\])*"(?=\s*:)/],
+    ['string', /^"(?:\\.|[^"\\])*"/],
+    ['number', /^-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/],
+    ['literal', /^(?:true|false|null)\b/],
+    ['punct', /^[{}[\],:]/],
+  ],
+  html: [
+    ['comment', /^<!--.*?-->/],
+    ['tag', /^<\/?[a-zA-Z][\w:-]*/],
+    ['tag', /^\/?>/],
+    ['string', /^"[^"]*"|^'[^']*'/],
+    ['attr', /^[a-zA-Z_:][\w:.-]*(?=\s*=)/],
+  ],
+  robots: [
+    ['comment', /^#.*/],
+    ['key', /^(?:User-agent|Allow|Disallow|Sitemap|Crawl-delay|Host)(?=\s*:)/i],
+    ['url', /^https?:\/\/\S+/],
+    ['number', /^\d+/],
+  ],
+  text: [
+    ['comment', /^#.*/],
+    ['url', /^https?:\/\/\S+/],
+  ],
+}
+
+function detectLang(code: string): string {
+  const c = code.replace(/^\s*\/\*[\s\S]*?\*\/\s*/, '').trim() // drop the /* Target file */ header
+  if (/<[a-zA-Z!/]/.test(c)) return 'html'
+  if (/^[[{]/.test(c) || /^\s*"[^"]+"\s*:/m.test(c)) return 'json'
+  if (/(?:User-agent|Disallow|Allow|Sitemap)\s*:/i.test(c)) return 'robots'
+  return 'text'
+}
+
+function tokenizeLine(line: string, lang: string): CodeTok[] {
+  const rules = LANG_RULES[lang] || []
+  const out: CodeTok[] = []
+  let i = 0
+  while (i < line.length) {
+    const rest = line.slice(i)
+    let matched = false
+    for (const [type, re] of rules) {
+      const m = re.exec(rest)
+      if (m && m[0].length > 0) {
+        out.push({ type, text: m[0] })
+        i += m[0].length
+        matched = true
+        break
+      }
+    }
+    if (!matched) {
+      const last = out[out.length - 1]
+      if (last && last.type === 'plain') last.text += line[i]
+      else out.push({ type: 'plain', text: line[i] })
+      i++
+    }
+  }
+  return out
+}
+
+function HighlightedCode({ code }: { code: string }) {
+  const lang = detectLang(code)
+  const lines = code.split('\n')
+  return (
+    <>
+      {lines.map((line, li) => (
+        <span key={li}>
+          {tokenizeLine(line, lang).map((tok, ti) => (
+            <span key={ti} style={{ color: TOK_COLOR[tok.type] || TOK_COLOR.plain, fontStyle: tok.type === 'comment' ? 'italic' : undefined }}>{tok.text}</span>
+          ))}
+          {li < lines.length - 1 ? '\n' : ''}
+        </span>
+      ))}
+    </>
+  )
+}
+
 function CodePreview({ code, title, kind = 'code', onClose }: { code: string; title: string; kind?: 'code' | 'content'; onClose: () => void }) {
   const isContent = kind === 'content'
   const [editableCode, setEditableCode] = useState(code)
@@ -542,7 +636,7 @@ function CodePreview({ code, title, kind = 'code', onClose }: { code: string; ti
               <textarea
                 value={editableCode}
                 onChange={e => setEditableCode(e.target.value)}
-                className="w-full min-h-[50vh] bg-ink text-green-400 p-4 pl-16 text-sm font-mono leading-[1.7] outline-none resize-none"
+                className="w-full min-h-[50vh] bg-ink text-[#c9d1d9] p-4 pl-16 text-sm font-mono leading-[1.7] outline-none resize-none whitespace-pre"
                 spellCheck={false}
               />
             </div>
@@ -556,8 +650,8 @@ function CodePreview({ code, title, kind = 'code', onClose }: { code: string; ti
                   ))}
                 </div>
               </div>
-              <pre className="bg-ink text-green-400 p-4 pl-16 text-sm font-mono leading-[1.7] overflow-x-auto whitespace-pre-wrap min-h-[50vh]">
-                {editableCode}
+              <pre className="bg-ink text-[#c9d1d9] p-4 pl-16 text-sm font-mono leading-[1.7] overflow-x-auto whitespace-pre min-h-[50vh]">
+                <HighlightedCode code={editableCode} />
               </pre>
             </div>
           )}
