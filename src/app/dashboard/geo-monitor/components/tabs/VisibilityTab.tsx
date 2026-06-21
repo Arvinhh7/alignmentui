@@ -16,7 +16,31 @@ import {
   formatPct,
   formatNum,
 } from '../shared/ChartComponents'
-import { METRIC_COLORS, POSITIONING_LABELS } from '../shared/constants'
+import { METRIC_COLORS } from '../shared/constants'
+import { BrandLogo } from '@/components/BrandLogo'
+import { guessBrandDomain } from '../shared/brandDomain'
+
+// Sentiment as a 5-bar signal-strength indicator (green positive / red negative /
+// grey neutral), driven by avg_sentiment_score in [-1, 1].
+function SentimentBars({ score }: { score: number }) {
+  const filled = Math.max(1, Math.min(5, Math.round(((score + 1) / 2) * 5)))
+  const color = score > 0.05 ? 'var(--sage, #4A7C59)' : score < -0.05 ? 'var(--red-soft, #C0392B)' : 'var(--ink-3, #9b9b97)'
+  const label = score > 0.05 ? 'Positive' : score < -0.05 ? 'Negative' : 'Neutral'
+  return (
+    <span className="inline-flex items-end gap-[2px] h-4 align-middle" title={`${label} (${score.toFixed(2)})`}>
+      {[0, 1, 2, 3, 4].map(i => (
+        <span
+          key={i}
+          className="w-[3px] rounded-sm"
+          style={{
+            height: `${6 + i * 2.5}px`,
+            backgroundColor: i < filled ? color : 'var(--surface-warm, #ece8e1)',
+          }}
+        />
+      ))}
+    </span>
+  )
+}
 
 export function VisibilityTab() {
   const ctx = useUnified()
@@ -218,28 +242,27 @@ export function VisibilityTab() {
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Rank</th>
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-left">Brand</th>
                   <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">Visibility</th>
-                  <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">Mention Quality</th>
-                  <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">Positioning</th>
+                  <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-center">Sentiment</th>
+                  <th className="px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">Position</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-divider-light">
                 {competitorRanking.map((comp, idx) => {
-                  const posInfo = POSITIONING_LABELS[comp.positioning] ?? POSITIONING_LABELS.unknown
                   const isOwnBrand = comp.name.toLowerCase() === ctx.brandConfig.brand_name.toLowerCase()
                   return (
                     <tr key={idx} className={`hover:bg-surface-warm transition-colors ${isOwnBrand ? 'bg-canvas' : ''}`}>
                       <td className="px-4 py-3 text-sm font-mono font-bold text-ink-2">#{idx + 1}</td>
                       <td className="px-4 py-3 text-sm font-medium text-ink">
-                        {comp.name}
-                        {isOwnBrand && <span className="ml-2 text-[10px] px-1.5 py-0.5 bg-surface-warm text-ink-2 rounded-full font-semibold">You</span>}
-                        {!isOwnBrand && comp.is_discovered && <span className="ml-2 text-[10px] px-1.5 py-0.5 bg-sage/10 text-sage rounded-full font-semibold">Discovered</span>}
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <BrandLogo domain={guessBrandDomain(comp.name)} name={comp.name} size={22} />
+                          <span className="truncate" title={comp.name}>{comp.name}</span>
+                          {isOwnBrand && <span className="flex-shrink-0 text-[10px] px-1.5 py-0.5 bg-surface-warm text-ink-2 rounded-full font-semibold">You</span>}
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-right font-mono font-medium text-ink">{formatPct(comp.visibility_pct)}</td>
-                      <td className="px-4 py-3 text-sm text-right font-mono text-ink-2">{formatNum(comp.avg_position_score)}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${posInfo.color}`}>
-                          {posInfo.icon} {posInfo.label}
-                        </span>
+                      <td className="px-4 py-3 text-center"><SentimentBars score={comp.avg_sentiment_score ?? 0} /></td>
+                      <td className="px-4 py-3 text-sm text-right font-mono text-ink-2">
+                        {comp.avg_ordinal_position != null ? comp.avg_ordinal_position.toFixed(1) : '—'}
                       </td>
                     </tr>
                   )

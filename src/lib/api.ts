@@ -511,6 +511,7 @@ export interface CompetitorVisibility {
   // Phase 2 enhancements
   mention_types: Record<string, number>;
   avg_position_score: number;
+  avg_ordinal_position?: number | null;   // avg 1-based list rank (lower = better); null = unranked
   key_phrases: string[];
   positioning: string;
   // Auto-discovered (no manual competitor config required)

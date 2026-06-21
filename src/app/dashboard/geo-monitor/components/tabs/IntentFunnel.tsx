@@ -1,8 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import Link from 'next/link'
-import { ArrowRight, AlertTriangle } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
 import { INTENT_FUNNEL, INTENT_CONTENT_MAP } from '../shared/constants'
 import type { MonitorScanResult, MonitorPrompt, PromptMetrics } from '@/lib/api'
 
@@ -151,23 +150,6 @@ export function IntentFunnel({ prompts, scanResult }: Props) {
                       <span className="text-[10px] text-ink-3 z-10 italic">no prompts at this stage</span>
                     )}
                   </div>
-                </div>
-
-                {/* Action / percentage */}
-                <div className="flex-shrink-0 w-24 text-right">
-                  {stage.contentLink && stage.total > 0 ? (
-                    <Link
-                      href={stage.contentLink}
-                      className="text-[11px] font-medium text-red-soft hover:text-red-soft/80 flex items-center gap-0.5 justify-end transition-colors"
-                    >
-                      Create Content
-                      <ArrowRight className="w-2.5 h-2.5" />
-                    </Link>
-                  ) : (
-                    <span className="text-[10px] text-ink-3">
-                      {stage.total === 0 ? 'Add prompts' : stage.pct >= 60 ? '✓ Strong' : ''}
-                    </span>
-                  )}
                 </div>
               </div>
 
