@@ -331,12 +331,12 @@ export function PromptsTab() {
                 Your active prompts are generic discovery queries. Add at least one prompt that directly references the brand to match the Analysis recommendation.
               </p>
               <div className="mt-2 rounded-lg bg-caution-bg px-3 py-2 text-xs font-mono">
-                Try: <strong>&ldquo;What is {'{brand}'}?&rdquo;</strong> or <strong>&ldquo;Tell me about {'{brand}'}&apos;s features&rdquo;</strong>
+                Try: <strong>&ldquo;What is {brandPromptDiagnostic.brand}?&rdquo;</strong> or <strong>&ldquo;Tell me about {brandPromptDiagnostic.brand}&apos;s features&rdquo;</strong>
               </div>
             </div>
             <button
               onClick={() => {
-                ctx.setNewPromptForm({ template: 'What is {brand}?' })
+                ctx.setNewPromptForm({ template: `What is ${brandPromptDiagnostic.brand}?` })
                 ctx.setShowAddPrompt(true)
                 ctx.setPromptError('')
               }}
