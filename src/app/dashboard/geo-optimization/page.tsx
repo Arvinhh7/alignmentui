@@ -352,30 +352,58 @@ function renderInline(text: string): React.ReactNode {
 function MarkdownLite({ text }: { text: string }) {
   const blocks: React.ReactNode[] = []
   let list: string[] = []
-  const flush = (key: string) => {
-    if (list.length) {
-      blocks.push(
-        <ul key={key} className="list-disc pl-5 space-y-1 my-2">
-          {list.map((li, i) => (
-            <li key={i} className="text-ink-2 text-[15px] leading-relaxed">{renderInline(li)}</li>
-          ))}
-        </ul>
-      )
-      list = []
-    }
+  let table: string[] = []
+  const flushList = (key: string) => {
+    if (!list.length) return
+    blocks.push(
+      <ul key={key} className="list-disc pl-5 space-y-1 my-2">
+        {list.map((li, i) => (
+          <li key={i} className="text-ink-2 text-[15px] leading-relaxed">{renderInline(li)}</li>
+        ))}
+      </ul>
+    )
+    list = []
   }
+  const flushTable = (key: string) => {
+    if (!table.length) return
+    const isSep = (r: string) => /^\|[\s\-:|]+\|$/.test(r)
+    const cells = (r: string) => r.replace(/^\||\|$/g, '').split('|').map(c => c.trim())
+    const rows = table.filter(r => !isSep(r))
+    const header = rows[0] ? cells(rows[0]) : []
+    const body = rows.slice(1)
+    blocks.push(
+      <div key={key} className="my-3 overflow-x-auto">
+        <table className="w-full text-[14px] border-collapse">
+          {header.length > 0 && (
+            <thead>
+              <tr>{header.map((h, i) => <th key={i} className="text-left font-semibold text-ink border-b border-divider py-1.5 pr-4">{renderInline(h)}</th>)}</tr>
+            </thead>
+          )}
+          <tbody>
+            {body.map((r, ri) => (
+              <tr key={ri}>{cells(r).map((c, ci) => <td key={ci} className="text-ink-2 border-b border-divider-light py-1.5 pr-4 align-top">{renderInline(c)}</td>)}</tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
+    table = []
+  }
+  const flushAll = (key: string) => { flushList(`${key}l`); flushTable(`${key}t`) }
+
   text.split('\n').forEach((raw, idx) => {
     const line = raw.trimEnd()
-    if (/^###\s+/.test(line)) { flush(`f${idx}`); blocks.push(<h3 key={idx} className="text-sm font-bold text-ink mt-4 mb-1">{renderInline(line.replace(/^###\s+/, ''))}</h3>) }
-    else if (/^##\s+/.test(line)) { flush(`f${idx}`); blocks.push(<h2 key={idx} className="text-base font-bold text-ink mt-5 mb-1.5">{renderInline(line.replace(/^##\s+/, ''))}</h2>) }
-    else if (/^#\s+/.test(line)) { flush(`f${idx}`); blocks.push(<h1 key={idx} className="text-lg font-bold text-ink mt-2 mb-2">{renderInline(line.replace(/^#\s+/, ''))}</h1>) }
-    else if (/^[-*]\s+/.test(line)) { list.push(line.replace(/^[-*]\s+/, '')) }
-    else if (/^[-—]{3,}$/.test(line)) { flush(`f${idx}`); blocks.push(<hr key={idx} className="my-4 border-divider-light" />) }
-    else if (/^>\s+/.test(line)) { flush(`f${idx}`); blocks.push(<blockquote key={idx} className="border-l-2 border-caution/40 pl-3 my-2 text-ink-2 text-[15px] italic">{renderInline(line.replace(/^>\s+/, ''))}</blockquote>) }
-    else if (line.trim() === '') { flush(`f${idx}`) }
-    else { flush(`f${idx}`); blocks.push(<p key={idx} className="text-ink-2 text-[15px] leading-relaxed my-1.5">{renderInline(line)}</p>) }
+    if (/^\|.*\|$/.test(line.trim())) { flushList(`l${idx}`); table.push(line.trim()) }
+    else if (/^###\s+/.test(line)) { flushAll(`f${idx}`); blocks.push(<h3 key={idx} className="text-sm font-bold text-ink mt-4 mb-1">{renderInline(line.replace(/^###\s+/, ''))}</h3>) }
+    else if (/^##\s+/.test(line)) { flushAll(`f${idx}`); blocks.push(<h2 key={idx} className="text-base font-bold text-ink mt-5 mb-1.5">{renderInline(line.replace(/^##\s+/, ''))}</h2>) }
+    else if (/^#\s+/.test(line)) { flushAll(`f${idx}`); blocks.push(<h1 key={idx} className="text-lg font-bold text-ink mt-2 mb-2">{renderInline(line.replace(/^#\s+/, ''))}</h1>) }
+    else if (/^[-*]\s+/.test(line)) { flushTable(`t${idx}`); list.push(line.replace(/^[-*]\s+/, '')) }
+    else if (/^[-—]{3,}$/.test(line)) { flushAll(`f${idx}`); blocks.push(<hr key={idx} className="my-4 border-divider-light" />) }
+    else if (/^>\s+/.test(line)) { flushAll(`f${idx}`); blocks.push(<blockquote key={idx} className="border-l-2 border-caution/40 pl-3 my-2 text-ink-2 text-[15px] italic">{renderInline(line.replace(/^>\s+/, ''))}</blockquote>) }
+    else if (line.trim() === '') { flushAll(`f${idx}`) }
+    else { flushAll(`f${idx}`); blocks.push(<p key={idx} className="text-ink-2 text-[15px] leading-relaxed my-1.5">{renderInline(line)}</p>) }
   })
-  flush('flast')
+  flushAll('flast')
   return <div className="font-sans max-w-2xl">{blocks}</div>
 }
 
