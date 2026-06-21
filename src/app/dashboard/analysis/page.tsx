@@ -127,7 +127,7 @@ function AnalysisContent() {
         <div className="flex flex-wrap items-center justify-between gap-3 bg-surface border border-divider-light rounded-xl px-4 py-3">
           <div>
             <div className="text-xs uppercase tracking-wider text-ink-3 font-semibold">AI Model</div>
-            <div className="text-sm text-ink-3">Metrics recalculate for the selected model.</div>
+            <div className="text-sm text-ink-3">Filters trend history by model. Current scan aggregates all models.</div>
           </div>
           <div className="flex flex-wrap gap-2">
             {ANALYSIS_MODELS.map(model => {
