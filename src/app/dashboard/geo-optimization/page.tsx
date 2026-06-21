@@ -965,7 +965,14 @@ export default function GEOOptimizationPage() {
     if (!result) throw new Error('No optimization result loaded')
     const response = await api.generateCheckFix(result.url, checkId, user?.id)
     if (response.error || !response.data) {
-      throw new Error(response.error || 'Fix generation failed')
+      const raw = response.error || 'Fix generation failed'
+      // __ABORTED__ (client timeout) or an AI-capacity error → show a calm,
+      // actionable message instead of a raw gateway string. The POST is charged
+      // only on success, so re-clicking is safe.
+      const busy = raw === '__ABORTED__' || /overload|timed out|timeout|exhausted|busy/i.test(raw)
+      throw new Error(busy
+        ? 'AI service is busy right now — please click Generate again in a moment.'
+        : raw)
     }
     notifyCreditUsed()
     const plan = response.data
