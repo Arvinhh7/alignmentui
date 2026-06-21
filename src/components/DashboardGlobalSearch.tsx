@@ -52,6 +52,7 @@ const HIDDEN_LAUNCH_PATH_PREFIXES = [
   '/dashboard/geo-content',
   '/dashboard/geo-distribution',
   '/dashboard/agentic-commerce',
+  '/dashboard/visibility-proxy',
 ]
 
 const MODULE_RESULTS: SearchResult[] = [
@@ -62,7 +63,6 @@ const MODULE_RESULTS: SearchResult[] = [
   { id: 'module-analysis', type: 'module', title: 'Analysis', subtitle: 'Cross-module reporting and decision support', href: '/dashboard/analysis', icon: LineChart, badge: 'NEW', keywords: ['report', 'analysis', 'insight'], score: 0 },
   { id: 'module-web-infra', type: 'module', title: 'Agent Audit', subtitle: 'Agent audit and technical readiness', href: '/dashboard/geo-audit', icon: ShieldCheck, keywords: ['audit', 'schema', 'technical', 'website'], score: 0 },
   { id: 'module-brand-hub', type: 'module', title: 'Brand Hub', subtitle: 'Brand and domain data management', href: '/dashboard/brand-hub', icon: Database, keywords: ['brand', 'domain', 'entity'], score: 0 },
-  { id: 'module-visibility-proxy', type: 'module', title: 'Visibility Proxy', subtitle: 'AI crawler and proxy visibility infrastructure', href: '/dashboard/visibility-proxy', icon: ExternalLink, badge: 'NEW', keywords: ['proxy', 'crawler', 'bot', 'shopify'], score: 0 },
   { id: 'module-ga4', type: 'module', title: 'GA4 Attribution', subtitle: 'AI traffic and revenue attribution', href: '/dashboard/ga4-attribution', icon: LineChart, keywords: ['ga4', 'analytics', 'attribution', 'roi'], score: 0 },
   { id: 'module-mcp', type: 'module', title: 'MCP Integration', subtitle: 'Connect external MCP tools and agents', icon: Cpu, disabled: true, badge: 'Coming soon', keywords: ['mcp', 'integration', 'tool'], score: 0 },
   { id: 'module-customers', type: 'module', title: 'Customers', subtitle: 'Customer and workspace management', href: '/dashboard/admin/customers', icon: Briefcase, keywords: ['customer', 'workspace', 'client'], score: 0 },
@@ -77,6 +77,7 @@ const ADMIN_PRODUCT_LAB_RESULTS: SearchResult[] = [
   { id: 'module-gci', type: 'module', title: 'GCI', subtitle: 'Growth and commerce intelligence workspace', href: '/dashboard/gci', icon: Activity, badge: 'Admin', keywords: ['gci', 'growth', 'commerce', 'intelligence'], score: 0 },
   { id: 'module-agent', type: 'module', title: 'Agent', subtitle: 'Agent workflow and GEO content product lab', href: '/dashboard/geo-content', icon: Bot, badge: 'Admin', keywords: ['agent', 'geo content', 'automation', 'workflow'], score: 0 },
   { id: 'module-geo-distribute', type: 'module', title: 'GEO Distribute', subtitle: 'Distribution and publishing product lab', href: '/dashboard/geo-distribution', icon: Share2, badge: 'Admin', keywords: ['geo distribute', 'distribution', 'publish', 'syndication'], score: 0 },
+  { id: 'module-visibility-proxy', type: 'module', title: 'Visibility Proxy', subtitle: 'AI crawler and proxy visibility infrastructure', href: '/dashboard/visibility-proxy', icon: ExternalLink, badge: 'Admin', keywords: ['proxy', 'crawler', 'bot', 'shopify'], score: 0 },
 ]
 
 function isLaunchVisibleResult(result: SearchResult): boolean {

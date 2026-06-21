@@ -98,7 +98,6 @@ export const LAUNCH_VISIBLE_FEATURES = new Set<FeatureKey>([
   'geo-audit',
   'geo-optimization',
   'brand-hub',
-  'visibility-proxy',
   'ga4-attribution',
   'prompts',
 ])
@@ -109,6 +108,10 @@ export const LAUNCH_HIDDEN_FEATURES = new Set<FeatureKey>([
   'geo-content',
   'geo-distribution',
   'agentic-commerce',
+  // Internal-only tool — customers have no use for it. admin/staff reach it via
+  // the role short-circuit in hasFeatureAccess / FeatureGate; for a plain `user`
+  // this makes hasPlanFeatureAccess() return false, so a direct URL visit is gated.
+  'visibility-proxy',
 ])
 
 const MIN_PLAN_BY_FEATURE: Partial<Record<FeatureKey, PlanKey>> = {

@@ -209,8 +209,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         { href: '/dashboard/geo-audit',        icon: ShieldCheck, labelKey: 'webInfraNav',       permissionKey: 'geo-audit' },
         { href: '/dashboard/geo-optimization', icon: Zap,          labelKey: 'GEO Optimization' as never, permissionKey: 'geo-optimization' },
         { href: '/dashboard/brand-hub',        icon: Database,   labelKey: 'brandNav',           permissionKey: 'brand-hub' },
-        { href: '/dashboard/visibility-proxy', icon: Plug,       labelKey: 'visibilityProxyNav', permissionKey: 'visibility-proxy', matchPrefix: true, isNew: true, sectionLabel: 'Integrations' },
-        { href: '/dashboard/ga4-attribution',  icon: LineChart,  labelKey: 'GA4 Attribution' as never, permissionKey: 'ga4-attribution' },
+        { href: '/dashboard/ga4-attribution',  icon: LineChart,  labelKey: 'GA4 Attribution' as never, permissionKey: 'ga4-attribution', sectionLabel: 'Integrations' },
         { href: '/dashboard/mcp-integration',  icon: Cpu,        labelKey: 'mcpIntegrationNav', isBeta: true, disabled: true, disabledLabel: 'Coming soon' },
       ],
     },
@@ -225,6 +224,9 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
     { href: '/dashboard/geo-content',      icon: Bot,          labelKey: 'Agent' as never,            permissionKey: 'geo-content',      matchPrefix: true },
     { href: '/dashboard/geo-distribution', icon: Share2,       labelKey: 'GEO Distribute' as never,   permissionKey: 'geo-distribution', matchPrefix: true },
     { href: '/dashboard/agentic-commerce', icon: ShoppingCart, labelKey: 'Agentic Commerce' as never, permissionKey: 'agentic-commerce', matchPrefix: true },
+    // Internal-only: customers don't get the Visibility Proxy. admin sees it here,
+    // staff only if granted in Team Management; user/demo never see it.
+    { href: '/dashboard/visibility-proxy', icon: Plug,         labelKey: 'visibilityProxyNav',        permissionKey: 'visibility-proxy', matchPrefix: true, isNew: true, sectionLabel: 'Integrations' },
     { href: '/dashboard/ops',              icon: Activity,     labelKey: 'Managed Service' as never,  permissionKey: 'ops',              matchPrefix: true, sectionLabel: 'Operations' },
     // ── Admin sub-section (delegatable) ───────────────────────────────
     { href: '/dashboard/admin/customers',  icon: Briefcase,    labelKey: 'Customers' as never,          permissionKey: 'customers',         matchPrefix: true, sectionLabel: 'Admin' },
