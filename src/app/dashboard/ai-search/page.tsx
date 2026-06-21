@@ -31,7 +31,7 @@ function ProfileSnapshot() {
           <BrandLogo domain={ctx.brandConfig.domain} name={ctx.brandConfig.brand_name || 'Brand'} size={40} />
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-[15px] font-bold text-ink">Customer Intelligence Profile</h2>
+              <h2 className="text-[15px] font-bold text-ink">What we’re checking</h2>
               <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${isReady ? 'bg-sage-bg text-sage' : 'bg-caution-bg text-caution'}`}>
                 <CheckCircle2 className="h-3 w-3" />
                 {isReady ? 'Ready' : `${missing.length} fields missing`}
@@ -66,7 +66,7 @@ function AISearchContent() {
           <div>
             <h1 className="heading-dash">AI Research</h1>
             <p className="text-sm text-ink-3">
-              Start from the customer profile, diagnose source and prompt gaps, then send actions into Prompt
+              See whether AI mentions you, where competitors beat you, and which trusted sources cite you
             </p>
           </div>
         </div>

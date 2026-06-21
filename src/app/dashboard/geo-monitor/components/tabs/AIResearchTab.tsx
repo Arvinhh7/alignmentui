@@ -3,58 +3,49 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  AlertCircle,
   ArrowRight,
-  BookOpen,
   CheckCircle2,
-  FlaskConical,
-  GitBranch,
-  Grid3X3,
-  Layers,
+  ExternalLink,
+  Eye,
   Loader2,
   Play,
   RefreshCw,
+  Search,
   Target,
+  TrendingDown,
+  Trophy,
   XCircle,
   Zap,
 } from 'lucide-react'
 import { api, type AIResearchRun, type SmartPrompt } from '@/lib/api'
 import { BrandLogo } from '@/components/BrandLogo'
 import { useUnified } from '../UnifiedContext'
-import { DiscoverTab } from './DiscoverTab'
 
-type Coverage = 'strong' | 'weak' | 'absent'
+// ─── Real-data report shape (v3) ──────────────────────────────────────────────
+// Every field is measured: visibility / standings / prompt-gaps come from the
+// customer's real scan; category sources / source-gaps come from the shared
+// Explore category warehouse. No synthetic numbers.
 
-interface ResearchDimension {
-  id: string
-  label: string
-  sources: number
-  sub_questions: number
-  depth: 'high' | 'medium' | 'low'
-  terms?: string[]
-}
-
-interface ResearchBrand {
+interface Standing {
   name: string
+  is_you: boolean
+  visibility_pct: number
+  share_of_voice_pct: number
+  mentions: number
+}
+
+interface PromptGap {
+  prompt: string
+  competitors: string[]
+  engine: string
+}
+
+interface SourceItem {
   domain: string
-  is_you?: boolean
-}
-
-interface ResearchGap {
-  dimension: string
-  your_coverage: Coverage
-  top_competitor: string
-  top_competitor_domain: string
-  content_type: string
-  priority: 'high' | 'medium' | 'low'
-}
-
-interface ResearchTrailItem {
-  q: string
-  dimension_id: string
-  sources: number
-  mentions: string[]
-  terms: string
+  name: string
+  source_type: string
+  citation_count: number
+  you_cited: boolean
 }
 
 interface ResearchResult {
@@ -63,387 +54,162 @@ interface ResearchResult {
   domain: string
   product_space: string
   market: string
-  audience: string
   engines: string[]
-  summary: {
-    dimensions: number
-    sub_questions: number
-    sources_read: number
-    readiness: number
-  }
-  dimensions: ResearchDimension[]
-  brands: ResearchBrand[]
-  coverage: Record<string, Record<string, Coverage>>
-  trail: {
-    question: string
-    sub_questions: ResearchTrailItem[]
-    final_citation: string
-  }
-  gaps: ResearchGap[]
+  has_scan: boolean
+  scanned_at: string | null
+  category_slug: string | null
+  category_name: string | null
+  visibility: { score: number; mentions_found: number; total_prompts: number; citation_count: number }
+  standings: Standing[]
+  prompt_gaps: PromptGap[]
+  source_gaps: SourceItem[]
+  category_sources: SourceItem[]
+  summary: { prompt_gap_count: number; source_gap_count: number; competitor_count: number; category_source_count: number }
   generated_at: string
 }
 
 function asResearchResult(value: unknown): ResearchResult | null {
   if (!value || typeof value !== 'object') return null
   const obj = value as Partial<ResearchResult>
-  if (!Array.isArray(obj.dimensions) || !Array.isArray(obj.brands) || !obj.summary) return null
+  if (obj.v !== 3 || !obj.visibility || !Array.isArray(obj.standings)) return null
   return obj as ResearchResult
+}
+
+// A run exists but predates the real-data rebuild (old synthetic v2).
+function isStaleRun(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false
+  const v = (value as { v?: number }).v
+  return v !== undefined && v !== 3
+}
+
+function cleanText(value: string | undefined | null, fallback: string) {
+  return String(value ?? '').trim() || fallback
 }
 
 function domainFromName(name: string) {
   return `${name.toLowerCase().replace(/[^a-z0-9]+/g, '')}.com`
 }
 
-function cleanText(value: string | undefined | null, fallback: string) {
-  const cleaned = String(value ?? '').trim()
-  return cleaned || fallback
-}
-
-function buildDefaultPrompts(result: ResearchResult, competitors: string[]): SmartPrompt[] {
-  const brand = cleanText(result.brand_name, 'this brand')
-  const productSpace = cleanText(result.product_space, 'this product category')
-  const market = cleanText(result.market, 'the target market')
-  const audience = cleanText(result.audience, 'buyers')
-  const competitor = competitors.find(c => c.trim().toLowerCase() !== brand.toLowerCase()) || result.gaps?.[0]?.top_competitor || 'top alternatives'
+function buildDefaultPrompts(
+  brand: string,
+  productSpace: string,
+  market: string,
+  audience: string,
+  competitor: string,
+  targetDomain: string,
+  engines: string[],
+): SmartPrompt[] {
   const provenance = {
-    target_domain: result.domain || null,
-    engines: result.engines?.length ? result.engines : ['chatgpt'],
-    why: 'Auto-created after AI Research so the first customer scan has a measurable baseline.',
+    target_domain: targetDomain || null,
+    engines: engines.length ? engines : ['chatgpt'],
+    why: 'Auto-created after AI Research so the first scan has a measurable baseline.',
   }
-
   return [
-    {
-      template: `What is ${brand} and what problem does it solve for ${audience} looking for ${productSpace}?`,
-      intent: 'info_cognition',
-      layer: 'foundation',
-      provenance,
-    },
-    {
-      template: `What are the best ${productSpace} options for ${audience} in ${market}?`,
-      intent: 'solution_explore',
-      layer: 'foundation',
-      provenance,
-    },
-    {
-      template: `How does ${brand} compare with ${competitor} for ${productSpace}?`,
-      intent: 'comparison_decision',
-      layer: 'gap',
-      provenance,
-    },
-    {
-      template: `Should I choose ${brand} for ${productSpace}, and what trusted sources support that decision?`,
-      intent: 'action_choice',
-      layer: 'gap',
-      provenance,
-    },
+    { template: `What is ${brand} and what problem does it solve for ${audience} looking for ${productSpace}?`, intent: 'info_cognition', layer: 'foundation', provenance },
+    { template: `What are the best ${productSpace} options for ${audience} in ${market}?`, intent: 'solution_explore', layer: 'foundation', provenance },
+    { template: `How does ${brand} compare with ${competitor} for ${productSpace}?`, intent: 'comparison_decision', layer: 'gap', provenance },
+    { template: `Should I choose ${brand} for ${productSpace}, and what trusted sources support that?`, intent: 'action_choice', layer: 'gap', provenance },
   ]
 }
 
-function BlockHeader({ icon: Icon, title, question, number }: {
-  icon: React.ElementType
+// ─── Small building blocks ────────────────────────────────────────────────────
+
+function SectionCard({ title, hint, icon: Icon, children }: {
   title: string
-  question: string
-  number: number
+  hint?: string
+  icon: React.ElementType
+  children: React.ReactNode
 }) {
   return (
-    <div className="flex items-start gap-4 mb-5">
-      <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-ink text-ink-inv text-[12px] font-bold">
-        {number}
-      </div>
-      <div className="flex items-start gap-3 flex-1">
+    <div className="bg-surface rounded-2xl border border-divider-light p-6">
+      <div className="flex items-start gap-3 mb-4">
         <div className="w-9 h-9 rounded-xl bg-sage-bg flex items-center justify-center flex-shrink-0">
           <Icon className="w-4.5 h-4.5 text-sage" strokeWidth={1.8} />
         </div>
         <div>
           <h3 className="text-[15px] font-bold text-ink leading-tight">{title}</h3>
-          <p className="text-[12px] text-ink-3 mt-0.5 italic">"{question}"</p>
+          {hint && <p className="text-[12px] text-ink-3 mt-0.5">{hint}</p>}
         </div>
       </div>
+      {children}
     </div>
   )
 }
 
-function CoverageIcon({ coverage }: { coverage: Coverage }) {
-  if (coverage === 'strong') return <CheckCircle2 className="w-4 h-4 text-sage" strokeWidth={2} />
-  if (coverage === 'weak') return <AlertCircle className="w-4 h-4 text-caution" strokeWidth={2} />
-  return <XCircle className="w-4 h-4 text-[rgba(0,0,0,0.18)]" strokeWidth={1.6} />
+const SOURCE_TYPE_LABEL: Record<string, string> = {
+  editorial: 'Editorial', ugc: 'Community', reference: 'Reference',
+  owned: 'Owned', institutional: 'Institutional', other: 'Source',
 }
 
-function ResearchBrief({ result }: { result: ResearchResult }) {
-  return (
-    <div className="bg-surface rounded-2xl border border-divider-light p-6">
-      <BlockHeader
-        icon={BookOpen}
-        number={1}
-        title="Research Brief"
-        question={`What dimensions does AI investigate when doing deep research on "${result.brand_name}"?`}
-      />
-      <div className="bg-canvas rounded-xl border border-divider-light p-4 mb-4">
-        <div className="text-[11px] font-bold text-ink-3 uppercase tracking-wider mb-3">Customer-scoped research plan</div>
-        <p className="text-[13px] text-ink-2 mb-3">
-          <span className="font-semibold text-ink">Topic:</span> {result.product_space} · {result.market}
-        </p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-          {[
-            { label: 'Dimensions', value: String(result.summary.dimensions) },
-            { label: 'Sub-questions', value: String(result.summary.sub_questions) },
-            { label: 'Sources read', value: String(result.summary.sources_read) },
-            { label: 'Engines', value: result.engines.map(e => e.charAt(0).toUpperCase() + e.slice(1)).join(' · ') },
-          ].map(metric => (
-            <div key={metric.label} className="bg-surface rounded-xl p-3 border border-divider-light text-center">
-              <div className="text-[20px] font-bold text-ink">{metric.value}</div>
-              <div className="text-[10px] text-ink-3 mt-0.5">{metric.label}</div>
-            </div>
-          ))}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {result.dimensions.map(d => (
-            <span key={d.id} className={`text-[11px] px-2.5 py-1 rounded-full font-medium border ${
-              d.depth === 'high' ? 'bg-sage-bg text-sage border-sage/20' :
-              d.depth === 'medium' ? 'bg-caution-bg text-caution border-caution/20' :
-              'bg-surface-muted text-ink-3 border-divider-light'
-            }`}>
-              {d.label}
-            </span>
-          ))}
-        </div>
-      </div>
-      <div className="flex items-center gap-2 p-3 bg-caution-bg/40 border border-caution/15 rounded-xl">
-        <ArrowRight className="w-3.5 h-3.5 text-caution flex-shrink-0" />
-        <p className="text-[12px] text-caution font-medium">
-          AI Research is scoped to this customer profile: {result.brand_name}, {result.product_space}, {result.market}, and the active prompt set.
-        </p>
-      </div>
-    </div>
-  )
-}
+// ─── Command center (replaces workflow chips + closed-loop card + saved-run bar) ─
 
-function DimensionMap({ result }: { result: ResearchResult }) {
-  const maxSources = Math.max(...result.dimensions.map(d => d.sources), 1)
-  return (
-    <div className="bg-surface rounded-2xl border border-divider-light p-6">
-      <BlockHeader icon={Layers} number={2} title="Dimension Map" question="Which dimensions does AI research most deeply?" />
-      <div className="space-y-2.5">
-        {result.dimensions.map(d => (
-          <div key={d.id} className="flex items-center gap-3">
-            <div className="w-44 text-[12px] text-ink-2 font-medium flex-shrink-0 truncate">{d.label}</div>
-            <div className="flex-1 h-7 bg-canvas rounded-lg overflow-hidden border border-divider-light">
-              <div
-                className={`h-full rounded-lg ${d.depth === 'high' ? 'bg-ink' : d.depth === 'medium' ? 'bg-[rgba(0,0,0,0.35)]' : 'bg-[rgba(0,0,0,0.12)]'}`}
-                style={{ width: `${(d.sources / maxSources) * 100}%` }}
-              />
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0 w-32 justify-end">
-              <span className="text-[11px] text-ink-3">{d.sources} sources</span>
-              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                d.depth === 'high' ? 'bg-sage-bg text-sage' :
-                d.depth === 'medium' ? 'bg-caution-bg text-caution' :
-                'bg-surface-muted text-ink-3'
-              }`}>{d.depth}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function BrandCoverage({ result }: { result: ResearchResult }) {
-  return (
-    <div className="bg-surface rounded-2xl border border-divider-light p-6">
-      <BlockHeader icon={Grid3X3} number={3} title="Brand Coverage Matrix" question="Across research dimensions, where do I appear vs competitors?" />
-      <div className="overflow-x-auto">
-        <table className="w-full text-[11px]">
-          <thead>
-            <tr className="border-b border-divider-light">
-              <th className="text-left py-2.5 pr-6 text-[11px] font-semibold text-ink-3 w-48">Dimension</th>
-              {result.brands.map(brand => (
-                <th key={brand.name} className="py-2.5 px-3 text-center">
-                  <div className="flex flex-col items-center gap-1.5">
-                    <BrandLogo domain={brand.domain} name={brand.name} size={24} />
-                    <span className="text-[11px] font-semibold text-ink whitespace-nowrap">{brand.name}</span>
-                    {brand.is_you && <span className="text-[8px] font-bold text-sage bg-sage-bg px-1.5 py-0.5 rounded-full leading-none">You</span>}
-                  </div>
-                </th>
-              ))}
-              <th className="py-2.5 pl-4 text-right text-[11px] font-semibold text-ink-3 w-24">Coverage</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-divider-light">
-            {result.dimensions.map(d => {
-              const strongCount = result.brands.filter(b => result.coverage[b.name]?.[d.id] === 'strong').length
-              const youBrand = result.brands.find(b => b.is_you)
-              const youCoverage = youBrand ? result.coverage[youBrand.name]?.[d.id] : 'absent'
-              const isGapForYou = youCoverage === 'absent'
-              return (
-                <tr key={d.id} className={isGapForYou ? 'bg-red-soft-bg/20' : ''}>
-                  <td className="py-3 pr-6">
-                    <div className="flex items-center gap-2">
-                      <span className={`font-medium text-[12px] ${isGapForYou ? 'text-red-soft' : 'text-ink'}`}>{d.label}</span>
-                      {isGapForYou && <span className="text-[8px] font-bold px-1.5 py-0.5 bg-red-soft text-white rounded-full leading-none">Gap</span>}
-                    </div>
-                    <div className="text-[10px] text-ink-3 mt-0.5 capitalize">{d.depth} depth · {d.sources} sources</div>
-                  </td>
-                  {result.brands.map(brand => (
-                    <td key={brand.name} className={`py-3 px-3 text-center ${brand.is_you ? 'bg-sage-bg/20' : ''}`}>
-                      <div className="flex justify-center">
-                        <CoverageIcon coverage={result.coverage[brand.name]?.[d.id] ?? 'absent'} />
-                      </div>
-                    </td>
-                  ))}
-                  <td className="py-3 pl-4 text-right">
-                    <span className={`text-[11px] font-bold ${strongCount >= 3 ? 'text-sage' : strongCount >= 2 ? 'text-caution' : 'text-red-soft'}`}>
-                      {strongCount}/{result.brands.length}
-                    </span>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
-      <div className="mt-4 flex items-center gap-3 text-[11px] text-ink-3">
-        <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-sage" /> Strong</span>
-        <span className="flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5 text-caution" /> Weak</span>
-        <span className="flex items-center gap-1"><XCircle className="w-3.5 h-3.5 text-[rgba(0,0,0,0.2)]" /> Absent</span>
-      </div>
-    </div>
-  )
-}
-
-function ResearchTrail({ result }: { result: ResearchResult }) {
-  const brandDomain = Object.fromEntries(result.brands.map(b => [b.name, b.domain]))
-  return (
-    <div className="bg-surface rounded-2xl border border-divider-light p-6">
-      <BlockHeader icon={GitBranch} number={4} title="Research Trail" question="How did AI split this research into sub-questions?" />
-      <div className="mb-4 flex items-start gap-3 p-4 bg-ink text-ink-inv rounded-xl">
-        <BookOpen className="w-4 h-4 flex-shrink-0 mt-0.5 opacity-70" />
-        <div>
-          <div className="text-[10px] font-bold uppercase tracking-wider opacity-50 mb-0.5">Root research question</div>
-          <div className="text-[13px] font-semibold">"{result.trail.question}"</div>
-        </div>
-      </div>
-      <div className="space-y-2 mb-4 pl-4 border-l-2 border-divider">
-        {result.trail.sub_questions.map((sq, i) => (
-          <div key={`${sq.dimension_id}-${i}`} className="p-3 rounded-xl bg-canvas border border-divider-light">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-5 h-5 rounded-full bg-surface-muted border border-divider flex items-center justify-center text-[9px] font-bold text-ink-3 mt-0.5">
-                {i + 1}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[12px] text-ink font-medium">{sq.q}</div>
-                <div className="text-[10px] text-ink-3 mt-0.5">{sq.sources} sources · {sq.terms}</div>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {sq.mentions.map(name => (
-                    <span key={name} className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-lg font-semibold border bg-surface border-divider-light">
-                      <BrandLogo domain={brandDomain[name] ?? domainFromName(name)} name={name} size={16} />
-                      <span className="text-ink-2">{name}</span>
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="p-4 bg-sage-bg/50 border border-sage/20 rounded-xl">
-        <p className="text-[12.5px] text-ink-2 leading-relaxed">"{result.trail.final_citation}"</p>
-      </div>
-    </div>
-  )
-}
-
-function WorkflowSteps({
-  hasProfile,
-  hasResearch,
-  hasSources,
-  activePrompts,
-  hasScan,
-}: {
-  hasProfile: boolean
-  hasResearch: boolean
-  hasSources: boolean
-  activePrompts: number
-  hasScan: boolean
-}) {
-  const steps = [
-    { label: 'Brand Profile', detail: 'Market, brand, competitors', done: hasProfile },
-    { label: 'AI Research', detail: 'Diagnosis and gaps', done: hasResearch },
-    { label: 'Sources Map', detail: 'Trusted sources AI cites', done: hasSources },
-    { label: 'Design Prompts', detail: activePrompts ? `${activePrompts} active prompts` : 'Prompt plan', done: activePrompts > 0 },
-    { label: 'Prompt', detail: 'Track performance daily', done: hasScan },
-  ]
-
-  return (
-    <div className="grid gap-2 sm:grid-cols-5">
-      {steps.map((step, index) => (
-        <div key={step.label} className={`rounded-2xl border p-3 ${
-          step.done ? 'border-sage/25 bg-sage-bg/45' : 'border-divider-light bg-surface'
-        }`}>
-          <div className="flex items-center gap-2">
-            <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
-              step.done ? 'bg-sage text-white' : 'bg-surface-muted text-ink-3'
-            }`}>
-              {step.done ? <CheckCircle2 className="h-3 w-3" /> : index + 1}
-            </span>
-            <span className="text-[12px] font-bold text-ink">{step.label}</span>
-          </div>
-          <p className="mt-1 pl-7 text-[10px] leading-snug text-ink-3">{step.detail}</p>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function ResearchStatusCard({
-  result,
-  activePrompts,
-  hasSources,
-  hasScan,
-  onGeneratePrompts,
-}: {
+function CommandCenter({ result, activePrompts, hasScan, running, onUpdate, onGeneratePrompts }: {
   result: ResearchResult
   activePrompts: number
-  hasSources: boolean
   hasScan: boolean
+  running: boolean
+  onUpdate: () => void
   onGeneratePrompts: () => void
 }) {
-  const nextStep = !hasSources
-    ? 'Run Sources Map to find the external domains AI already trusts.'
-    : activePrompts === 0
-      ? 'Generate recommended prompts from the gaps, then move them into Prompt.'
-      : !hasScan
-        ? 'Open Prompt and run a scan to measure prompt visibility.'
-        : 'Review the diagnosis, then refresh research after source or prompt changes.'
+  const v = result.visibility
+  const promptGaps = result.summary.prompt_gap_count
+  const sourceGaps = result.summary.source_gap_count
+
+  const nextStep = !result.has_scan
+    ? 'We haven’t measured your AI visibility yet. Generate prompts and run a scan to see whether AI answers actually mention you.'
+    : promptGaps > 0
+      ? `AI mentions competitors but not you in ${promptGaps} buyer question${promptGaps > 1 ? 's' : ''}. Turn those into prompts you monitor.`
+      : sourceGaps > 0
+        ? `${sourceGaps} trusted source${sourceGaps > 1 ? 's' : ''} AI cites in your category don’t mention you yet.`
+        : 'You’re showing up well. Keep monitoring and refresh after content or source changes.'
 
   return (
     <div className="rounded-2xl border border-divider-light bg-surface p-5">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <div className="text-[11px] font-bold uppercase tracking-wider text-ink-3">Closed-loop status</div>
-          <h3 className="mt-1 text-[18px] font-bold text-ink">Profile → diagnose → build sources/prompts → monitor</h3>
-          <p className="mt-1 text-[13px] leading-relaxed text-ink-3">{nextStep}</p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <BrandLogo domain={result.domain} name={result.brand_name} size={28} />
+            <span className="text-[13px] font-semibold text-ink">{result.brand_name}</span>
+            <span className="text-[11px] text-ink-3">· {result.product_space} · {result.market}</span>
+          </div>
+          <div className="mt-3 flex items-end gap-3">
+            {result.has_scan ? (
+              <>
+                <div className="text-[40px] font-bold leading-none text-ink">{Math.round(v.score)}<span className="text-[20px] text-ink-3">%</span></div>
+                <div className="pb-1">
+                  <div className="text-[13px] font-semibold text-ink">AI Visibility</div>
+                  <div className="text-[12px] text-ink-3">Mentioned in {v.mentions_found} of {v.total_prompts} AI answers · cited {v.citation_count}×</div>
+                </div>
+              </>
+            ) : (
+              <div>
+                <div className="text-[20px] font-bold text-ink">Not measured yet</div>
+                <div className="text-[12px] text-ink-3">Run a scan to see if AI mentions you</div>
+              </div>
+            )}
+          </div>
+          <p className="mt-3 max-w-xl text-[13px] leading-relaxed text-ink-2">{nextStep}</p>
         </div>
-        <div className="grid min-w-[360px] grid-cols-3 overflow-hidden rounded-2xl border border-divider-light bg-canvas">
-          <div className="p-3 text-center">
-            <div className="text-[20px] font-bold text-ink">{result.summary.readiness}%</div>
-            <div className="text-[10px] text-ink-3">Readiness</div>
-          </div>
-          <div className="border-x border-divider-light p-3 text-center">
-            <div className="text-[20px] font-bold text-ink">{activePrompts}</div>
-            <div className="text-[10px] text-ink-3">Active prompts</div>
-          </div>
-          <div className="p-3 text-center">
-            <div className="text-[20px] font-bold text-ink">{hasSources ? 'Mapped' : 'Open'}</div>
-            <div className="text-[10px] text-ink-3">Sources Map</div>
-          </div>
+
+        {/* Compact journey strip (replaces the separate 5-chip row) */}
+        <div className="grid w-full max-w-[320px] grid-cols-2 gap-2 sm:grid-cols-4">
+          {[
+            { label: 'Profile', done: true },
+            { label: 'Sources', done: result.summary.category_source_count > 0 },
+            { label: 'Prompts', done: activePrompts > 0, value: activePrompts || undefined },
+            { label: 'Scan', done: hasScan },
+          ].map(step => (
+            <div key={step.label} className={`rounded-xl border px-2.5 py-2 text-center ${step.done ? 'border-sage/25 bg-sage-bg/45' : 'border-divider-light bg-canvas'}`}>
+              <div className="flex items-center justify-center gap-1">
+                {step.done && <CheckCircle2 className="h-3 w-3 text-sage" />}
+                <span className="text-[11px] font-bold text-ink">{step.value ?? ''} {step.label}</span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-      <div className="mt-4 flex flex-wrap gap-2">
-        <a href="#sources-map" className="inline-flex items-center gap-2 rounded-xl border border-divider-light bg-canvas px-4 py-2 text-[12px] font-semibold text-ink hover:bg-surface-warm">
-          <GitBranch className="h-3.5 w-3.5" />
-          Review Sources Map
-        </a>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={onGeneratePrompts}
@@ -456,77 +222,151 @@ function ResearchStatusCard({
           <Target className="h-3.5 w-3.5" />
           Open Prompt
         </Link>
+        <button
+          type="button"
+          onClick={onUpdate}
+          disabled={running}
+          className="ml-auto inline-flex items-center gap-2 rounded-xl border border-divider-light bg-canvas px-4 py-2 text-[12px] font-semibold text-ink hover:bg-surface-warm disabled:opacity-50"
+        >
+          {running ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+          Update research
+        </button>
       </div>
     </div>
   )
 }
 
-function ResearchDiagnosisSection({ result }: { result: ResearchResult }) {
+// ─── Standings: who AI recommends in your category (real share of voice) ───────
+
+function StandingsCard({ result }: { result: ResearchResult }) {
+  if (!result.has_scan || result.standings.length === 0) return null
+  const maxVis = Math.max(...result.standings.map(s => s.visibility_pct), 1)
   return (
-    <section className="space-y-5">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <div className="text-[11px] font-bold uppercase tracking-wider text-sage">Phase 2 · Research Diagnosis</div>
-          <h2 className="mt-1 text-[20px] font-bold text-ink">What AI sees before it recommends a brand</h2>
-          <p className="mt-1 text-[13px] text-ink-3">
-            This section explains the market dimensions AI researches, where your brand appears, and which gaps create the action plan below.
-          </p>
+    <SectionCard icon={Trophy} title="Who AI recommends in your category" hint="From your latest scan — how often each brand shows up in AI answers, and its share of the conversation.">
+      <div className="space-y-2.5">
+        {result.standings.map(s => (
+          <div key={s.name} className="flex items-center gap-3">
+            <div className="flex w-40 flex-shrink-0 items-center gap-2">
+              <BrandLogo domain={s.is_you ? result.domain : domainFromName(s.name)} name={s.name} size={20} />
+              <span className={`truncate text-[12px] font-medium ${s.is_you ? 'text-sage' : 'text-ink-2'}`}>{s.name}</span>
+              {s.is_you && <span className="rounded-full bg-sage-bg px-1.5 py-0.5 text-[8px] font-bold leading-none text-sage">You</span>}
+            </div>
+            <div className="h-7 flex-1 overflow-hidden rounded-lg border border-divider-light bg-canvas">
+              <div className={`h-full rounded-lg ${s.is_you ? 'bg-sage' : 'bg-[rgba(0,0,0,0.28)]'}`} style={{ width: `${(s.visibility_pct / maxVis) * 100}%` }} />
+            </div>
+            <div className="flex w-28 flex-shrink-0 items-center justify-end gap-2">
+              <span className="text-[11px] font-bold text-ink">{Math.round(s.visibility_pct)}%</span>
+              <span className="text-[10px] text-ink-3">SoV {Math.round(s.share_of_voice_pct)}%</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </SectionCard>
+  )
+}
+
+// ─── Where you lose: prompt gaps + source gaps (both real) ─────────────────────
+
+function WhereYouLoseCard({ result }: { result: ResearchResult }) {
+  const hasPromptGaps = result.prompt_gaps.length > 0
+  const hasSourceGaps = result.source_gaps.length > 0
+  if (!result.has_scan && !hasSourceGaps) return null
+
+  return (
+    <SectionCard icon={TrendingDown} title="Where you’re losing to competitors" hint="The two reasons AI skips you: questions where rivals get named, and trusted sites that cite them but not you.">
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* Prompt-level gaps */}
+        <div className="rounded-xl border border-divider-light bg-canvas p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <Search className="h-3.5 w-3.5 text-ink-3" />
+            <span className="text-[12px] font-bold text-ink">Questions competitors win</span>
+          </div>
+          {result.has_scan ? (
+            hasPromptGaps ? (
+              <div className="space-y-2">
+                {result.prompt_gaps.map((g, i) => (
+                  <div key={i} className="rounded-lg border border-divider-light bg-surface p-2.5">
+                    <div className="text-[12px] font-medium text-ink">&ldquo;{g.prompt}&rdquo;</div>
+                    <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                      <span className="text-[10px] text-ink-3">AI named instead:</span>
+                      {g.competitors.map(c => (
+                        <span key={c} className="rounded-full bg-red-soft-bg px-2 py-0.5 text-[10px] font-semibold text-red-soft">{c}</span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[12px] text-sage">You appear in every scanned question — no prompt gaps.</p>
+            )
+          ) : (
+            <p className="text-[12px] text-ink-3">Run a scan to find questions where AI names competitors but not you.</p>
+          )}
+        </div>
+
+        {/* Source-level gaps */}
+        <div className="rounded-xl border border-divider-light bg-canvas p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <ExternalLink className="h-3.5 w-3.5 text-ink-3" />
+            <span className="text-[12px] font-bold text-ink">Trusted sources missing you</span>
+          </div>
+          {hasSourceGaps ? (
+            <div className="space-y-1.5">
+              {result.source_gaps.map(s => (
+                <div key={s.domain} className="flex items-center justify-between gap-2 rounded-lg border border-divider-light bg-surface px-2.5 py-2">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <BrandLogo domain={s.domain} name={s.name} size={18} />
+                    <span className="truncate text-[12px] font-medium text-ink">{s.name}</span>
+                  </div>
+                  <span className="flex-shrink-0 text-[10px] text-ink-3">{SOURCE_TYPE_LABEL[s.source_type] || 'Source'} · {s.citation_count} cites</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[12px] text-ink-3">{result.category_slug ? 'You’re cited by every tracked source in your category.' : 'No matching Explore category found for your product space yet.'}</p>
+          )}
         </div>
       </div>
-      <ResearchBrief result={result} />
-      <DimensionMap result={result} />
-      <BrandCoverage result={result} />
-      <ResearchTrail result={result} />
-    </section>
+    </SectionCard>
   )
 }
 
-function SourcesMapSection({ number }: { number: number }) {
+// ─── Sources Map: shared Explore category sources (reused, not re-collected) ────
+
+function SourcesMapCard({ result }: { result: ResearchResult }) {
+  if (result.category_sources.length === 0) return null
   return (
-    <div id="sources-map" className="scroll-mt-24 bg-surface rounded-2xl border border-divider-light p-6">
-      <BlockHeader
-        icon={GitBranch}
-        number={number}
-        title="Sources Map"
-        question="Which trusted external sources does AI already cite in my category?"
-      />
-      <div className="mb-5 rounded-xl border border-divider-light bg-canvas p-4">
-        <p className="text-[13px] leading-relaxed text-ink-2">
-          Sources Map is matched from your Brand Hub product space to the public Explore category database. It shows which
-          domains AI already cites at the category level, then Analysis shows where your own brand is missing.
-        </p>
+    <SectionCard
+      icon={ExternalLink}
+      title={`Trusted sources AI cites for ${result.category_name || result.product_space}`}
+      hint="Shared category data from Explore (not re-collected per customer). ✓ = a source that already cites you."
+    >
+      <div className="grid gap-1.5 sm:grid-cols-2">
+        {result.category_sources.map(s => (
+          <div key={s.domain} className={`flex items-center justify-between gap-2 rounded-lg border px-2.5 py-2 ${s.you_cited ? 'border-sage/25 bg-sage-bg/30' : 'border-divider-light bg-canvas'}`}>
+            <div className="flex min-w-0 items-center gap-2">
+              {s.you_cited
+                ? <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0 text-sage" />
+                : <XCircle className="h-3.5 w-3.5 flex-shrink-0 text-[rgba(0,0,0,0.2)]" />}
+              <BrandLogo domain={s.domain} name={s.name} size={18} />
+              <span className="truncate text-[12px] font-medium text-ink">{s.name}</span>
+            </div>
+            <span className="flex-shrink-0 text-[10px] text-ink-3">{s.citation_count} cites</span>
+          </div>
+        ))}
       </div>
-      <DiscoverTab variant="sources-gap" />
-    </div>
+    </SectionCard>
   )
 }
 
-function ActionPreview() {
-  return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <div className="rounded-2xl border border-dashed border-divider bg-surface p-5 opacity-75">
-        <div className="text-[11px] font-bold uppercase tracking-wider text-ink-3">After AI Research</div>
-        <h3 className="mt-1 text-[15px] font-bold text-ink">Sources Map</h3>
-        <p className="mt-2 text-[12px] leading-relaxed text-ink-3">
-          Discover which external domains AI trusts and where competitors already have citation coverage.
-        </p>
-      </div>
-      <div className="rounded-2xl border border-dashed border-divider bg-surface p-5 opacity-75">
-        <div className="text-[11px] font-bold uppercase tracking-wider text-ink-3">After AI Research</div>
-        <h3 className="mt-1 text-[15px] font-bold text-ink">Design Prompts</h3>
-        <p className="mt-2 text-[12px] leading-relaxed text-ink-3">
-          Convert missing intents and competitor gaps into monitoring prompts.
-        </p>
-      </div>
-    </div>
-  )
-}
+// ─── Empty / stale states ─────────────────────────────────────────────────────
 
-function EmptyState({ brandName, canRun, onRun, running }: {
+function EmptyState({ brandName, canRun, onRun, running, stale }: {
   brandName: string
   canRun: boolean
   onRun: () => void
   running: boolean
+  stale: boolean
 }) {
   const ctx = useUnified()
   const profileMissing = [
@@ -537,27 +377,29 @@ function EmptyState({ brandName, canRun, onRun, running }: {
     !String(ctx.brandConfig.target_market ?? '').trim() ? 'Target Country' : null,
   ].filter(Boolean) as string[]
   const missingReason = !ctx.activeCustomerId
-    ? 'Select a customer workspace first so the research run can be saved.'
+    ? 'Select a customer workspace first so the research can be saved.'
     : profileMissing.length > 0
-      ? `Complete the Customer Intelligence Profile in Brand Hub first: ${profileMissing.join(', ')}`
-      : 'Complete the Customer Intelligence Profile in Brand Hub first.'
+      ? `Complete the brand profile in Brand Hub first: ${profileMissing.join(', ')}`
+      : 'Complete the brand profile in Brand Hub first.'
 
   return (
     <div className="bg-surface rounded-2xl border border-divider-light p-8 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-[rgba(100,180,255,0.08)] flex items-center justify-center mx-auto mb-4">
-        <FlaskConical className="w-7 h-7 text-[rgba(100,180,255,0.7)]" strokeWidth={1.6} />
+      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-sage-bg">
+        <Eye className="h-7 w-7 text-sage" strokeWidth={1.6} />
       </div>
-      <h3 className="text-[16px] font-bold text-ink mb-2">AI Research</h3>
-      <p className="text-[13px] text-ink-3 max-w-md mx-auto mb-6">
-        Create a customer-scoped research run from the Brand Profile, active prompts, market, product space, and competitors.
+      <h3 className="mb-2 text-[16px] font-bold text-ink">{stale ? 'Refresh for the real-data report' : 'See how AI answers about your category'}</h3>
+      <p className="mx-auto mb-6 max-w-md text-[13px] text-ink-3">
+        {stale
+          ? 'Your saved research predates the real-data rebuild. Update it to replace the old estimates with your measured visibility, competitor standings, and source gaps.'
+          : `We’ll measure whether AI mentions ${brandName || 'your brand'}, where competitors beat you, and which trusted sources cite you — from your real scan and the shared Explore category data.`}
       </p>
       <button
         onClick={onRun}
         disabled={running || !canRun}
-        className="inline-flex items-center gap-2.5 px-6 py-3 bg-ink text-ink-inv rounded-xl text-[13px] font-semibold hover:bg-ink/80 transition-colors disabled:opacity-50 shadow-sm"
+        className="inline-flex items-center gap-2.5 rounded-xl bg-ink px-6 py-3 text-[13px] font-semibold text-ink-inv shadow-sm transition-colors hover:bg-ink/80 disabled:opacity-50"
       >
-        {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-        {running ? 'Running customer research...' : `Run AI Research${brandName ? ` on ${brandName}` : ''}`}
+        {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+        {running ? 'Building your report…' : stale ? 'Update research' : `Run AI Research${brandName ? ` on ${brandName}` : ''}`}
       </button>
       {!canRun && (
         <div className="mt-3 space-y-2">
@@ -571,6 +413,8 @@ function EmptyState({ brandName, canRun, onRun, running }: {
   )
 }
 
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
 export function AIResearchTab() {
   const ctx = useUnified()
   const [run, setRun] = useState<AIResearchRun | null>(null)
@@ -581,6 +425,7 @@ export function AIResearchTab() {
   const autoBootstrappedKeys = useRef(new Set<string>())
 
   const result = useMemo(() => asResearchResult(run?.result_json), [run])
+  const stale = useMemo(() => !result && isStaleRun(run?.result_json), [result, run])
   const brandName = ctx.brandConfig.brand_name || ''
   const activePrompts = ctx.prompts.filter(p => p.is_active).length
   const hasProfile = Boolean(
@@ -592,7 +437,6 @@ export function AIResearchTab() {
     String(ctx.brandConfig.target_market ?? '').trim(),
   )
   const canRun = hasProfile
-  const hasSources = Boolean(ctx.discoverResult?.source_domains?.length)
   const hasScan = Boolean(ctx.scanResult)
   const handleGeneratePrompts = () => ctx.setShowGeneratePromptsModal(true)
 
@@ -653,6 +497,8 @@ export function AIResearchTab() {
     }
   }
 
+  // Auto-bootstrap: a customer with no prompts gets a default set + first scan, so
+  // the report has real data to aggregate on the next refresh.
   const bootstrapKey = result && ctx.activeCustomerId
     ? `${ctx.activeCustomerId}:${run?.id ?? result.generated_at}`
     : ''
@@ -670,7 +516,17 @@ export function AIResearchTab() {
       setAutoBootstrapStatus('running')
       setError('')
       try {
-        await ctx.handleBatchSavePrompts(buildDefaultPrompts(result, ctx.brandConfig.competitors))
+        const competitor = (ctx.brandConfig.competitors || []).find(c => c.trim()) || 'top alternatives'
+        const audience = String(ctx.brandConfig.target_audience ?? '') || 'buyers'
+        await ctx.handleBatchSavePrompts(buildDefaultPrompts(
+          cleanText(result.brand_name, 'this brand'),
+          cleanText(result.product_space, 'this product category'),
+          cleanText(result.market, 'the target market'),
+          audience,
+          competitor,
+          result.domain,
+          result.engines,
+        ))
         if (cancelled) return
         await ctx.loadPrompts()
         if (cancelled) return
@@ -685,32 +541,14 @@ export function AIResearchTab() {
     }
 
     bootstrap()
-
-    return () => {
-      cancelled = true
-    }
-  }, [
-    activePrompts,
-    bootstrapKey,
-    ctx,
-    hasProfile,
-    result,
-  ])
+    return () => { cancelled = true }
+  }, [activePrompts, bootstrapKey, ctx, hasProfile, result])
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <WorkflowSteps
-          hasProfile={hasProfile}
-          hasResearch={false}
-          hasSources={hasSources}
-          activePrompts={activePrompts}
-          hasScan={hasScan}
-        />
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-divider-light bg-surface py-16">
-          <Loader2 className="w-5 h-5 animate-spin text-ink-3" />
-          <p className="mt-3 text-[13px] font-semibold text-ink-3">Loading AI Research…</p>
-        </div>
+      <div className="flex flex-col items-center justify-center rounded-2xl border border-divider-light bg-surface py-16">
+        <Loader2 className="h-5 w-5 animate-spin text-ink-3" />
+        <p className="mt-3 text-[13px] font-semibold text-ink-3">Loading AI Research…</p>
       </div>
     )
   }
@@ -718,69 +556,33 @@ export function AIResearchTab() {
   if (!result) {
     return (
       <div className="space-y-4">
-        <WorkflowSteps
-          hasProfile={hasProfile}
-          hasResearch={false}
-          hasSources={hasSources}
-          activePrompts={activePrompts}
-          hasScan={hasScan}
-        />
-        {error && <div className="bg-red-soft-bg border border-red-soft/30 rounded-xl p-4 text-sm text-red-soft">{error}</div>}
-        <EmptyState brandName={brandName} canRun={canRun} onRun={handleRun} running={running} />
-        <ActionPreview />
+        {error && <div className="rounded-xl border border-red-soft/30 bg-red-soft-bg p-4 text-sm text-red-soft">{error}</div>}
+        <EmptyState brandName={brandName} canRun={canRun} onRun={handleRun} running={running} stale={stale} />
       </div>
     )
   }
 
   return (
     <div className="space-y-5">
-      <WorkflowSteps
-        hasProfile={hasProfile}
-        hasResearch={true}
-        hasSources={hasSources}
-        activePrompts={activePrompts}
-        hasScan={hasScan}
-      />
-      {error && <div className="bg-red-soft-bg border border-red-soft/30 rounded-xl p-4 text-sm text-red-soft">{error}</div>}
+      {error && <div className="rounded-xl border border-red-soft/30 bg-red-soft-bg p-4 text-sm text-red-soft">{error}</div>}
       {autoBootstrapStatus === 'running' && (
         <div className="flex items-center gap-3 rounded-xl border border-sage/25 bg-sage-bg/45 px-4 py-3 text-[13px] font-semibold text-sage">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Creating default prompts and starting the first Prompt scan...
+          Creating starter prompts and running your first scan…
         </div>
       )}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-surface rounded-xl border border-divider-light">
-        <div className="flex items-center gap-3 min-w-0">
-          <BrandLogo domain={result.domain} name={result.brand_name} size={32} />
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[13px] font-semibold text-ink">AI Research — {result.brand_name}</span>
-              <span className="text-[10px] px-2 py-0.5 bg-sage-bg text-sage rounded-full font-bold">Customer scoped</span>
-              <span className="text-[10px] px-2 py-0.5 bg-surface-muted text-ink-3 rounded-full font-medium">Saved run</span>
-            </div>
-            <p className="text-[11px] text-ink-3 mt-0.5">
-              {result.product_space} · {result.market} · readiness {result.summary.readiness}% · {run?.created_at ? new Date(run.created_at).toLocaleString() : ''}
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={handleRun}
-          disabled={running}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-ink text-ink-inv rounded-xl text-sm font-semibold hover:bg-ink/80 transition-colors disabled:opacity-50"
-        >
-          {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-          Update Research
-        </button>
-      </div>
 
-      <ResearchStatusCard
+      <CommandCenter
         result={result}
         activePrompts={activePrompts}
-        hasSources={hasSources}
         hasScan={hasScan}
+        running={running}
+        onUpdate={handleRun}
         onGeneratePrompts={handleGeneratePrompts}
       />
-      <ResearchDiagnosisSection result={result} />
-      <SourcesMapSection number={5} />
+      <StandingsCard result={result} />
+      <WhereYouLoseCard result={result} />
+      <SourcesMapCard result={result} />
     </div>
   )
 }
