@@ -301,14 +301,14 @@ export function DonutChart({ segments, centerLabel, size = 160 }: {
           {centerLabel && <span className="text-base font-bold text-ink">{centerLabel}</span>}
         </div>
       </div>
-      <div className="mt-4 space-y-1.5 w-full max-w-[220px]">
+      <div className="mt-4 space-y-1.5 w-full max-w-[240px]">
         {segments.filter(s => s.value > 0).map((s, i) => (
-          <div key={i} className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2">
+          <div key={i} className="flex items-center justify-between gap-2 text-sm">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
-              <span className="text-ink-2 text-xs">{s.label}</span>
+              <span className="text-ink-2 text-xs truncate" title={s.label}>{s.label}</span>
             </div>
-            <span className="font-mono text-xs font-medium text-ink">{s.value} ({((s.value / total) * 100).toFixed(0)}%)</span>
+            <span className="font-mono text-xs font-medium text-ink flex-shrink-0">{s.value} ({((s.value / total) * 100).toFixed(0)}%)</span>
           </div>
         ))}
       </div>

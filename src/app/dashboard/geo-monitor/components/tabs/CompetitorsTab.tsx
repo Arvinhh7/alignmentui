@@ -166,7 +166,7 @@ function SOVBar({
   const barPct = maxShare > 0 ? Math.min((share / maxShare) * 100, 100) : 0
   return (
     <div className="flex items-center gap-3">
-      <div className="w-44 flex-shrink-0 flex items-center gap-1.5 min-w-0">
+      <div className="w-52 flex-shrink-0 flex items-center gap-1.5 min-w-0">
         <BrandLogo domain={faviconDomain} name={brand} size={18} />
         <span className="text-sm font-medium text-ink truncate" title={brand}>{brand}</span>
       </div>
@@ -260,14 +260,15 @@ export function CompetitorsTab() {
 
   const orderedBrands = useMemo(() => {
     const source = usingDiscovered ? (scanResult.share_of_voice ?? {}) : (wsov?.overall_sov ?? {})
+    const own = brandConfig.brand_name.toLowerCase()
     const entries = Object.entries(source)
     if (entries.length) {
       return entries
         .sort(([a, aShare], [b, bShare]) => {
-          if (Math.abs(aShare - bShare) < 0.01) {
-            if (a === brandConfig.brand_name) return -1
-            if (b === brandConfig.brand_name) return 1
-          }
+          // Own brand (You) is always pinned first; everyone else by share desc.
+          const aOwn = a.toLowerCase() === own
+          const bOwn = b.toLowerCase() === own
+          if (aOwn !== bOwn) return aOwn ? -1 : 1
           return bShare - aShare
         })
         .map(([brand]) => brand)
@@ -282,14 +283,15 @@ export function CompetitorsTab() {
   // show exactly the brands that were scored — not the wider count-based discovery set.
   const weightedBrands = useMemo(() => {
     const src = wsov?.overall_sov ?? {}
+    const own = brandConfig.brand_name.toLowerCase()
     const entries = Object.entries(src)
     if (!entries.length) return orderedBrands
     return entries
       .sort(([a, aS], [b, bS]) => {
-        if (Math.abs(aS - bS) < 0.01) {
-          if (a === brandConfig.brand_name) return -1
-          if (b === brandConfig.brand_name) return 1
-        }
+        // You is always the first matrix column; the rest rank by weighted share.
+        const aOwn = a.toLowerCase() === own
+        const bOwn = b.toLowerCase() === own
+        if (aOwn !== bOwn) return aOwn ? -1 : 1
         return bS - aS
       })
       .map(([b]) => b)
