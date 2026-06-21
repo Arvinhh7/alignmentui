@@ -2527,6 +2527,9 @@ export interface CreditBalance {
   credits_bonus: number;
   credits_total: number;
   credits_remaining: number;
+  // Layer 1 — monitoring quota (-1 = unlimited)
+  prompts_tracked_daily: number;
+  prompts_active: number;
 }
 
 // ── ROI Estimate Type ────────────────────────────────────────────────────────

@@ -258,12 +258,21 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
     ? advancedFeatureItems.filter(item => item.permissionKey && !!permissions[item.permissionKey])
     : []
 
-  // ── Credits display ────────────────────────────────────────────────────
+  // ── Credits display (Layer 2 — action credits) ─────────────────────────
   const creditsRemaining = credits?.credits_remaining ?? 0
   const creditsTotal     = credits?.credits_total     ?? 0
   const creditPct        = creditsTotal > 0 ? Math.min(100, Math.round(((creditsTotal - creditsRemaining) / creditsTotal) * 100)) : 0
   const creditLow        = creditsTotal > 0 && creditsRemaining <= Math.round(creditsTotal * 0.2)
   const planLabel        = PLAN_DISPLAY[credits?.plan ?? ''] ?? (credits?.plan ?? 'Free')
+
+  // ── Monitoring quota display (Layer 1 — subscription prompt quota) ──────
+  const promptsActive  = credits?.prompts_active ?? 0
+  const promptsDaily   = credits?.prompts_tracked_daily ?? 0
+  const promptsUnlimited = promptsDaily === -1
+  const promptsPct     = (!promptsUnlimited && promptsDaily > 0)
+    ? Math.min(100, Math.round((promptsActive / promptsDaily) * 100))
+    : 0
+  const promptsNearLimit = !promptsUnlimited && promptsDaily > 0 && promptsActive >= Math.round(promptsDaily * 0.9)
 
   // ── Search results ─────────────────────────────────────────────────────
   const allNavItems = displayNavGroups.flatMap(g => g.items)
@@ -734,6 +743,32 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                     />
                   </div>
                   {creditLow && <p className="text-[10px] text-red-soft mt-1.5">Running low — consider upgrading</p>}
+
+                  {/* Layer 1 — Monitoring quota */}
+                  {promptsDaily !== 0 && (
+                    <div className="mt-3 pt-3 border-t border-[rgba(250,245,236,0.06)]">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <Activity className="w-3 h-3 flex-shrink-0 text-[rgba(250,245,236,0.35)]" />
+                        <span className="text-[11px] text-[rgba(250,245,236,0.4)]">Monitoring prompts</span>
+                        <span className={`text-[11px] font-semibold ml-auto ${promptsNearLimit ? 'text-caution' : 'text-ink-inv'}`}>
+                          {promptsUnlimited
+                            ? <span className="text-[rgba(250,245,236,0.5)]">Unlimited</span>
+                            : <>{promptsActive}<span className="text-[rgba(250,245,236,0.3)] font-normal"> / {promptsDaily}</span></>
+                          }
+                        </span>
+                      </div>
+                      {!promptsUnlimited && (
+                        <div className="h-1 bg-[rgba(250,245,236,0.08)] rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${promptsNearLimit ? 'bg-caution' : 'bg-[rgba(250,245,236,0.25)]'}`}
+                            style={{ width: `${promptsPct}%` }}
+                          />
+                        </div>
+                      )}
+                      {promptsNearLimit && <p className="text-[10px] text-caution mt-1.5">Prompt limit almost reached</p>}
+                    </div>
+                  )}
+
                   {credits.plan !== 'enterprise' && (
                     <Link
                       href="/pricing"

@@ -262,7 +262,7 @@ function PricingPageInner() {
       features: lang === 'zh' ? [
         '7 天免费试用',
         '包含所有 Standard 功能',
-        '300 条 prompts 每日追踪',
+        '250 条 prompts 每日追踪',
         '多品牌 / 多项目',
         '高级 AI Research',
         'MCP Integration',
@@ -271,7 +271,7 @@ function PricingPageInner() {
       ] : [
         '7-day free trial',
         'All Standard features',
-        '300 prompts tracked daily',
+        '250 prompts tracked daily',
         'Multi projects / brands',
         'Advanced AI Research',
         'MCP Integration',
