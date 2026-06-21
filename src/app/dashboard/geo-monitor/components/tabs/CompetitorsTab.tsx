@@ -288,6 +288,7 @@ export function CompetitorsTab() {
         return bS - aS
       })
       .map(([b]) => b)
+      .slice(0, 8)   // cap matrix columns — extraction can surface many rivals; show the top by share
   }, [wsov, brandConfig.brand_name, orderedBrands])
 
   const sovSegments = useMemo(() =>
