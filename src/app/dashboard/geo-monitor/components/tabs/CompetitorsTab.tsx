@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Shield, Target, AlertTriangle, Hash, Globe, Sparkles, Pin, RefreshCw } from 'lucide-react'
+import { Shield, Target, AlertTriangle, Hash, Globe, Sparkles, Pin, RefreshCw, ExternalLink } from 'lucide-react'
 import { useUnified } from '../UnifiedContext'
 import { DonutChart, formatPct } from '../shared/ChartComponents'
 import { INTENT_COLORS } from '../shared/constants'
@@ -823,12 +823,29 @@ function SourcingSOVTab({
 
                 return (
                   <tr key={i} className="hover:bg-surface-warm transition-colors">
-                    {/* Domain: favicon + name (Discover style) */}
-                    <td className="px-4 py-3 max-w-[200px]">
+                    {/* Domain: favicon + clickable verify link to the actual cited page */}
+                    <td className="px-4 py-3 max-w-[220px]">
                       <div className="flex items-center gap-2 min-w-0">
                         <FaviconImg domain={row.domain} size={14} />
-                        <span className="text-xs font-medium text-ink truncate" title={row.domain}>{row.domain}</span>
+                        {(() => {
+                          const href = row.urls?.[0] ?? `https://${row.domain}`
+                          return (
+                            <a
+                              href={href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="group/srclink flex items-center gap-1 min-w-0 text-xs font-medium text-ink hover:text-sage hover:underline"
+                              title={`Open cited source — verify the brand appears: ${href}`}
+                            >
+                              <span className="truncate">{row.domain}</span>
+                              <ExternalLink className="w-3 h-3 flex-shrink-0 opacity-30 group-hover/srclink:opacity-80 transition-opacity" />
+                            </a>
+                          )
+                        })()}
                       </div>
+                      {row.urls && row.urls.length > 1 && (
+                        <span className="block text-[10px] text-ink-3 ml-[22px] mt-0.5">{row.urls.length} cited pages</span>
+                      )}
                     </td>
                     {/* Brand columns */}
                     {orderedBrands.map(brand => {
@@ -871,6 +888,9 @@ function SourcingSOVTab({
       <p className="text-xs text-ink-3">
         Showing top {topDomains.length} citation sources by total weighted signal.
         Signal = own brand share from that source: ≥50% Strong, ≥20% Moderate.
+        <span className="ml-1 inline-flex items-center gap-1">
+          <ExternalLink className="w-3 h-3" /> Click a source to open the cited page and verify the brand actually appears.
+        </span>
       </p>
     </div>
   )

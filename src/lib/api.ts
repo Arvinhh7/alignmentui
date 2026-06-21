@@ -533,12 +533,14 @@ export interface PromptSOVEntry {
   brand_weights: PerPromptBrandWeight[];
   total_weight: number;
   cited_domains: string[];
+  cited_urls?: string[];   // full URLs (source-verification links)
 }
 
 export interface DomainSOVEntry {
   domain: string;
   brand_sov: Record<string, number>;   // brand → share %
   total_weight: number;
+  urls?: string[];   // representative full cited URLs (verify the brand actually appears)
 }
 
 export interface WeightedSOVData {
