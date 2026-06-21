@@ -30,7 +30,7 @@ interface ProxyToken {
 
 export default function AdminPanel() {
   const { role } = useAuth()
-  const [tab, setTab] = useState<'users' | 'tokens'>('users')
+  const [tab, setTab] = useState<'users' | 'tokens' | 'cogs'>('users')
 
   if (role !== 'admin') {
     return (
@@ -49,7 +49,7 @@ export default function AdminPanel() {
 
       {/* Tab bar */}
       <div className="flex gap-1 bg-canvas rounded-xl p-1 border border-divider w-fit">
-        {(['users', 'tokens'] as const).map((t) => (
+        {(['users', 'tokens', 'cogs'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -59,12 +59,14 @@ export default function AdminPanel() {
                 : 'text-ink-3 hover:text-ink'
             }`}
           >
-            {t === 'users' ? 'User Management' : 'Token Management'}
+            {t === 'users' ? 'User Management' : t === 'tokens' ? 'Token Management' : 'COGS Report'}
           </button>
         ))}
       </div>
 
-      {tab === 'users' ? <UserManagement /> : <TokenManagement />}
+      {tab === 'users' && <UserManagement />}
+      {tab === 'tokens' && <TokenManagement />}
+      {tab === 'cogs' && <COGSReport />}
     </div>
   )
 }
@@ -662,6 +664,154 @@ function TokenManagement() {
             <CopyButton value={selectedDetails.token} size="sm" />
           </div>
         </section>
+      )}
+    </div>
+  )
+}
+
+// ── COGS Report tab ───────────────────────────────────────────────────────────
+
+interface COGSCustomer {
+  customer_id: string
+  brand_name: string
+  plan: string
+  scan_count: number
+  total_executions: number
+  cogs_usd: number
+  plan_revenue_usd: number
+  margin_pct: number
+  at_risk: boolean
+}
+
+interface COGSReport {
+  month: string
+  summary: {
+    total_cogs_usd: number
+    total_revenue_usd: number
+    total_customers: number
+    at_risk_count: number
+    avg_margin_pct: number
+  }
+  customers: COGSCustomer[]
+}
+
+function COGSReport() {
+  const today = new Date()
+  const defaultMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
+  const [month, setMonth] = useState(defaultMonth)
+  const [report, setReport] = useState<COGSReport | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchReport = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch(`${API_BASE}/api/ops/cogs?month=${month}`, {
+        headers: { 'x-internal-token': process.env.NEXT_PUBLIC_INTERNAL_TOKEN || '' },
+      })
+      if (!res.ok) throw new Error(await res.text())
+      setReport(await res.json())
+    } catch (e: unknown) {
+      setError((e as Error).message)
+    } finally {
+      setLoading(false)
+    }
+  }, [month])
+
+  useEffect(() => { fetchReport() }, [fetchReport])
+
+  const planColor = (plan: string) =>
+    plan === 'pro' ? 'text-accent' : plan === 'standard' ? 'text-ink' : 'text-ink-3'
+
+  return (
+    <div className="space-y-6">
+      {/* Controls */}
+      <div className="flex items-center gap-3">
+        <input
+          type="month"
+          value={month}
+          onChange={(e) => setMonth(e.target.value)}
+          className="px-3 py-2 text-sm bg-canvas border border-divider rounded-xl text-ink focus:outline-none focus:ring-2 focus:ring-ink/20"
+        />
+        <button
+          onClick={fetchReport}
+          disabled={loading}
+          className="px-4 py-2 text-sm font-medium bg-ink text-ink-inv rounded-xl disabled:opacity-50 hover:opacity-90 transition-opacity"
+        >
+          {loading ? 'Loading…' : 'Refresh'}
+        </button>
+      </div>
+
+      {error && (
+        <p className="text-sm text-red-soft bg-red-soft/10 border border-red-soft/20 rounded-xl px-4 py-3">{error}</p>
+      )}
+
+      {report && (
+        <>
+          {/* Summary cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            {[
+              { label: 'Total COGS', value: `$${report.summary.total_cogs_usd.toFixed(2)}` },
+              { label: 'MRR (active)', value: `$${report.summary.total_revenue_usd.toFixed(2)}` },
+              { label: 'Avg Margin', value: `${report.summary.avg_margin_pct}%` },
+              { label: 'Customers', value: String(report.summary.total_customers) },
+              {
+                label: 'At-Risk',
+                value: String(report.summary.at_risk_count),
+                highlight: report.summary.at_risk_count > 0,
+              },
+            ].map(({ label, value, highlight }) => (
+              <div key={label} className="bg-surface border border-divider rounded-2xl px-4 py-3">
+                <p className="text-[10px] text-ink-3 font-semibold tracking-wide mb-1">{label}</p>
+                <p className={`text-lg font-bold ${highlight ? 'text-red-soft' : 'text-ink'}`}>{value}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Per-customer table */}
+          {report.customers.length === 0 ? (
+            <p className="text-sm text-ink-3 py-6 text-center">No scan activity in {report.month}.</p>
+          ) : (
+            <div className="overflow-x-auto rounded-2xl border border-divider">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-canvas border-b border-divider">
+                    {['Brand', 'Plan', 'Scans', 'Executions', 'COGS', 'MRR', 'Margin', 'Risk'].map((h) => (
+                      <th key={h} className="px-4 py-3 text-left text-[11px] text-ink-3 font-semibold tracking-wide whitespace-nowrap">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-divider-light">
+                  {report.customers.map((c) => (
+                    <tr key={c.customer_id} className={`hover:bg-canvas transition-colors ${c.at_risk ? 'bg-red-soft/5' : ''}`}>
+                      <td className="px-4 py-3 font-medium text-ink max-w-[160px] truncate" title={c.brand_name}>
+                        {c.brand_name}
+                      </td>
+                      <td className={`px-4 py-3 font-medium capitalize ${planColor(c.plan)}`}>{c.plan}</td>
+                      <td className="px-4 py-3 text-ink-3">{c.scan_count}</td>
+                      <td className="px-4 py-3 text-ink-3">{c.total_executions.toLocaleString()}</td>
+                      <td className="px-4 py-3 font-medium text-ink">${c.cogs_usd.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-ink-3">${c.plan_revenue_usd.toFixed(0)}</td>
+                      <td className={`px-4 py-3 font-medium ${c.margin_pct < 50 ? 'text-red-soft' : c.margin_pct < 70 ? 'text-caution' : 'text-green-600'}`}>
+                        {c.margin_pct}%
+                      </td>
+                      <td className="px-4 py-3">
+                        {c.at_risk && (
+                          <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold rounded-full bg-red-soft/15 text-red-soft">
+                            AT RISK
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
       )}
     </div>
   )
