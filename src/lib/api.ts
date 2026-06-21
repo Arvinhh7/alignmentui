@@ -109,6 +109,39 @@ function xhrFetch(input: string, init: RequestInit = {}): Promise<Response> {
  * run exactly once to avoid double-submits. A caller-provided AbortSignal is
  * honored and is never retried through.
  */
+
+// ─────────────────────────────────────────────────────────────
+// Stale-while-revalidate cache for PUBLIC, slow-changing GET data
+// (Explore categories, etc.). Lets a page paint the last good payload
+// instantly and keep showing it even when the backend is briefly
+// unavailable — e.g. mid-deploy — instead of a hard error/blank. The
+// data only changes when a batch scan runs, so serving a few-minutes-old
+// copy during a redeploy window is correct, not a regression.
+// ─────────────────────────────────────────────────────────────
+export function readStaleCache<T>(key: string, maxAgeMs = 86_400_000): { data: T; ageMs: number } | null {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { t: number; d: T };
+    if (!parsed || typeof parsed.t !== 'number') return null;
+    const ageMs = Date.now() - parsed.t;
+    if (ageMs < 0 || ageMs > maxAgeMs) return null;
+    return { data: parsed.d, ageMs };
+  } catch {
+    return null;
+  }
+}
+
+export function writeStaleCache<T>(key: string, data: T): void {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') return;
+  try {
+    localStorage.setItem(key, JSON.stringify({ t: Date.now(), d: data }));
+  } catch {
+    /* quota exceeded or private mode — caching is best-effort, ignore */
+  }
+}
+
 export async function fetchWithRetry(
   input: string,
   init: RequestInit = {},

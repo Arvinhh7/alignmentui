@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { AlertCircle, Compass, Search, Loader2, Zap } from 'lucide-react'
-import { API_BASE_URL, fetchWithRetry } from '@/lib/api'
+import { API_BASE_URL, fetchWithRetry, readStaleCache, writeStaleCache } from '@/lib/api'
+
+const EXPLORE_CACHE_KEY = 'explore:categories:v1'
 
 interface Category {
   id: string
@@ -171,19 +173,44 @@ export default function ExplorePage() {
     let cancelled = false
     setLoading(true)
     setError(null)
-    fetchWithRetry(`${API_BASE_URL}/api/explore/categories`, {}, { timeoutMs: 8000, budgetMs: 18000 })
+
+    // Stale-while-revalidate: paint the last good categories immediately so a
+    // backend redeploy / cold start never shows a blank page. We still refresh
+    // in the background below.
+    const cached = readStaleCache<Category[]>(EXPLORE_CACHE_KEY)
+    if (cached?.data?.length) {
+      setCategories(cached.data)
+      setLoading(false)
+    }
+
+    // budgetMs 45s rides out a Railway cold-start window (Python boot ~30–90s);
+    // fetchWithRetry already backs off and retries 502/503/504 + network errors.
+    fetchWithRetry(`${API_BASE_URL}/api/explore/categories`, {}, { timeoutMs: 8000, budgetMs: 45000 })
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`)
         return r.json()
       })
       .then(d => {
         if (cancelled) return
-        setCategories(d?.categories || [])
+        const cats: Category[] = d?.categories || []
+        if (cats.length) {
+          setCategories(cats)
+          writeStaleCache(EXPLORE_CACHE_KEY, cats)
+        }
+        setError(null)
       })
       .catch(() => {
         if (cancelled) return
-        setCategories([])
-        setError('Explore data is temporarily unavailable. Please retry in a moment.')
+        // Keep showing stale data if we have any; only hard-error when there's
+        // genuinely nothing to show (first visit + backend down).
+        const fallback = readStaleCache<Category[]>(EXPLORE_CACHE_KEY)
+        if (fallback?.data?.length) {
+          setCategories(fallback.data)
+          setError(null)
+        } else {
+          setCategories([])
+          setError('Explore data is temporarily unavailable. Please retry in a moment.')
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
