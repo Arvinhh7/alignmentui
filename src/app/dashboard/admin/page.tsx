@@ -274,15 +274,22 @@ function UserManagement() {
             </thead>
             <tbody className="divide-y divide-divider-light">
               {[
-                ['Explore / Shopping reads', 0],
-                ['Shopping refresh', 20],
-                ['AI Research run', 80],
-                ['Monitoring prompt run', 1],
-                ['Monitoring competitor scan', 3],
-                ['Analysis report', 25],
-                ['Web infrastructure audit', 10],
-                ['Visibility Proxy scan', 10],
-                ['GA4 Attribution sync', 5],
+                // ── Subscription-included (0 credits) ──────────────────────
+                ['Explore / Sources / Shopping reads', 0],
+                ['AI Research run (0 LLM, reuses Explore)', 0],
+                ['Monitoring scan — auto + manual (subscription quota)', 0],
+                ['GA4 Attribution sync (0 LLM)', 0],
+                ['Visibility Proxy (Worker layer)', 0],
+                // ── On-demand actions (credit-metered) ─────────────────────
+                ['Agent Audit (web infrastructure)', 10],
+                ['Analysis Intel report', 25],
+                ['Analysis Gap analysis', 15],
+                ['Advanced mentions / topic discovery / source influence', 5],
+                ['Brand grouping / citation usage (triggers LLM scan)', 15],
+                ['GEO Optimization — code fix (Haiku)', 3],
+                ['GEO Optimization — content fix (Sonnet)', 8],
+                ['AEO URL score', 1],
+                ['Competitor scan (per engine)', 3],
               ].map(([op, cost]) => (
                 <tr key={op as string} className="hover:bg-surface-warm">
                   <td className="px-4 py-2.5 text-ink-2">{op}</td>
@@ -293,11 +300,12 @@ function UserManagement() {
           </table>
         </div>
         <div className="mt-4 text-xs text-ink-3 space-y-1">
-          <p><span className="font-semibold">Trial:</span> 50 credits/month</p>
+          <p className="font-semibold text-ink-2">Action credits by plan (resets monthly):</p>
           <p><span className="font-semibold">Starter ($99/mo):</span> 5,000 credits/month</p>
           <p><span className="font-semibold">Standard ($199/mo):</span> 12,000 credits/month</p>
           <p><span className="font-semibold">Pro ($399/mo):</span> 30,000 credits/month</p>
           <p><span className="font-semibold">Enterprise:</span> Custom credits</p>
+          <p className="pt-1 text-[11px] text-ink-4">Monitoring scans are governed by the subscription engine-check quota, not credits. See two-layer billing model.</p>
         </div>
       </section>
     </div>

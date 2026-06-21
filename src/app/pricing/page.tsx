@@ -389,7 +389,7 @@ function PricingPageInner() {
                     <div className={`mt-7 rounded-xl border p-4 text-left ${plan.popular ? 'border-white/15 bg-white/10' : 'border-divider bg-surface'}`}>
                       <p className={`text-sm font-semibold ${plan.popular ? 'text-ink-inv' : 'text-ink'}`}>{plan.credits}</p>
                       <p className={`mt-1 text-xs ${plan.popular ? 'text-ink-inv/55' : 'text-ink-3'}`}>
-                        {lang === 'zh' ? 'Credits roll over · never expire' : 'Credits roll over · never expire'}
+                        {lang === 'zh' ? 'Credits 每月随套餐重置' : 'Credits reset monthly with your plan'}
                       </p>
                     </div>
                     <div className="mt-4 flex flex-wrap justify-center gap-1.5">
