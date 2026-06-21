@@ -674,13 +674,23 @@ function TokenManagement() {
 interface COGSCustomer {
   customer_id: string
   brand_name: string
-  plan: string
+  plan: string | null
+  status: string
   scan_count: number
   total_executions: number
   cogs_usd: number
   plan_revenue_usd: number
-  margin_pct: number
+  margin_pct: number | null   // null = pre-revenue (trial / no sub)
   at_risk: boolean
+}
+
+interface COGSInternalBrand {
+  customer_id: string
+  brand_name: string
+  owner_role: string
+  scan_count: number
+  total_executions: number
+  cogs_usd: number
 }
 
 interface COGSReport {
@@ -693,6 +703,12 @@ interface COGSReport {
     avg_margin_pct: number
   }
   customers: COGSCustomer[]
+  internal?: {
+    total_cogs_usd: number
+    scan_count: number
+    brand_count: number
+    brands: COGSInternalBrand[]
+  }
 }
 
 function COGSReport() {
@@ -767,46 +783,101 @@ function COGSReport() {
             ))}
           </div>
 
-          {/* Per-customer table */}
-          {report.customers.length === 0 ? (
-            <p className="text-sm text-ink-3 py-6 text-center">No scan activity in {report.month}.</p>
-          ) : (
-            <div className="overflow-x-auto rounded-2xl border border-divider">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-canvas border-b border-divider">
-                    {['Brand', 'Plan', 'Scans', 'Executions', 'COGS', 'MRR', 'Margin', 'Risk'].map((h) => (
-                      <th key={h} className="px-4 py-3 text-left text-[11px] text-ink-3 font-semibold tracking-wide whitespace-nowrap">
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-divider-light">
-                  {report.customers.map((c) => (
-                    <tr key={c.customer_id} className={`hover:bg-canvas transition-colors ${c.at_risk ? 'bg-red-soft/5' : ''}`}>
-                      <td className="px-4 py-3 font-medium text-ink max-w-[160px] truncate" title={c.brand_name}>
-                        {c.brand_name}
-                      </td>
-                      <td className={`px-4 py-3 font-medium capitalize ${planColor(c.plan)}`}>{c.plan}</td>
-                      <td className="px-4 py-3 text-ink-3">{c.scan_count}</td>
-                      <td className="px-4 py-3 text-ink-3">{c.total_executions.toLocaleString()}</td>
-                      <td className="px-4 py-3 font-medium text-ink">${c.cogs_usd.toFixed(2)}</td>
-                      <td className="px-4 py-3 text-ink-3">${c.plan_revenue_usd.toFixed(0)}</td>
-                      <td className={`px-4 py-3 font-medium ${c.margin_pct < 50 ? 'text-red-soft' : c.margin_pct < 70 ? 'text-caution' : 'text-green-600'}`}>
-                        {c.margin_pct}%
-                      </td>
-                      <td className="px-4 py-3">
-                        {c.at_risk && (
-                          <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold rounded-full bg-red-soft/15 text-red-soft">
-                            AT RISK
-                          </span>
-                        )}
-                      </td>
+          {/* Real-customer table (role=user) */}
+          <div>
+            <p className="text-xs font-semibold text-ink-3 tracking-wide mb-2">PAYING & TRIAL CUSTOMERS</p>
+            {report.customers.length === 0 ? (
+              <p className="text-sm text-ink-3 py-6 text-center bg-surface rounded-2xl border border-divider">
+                No real-customer scan activity in {report.month}.
+              </p>
+            ) : (
+              <div className="overflow-x-auto rounded-2xl border border-divider">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-canvas border-b border-divider">
+                      {['Brand', 'Plan', 'Status', 'Scans', 'Executions', 'COGS', 'MRR', 'Margin', 'Risk'].map((h) => (
+                        <th key={h} className="px-4 py-3 text-left text-[11px] text-ink-3 font-semibold tracking-wide whitespace-nowrap">
+                          {h}
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-divider-light">
+                    {report.customers.map((c) => (
+                      <tr key={c.customer_id} className={`hover:bg-canvas transition-colors ${c.at_risk ? 'bg-red-soft/5' : ''}`}>
+                        <td className="px-4 py-3 font-medium text-ink max-w-[160px] truncate" title={c.brand_name}>
+                          {c.brand_name}
+                        </td>
+                        <td className={`px-4 py-3 font-medium capitalize ${planColor(c.plan ?? '')}`}>{c.plan ?? '—'}</td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-semibold rounded-full capitalize ${
+                            c.status === 'active' ? 'bg-green-600/15 text-green-600'
+                            : c.status === 'trialing' ? 'bg-caution/15 text-caution'
+                            : 'bg-ink-3/15 text-ink-3'}`}>
+                            {c.status === 'none' ? 'no sub' : c.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-ink-3">{c.scan_count}</td>
+                        <td className="px-4 py-3 text-ink-3">{c.total_executions.toLocaleString()}</td>
+                        <td className="px-4 py-3 font-medium text-ink">${c.cogs_usd.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-ink-3">${c.plan_revenue_usd.toFixed(0)}</td>
+                        <td className={`px-4 py-3 font-medium ${
+                          c.margin_pct === null ? 'text-ink-3'
+                          : c.margin_pct < 50 ? 'text-red-soft'
+                          : c.margin_pct < 70 ? 'text-caution' : 'text-green-600'}`}>
+                          {c.margin_pct === null ? 'N/A' : `${c.margin_pct}%`}
+                        </td>
+                        <td className="px-4 py-3">
+                          {c.at_risk && (
+                            <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold rounded-full bg-red-soft/15 text-red-soft">
+                              AT RISK
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Internal / test brands (admin/staff-owned) — cost only, never revenue */}
+          {report.internal && report.internal.brand_count > 0 && (
+            <div>
+              <div className="flex items-baseline justify-between mb-2">
+                <p className="text-xs font-semibold text-ink-3 tracking-wide">
+                  INTERNAL / TEST BRANDS
+                  <span className="ml-2 font-normal normal-case">admin/staff-owned — excluded from revenue & margin</span>
+                </p>
+                <p className="text-xs text-ink-3">
+                  {report.internal.scan_count} scans · <span className="font-semibold text-ink">${report.internal.total_cogs_usd.toFixed(2)}</span> internal cost
+                </p>
+              </div>
+              <div className="overflow-x-auto rounded-2xl border border-divider border-dashed">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-canvas border-b border-divider">
+                      {['Brand', 'Owner', 'Scans', 'Executions', 'Cost'].map((h) => (
+                        <th key={h} className="px-4 py-3 text-left text-[11px] text-ink-3 font-semibold tracking-wide whitespace-nowrap">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-divider-light">
+                    {report.internal.brands.map((b) => (
+                      <tr key={b.customer_id} className="hover:bg-canvas transition-colors opacity-80">
+                        <td className="px-4 py-3 font-medium text-ink max-w-[160px] truncate" title={b.brand_name}>{b.brand_name}</td>
+                        <td className="px-4 py-3 text-ink-3 capitalize">{b.owner_role}</td>
+                        <td className="px-4 py-3 text-ink-3">{b.scan_count}</td>
+                        <td className="px-4 py-3 text-ink-3">{b.total_executions.toLocaleString()}</td>
+                        <td className="px-4 py-3 font-medium text-ink-3">${b.cogs_usd.toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </>
