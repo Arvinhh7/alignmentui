@@ -515,17 +515,34 @@ function CodePreview({ code, title, onClose }: { code: string; title: string; on
 }
 
 // ─── Fix Card ──────────────────────────────────────────
-function FixCard({ fix, index, onViewCode, onApply, applying }: {
+function FixCard({ fix, index, onViewCode, onGenerate }: {
   fix: OptimizationFix
   index: number
   onViewCode: (code: string, title: string) => void
-  onApply: () => void
-  applying: boolean
+  onGenerate: (checkId: string) => Promise<string>
 }) {
   const effortColors: Record<string, string> = {
     low: 'bg-sage-bg text-sage',
     medium: 'bg-caution-bg text-caution',
     high: 'bg-red-soft-bg text-red-soft',
+  }
+  const [generating, setGenerating] = useState(false)
+  const [code, setCode] = useState<string | null>(fix.code_snippet ?? null)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleGenerate = async () => {
+    if (!fix.audit_check_id || generating) return
+    setGenerating(true)
+    setError(null)
+    try {
+      const generated = await onGenerate(fix.audit_check_id)
+      setCode(generated)
+      onViewCode(generated, fix.title)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Generation failed')
+    } finally {
+      setGenerating(false)
+    }
   }
 
   return (
@@ -537,6 +554,9 @@ function FixCard({ fix, index, onViewCode, onApply, applying }: {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
+              {fix.audit_check_id && (
+                <span className="text-[10px] px-1.5 py-0.5 bg-surface-muted text-ink-3 rounded font-mono font-medium">{fix.audit_check_id}</span>
+              )}
               <p className="text-sm font-semibold text-ink">{fix.title}</p>
               {fix.is_permanent && (
                 <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 bg-sage-bg text-sage rounded font-medium">
@@ -559,27 +579,28 @@ function FixCard({ fix, index, onViewCode, onApply, applying }: {
                 {fix.effort.charAt(0).toUpperCase() + fix.effort.slice(1)} Effort
               </span>
             </div>
+            {error && <p className="text-[11px] text-red-soft mt-1.5">{error}</p>}
           </div>
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          {fix.code_snippet && (
+          {code ? (
             <button
-              onClick={() => onViewCode(fix.code_snippet!, fix.title)}
-              aria-label="View code"
-              title="View code"
-              className="p-2 hover:bg-surface rounded-lg transition-colors text-ink-3 hover:text-ink border border-transparent hover:border-divider focus:outline-none focus:ring-2 focus:ring-ink/10"
+              onClick={() => onViewCode(code, fix.title)}
+              title="View generated code"
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-sage-bg text-sage rounded-lg text-xs font-semibold hover:bg-sage/15 transition-colors border border-sage/20"
             >
-              <Code className="w-4 h-4" />
+              <Code className="w-4 h-4" /> View code
+            </button>
+          ) : (
+            <button
+              onClick={handleGenerate}
+              disabled={generating || !fix.audit_check_id}
+              title="Generate a targeted fix for this specific issue"
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-ink text-ink-inv rounded-lg text-xs font-semibold hover:bg-[#2d2d2c] transition-colors disabled:opacity-50"
+            >
+              {generating ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating</> : <><Zap className="w-4 h-4" /> Generate fix</>}
             </button>
           )}
-          <button
-            onClick={onApply}
-            disabled={applying}
-            className="p-2 hover:bg-surface rounded-lg transition-colors text-ink-3 hover:text-caution border border-transparent hover:border-divider disabled:opacity-50"
-            title="Apply fix"
-          >
-            {applying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-          </button>
         </div>
       </div>
     </div>
@@ -587,13 +608,14 @@ function FixCard({ fix, index, onViewCode, onApply, applying }: {
 }
 
 // ─── Dimension Optimization Card ───────────────────────
-function DimensionOptCard({ dim, icon, index, baseline, onViewCode, onOptimize, optimizing, optType }: {
+function DimensionOptCard({ dim, icon, index, baseline, onViewCode, onOptimize, onGenerateFix, optimizing, optType }: {
   dim: DimensionOptimization
   icon: React.ReactNode
   index: number
   baseline: BaselineSnapshot | null
   onViewCode: (code: string, title: string) => void
   onOptimize: (key: string) => void
+  onGenerateFix: (checkId: string) => Promise<string>
   optimizing: string | null
   optType: OptimizationType
 }) {
@@ -718,12 +740,11 @@ function DimensionOptCard({ dim, icon, index, baseline, onViewCode, onOptimize, 
             <h5 className="text-xs font-medium text-ink-2 uppercase tracking-wider">Optimization Fixes</h5>
             {dim.fixes.map((fix, i) => (
               <FixCard
-                key={i}
+                key={fix.audit_check_id || i}
                 fix={fix}
                 index={i}
                 onViewCode={onViewCode}
-                onApply={() => {}}
-                applying={false}
+                onGenerate={onGenerateFix}
               />
             ))}
           </div>
@@ -1124,6 +1145,22 @@ export default function GEOOptimizationPage() {
     setCodePreview({ code, title })
   }
 
+  // Per-issue fix generation — calls the zone-aware Claude fix pipeline for ONE
+  // audit check and returns the generated code. Throws on failure (FixCard shows it).
+  const handleGenerateFix = async (checkId: string): Promise<string> => {
+    if (!result) throw new Error('No optimization result loaded')
+    const response = await api.generateCheckFix(result.url, checkId, user?.id)
+    if (response.error || !response.data) {
+      throw new Error(response.error || 'Fix generation failed')
+    }
+    notifyCreditUsed()
+    const plan = response.data
+    const code = plan.fix_code || plan.engineer_guide || plan.fix_description || ''
+    if (!code) throw new Error('No code was generated for this issue')
+    const header = plan.fix_filename ? `/* Target file: ${plan.fix_filename} */\n\n` : ''
+    return header + code
+  }
+
   const handleOneClickOptimize = async (dimensionKey: string) => {
     if (!result) return
     setOptimizing(dimensionKey)
@@ -1430,6 +1467,7 @@ export default function GEOOptimizationPage() {
                   baseline={baseline}
                   onViewCode={handleViewCode}
                   onOptimize={handleOneClickOptimize}
+                  onGenerateFix={handleGenerateFix}
                   optimizing={optimizing}
                   optType={DIMENSION_OPT_TYPE[dim.dimension_key] || 'code'}
                 />

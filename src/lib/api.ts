@@ -1627,6 +1627,16 @@ class APIClient {
     });
   }
 
+  // Generate targeted code for ONE audit issue (per-issue fix). The backend
+  // inherits the latest persisted audit and runs the zone-aware Claude pipeline.
+  async generateCheckFix(url: string, checkId: string, userId?: string) {
+    const qs = userId ? `?user_id=${userId}` : '';
+    return this.request<FixPlan>(`/api/optimization/fix${qs}`, {
+      method: 'POST',
+      body: JSON.stringify({ url, check_id: checkId }),
+    });
+  }
+
   // ─── GEO Performance Monitor endpoints ─────────────
 
   async getMonitorPrompts(activeOnly: boolean = false, customerId?: string) {
