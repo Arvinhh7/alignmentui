@@ -159,6 +159,7 @@ function SOVBar({
 export function CompetitorsTab() {
   const ctx = useUnified()
   const { scanResult, brandConfig } = ctx
+  const [tracked, setTracked] = useState(false)
 
   // No data state
   if (!scanResult) {
@@ -197,6 +198,18 @@ export function CompetitorsTab() {
   const usingDiscovered =
     !!scanResult.has_discovered_brands &&
     Object.keys(scanResult.share_of_voice ?? {}).length > 1
+
+  // Brands auto-found in this scan that the user hasn't yet configured as named competitors
+  const discoveredCompetitors = usingDiscovered
+    ? Object.keys(scanResult.share_of_voice ?? {}).filter(b => b !== brandConfig.brand_name)
+    : []
+
+  const handleTrackDiscovered = () => {
+    if (discoveredCompetitors.length) {
+      ctx.handleSaveConfig('', discoveredCompetitors.join(', '), '')
+    }
+    setTracked(true)
+  }
 
   const overallSov: Record<string, number> = usingDiscovered
     ? (scanResult.share_of_voice ?? {})
@@ -248,13 +261,42 @@ export function CompetitorsTab() {
 
       {/* ── Auto-discovered brands note ────────────────── */}
       {usingDiscovered && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface border border-divider text-ink-3 text-sm">
-          <AlertTriangle className="w-4 h-4 flex-shrink-0 text-caution" />
-          <span>
-            Showing brands <strong className="text-ink-2">auto-discovered</strong> from AI responses (count-based share — same brands as the Overview tab).
-            Add competitors in <strong className="text-ink-2">brand settings</strong> to unlock weighted <strong className="text-ink-2">Prompt SOV</strong> and <strong className="text-ink-2">Sourcing SOV</strong>.
-          </span>
-        </div>
+        tracked ? (
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-sage-bg border border-sage/30 text-sm">
+            <span className="font-semibold text-sage">✓ {discoveredCompetitors.length} competitor{discoveredCompetitors.length !== 1 ? 's' : ''} saved.</span>
+            <span className="text-ink-3">Rescan to see weighted Prompt SOV and Sourcing SOV.</span>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3 px-4 py-3 rounded-xl bg-surface border border-divider text-sm">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0 text-caution mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <span className="text-ink-2 font-medium">Showing auto-discovered brands</span>
+                <span className="text-ink-3"> (count-based). Pick who to benchmark against to unlock weighted </span>
+                <strong className="text-ink-2">Prompt SOV</strong>
+                <span className="text-ink-3"> and </span>
+                <strong className="text-ink-2">Sourcing SOV</strong>
+                <span className="text-ink-3">.</span>
+              </div>
+            </div>
+            {discoveredCompetitors.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 pl-7">
+                {discoveredCompetitors.map(brand => (
+                  <span key={brand} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-canvas border border-divider text-xs text-ink-2 font-medium">
+                    <BrandLogo domain={guessBrandDomain(brand)} name={brand} size={12} />
+                    {brand}
+                  </span>
+                ))}
+                <button
+                  onClick={handleTrackDiscovered}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-ink text-ink-inv text-xs font-semibold hover:bg-ink/80 transition-colors"
+                >
+                  + Track all
+                </button>
+              </div>
+            )}
+          </div>
+        )
       )}
 
       {/* ── Old scan banner (no weighted_sov at all) ───── */}
@@ -298,6 +340,7 @@ export function CompetitorsTab() {
           sovSegments={sovSegments}
           brandName={brandConfig.brand_name}
           brandDomainMap={brandDomainMap}
+          usingDiscovered={usingDiscovered}
         />
       )}
 
@@ -331,7 +374,7 @@ export function CompetitorsTab() {
 
 // ─── Overall SOV sub-tab ──────────────────────────────
 function OverallSOVTab({
-  overallSov, orderedBrands, maxShare, sovSegments, brandName, brandDomainMap,
+  overallSov, orderedBrands, maxShare, sovSegments, brandName, brandDomainMap, usingDiscovered = false,
 }: {
   overallSov: Record<string, number>
   orderedBrands: string[]
@@ -339,6 +382,7 @@ function OverallSOVTab({
   sovSegments: { label: string; value: number; color: string }[]
   brandName: string
   brandDomainMap: Record<string, string>
+  usingDiscovered?: boolean
 }) {
   return (
     <div className="space-y-6">
@@ -381,8 +425,10 @@ function OverallSOVTab({
         <div className="bg-surface rounded-xl border border-divider p-5">
           <h4 className="text-sm font-semibold text-ink-2 mb-4 flex items-center gap-2">
             <Target className="w-4 h-4 text-ink-3" />
-            Weighted Share of Voice
-            <span className="text-xs text-ink-3 font-normal">(position × prominence)</span>
+            {usingDiscovered ? 'Count-based Share' : 'Weighted Share of Voice'}
+            <span className="text-xs text-ink-3 font-normal">
+              {usingDiscovered ? '(auto-discovered · add competitors to enable position weighting)' : '(position × prominence)'}
+            </span>
           </h4>
           <div className="flex flex-col sm:flex-row items-start gap-6">
             {/* Left: donut */}
@@ -408,15 +454,17 @@ function OverallSOVTab({
         </div>
       )}
 
-      {/* ── Weight legend ───────────────────────────────── */}
-      <div className="bg-canvas rounded-xl border border-divider-light p-4">
-        <p className="text-xs text-ink-3 font-medium mb-2">How weights are calculated</p>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-3">
-          <span><strong className="text-ink-2">Position weight</strong> = 1 / log₂(rank+1) — DCG; unranked prose = 1.0</span>
-          <span><strong className="text-ink-2">Prominence weight</strong>: primary rec 1.0 → passing ref 0.2</span>
-          <span><strong className="text-ink-2">SOV</strong> = Σ brand_weight / Σ all_weights</span>
+      {/* ── Weight legend (only when data is truly weighted) ── */}
+      {!usingDiscovered && (
+        <div className="bg-canvas rounded-xl border border-divider-light p-4">
+          <p className="text-xs text-ink-3 font-medium mb-2">How weights are calculated</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-3">
+            <span><strong className="text-ink-2">Position weight</strong> = 1 / log₂(rank+1) — DCG; unranked prose = 1.0</span>
+            <span><strong className="text-ink-2">Prominence weight</strong>: primary rec 1.0 → passing ref 0.2</span>
+            <span><strong className="text-ink-2">SOV</strong> = Σ brand_weight / Σ all_weights</span>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
@@ -438,7 +486,7 @@ function PromptSOVTab({
         <p className="text-sm font-medium text-ink-3 mb-1">No prompt-level data</p>
         <p className="text-xs text-ink-3">
           {needsCompetitors
-            ? <>Per-prompt SOV weighs your brand against named competitors. Add competitors in <strong>brand settings</strong>, then run a scan to populate this view.</>
+            ? <>Add the brands you compete with to see how you rank on each prompt — weighted by position and recommendation strength. Use <strong>Track all</strong> above or add them in <strong>brand settings</strong>, then rescan.</>
             : <>This scan predates weighted SOV. Click <strong>Scan</strong> to run a fresh scan and populate per-prompt data.</>}
         </p>
       </div>
@@ -570,7 +618,7 @@ function SourcingSOVTab({
         <p className="text-sm font-medium text-ink-3 mb-1">No sourcing data</p>
         <p className="text-xs text-ink-3">
           {needsCompetitors
-            ? <>Sourcing SOV compares competitors across citation sources. Add competitors in <strong>brand settings</strong>, then run a scan to populate this view.</>
+            ? <>Add competitors to see which AI citation sources drive visibility for them vs. you — and where you&apos;re winning or losing. Use <strong>Track all</strong> above or add them in <strong>brand settings</strong>, then rescan.</>
             : <>This scan predates weighted SOV, or no citation URLs were returned. Click <strong>Scan</strong> to generate domain-level data.</>}
         </p>
       </div>
