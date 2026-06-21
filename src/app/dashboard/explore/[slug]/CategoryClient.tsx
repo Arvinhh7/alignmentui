@@ -9,7 +9,7 @@ import {
   ChevronRight, Database, AlertCircle, ShoppingBag, FileText,
 } from 'lucide-react'
 import { BrandLogo } from '@/components/BrandLogo'
-import { API_BASE_URL, fetchWithRetry } from '@/lib/api'
+import { API_BASE_URL, fetchWithRetry, readStaleCache, writeStaleCache } from '@/lib/api'
 
 const EXPLORE_BRAND_DOMAINS: [string, string][] = [
   ['apple', 'apple.com'],
@@ -644,7 +644,19 @@ export default function CategoryClient({ slug }: { slug: string }) {
   const loadData = useCallback(() => {
     setLoading(true)
     setError(null)
-    fetchWithRetry(`${API_BASE_URL}/api/explore/categories/${activeSlug}`, {}, { timeoutMs: 9000, budgetMs: 20000 })
+
+    // Stale-while-revalidate: paint the last good detail for this category so a
+    // backend redeploy / cold start never blanks the page; refresh in background.
+    const cacheKey = `explore:category:${activeSlug}:v1`
+    const cached = readStaleCache<CategoryDetail>(cacheKey)
+    if (cached?.data?.category) {
+      setData(cached.data)
+      setLoading(false)
+    }
+
+    // budgetMs 45s rides out a Railway cold-start window; fetchWithRetry already
+    // backs off and retries 502/503/504 + network errors.
+    fetchWithRetry(`${API_BASE_URL}/api/explore/categories/${activeSlug}`, {}, { timeoutMs: 9000, budgetMs: 45000 })
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`)
         return r.json()
@@ -652,10 +664,19 @@ export default function CategoryClient({ slug }: { slug: string }) {
       .then(d => {
         if (!d || !d.category) { setData(null); return }
         setData(d)
+        writeStaleCache(cacheKey, d)
+        setError(null)
       })
       .catch(() => {
-        setData(null)
-        setError('This category could not be loaded from the data API. Please retry in a moment.')
+        // Keep showing stale data if we have any; only hard-error with nothing.
+        const fallback = readStaleCache<CategoryDetail>(cacheKey)
+        if (fallback?.data?.category) {
+          setData(fallback.data)
+          setError(null)
+        } else {
+          setData(null)
+          setError('This category could not be loaded from the data API. Please retry in a moment.')
+        }
       })
       .finally(() => setLoading(false))
   }, [activeSlug])
