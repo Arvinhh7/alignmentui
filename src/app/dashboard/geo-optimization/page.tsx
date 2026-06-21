@@ -588,11 +588,12 @@ function CodePreview({ code, title, kind = 'code', onClose }: { code: string; ti
 }
 
 // ─── Fix Card ──────────────────────────────────────────
-function FixCard({ fix, index, onViewCode, onGenerate }: {
+function FixCard({ fix, index, onViewCode, onGenerate, activeGenId }: {
   fix: OptimizationFix
   index: number
   onViewCode: (code: string, title: string, kind?: 'code' | 'content') => void
   onGenerate: (checkId: string) => Promise<string>
+  activeGenId: string | null
 }) {
   const effortColors: Record<string, string> = {
     low: 'bg-sage-bg text-sage',
@@ -603,6 +604,24 @@ function FixCard({ fix, index, onViewCode, onGenerate }: {
   const [generating, setGenerating] = useState(false)
   const [code, setCode] = useState<string | null>(fix.code_snippet ?? null)
   const [error, setError] = useState<string | null>(null)
+  const [elapsed, setElapsed] = useState(0)
+
+  // This card is the one actually calling Claude right now.
+  const isActive = activeGenId !== null && activeGenId === fix.audit_check_id
+  // Another card is generating → this one must wait (no parallel calls).
+  const othersBusy = activeGenId !== null && activeGenId !== fix.audit_check_id
+  // Clicked but waiting in the queue behind the active one.
+  const queued = generating && !isActive
+  // Generation ETA: content (Sonnet prose) is slower than code (Haiku snippet).
+  const etaSeconds = isContent ? 40 : 20
+
+  // Live elapsed counter while this card is the active generation.
+  useEffect(() => {
+    if (!isActive) { setElapsed(0); return }
+    setElapsed(0)
+    const t = setInterval(() => setElapsed((e) => e + 1), 1000)
+    return () => clearInterval(t)
+  }, [isActive])
 
   const handleGenerate = async () => {
     if (!fix.audit_check_id || generating) return
@@ -668,15 +687,19 @@ function FixCard({ fix, index, onViewCode, onGenerate }: {
           ) : (
             <button
               onClick={handleGenerate}
-              disabled={generating || !fix.audit_check_id}
-              title={isContent ? 'Generate publish-ready copy for this issue' : 'Generate targeted code for this issue'}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-ink text-ink-inv rounded-lg text-xs font-semibold hover:bg-[#2d2d2c] transition-colors disabled:opacity-50"
+              disabled={generating || !fix.audit_check_id || othersBusy}
+              title={othersBusy
+                ? 'Another fix is generating — this one will run next'
+                : isContent ? 'Generate publish-ready copy (~40s)' : 'Generate targeted code (~20s)'}
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-ink text-ink-inv rounded-lg text-xs font-semibold hover:bg-[#2d2d2c] transition-colors disabled:opacity-50 whitespace-nowrap"
             >
-              {generating
-                ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating</>
-                : isContent
-                  ? <><FileText className="w-4 h-4" /> Generate content</>
-                  : <><Code className="w-4 h-4" /> Generate code</>}
+              {queued
+                ? <><Loader2 className="w-4 h-4 animate-spin" /> Queued…</>
+                : isActive
+                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating {elapsed}s{elapsed < etaSeconds ? ` · ~${etaSeconds}s` : ''}</>
+                  : isContent
+                    ? <><FileText className="w-4 h-4" /> Generate content</>
+                    : <><Code className="w-4 h-4" /> Generate code</>}
             </button>
           )}
         </div>
@@ -686,13 +709,14 @@ function FixCard({ fix, index, onViewCode, onGenerate }: {
 }
 
 // ─── Dimension Optimization Card ───────────────────────
-function DimensionOptCard({ dim, icon, index, baseline, onViewCode, onGenerateFix }: {
+function DimensionOptCard({ dim, icon, index, baseline, onViewCode, onGenerateFix, activeGenId }: {
   dim: DimensionOptimization
   icon: React.ReactNode
   index: number
   baseline: BaselineSnapshot | null
   onViewCode: (code: string, title: string, kind?: 'code' | 'content') => void
   onGenerateFix: (checkId: string) => Promise<string>
+  activeGenId: string | null
 }) {
   const [expanded, setExpanded] = useState(false)
 
@@ -819,6 +843,7 @@ function DimensionOptCard({ dim, icon, index, baseline, onViewCode, onGenerateFi
                 index={i}
                 onViewCode={onViewCode}
                 onGenerate={onGenerateFix}
+                activeGenId={activeGenId}
               />
             ))}
           </div>
@@ -961,9 +986,14 @@ export default function GEOOptimizationPage() {
   const [codePreview, setCodePreview] = useState<{ code: string; title: string; kind?: 'code' | 'content' } | null>(null)
   const [applyResult, setApplyResult] = useState<ApplyOptimizationResult | null>(null)
   const [auditContext, setAuditContext] = useState<AuditOptContext | null>(null)
+  // The audit check whose fix is generating RIGHT NOW (one at a time). Lets the
+  // other Fix cards show "Queued…" / disable so we never fire parallel Claude calls.
+  const [activeGenId, setActiveGenId] = useState<string | null>(null)
 
   const resultRef = useRef<HTMLDivElement>(null)
   const autoRunRef = useRef(false)
+  // Serialization queue: every Generate click chains onto the previous one.
+  const genQueueRef = useRef<Promise<unknown>>(Promise.resolve())
 
   // ─── Restore the url (param or last session) then always re-fetch ──
   // We deliberately do NOT restore the cached `result`: re-running the (now free,
@@ -1056,15 +1086,18 @@ export default function GEOOptimizationPage() {
 
   // Per-issue fix generation — calls the zone-aware Claude fix pipeline for ONE
   // audit check and returns the generated code. Throws on failure (FixCard shows it).
-  const handleGenerateFix = async (checkId: string): Promise<string> => {
+  const runGenerateFix = async (checkId: string): Promise<string> => {
     if (!result) throw new Error('No optimization result loaded')
     const response = await api.generateCheckFix(result.url, checkId, user?.id)
     if (response.error || !response.data) {
       const raw = response.error || 'Fix generation failed'
-      // __ABORTED__ (client timeout) or an AI-capacity error → show a calm,
-      // actionable message instead of a raw gateway string. The POST is charged
-      // only on success, so re-clicking is safe.
-      const busy = raw === '__ABORTED__' || /overload|timed out|timeout|exhausted|busy/i.test(raw)
+      // Map gateway failures to a calm, actionable message. The POST is charged
+      // only on success, so re-clicking is always safe.
+      if (/truncat|too large|response_truncated/i.test(raw)) {
+        throw new Error('This fix is unusually large — we expanded the limit. Please click Generate again.')
+      }
+      const busy = raw === '__ABORTED__'
+        || /overload|timed out|timeout|unavailable|exhausted|busy|rate.?limit|429|529/i.test(raw)
       throw new Error(busy
         ? 'AI service is busy right now — please click Generate again in a moment.'
         : raw)
@@ -1077,6 +1110,26 @@ export default function GEOOptimizationPage() {
     if (plan.fix_kind === 'content') return body
     const header = plan.fix_filename ? `/* Target file: ${plan.fix_filename} */\n\n` : ''
     return header + body
+  }
+
+  // Serialize generation so only ONE Claude call is ever in flight. Clicking
+  // several Generate buttons at once no longer fires concurrent calls (which would
+  // hammer the Anthropic rate limit and all come back as "AI service busy") — the
+  // extra clicks queue and run one after another. `activeGenId` is the check that
+  // is currently running, so the other cards can show "Queued…" and stay disabled.
+  const handleGenerateFix = (checkId: string): Promise<string> => {
+    const run = genQueueRef.current
+      .catch(() => {})
+      .then(async () => {
+        setActiveGenId(checkId)
+        try {
+          return await runGenerateFix(checkId)
+        } finally {
+          setActiveGenId((cur) => (cur === checkId ? null : cur))
+        }
+      })
+    genQueueRef.current = run.catch(() => {})
+    return run as Promise<string>
   }
 
   const handleSaveBaseline = () => {
@@ -1218,6 +1271,7 @@ export default function GEOOptimizationPage() {
                   baseline={baseline}
                   onViewCode={handleViewCode}
                   onGenerateFix={handleGenerateFix}
+                  activeGenId={activeGenId}
                 />
               ))}
             </div>
