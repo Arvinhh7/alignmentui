@@ -707,9 +707,7 @@ function COGSReport() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`${API_BASE}/api/ops/cogs?month=${month}`, {
-        headers: { 'x-internal-token': process.env.NEXT_PUBLIC_INTERNAL_TOKEN || '' },
-      })
+      const res = await fetch(`${API_BASE}/api/ops/cogs?month=${month}`)
       if (!res.ok) throw new Error(await res.text())
       setReport(await res.json())
     } catch (e: unknown) {
