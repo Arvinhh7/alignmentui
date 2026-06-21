@@ -339,13 +339,57 @@ function ScanProgressPanel({ url }: { url: string }) {
   )
 }
 
-// ─── Code Preview Modal (with Edit & Download) ────────
-function CodePreview({ code, title, onClose }: { code: string; title: string; onClose: () => void }) {
+// ─── Lightweight markdown → JSX (no dependency) for content previews ──
+function renderInline(text: string): React.ReactNode {
+  // **bold** segments → <strong>; everything else verbatim.
+  return text.split(/(\*\*[^*]+\*\*)/g).map((p, i) =>
+    /^\*\*[^*]+\*\*$/.test(p)
+      ? <strong key={i} className="font-semibold text-ink">{p.slice(2, -2)}</strong>
+      : <span key={i}>{p}</span>
+  )
+}
+
+function MarkdownLite({ text }: { text: string }) {
+  const blocks: React.ReactNode[] = []
+  let list: string[] = []
+  const flush = (key: string) => {
+    if (list.length) {
+      blocks.push(
+        <ul key={key} className="list-disc pl-5 space-y-1 my-2">
+          {list.map((li, i) => (
+            <li key={i} className="text-ink-2 text-[15px] leading-relaxed">{renderInline(li)}</li>
+          ))}
+        </ul>
+      )
+      list = []
+    }
+  }
+  text.split('\n').forEach((raw, idx) => {
+    const line = raw.trimEnd()
+    if (/^###\s+/.test(line)) { flush(`f${idx}`); blocks.push(<h3 key={idx} className="text-sm font-bold text-ink mt-4 mb-1">{renderInline(line.replace(/^###\s+/, ''))}</h3>) }
+    else if (/^##\s+/.test(line)) { flush(`f${idx}`); blocks.push(<h2 key={idx} className="text-base font-bold text-ink mt-5 mb-1.5">{renderInline(line.replace(/^##\s+/, ''))}</h2>) }
+    else if (/^#\s+/.test(line)) { flush(`f${idx}`); blocks.push(<h1 key={idx} className="text-lg font-bold text-ink mt-2 mb-2">{renderInline(line.replace(/^#\s+/, ''))}</h1>) }
+    else if (/^[-*]\s+/.test(line)) { list.push(line.replace(/^[-*]\s+/, '')) }
+    else if (/^[-—]{3,}$/.test(line)) { flush(`f${idx}`); blocks.push(<hr key={idx} className="my-4 border-divider-light" />) }
+    else if (/^>\s+/.test(line)) { flush(`f${idx}`); blocks.push(<blockquote key={idx} className="border-l-2 border-caution/40 pl-3 my-2 text-ink-2 text-[15px] italic">{renderInline(line.replace(/^>\s+/, ''))}</blockquote>) }
+    else if (line.trim() === '') { flush(`f${idx}`) }
+    else { flush(`f${idx}`); blocks.push(<p key={idx} className="text-ink-2 text-[15px] leading-relaxed my-1.5">{renderInline(line)}</p>) }
+  })
+  flush('flast')
+  return <div className="font-sans max-w-2xl">{blocks}</div>
+}
+
+// ─── Fix Preview Modal — code = terminal editor, content = readable document ──
+function CodePreview({ code, title, kind = 'code', onClose }: { code: string; title: string; kind?: 'code' | 'content'; onClose: () => void }) {
+  const isContent = kind === 'content'
   const [editableCode, setEditableCode] = useState(code)
   const [isEditing, setIsEditing] = useState(false)
   const [copied, setCopied] = useState(false)
   const [fileName, setFileName] = useState(() => {
-    // Auto-detect file name from content
+    if (isContent) {
+      // Content is markdown copy — default to a sensible publish target.
+      return code.includes('llms') || /^#\s/m.test(code) ? 'llms.txt' : 'content.md'
+    }
     if (code.includes('User-agent:') && code.includes('Allow:')) return 'robots.txt'
     if (code.includes('<!DOCTYPE html>') || code.includes('<html')) return 'optimized-page.html'
     if (code.includes('<script type="application/ld+json">')) return 'schema-markup.html'
@@ -361,7 +405,7 @@ function CodePreview({ code, title, onClose }: { code: string; title: string; on
   }
 
   const handleDownload = () => {
-    const blob = new Blob([editableCode], { type: 'text/plain;charset=utf-8' })
+    const blob = new Blob([editableCode], { type: isContent ? 'text/markdown;charset=utf-8' : 'text/plain;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -376,8 +420,9 @@ function CodePreview({ code, title, onClose }: { code: string; title: string; on
     setEditableCode(code)
   }
 
-  // Count lines
   const lineCount = editableCode.split('\n').length
+  const wordCount = editableCode.trim().split(/\s+/).filter(Boolean).length
+  const HeaderIcon = isContent ? FileText : Code
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
@@ -386,11 +431,15 @@ function CodePreview({ code, title, onClose }: { code: string; title: string; on
         <div className="flex items-center justify-between p-4 border-b border-divider bg-surface-warm">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-ink/5 rounded-lg flex items-center justify-center">
-              <Code className="w-4 h-4 text-ink" />
+              <HeaderIcon className="w-4 h-4 text-ink" />
             </div>
             <div>
               <h3 className="font-semibold text-ink text-sm">{title}</h3>
-              <p className="text-xs text-ink-3">{lineCount} lines · Click "Edit" to modify before downloading</p>
+              <p className="text-xs text-ink-3">
+                {isContent
+                  ? `${wordCount} words · ready-to-publish copy — paste into your page`
+                  : `${lineCount} lines · Click "Edit" to modify before downloading`}
+              </p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-surface-muted rounded-lg transition-colors">
@@ -406,7 +455,7 @@ function CodePreview({ code, title, onClose }: { code: string; title: string; on
               onClick={() => setIsEditing(!isEditing)}
               className={`px-3 py-1.5 text-xs font-medium rounded-lg flex items-center gap-1.5 transition-all ${isEditing ? 'bg-caution-bg text-caution border border-caution/20' : 'bg-surface-warm text-ink-2 hover:bg-surface-muted border border-transparent'}`}
             >
-              {isEditing ? <><Eye className="w-3.5 h-3.5" /> Switch to Preview</> : <><Code className="w-3.5 h-3.5" /> Edit Code</>}
+              {isEditing ? <><Eye className="w-3.5 h-3.5" /> Preview</> : <><Code className="w-3.5 h-3.5" /> Edit</>}
             </button>
             {isEditing && (
               <button onClick={handleReset} className="px-3 py-1.5 text-xs text-ink-2 hover:text-ink hover:bg-surface-warm rounded-lg flex items-center gap-1.5 transition-colors">
@@ -423,7 +472,7 @@ function CodePreview({ code, title, onClose }: { code: string; title: string; on
                 value={fileName}
                 onChange={e => setFileName(e.target.value)}
                 className="text-xs text-ink-2 bg-transparent outline-none w-40"
-                placeholder="filename.html"
+                placeholder={isContent ? 'content.md' : 'filename.html'}
               />
             </div>
             {/* Copy */}
@@ -437,9 +486,22 @@ function CodePreview({ code, title, onClose }: { code: string; title: string; on
           </div>
         </div>
 
-        {/* Code Area */}
+        {/* Body — content: readable document; code: terminal-style editor */}
         <div className="flex-1 overflow-y-auto">
-          {isEditing ? (
+          {isContent ? (
+            isEditing ? (
+              <textarea
+                value={editableCode}
+                onChange={e => setEditableCode(e.target.value)}
+                className="w-full min-h-[55vh] bg-surface text-ink px-6 py-5 text-[15px] leading-[1.75] outline-none resize-none font-sans"
+                spellCheck={false}
+              />
+            ) : (
+              <div className="bg-surface px-6 py-5 min-h-[55vh]">
+                <MarkdownLite text={editableCode} />
+              </div>
+            )
+          ) : isEditing ? (
             <div className="relative">
               {/* Line numbers */}
               <div className="absolute left-0 top-0 bottom-0 w-12 bg-ink border-r border-white/10 select-none pointer-events-none z-10">
@@ -477,7 +539,11 @@ function CodePreview({ code, title, onClose }: { code: string; title: string; on
         <div className="flex items-center justify-between px-4 py-3 border-t border-divider bg-surface-warm">
           <div className="flex items-center gap-2 text-xs text-ink-3">
             <Shield className="w-3.5 h-3.5" />
-            <span>This code does <strong>NOT</strong> modify your website. Copy/download and apply manually.</span>
+            <span>
+              {isContent
+                ? <>This is <strong>copy to publish</strong> — paste it into the page or your llms.txt. We don{"'"}t change your site.</>
+                : <>This code does <strong>NOT</strong> modify your website. Copy/download and apply manually.</>}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={handleCopy} className="px-4 py-2 text-sm bg-surface-muted hover:bg-surface-muted/70 rounded-lg flex items-center gap-2 transition-colors font-medium">
@@ -497,7 +563,7 @@ function CodePreview({ code, title, onClose }: { code: string; title: string; on
 function FixCard({ fix, index, onViewCode, onGenerate }: {
   fix: OptimizationFix
   index: number
-  onViewCode: (code: string, title: string) => void
+  onViewCode: (code: string, title: string, kind?: 'code' | 'content') => void
   onGenerate: (checkId: string) => Promise<string>
 }) {
   const effortColors: Record<string, string> = {
@@ -517,7 +583,7 @@ function FixCard({ fix, index, onViewCode, onGenerate }: {
     try {
       const generated = await onGenerate(fix.audit_check_id)
       setCode(generated)
-      onViewCode(generated, fix.title)
+      onViewCode(generated, fix.title, isContent ? 'content' : 'code')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Generation failed')
     } finally {
@@ -565,7 +631,7 @@ function FixCard({ fix, index, onViewCode, onGenerate }: {
         <div className="flex items-center gap-1.5 flex-shrink-0">
           {code ? (
             <button
-              onClick={() => onViewCode(code, fix.title)}
+              onClick={() => onViewCode(code, fix.title, isContent ? 'content' : 'code')}
               title={isContent ? 'View generated content' : 'View generated code'}
               className="inline-flex items-center gap-1.5 px-3 py-2 bg-sage-bg text-sage rounded-lg text-xs font-semibold hover:bg-sage/15 transition-colors border border-sage/20"
             >
@@ -597,7 +663,7 @@ function DimensionOptCard({ dim, icon, index, baseline, onViewCode, onGenerateFi
   icon: React.ReactNode
   index: number
   baseline: BaselineSnapshot | null
-  onViewCode: (code: string, title: string) => void
+  onViewCode: (code: string, title: string, kind?: 'code' | 'content') => void
   onGenerateFix: (checkId: string) => Promise<string>
 }) {
   const [expanded, setExpanded] = useState(false)
@@ -748,7 +814,7 @@ const DIMENSION_ICONS: Record<string, React.ReactNode> = {
 function ApplyResultPanel({ result, onClose, onViewCode }: {
   result: ApplyOptimizationResult
   onClose: () => void
-  onViewCode: (code: string, title: string) => void
+  onViewCode: (code: string, title: string, kind?: 'code' | 'content') => void
 }) {
   const dimLabel = result.dimension_key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 
@@ -864,40 +930,41 @@ export default function GEOOptimizationPage() {
   const [error, setError] = useState<string | null>(null)
   const [loadingUrl, setLoadingUrl] = useState('')
   const [baseline, setBaseline] = useState<BaselineSnapshot | null>(null)
-  const [codePreview, setCodePreview] = useState<{ code: string; title: string } | null>(null)
+  const [codePreview, setCodePreview] = useState<{ code: string; title: string; kind?: 'code' | 'content' } | null>(null)
   const [applyResult, setApplyResult] = useState<ApplyOptimizationResult | null>(null)
   const [auditContext, setAuditContext] = useState<AuditOptContext | null>(null)
 
   const resultRef = useRef<HTMLDivElement>(null)
   const autoRunRef = useRef(false)
 
-  // ─── Restore from localStorage or URL param on mount ──
+  // ─── Restore the url (param or last session) then always re-fetch ──
+  // We deliberately do NOT restore the cached `result`: re-running the (now free,
+  // audit-inheriting) optimization rehydrates fixes that were generated in a
+  // previous session/device and persisted server-side, so they come back as
+  // "View" instead of "Generate".
   useEffect(() => {
-    // Check URL param first (cross-module navigation)
     const params = new URLSearchParams(window.location.search)
     const paramUrl = params.get('url')
     const fromAudit = params.get('from_audit') === '1'
-    if (paramUrl) {
-      setUrl(paramUrl)
+    let restoreUrl: string | null = paramUrl
+    if (!restoreUrl) {
+      try {
+        const saved = localStorage.getItem('geo_optimization_session')
+        if (saved) {
+          const session = JSON.parse(saved)
+          restoreUrl = session.url || null
+          if (session.auditContext) setAuditContext(session.auditContext)
+        }
+      } catch {}
+    }
+    if (restoreUrl) {
+      setUrl(restoreUrl)
       autoRunRef.current = true
-      // Load audit context if navigated from audit page
       if (fromAudit) {
-        const ctx = readAuditContext(paramUrl)
+        const ctx = readAuditContext(restoreUrl)
         if (ctx) setAuditContext(ctx)
       }
-      return
     }
-    // Otherwise restore previous session
-    try {
-      const saved = localStorage.getItem('geo_optimization_session')
-      if (saved) {
-        const session = JSON.parse(saved)
-        if (session.url) setUrl(session.url)
-        if (session.result) setResult(session.result)
-        if (session.loadingUrl) setLoadingUrl(session.loadingUrl)
-        if (session.auditContext) setAuditContext(session.auditContext)
-      }
-    } catch {}
   }, [])
 
   // ─── Auto-run optimization when navigated with URL param ──
@@ -955,8 +1022,8 @@ export default function GEOOptimizationPage() {
     try { localStorage.removeItem('geo_optimization_session') } catch {}
   }
 
-  const handleViewCode = (code: string, title: string) => {
-    setCodePreview({ code, title })
+  const handleViewCode = (code: string, title: string, kind: 'code' | 'content' = 'code') => {
+    setCodePreview({ code, title, kind })
   }
 
   // Per-issue fix generation — calls the zone-aware Claude fix pipeline for ONE
@@ -1223,6 +1290,7 @@ export default function GEOOptimizationPage() {
         <CodePreview
           code={codePreview.code}
           title={codePreview.title}
+          kind={codePreview.kind}
           onClose={() => setCodePreview(null)}
         />
       )}
