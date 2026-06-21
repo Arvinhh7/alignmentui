@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Shield, Target, AlertTriangle, Hash, Globe } from 'lucide-react'
+import { Shield, Target, AlertTriangle, Hash, Globe, Sparkles, Pin, RefreshCw } from 'lucide-react'
 import { useUnified } from '../UnifiedContext'
 import { DonutChart, formatPct } from '../shared/ChartComponents'
 import { INTENT_COLORS } from '../shared/constants'
@@ -199,6 +199,18 @@ export function CompetitorsTab() {
     !!scanResult.has_discovered_brands &&
     Object.keys(scanResult.share_of_voice ?? {}).length > 1
 
+  // Does the scan carry weighted per-prompt rows? (true for both pinned competitors
+  // AND the new provisional auto-discovered weighting). When true, Prompt/Sourcing
+  // SOV render real data instead of an empty "configure competitors" gate.
+  const hasWeightedRows = (wsov?.per_prompt?.length ?? 0) > 0
+  // Weighted against auto-discovered (not pinned) brands — drives the "pin them" nudge.
+  const provisional = !!wsov?.provisional
+
+  // User HAS pinned competitors, but this cached scan predates them (it auto-discovered
+  // instead). Their weighted SOV won't reflect the pinned set until a rescan.
+  const staleConfig =
+    brandConfig.competitors.length > 0 && !!scanResult.has_discovered_brands
+
   // Brands auto-found in this scan that the user hasn't yet configured as named competitors
   const discoveredCompetitors = usingDiscovered
     ? Object.keys(scanResult.share_of_voice ?? {}).filter(b => b !== brandConfig.brand_name)
@@ -233,10 +245,24 @@ export function CompetitorsTab() {
   }, [wsov, brandConfig, usingDiscovered, scanResult.share_of_voice])
 
   const maxShare = Math.max(...Object.values(overallSov), 0.01)
-  // The "weighted" path is only truly active for configured competitors. In the
-  // auto-discovered case the per-prompt / per-domain weighted breakdowns don't
-  // exist, so treat Overall SOV as a count-based (non-weighted) result.
-  const hasWeightedSov = !!wsov && !usingDiscovered
+
+  // Brand set + order for the WEIGHTED tabs (Prompt / Sourcing). When weighted data
+  // exists (pinned or provisional) derive columns from the weighted overall_sov so we
+  // show exactly the brands that were scored — not the wider count-based discovery set.
+  const weightedBrands = useMemo(() => {
+    const src = wsov?.overall_sov ?? {}
+    const entries = Object.entries(src)
+    if (!entries.length) return orderedBrands
+    return entries
+      .sort(([a, aS], [b, bS]) => {
+        if (Math.abs(aS - bS) < 0.01) {
+          if (a === brandConfig.brand_name) return -1
+          if (b === brandConfig.brand_name) return 1
+        }
+        return bS - aS
+      })
+      .map(([b]) => b)
+  }, [wsov, brandConfig.brand_name, orderedBrands])
 
   const sovSegments = useMemo(() =>
     orderedBrands
@@ -259,8 +285,67 @@ export function CompetitorsTab() {
         </div>
       )}
 
-      {/* ── Auto-discovered brands note ────────────────── */}
-      {usingDiscovered && (
+      {/* ── Stale config: user pinned competitors AFTER this scan ran ──────
+          Most specific case — show it instead of the generic discovered banner. */}
+      {staleConfig && !tracked && (
+        <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-caution-bg border border-caution/30 text-sm">
+          <RefreshCw className="w-4 h-4 flex-shrink-0 text-caution mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <span className="text-ink font-medium">Your tracked competitors changed since this scan.</span>
+            <span className="text-ink-3"> This result was scanned before you added{' '}
+              <strong className="text-ink-2">{brandConfig.competitors.join(', ')}</strong>
+              {' '}— click <strong className="text-ink-2">Scan</strong> to compute their weighted Prompt &amp; Sourcing SOV.
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* ── Provisional weighted SOV: auto-discovered rivals, real weights ──
+          New backend path — Prompt/Sourcing render below. Nudge to pin a stable set. */}
+      {provisional && hasWeightedRows && !staleConfig && (
+        tracked ? (
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-sage-bg border border-sage/30 text-sm">
+            <Pin className="w-4 h-4 flex-shrink-0 text-sage" />
+            <span className="font-semibold text-sage">✓ {discoveredCompetitors.length} competitor{discoveredCompetitors.length !== 1 ? 's' : ''} pinned.</span>
+            <span className="text-ink-3">Next scan will track this exact set week-over-week.</span>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3 px-4 py-3 rounded-xl bg-sage-bg/40 border border-sage/30 text-sm">
+            <div className="flex items-start gap-3">
+              <Sparkles className="w-4 h-4 flex-shrink-0 text-sage mt-0.5 animate-pulse" />
+              <div className="flex-1 min-w-0">
+                <span className="text-ink font-medium">Weighted SOV is live.</span>
+                <span className="text-ink-3"> Computed against rivals we auto-detected in your AI responses — </span>
+                <strong className="text-ink-2">Prompt SOV</strong>
+                <span className="text-ink-3"> and </span>
+                <strong className="text-ink-2">Sourcing SOV</strong>
+                <span className="text-ink-3"> are populated below. Pin them to lock the set for stable week-over-week tracking.</span>
+              </div>
+            </div>
+            {discoveredCompetitors.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 pl-7">
+                {discoveredCompetitors.map(brand => (
+                  <span key={brand} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-canvas border border-divider text-xs text-ink-2 font-medium">
+                    <BrandLogo domain={guessBrandDomain(brand)} name={brand} size={12} />
+                    {brand}
+                  </span>
+                ))}
+                <button
+                  onClick={handleTrackDiscovered}
+                  className="relative inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-ink text-ink-inv text-xs font-semibold hover:bg-ink/80 transition-colors"
+                >
+                  <span className="pointer-events-none absolute -inset-px rounded-full ring-2 ring-sage/60 animate-pulse" aria-hidden="true" />
+                  <Pin className="w-3 h-3 relative" />
+                  <span className="relative">Pin these</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )
+      )}
+
+      {/* ── Old scan (auto-discovered, NO weighted rows): pre-provisional fallback ── */}
+      {usingDiscovered && !hasWeightedRows && !staleConfig && (
         tracked ? (
           <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-sage-bg border border-sage/30 text-sm">
             <span className="font-semibold text-sage">✓ {discoveredCompetitors.length} competitor{discoveredCompetitors.length !== 1 ? 's' : ''} saved.</span>
@@ -272,11 +357,9 @@ export function CompetitorsTab() {
               <AlertTriangle className="w-4 h-4 flex-shrink-0 text-caution mt-0.5" />
               <div className="flex-1 min-w-0">
                 <span className="text-ink-2 font-medium">Showing auto-discovered brands</span>
-                <span className="text-ink-3"> (count-based). Pick who to benchmark against to unlock weighted </span>
-                <strong className="text-ink-2">Prompt SOV</strong>
-                <span className="text-ink-3"> and </span>
-                <strong className="text-ink-2">Sourcing SOV</strong>
-                <span className="text-ink-3">.</span>
+                <span className="text-ink-3"> (count-based). Pin who to benchmark against, then </span>
+                <strong className="text-ink-2">rescan</strong>
+                <span className="text-ink-3"> to unlock weighted Prompt &amp; Sourcing SOV.</span>
               </div>
             </div>
             {discoveredCompetitors.length > 0 && (
@@ -291,7 +374,7 @@ export function CompetitorsTab() {
                   onClick={handleTrackDiscovered}
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-ink text-ink-inv text-xs font-semibold hover:bg-ink/80 transition-colors"
                 >
-                  + Track all
+                  <Pin className="w-3 h-3" /> Pin these
                 </button>
               </div>
             )}
@@ -299,7 +382,7 @@ export function CompetitorsTab() {
         )
       )}
 
-      {/* ── Old scan banner (no weighted_sov at all) ───── */}
+      {/* ── Truly old scan (no weighted_sov, no discovery) ───── */}
       {!wsov && !usingDiscovered && (
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface border border-divider text-ink-3 text-sm">
           <AlertTriangle className="w-4 h-4 flex-shrink-0 text-caution" />
@@ -345,27 +428,29 @@ export function CompetitorsTab() {
       )}
 
       {/* ═══ Prompt SOV ════════════════════════════════════ */}
-      {/* Weighted per-prompt data only exists for configured competitors. In the
-          auto-discovered case force the empty state instead of a table that would
-          show discovered brand columns with no weights. */}
+      {/* Render whatever weighted rows exist — pinned OR provisional (auto-discovered).
+          Only fall back to the empty "pin competitors" state when there's no weighted
+          data at all (old pre-weighted scan). */}
       {ctx.competitorsSubTab === 'prompt_sov' && (
         <PromptSOVTab
-          perPrompt={usingDiscovered ? [] : (wsov?.per_prompt ?? [])}
-          orderedBrands={orderedBrands}
+          perPrompt={wsov?.per_prompt ?? []}
+          orderedBrands={weightedBrands}
           brandName={brandConfig.brand_name}
           brandDomainMap={brandDomainMap}
-          needsCompetitors={usingDiscovered}
+          needsCompetitors={!hasWeightedRows}
+          provisional={provisional}
         />
       )}
 
       {/* ═══ Sourcing SOV ══════════════════════════════════ */}
       {ctx.competitorsSubTab === 'sourcing_sov' && (
         <SourcingSOVTab
-          perDomain={usingDiscovered ? [] : (wsov?.per_domain ?? [])}
-          orderedBrands={orderedBrands}
+          perDomain={wsov?.per_domain ?? []}
+          orderedBrands={weightedBrands}
           brandName={brandConfig.brand_name}
           brandDomainMap={brandDomainMap}
-          needsCompetitors={usingDiscovered}
+          needsCompetitors={!hasWeightedRows}
+          provisional={provisional}
         />
       )}
     </div>
@@ -471,13 +556,14 @@ function OverallSOVTab({
 
 // ─── Prompt SOV sub-tab ───────────────────────────────
 function PromptSOVTab({
-  perPrompt, orderedBrands, brandName, brandDomainMap, needsCompetitors = false,
+  perPrompt, orderedBrands, brandName, brandDomainMap, needsCompetitors = false, provisional = false,
 }: {
   perPrompt: PromptSOVEntry[]
   orderedBrands: string[]
   brandName: string
   brandDomainMap: Record<string, string>
   needsCompetitors?: boolean
+  provisional?: boolean
 }) {
   if (!perPrompt.length) {
     return (
@@ -486,7 +572,7 @@ function PromptSOVTab({
         <p className="text-sm font-medium text-ink-3 mb-1">No prompt-level data</p>
         <p className="text-xs text-ink-3">
           {needsCompetitors
-            ? <>Add the brands you compete with to see how you rank on each prompt — weighted by position and recommendation strength. Use <strong>Track all</strong> above or add them in <strong>brand settings</strong>, then rescan.</>
+            ? <>Add the brands you compete with to see how you rank on each prompt — weighted by position and recommendation strength. Use <strong>Pin these</strong> above or add them in <strong>brand settings</strong>, then rescan.</>
             : <>This scan predates weighted SOV. Click <strong>Scan</strong> to run a fresh scan and populate per-prompt data.</>}
         </p>
       </div>
@@ -522,6 +608,12 @@ function PromptSOVTab({
       <p className="text-xs text-ink-3">
         Each row is one prompt. Columns show each brand&apos;s weighted share of that prompt.
         Higher = mentioned earlier in the list <em>and</em> as a stronger recommendation.
+        {provisional && (
+          <span className="ml-1 inline-flex items-center gap-1 text-ink-3">
+            <Sparkles className="w-3 h-3 text-sage" />
+            Columns are auto-detected rivals — <strong className="text-ink-2">Pin these</strong> above to lock them.
+          </span>
+        )}
       </p>
 
       <div className="bg-surface rounded-xl border border-divider overflow-hidden">
@@ -603,13 +695,14 @@ function PromptSOVTab({
 
 // ─── Sourcing SOV sub-tab ─────────────────────────────
 function SourcingSOVTab({
-  perDomain, orderedBrands, brandName, brandDomainMap, needsCompetitors = false,
+  perDomain, orderedBrands, brandName, brandDomainMap, needsCompetitors = false, provisional = false,
 }: {
   perDomain: DomainSOVEntry[]
   orderedBrands: string[]
   brandName: string
   brandDomainMap: Record<string, string>
   needsCompetitors?: boolean
+  provisional?: boolean
 }) {
   if (!perDomain.length) {
     return (
@@ -618,7 +711,7 @@ function SourcingSOVTab({
         <p className="text-sm font-medium text-ink-3 mb-1">No sourcing data</p>
         <p className="text-xs text-ink-3">
           {needsCompetitors
-            ? <>Add competitors to see which AI citation sources drive visibility for them vs. you — and where you&apos;re winning or losing. Use <strong>Track all</strong> above or add them in <strong>brand settings</strong>, then rescan.</>
+            ? <>Add competitors to see which AI citation sources drive visibility for them vs. you — and where you&apos;re winning or losing. Use <strong>Pin these</strong> above or add them in <strong>brand settings</strong>, then rescan.</>
             : <>This scan predates weighted SOV, or no citation URLs were returned. Click <strong>Scan</strong> to generate domain-level data.</>}
         </p>
       </div>
@@ -632,6 +725,12 @@ function SourcingSOVTab({
       <p className="text-xs text-ink-3">
         Which AI citation sources drive brand visibility — and for whom.
         Share = brand&apos;s weighted share of mentions from that domain.
+        {provisional && (
+          <span className="ml-1 inline-flex items-center gap-1 text-ink-3">
+            <Sparkles className="w-3 h-3 text-sage" />
+            Columns are auto-detected rivals — <strong className="text-ink-2">Pin these</strong> above to lock them.
+          </span>
+        )}
       </p>
 
       <div className="bg-surface rounded-xl border border-divider overflow-hidden">

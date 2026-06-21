@@ -546,6 +546,10 @@ export interface WeightedSOVData {
   overall_raw: Record<string, number>;  // brand → raw weight sum
   per_prompt: PromptSOVEntry[];
   per_domain: DomainSOVEntry[];
+  /** True when weighted against AUTO-DISCOVERED brands (no pinned competitor set).
+   *  Numbers are real but the brand set may drift run-over-run — UI nudges the
+   *  user to pin competitors for stable tracking. */
+  provisional?: boolean;
 }
 
 export interface SentimentBreakdown {
