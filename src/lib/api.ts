@@ -1633,13 +1633,13 @@ class APIClient {
   // inherits the latest persisted audit and runs the zone-aware Claude pipeline.
   async generateCheckFix(url: string, checkId: string, userId?: string) {
     const qs = userId ? `?user_id=${userId}` : '';
-    // The backend streams from Claude with one same-tier retry, so the worst case
-    // is ~90s (content/Sonnet). Give the client 100s so it never aborts before the
-    // backend itself decides to succeed or fail-fast.
+    // The backend streams from Claude with one same-tier retry; content fixes use
+    // a 60s per-attempt budget × 2 ≈ 120s worst case. Give the client 130s so it
+    // never aborts before the backend itself decides to succeed or fail-fast.
     return this.request<FixPlan>(`/api/optimization/fix${qs}`, {
       method: 'POST',
       body: JSON.stringify({ url, check_id: checkId }),
-    }, { timeoutMs: 100000 });
+    }, { timeoutMs: 130000 });
   }
 
   // ─── GEO Performance Monitor endpoints ─────────────
