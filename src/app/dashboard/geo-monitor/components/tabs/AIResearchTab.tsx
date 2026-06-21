@@ -20,6 +20,7 @@ import {
 import { api, type AIResearchRun, type SmartPrompt } from '@/lib/api'
 import { BrandLogo } from '@/components/BrandLogo'
 import { useUnified } from '../UnifiedContext'
+import { GeneratePromptsModal } from './GeneratePromptsModal'
 
 // ─── Real-data report shape (v3) ──────────────────────────────────────────────
 // Every field is measured: visibility / standings / prompt-gaps come from the
@@ -191,19 +192,19 @@ function CommandCenter({ result, activePrompts, hasScan, running, onUpdate, onGe
           <p className="mt-3 max-w-xl text-[13px] leading-relaxed text-ink-2">{nextStep}</p>
         </div>
 
-        {/* Compact journey strip (replaces the separate 5-chip row) */}
-        <div className="grid w-full max-w-[320px] grid-cols-2 gap-2 sm:grid-cols-4">
+        {/* Compact journey strip */}
+        <div className="grid w-full max-w-[272px] grid-cols-4 gap-1.5">
           {[
-            { label: 'Profile', done: true },
-            { label: 'Sources', done: result.summary.category_source_count > 0 },
-            { label: 'Prompts', done: activePrompts > 0, value: activePrompts || undefined },
-            { label: 'Scan', done: hasScan },
+            { label: 'Profile', done: true, count: null as number | null },
+            { label: 'Sources', done: result.summary.category_source_count > 0, count: result.summary.category_source_count > 0 ? result.summary.category_source_count : null },
+            { label: 'Prompts', done: activePrompts > 0, count: activePrompts > 0 ? activePrompts : null },
+            { label: 'Scan', done: hasScan, count: null },
           ].map(step => (
-            <div key={step.label} className={`rounded-xl border px-2.5 py-2 text-center ${step.done ? 'border-sage/25 bg-sage-bg/45' : 'border-divider-light bg-canvas'}`}>
-              <div className="flex items-center justify-center gap-1">
-                {step.done && <CheckCircle2 className="h-3 w-3 text-sage" />}
-                <span className="text-[11px] font-bold text-ink">{step.value ?? ''} {step.label}</span>
+            <div key={step.label} className={`rounded-xl border px-2 py-2.5 text-center ${step.done ? 'border-sage/25 bg-sage-bg/45' : 'border-divider-light bg-canvas'}`}>
+              <div className={`text-[17px] font-bold leading-none ${step.done ? 'text-sage' : 'text-ink-4'}`}>
+                {step.count !== null ? step.count : step.done ? '✓' : '—'}
               </div>
+              <div className="mt-1 text-[9px] font-semibold uppercase tracking-wide text-ink-3">{step.label}</div>
             </div>
           ))}
         </div>
@@ -583,6 +584,9 @@ export function AIResearchTab() {
       <StandingsCard result={result} />
       <WhereYouLoseCard result={result} />
       <SourcesMapCard result={result} />
+      {ctx.showGeneratePromptsModal && (
+        <GeneratePromptsModal onClose={() => ctx.setShowGeneratePromptsModal(false)} />
+      )}
     </div>
   )
 }
