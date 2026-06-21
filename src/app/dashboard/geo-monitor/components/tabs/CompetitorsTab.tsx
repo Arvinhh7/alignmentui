@@ -207,8 +207,13 @@ export function CompetitorsTab() {
     for (const comp of brandConfig.competitors) {
       map[comp] = guessBrandDomain(comp)
     }
+    // Server-resolved official domains (brand_logos cache) win for every detected
+    // brand — unified logo source of truth shared with Brand Ranking / Overview.
+    for (const [name, dom] of Object.entries(scanResult.brand_domains ?? {})) {
+      if (dom) map[name] = dom
+    }
     return map
-  }, [brandConfig])
+  }, [brandConfig, scanResult.brand_domains])
 
   // ── SOV source selection ────────────────────────────
   // A scan carries two distinct competitor data paths:

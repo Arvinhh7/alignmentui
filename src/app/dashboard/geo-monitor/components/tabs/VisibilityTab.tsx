@@ -254,7 +254,7 @@ export function VisibilityTab() {
                       <td className="px-4 py-3 text-sm font-mono font-bold text-ink-2">#{idx + 1}</td>
                       <td className="px-4 py-3 text-sm font-medium text-ink">
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <BrandLogo domain={guessBrandDomain(comp.name)} name={comp.name} size={22} />
+                          <BrandLogo domain={comp.domain || guessBrandDomain(comp.name)} name={comp.name} size={22} />
                           <span className="truncate" title={comp.name}>{comp.name}</span>
                           {isOwnBrand && <span className="flex-shrink-0 text-[10px] px-1.5 py-0.5 bg-surface-warm text-ink-2 rounded-full font-semibold">You</span>}
                         </div>

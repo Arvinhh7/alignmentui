@@ -512,6 +512,7 @@ export interface CompetitorVisibility {
   mention_types: Record<string, number>;
   avg_position_score: number;
   avg_ordinal_position?: number | null;   // avg 1-based list rank (lower = better); null = unranked
+  domain?: string;   // official domain for logo (unified resolution via brand_logos cache)
   key_phrases: string[];
   positioning: string;
   // Auto-discovered (no manual competitor config required)
@@ -840,6 +841,7 @@ export interface MonitorScanResult {
   mention_results: ScanMention[];
   source_domains: SourceDomainInfo[];
   competitor_comparison: CompetitorVisibility[];
+  brand_domains?: Record<string, string>;   // name → official domain (unified logo resolution)
   scanned_at: string;
   scan_duration_seconds: number;
   // Phase 2 aggregated analytics
