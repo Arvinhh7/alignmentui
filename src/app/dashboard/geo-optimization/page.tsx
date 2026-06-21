@@ -526,6 +526,7 @@ function FixCard({ fix, index, onViewCode, onGenerate }: {
     medium: 'bg-caution-bg text-caution',
     high: 'bg-red-soft-bg text-red-soft',
   }
+  const isContent = fix.fix_kind === 'content'
   const [generating, setGenerating] = useState(false)
   const [code, setCode] = useState<string | null>(fix.code_snippet ?? null)
   const [error, setError] = useState<string | null>(null)
@@ -586,19 +587,23 @@ function FixCard({ fix, index, onViewCode, onGenerate }: {
           {code ? (
             <button
               onClick={() => onViewCode(code, fix.title)}
-              title="View generated code"
+              title={isContent ? 'View generated content' : 'View generated code'}
               className="inline-flex items-center gap-1.5 px-3 py-2 bg-sage-bg text-sage rounded-lg text-xs font-semibold hover:bg-sage/15 transition-colors border border-sage/20"
             >
-              <Code className="w-4 h-4" /> View code
+              {isContent ? <><FileText className="w-4 h-4" /> View content</> : <><Code className="w-4 h-4" /> View code</>}
             </button>
           ) : (
             <button
               onClick={handleGenerate}
               disabled={generating || !fix.audit_check_id}
-              title="Generate a targeted fix for this specific issue"
+              title={isContent ? 'Generate publish-ready copy for this issue' : 'Generate targeted code for this issue'}
               className="inline-flex items-center gap-1.5 px-3 py-2 bg-ink text-ink-inv rounded-lg text-xs font-semibold hover:bg-[#2d2d2c] transition-colors disabled:opacity-50"
             >
-              {generating ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating</> : <><Zap className="w-4 h-4" /> Generate fix</>}
+              {generating
+                ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating</>
+                : isContent
+                  ? <><FileText className="w-4 h-4" /> Generate content</>
+                  : <><Code className="w-4 h-4" /> Generate code</>}
             </button>
           )}
         </div>
@@ -608,19 +613,15 @@ function FixCard({ fix, index, onViewCode, onGenerate }: {
 }
 
 // ─── Dimension Optimization Card ───────────────────────
-function DimensionOptCard({ dim, icon, index, baseline, onViewCode, onOptimize, onGenerateFix, optimizing, optType }: {
+function DimensionOptCard({ dim, icon, index, baseline, onViewCode, onGenerateFix }: {
   dim: DimensionOptimization
   icon: React.ReactNode
   index: number
   baseline: BaselineSnapshot | null
   onViewCode: (code: string, title: string) => void
-  onOptimize: (key: string) => void
   onGenerateFix: (checkId: string) => Promise<string>
-  optimizing: string | null
-  optType: OptimizationType
 }) {
   const [expanded, setExpanded] = useState(false)
-  const isOptimizing = optimizing === dim.dimension_key
 
   const getScoreColor = (s: number) => {
     if (s >= 85) return 'text-sage bg-sage-bg border-sage/30'
@@ -749,123 +750,6 @@ function DimensionOptCard({ dim, icon, index, baseline, onViewCode, onOptimize, 
             ))}
           </div>
 
-          {/* Important Notice — adapted per optimization type */}
-          <div className={`rounded-xl p-4 mb-4 border ${optType === 'content' ? 'bg-surface-warm border-divider' : optType === 'hybrid' ? 'bg-surface-warm border-divider' : 'bg-surface-warm border-divider'}`}>
-            <div className="flex items-start gap-3">
-              <Shield className={`w-5 h-5 flex-shrink-0 mt-0.5 ${optType === 'content' ? 'text-ink-2' : optType === 'hybrid' ? 'text-ink-2' : 'text-ink-2'}`} />
-              <div className="flex-1">
-                {optType === 'code' && (
-                  <>
-                    <p className="text-sm font-semibold text-ink mb-1">🔒 Code Generation Tool (No Website Modification)</p>
-                    <p className="text-xs text-ink-2 leading-relaxed">
-                      <strong>This tool generates ready-to-use code and does NOT modify your website.</strong>
-                      <br />• Generate HTML, robots.txt, meta tags, schema markup
-                      <br />• Preview, edit, and download code files
-                      <br />• <strong>You manually apply changes to your website</strong>
-                    </p>
-                  </>
-                )}
-                {optType === 'content' && (
-                  <>
-                    <p className="text-sm font-semibold text-ink mb-1">✍️ Content Generation (GEO Content Module)</p>
-                    <p className="text-xs text-ink-2 leading-relaxed">
-                      <strong>This dimension requires AI-generated content optimization.</strong>
-                      <br />• TL;DR summaries, key fact units, objective language
-                      <br />• Generate GEO-optimized articles in the <strong>GEO Content</strong> module
-                    </p>
-                  </>
-                )}
-                {optType === 'hybrid' && (
-                  <>
-                    <p className="text-sm font-semibold text-ink mb-1">🔀 Hybrid: Code + Content (Choose Your Action)</p>
-                    <p className="text-xs text-ink-2 leading-relaxed">
-                      <strong>This dimension involves both code templates and content writing.</strong>
-                      <br />• <strong>Generate Code</strong>: HTML templates, schema markup, structural fixes
-                      <br />• <strong>Generate Content</strong>: Rewritten copy, FAQ answers, entity definitions
-                      <br />• Content generation available in the <strong>GEO Content</strong> module
-                    </p>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Action Button(s) — based on optimization type */}
-          {optType === 'code' && (
-            <>
-              <button
-                onClick={() => onOptimize(dim.dimension_key)}
-                disabled={!!optimizing}
-                className="w-full px-4 py-3.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv font-semibold rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
-              >
-                {isOptimizing ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Generating optimization code...
-                  </>
-                ) : (
-                  <>
-                    <Code className="w-5 h-5" />
-                    Generate Optimization Code — {dim.dimension_name}
-                  </>
-                )}
-              </button>
-              <p className="text-[10px] text-ink-3 text-center mt-2">
-                You will receive code snippets to preview, edit, and download
-              </p>
-            </>
-          )}
-
-          {optType === 'content' && (
-            <>
-              <a
-                href={`/dashboard/geo-content?type=${dim.dimension_key === 'content_citability' ? 'faq' : dim.dimension_key === 'risk_boundary' ? 'evaluation_risk' : 'definition'}`}
-                className="w-full px-4 py-3.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv font-semibold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg"
-              >
-                <FileText className="w-5 h-5" />
-                Generate Content — {dim.dimension_name}
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </a>
-              <p className="text-[10px] text-ink-3 text-center mt-2">
-                Opens GEO Content module with recommended content type pre-selected
-              </p>
-            </>
-          )}
-
-          {optType === 'hybrid' && (
-            <>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => onOptimize(dim.dimension_key)}
-                  disabled={!!optimizing}
-                  className="px-4 py-3.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv font-semibold rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
-                >
-                  {isOptimizing ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Code className="w-5 h-5" />
-                      Generate Code
-                    </>
-                  )}
-                </button>
-                <a
-                  href={`/dashboard/geo-content?type=${dim.dimension_key === 'content_citability' ? 'faq' : dim.dimension_key === 'risk_boundary' ? 'evaluation_risk' : 'definition'}`}
-                  className="px-4 py-3.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv font-semibold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg"
-                >
-                  <FileText className="w-5 h-5" />
-                  Generate Content
-                  <ArrowRight className="w-4 h-4" />
-                </a>
-              </div>
-              <p className="text-[10px] text-ink-3 text-center mt-2">
-                Code generation available · Content opens in GEO Content module
-              </p>
-            </>
-          )}
         </div>
       )}
     </div>
@@ -879,17 +763,6 @@ const DIMENSION_ICONS: Record<string, React.ReactNode> = {
   content_citability: <FileText className="w-5 h-5" />,
   risk_boundary: <AlertOctagon className="w-5 h-5" />,
   reusability: <Brain className="w-5 h-5" />,
-}
-
-// ─── Optimization Type Map (determines button style) ──
-type OptimizationType = 'code' | 'content' | 'hybrid'
-
-const DIMENSION_OPT_TYPE: Record<string, OptimizationType> = {
-  ai_accessibility: 'code',       // Pure code: robots.txt, meta tags, SSR config
-  semantic_structure: 'code',     // Pure code: HTML headings, page structure, schema
-  content_citability: 'content',  // Pure content: TL;DR summaries, facts, language
-  risk_boundary: 'hybrid',       // Hybrid: disclaimer HTML templates (code) + language rewriting (content)
-  reusability: 'hybrid',         // Hybrid: FAQ schema markup (code) + FAQ content + entity definitions
 }
 
 // ─── Apply Result Panel ────────────────────────────────
@@ -1016,7 +889,6 @@ export default function GEOOptimizationPage() {
   const [loadingUrl, setLoadingUrl] = useState('')
   const [baseline, setBaseline] = useState<BaselineSnapshot | null>(null)
   const [codePreview, setCodePreview] = useState<{ code: string; title: string } | null>(null)
-  const [optimizing, setOptimizing] = useState<string | null>(null)
   const [applyResult, setApplyResult] = useState<ApplyOptimizationResult | null>(null)
   const [auditContext, setAuditContext] = useState<AuditOptContext | null>(null)
 
@@ -1155,25 +1027,12 @@ export default function GEOOptimizationPage() {
     }
     notifyCreditUsed()
     const plan = response.data
-    const code = plan.fix_code || plan.engineer_guide || plan.fix_description || ''
-    if (!code) throw new Error('No code was generated for this issue')
+    const body = plan.fix_code || plan.engineer_guide || plan.fix_description || ''
+    if (!body) throw new Error('Nothing was generated for this issue')
+    // Content fixes are prose — no code-comment header. Code fixes get a target hint.
+    if (plan.fix_kind === 'content') return body
     const header = plan.fix_filename ? `/* Target file: ${plan.fix_filename} */\n\n` : ''
-    return header + code
-  }
-
-  const handleOneClickOptimize = async (dimensionKey: string) => {
-    if (!result) return
-    setOptimizing(dimensionKey)
-    setApplyResult(null)
-
-    const response = await api.applyOptimization(result.url, dimensionKey, undefined, user?.id, auditContext || undefined)
-    if (response.error) {
-      setError(response.error)
-    } else if (response.data) {
-      setApplyResult(response.data)
-      notifyCreditUsed()
-    }
-    setOptimizing(null)
+    return header + body
   }
 
   const handleSaveBaseline = () => {
@@ -1188,16 +1047,6 @@ export default function GEOOptimizationPage() {
     setBaseline(null)
   }
 
-  // Stats
-  const currentAvg = result ? result.current_overall_score : 0
-  const projectedAvg = result ? result.projected_overall_score : 0
-  const totalImpact = result ? projectedAvg - currentAvg : 0
-  const quickWins = result ? result.quick_wins_count : 0
-
-  // Stability counts
-  const structuralCount = result ? result.dimensions.filter(d => d.stability_type === 'structural').length : 0
-  const contentCount = result ? result.dimensions.filter(d => d.stability_type === 'content').length : 0
-  const hybridCount = result ? result.dimensions.filter(d => d.stability_type === 'hybrid').length : 0
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -1366,63 +1215,6 @@ export default function GEOOptimizationPage() {
                   </div>
                 </div>
 
-                {/* Score Overview */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                  <div className="bg-canvas rounded-xl p-5 border border-divider">
-                    <p className="text-ink-2 text-sm mb-1">Current Score</p>
-                    <p className="text-3xl font-bold font-mono text-ink">{currentAvg}</p>
-                    <p className="text-xs text-ink-2 mt-1">across 5 dimensions</p>
-                  </div>
-                  <div className="bg-canvas rounded-xl p-5 border border-divider">
-                    <p className="text-ink-2 text-sm mb-1">Projected Score</p>
-                    <p className="text-3xl font-bold font-mono text-sage">{projectedAvg}</p>
-                    <p className="text-xs text-sage/60 mt-1">after optimization</p>
-                  </div>
-                  <div className="bg-canvas rounded-xl p-5 border border-divider">
-                    <p className="text-ink-2 text-sm mb-1">Total Impact</p>
-                    <p className="text-3xl font-bold font-mono text-caution">+{totalImpact}</p>
-                    <p className="text-xs text-ink-2 mt-1">{result.total_fixes} fixes total</p>
-                  </div>
-                  <div className="bg-canvas rounded-xl p-5 border border-divider">
-                    <p className="text-ink-2 text-sm mb-1">Quick Wins</p>
-                    <p className="text-3xl font-bold font-mono text-ink-2">{quickWins}</p>
-                    <p className="text-xs text-ink-2 mt-1">low-effort fixes</p>
-                  </div>
-                </div>
-
-                {/* Stability Dashboard */}
-                <div className="bg-canvas rounded-xl p-5 border border-divider">
-                  <h3 className="text-sm font-medium text-ink-2 mb-3 flex items-center gap-2">
-                    <Lock className="w-4 h-4" />
-                    Optimization Stability Classification
-                  </h3>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-sage-bg rounded-lg p-3 border border-sage/30">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Lock className="w-4 h-4 text-sage" />
-                        <span className="text-xs font-medium text-sage">Structural</span>
-                      </div>
-                      <p className="text-2xl font-bold text-ink">{structuralCount}</p>
-                      <p className="text-xs text-ink-2">One-time permanent fixes</p>
-                    </div>
-                    <div className="bg-caution-bg rounded-lg p-3 border border-caution/20">
-                      <div className="flex items-center gap-2 mb-1">
-                        <RefreshCw className="w-4 h-4 text-caution" />
-                        <span className="text-xs font-medium text-caution">Content</span>
-                      </div>
-                      <p className="text-2xl font-bold text-ink">{contentCount}</p>
-                      <p className="text-xs text-ink-2">Requires ongoing updates</p>
-                    </div>
-                    <div className="bg-surface-warm rounded-lg p-3 border border-divider">
-                      <div className="flex items-center gap-2 mb-1">
-                        <FileText className="w-4 h-4 text-ink-2" />
-                        <span className="text-xs font-medium text-ink-2">Hybrid</span>
-                      </div>
-                      <p className="text-2xl font-bold text-ink">{hybridCount}</p>
-                      <p className="text-xs text-ink-2">Mix of permanent + ongoing</p>
-                    </div>
-                  </div>
-                </div>
               </div>
             </section>
 
@@ -1466,41 +1258,11 @@ export default function GEOOptimizationPage() {
                   index={i + 1}
                   baseline={baseline}
                   onViewCode={handleViewCode}
-                  onOptimize={handleOneClickOptimize}
                   onGenerateFix={handleGenerateFix}
-                  optimizing={optimizing}
-                  optType={DIMENSION_OPT_TYPE[dim.dimension_key] || 'code'}
                 />
               ))}
             </div>
 
-            {/* Fix Summary */}
-            <section className="bg-surface rounded-xl border border-divider-light p-6">
-              <h3 className="text-sm font-medium text-ink-2 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Target className="w-4 h-4" />
-                Fix Summary
-              </h3>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-sage-bg rounded-xl border border-sage/30">
-                  <Lock className="w-6 h-6 text-sage mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-sage">{result.permanent_fixes}</p>
-                  <p className="text-xs text-sage">Permanent Fixes</p>
-                  <p className="text-[10px] text-sage mt-1">Fix once, done forever</p>
-                </div>
-                <div className="text-center p-4 bg-caution-bg rounded-xl border border-caution/20">
-                  <RefreshCw className="w-6 h-6 text-caution mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-caution">{result.maintenance_fixes}</p>
-                  <p className="text-xs text-caution">Maintenance Items</p>
-                  <p className="text-[10px] text-caution mt-1">Needs regular updates</p>
-                </div>
-                <div className="text-center p-4 bg-surface-warm rounded-xl border border-divider">
-                  <Sparkles className="w-6 h-6 text-ink-2 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-ink-2">{quickWins}</p>
-                  <p className="text-xs text-ink-2">Quick Wins</p>
-                  <p className="text-[10px] text-ink-2 mt-1">Low-effort, high-impact</p>
-                </div>
-              </div>
-            </section>
           </div>
         )}
 

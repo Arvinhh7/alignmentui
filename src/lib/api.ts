@@ -349,6 +349,7 @@ export interface OptimizationFix {
   audit_check_id?: string;
   audit_zone?: 'green' | 'yellow' | 'red';
   fix_type?: string;
+  fix_kind?: 'code' | 'content';
 }
 
 export interface DimensionOptimization {
@@ -1435,7 +1436,8 @@ class APIClient {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    reqOpts: { timeoutMs?: number } = {}
   ): Promise<APIResponse<T>> {
     try {
       const headers: Record<string, string> = {
@@ -1455,7 +1457,7 @@ class APIClient {
       const response = await fetchWithRetry(`${this.baseUrl}${endpoint}`, {
         ...options,
         headers,
-      });
+      }, reqOpts.timeoutMs ? { timeoutMs: reqOpts.timeoutMs } : undefined);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -1631,10 +1633,12 @@ class APIClient {
   // inherits the latest persisted audit and runs the zone-aware Claude pipeline.
   async generateCheckFix(url: string, checkId: string, userId?: string) {
     const qs = userId ? `?user_id=${userId}` : '';
+    // Claude (esp. Sonnet for content) takes 10-30s — past the default 10s
+    // timeout. Give this call a 60s window so it doesn't abort mid-generation.
     return this.request<FixPlan>(`/api/optimization/fix${qs}`, {
       method: 'POST',
       body: JSON.stringify({ url, check_id: checkId }),
-    });
+    }, { timeoutMs: 60000 });
   }
 
   // ─── GEO Performance Monitor endpoints ─────────────
@@ -3044,6 +3048,7 @@ export interface FixPlan {
   fix_code?: string
   fix_filename?: string
   fix_language: string
+  fix_kind?: 'code' | 'content'
   engineer_guide?: string
   apply_method: ApplyMethod
   apply_steps: FixStep[]
