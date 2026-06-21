@@ -73,7 +73,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const pathname = usePathname()
   const router = useRouter()
   const { user, role, signOut, permissions } = useAuth()
@@ -724,11 +724,11 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                 <div className="m-3 p-3 bg-[rgba(250,245,236,0.04)] rounded-xl border border-[rgba(250,245,236,0.06)]">
                   <div className="flex items-center justify-between mb-2.5">
                     <span className="text-[12px] font-semibold text-ink-inv">{planLabel} Plan</span>
-                    {credits.plan !== 'enterprise' && <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-caution">Upgrade available</span>}
+                    {credits.plan !== 'enterprise' && <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-caution">{t.dashboard.sidebarUpgradeAvailable}</span>}
                   </div>
                   <div className="flex items-center gap-1.5 mb-1.5">
                     <Sparkles className={`w-3 h-3 flex-shrink-0 ${creditLow ? 'text-red-soft' : 'text-caution'}`} />
-                    <span className="text-[11px] text-[rgba(250,245,236,0.4)]">Credits</span>
+                    <span className="text-[11px] text-[rgba(250,245,236,0.4)]">{t.dashboard.sidebarCredits}</span>
                     <span className={`text-[11px] font-semibold ml-auto ${creditLow ? 'text-red-soft' : 'text-ink-inv'}`}>
                       {creditsRemaining.toLocaleString()}
                       <span className="text-[rgba(250,245,236,0.3)] font-normal"> / {creditsTotal.toLocaleString()}</span>
@@ -742,17 +742,17 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                       style={{ width: `${creditPct}%` }}
                     />
                   </div>
-                  {creditLow && <p className="text-[10px] text-red-soft mt-1.5">Running low — consider upgrading</p>}
+                  {creditLow && <p className="text-[10px] text-red-soft mt-1.5">{t.dashboard.sidebarCreditLow}</p>}
 
                   {/* Layer 1 — Monitoring quota */}
                   {promptsDaily !== 0 && (
                     <div className="mt-3 pt-3 border-t border-[rgba(250,245,236,0.06)]">
                       <div className="flex items-center gap-1.5 mb-1.5">
                         <Activity className="w-3 h-3 flex-shrink-0 text-[rgba(250,245,236,0.35)]" />
-                        <span className="text-[11px] text-[rgba(250,245,236,0.4)]">Monitoring prompts</span>
+                        <span className="text-[11px] text-[rgba(250,245,236,0.4)]">{t.dashboard.sidebarMonitoringPrompts}</span>
                         <span className={`text-[11px] font-semibold ml-auto ${promptsNearLimit ? 'text-caution' : 'text-ink-inv'}`}>
                           {promptsUnlimited
-                            ? <span className="text-[rgba(250,245,236,0.5)]">Unlimited</span>
+                            ? <span className="text-[rgba(250,245,236,0.5)]">{lang === 'zh' ? '不限' : 'Unlimited'}</span>
                             : <>{promptsActive}<span className="text-[rgba(250,245,236,0.3)] font-normal"> / {promptsDaily}</span></>
                           }
                         </span>
@@ -765,7 +765,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                           />
                         </div>
                       )}
-                      {promptsNearLimit && <p className="text-[10px] text-caution mt-1.5">Prompt limit almost reached</p>}
+                      {promptsNearLimit && <p className="text-[10px] text-caution mt-1.5">{t.dashboard.sidebarPromptLimitNear}</p>}
                     </div>
                   )}
 
@@ -775,7 +775,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                       onClick={() => setShowUserMenu(false)}
                       className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#F9D66B] text-[13px] font-black text-ink shadow-[inset_0_0_0_1px_rgba(0,0,0,0.16),0_10px_22px_rgba(249,214,107,0.16)] transition-all hover:-translate-y-0.5 hover:bg-[#FFE38A] active:translate-y-0"
                     >
-                      Upgrade plan <span aria-hidden="true">→</span>
+                      {t.dashboard.sidebarUpgradePlan} <span aria-hidden="true">→</span>
                     </Link>
                   )}
                 </div>

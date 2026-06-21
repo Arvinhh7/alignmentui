@@ -321,6 +321,13 @@ export const translations = {
       searchPlaceholder: 'Search topics, prompts, content...',
       // Getting Started
       gettingStarted: 'Getting Started',
+      // Sidebar credit card
+      sidebarCredits: 'Credits',
+      sidebarUpgradeAvailable: 'Upgrade available',
+      sidebarCreditLow: 'Running low — consider upgrading',
+      sidebarMonitoringPrompts: 'Monitoring prompts',
+      sidebarPromptLimitNear: 'Prompt limit almost reached',
+      sidebarUpgradePlan: 'Upgrade plan',
       // Overview page
       overviewTitle: 'Overview',
       overviewSubtitle: 'Your brand\'s AI visibility at a glance',
@@ -1016,6 +1023,13 @@ export const translations = {
       searchPlaceholder: '搜索话题、Prompt、内容...',
       // Getting Started
       gettingStarted: '入门进度',
+      // Sidebar credit card
+      sidebarCredits: 'Credits',
+      sidebarUpgradeAvailable: '可升级套餐',
+      sidebarCreditLow: 'Credits 不足，建议升级',
+      sidebarMonitoringPrompts: '监控 Prompts',
+      sidebarPromptLimitNear: 'Prompt 配额即将用尽',
+      sidebarUpgradePlan: '升级套餐',
       // Overview page
       overviewTitle: '总览',
       overviewSubtitle: '一眼看清品牌 AI 可见度',
