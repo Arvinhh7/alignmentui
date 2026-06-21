@@ -19,6 +19,47 @@ function getBrandColor(brand: string, brandList: string[]): string {
   return BRAND_COLORS[idx % BRAND_COLORS.length] ?? '#888'
 }
 
+// ─── Heatmap cell shading ─────────────────────────────
+// Brand-hued intensity: each matrix cell is tinted with the brand's own color
+// at alpha ∝ share, so each row reads at a glance as "who owns this prompt /
+// source". Text flips to white on dark cells (estimated composite luminance)
+// so the % stays legible across the whole palette. rgba (not solid) lets the
+// tint compose over the row's hover background too.
+function hexToRgb(hex: string): [number, number, number] {
+  const h = hex.replace('#', '')
+  const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h
+  const n = parseInt(full, 16)
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+}
+
+function heatCell(hexColor: string, share: number): { bg: string | undefined; dark: boolean } {
+  const s = Math.max(0, Math.min(share, 100)) / 100
+  if (s <= 0) return { bg: undefined, dark: false }
+  const alpha = 0.14 + 0.74 * s                 // floor so small shares still register
+  const [r, g, b] = hexToRgb(hexColor)
+  const base = 247                              // light surface the tint composites over
+  const lum = (
+    0.299 * (r * alpha + base * (1 - alpha)) +
+    0.587 * (g * alpha + base * (1 - alpha)) +
+    0.114 * (b * alpha + base * (1 - alpha))
+  ) / 255
+  return { bg: `rgba(${r}, ${g}, ${b}, ${alpha.toFixed(3)})`, dark: lum < 0.58 }
+}
+
+// Tiny low→high gradient swatch shown next to the heatmap intro copy.
+function HeatLegend() {
+  return (
+    <span className="inline-flex items-center gap-1 align-middle">
+      <span className="text-[10px] text-ink-3">low</span>
+      <span
+        className="inline-block h-2.5 w-16 rounded-sm border border-divider-light"
+        style={{ background: 'linear-gradient(to right, rgba(74,111,165,0.10), rgba(74,111,165,0.88))' }}
+      />
+      <span className="text-[10px] text-ink-3">high share</span>
+    </span>
+  )
+}
+
 // ─── Domain guesser for brand logos ──────────────────
 // Ordered by longest key first to avoid prefix collisions
 const KNOWN_BRAND_DOMAINS: [string, string][] = [
@@ -114,21 +155,6 @@ const SUB_TYPE_LABELS: Record<string, string> = {
   warning_caution:        'Caution',
   historical:             'Historical',
   not_mentioned:          '—',
-}
-
-// ─── Weight badge ─────────────────────────────────────
-function WeightBadge({ weight }: { weight: number }) {
-  const pct = Math.round(weight * 100)
-  const color =
-    pct >= 80 ? 'bg-sage-bg text-sage' :
-    pct >= 50 ? 'bg-canvas text-ink-2' :
-    pct >= 20 ? 'bg-surface-warm text-ink-3' :
-    'bg-red-soft-bg text-red-soft'
-  return (
-    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold ${color}`}>
-      {pct}
-    </span>
-  )
 }
 
 // ─── SOV bar row (with logo) ──────────────────────────
@@ -605,16 +631,19 @@ function PromptSOVTab({
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-ink-3">
-        Each row is one prompt. Columns show each brand&apos;s weighted share of that prompt.
-        Higher = mentioned earlier in the list <em>and</em> as a stronger recommendation.
-        {provisional && (
-          <span className="ml-1 inline-flex items-center gap-1 text-ink-3">
-            <Sparkles className="w-3 h-3 text-sage" />
-            Columns are auto-detected rivals — <strong className="text-ink-2">Pin these</strong> above to lock them.
-          </span>
-        )}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-ink-3 max-w-2xl">
+          Heatmap — each row is one prompt, each column a brand. Deeper cell = larger weighted
+          share of that prompt (mentioned earlier <em>and</em> as a stronger recommendation).
+          {provisional && (
+            <span className="ml-1 inline-flex items-center gap-1 text-ink-3">
+              <Sparkles className="w-3 h-3 text-sage" />
+              Columns are auto-detected rivals — <strong className="text-ink-2">Pin these</strong> above to lock them.
+            </span>
+          )}
+        </p>
+        <HeatLegend />
+      </div>
 
       <div className="bg-surface rounded-xl border border-divider overflow-hidden">
         <div className="overflow-x-auto">
@@ -662,17 +691,32 @@ function PromptSOVTab({
                     {orderedBrands.map(brand => {
                       const bw = entry.brand_weights.find(w => w.brand === brand)
                       const share = bw && rowTotal > 0 ? bw.weight / rowTotal * 100 : 0
-                      const isOwn = brand === brandName
+                      const color = getBrandColor(brand, orderedBrands)
+                      const { bg, dark } = heatCell(color, share)
                       return (
-                        <td key={brand} className={`px-3 py-3 text-center ${isOwn ? 'bg-canvas/60' : ''}`}>
+                        <td
+                          key={brand}
+                          className="px-3 py-2.5 text-center transition-colors"
+                          style={bg ? { backgroundColor: bg } : undefined}
+                          title={bw && bw.weight > 0 ? `${brand} · ${formatPct(share)} · ${SUB_TYPE_LABELS[bw.sub_type] ?? bw.sub_type}` : `${brand} · not mentioned`}
+                        >
                           {bw && bw.weight > 0 ? (
                             <div className="flex flex-col items-center gap-0.5">
-                              <span className="font-mono font-semibold text-xs text-ink">{formatPct(share)}</span>
-                              <WeightBadge weight={bw.weight} />
-                              <span className="text-[10px] text-ink-3">{SUB_TYPE_LABELS[bw.sub_type] ?? bw.sub_type}</span>
+                              <span
+                                className={`font-mono font-bold text-sm leading-none ${dark ? '' : 'text-ink'}`}
+                                style={dark ? { color: '#fff' } : undefined}
+                              >
+                                {formatPct(share)}
+                              </span>
+                              <span
+                                className={`text-[9px] leading-tight ${dark ? '' : 'text-ink-3'}`}
+                                style={dark ? { color: 'rgba(255,255,255,0.78)' } : undefined}
+                              >
+                                {SUB_TYPE_LABELS[bw.sub_type] ?? bw.sub_type}
+                              </span>
                             </div>
                           ) : (
-                            <span className="text-ink-3 text-xs">—</span>
+                            <span className="text-ink-3 text-xs opacity-30">·</span>
                           )}
                         </td>
                       )
@@ -686,8 +730,8 @@ function PromptSOVTab({
       </div>
 
       <p className="text-xs text-ink-3">
-        Weight badge = <span className="font-mono">pos_weight × prom_weight × 100</span>.
-        Share % = brand weight / row total.
+        Cell % = brand weight / row total, where weight = <span className="font-mono">position × recommendation-strength</span>.
+        Empty cell = brand not mentioned for that prompt.
       </p>
     </div>
   )
@@ -722,16 +766,20 @@ function SourcingSOVTab({
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-ink-3">
-        Which AI citation sources drive brand visibility — and for whom.
-        Share = brand&apos;s weighted share of mentions from that domain.
-        {provisional && (
-          <span className="ml-1 inline-flex items-center gap-1 text-ink-3">
-            <Sparkles className="w-3 h-3 text-sage" />
-            Columns are auto-detected rivals — <strong className="text-ink-2">Pin these</strong> above to lock them.
-          </span>
-        )}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-ink-3 max-w-2xl">
+          Heatmap — each row is a citation source, each column a brand. Deeper cell = that brand
+          owns more of the AI mentions sourced from that domain. Find domains favoring a rival to
+          target with PR / outreach.
+          {provisional && (
+            <span className="ml-1 inline-flex items-center gap-1 text-ink-3">
+              <Sparkles className="w-3 h-3 text-sage" />
+              Columns are auto-detected rivals — <strong className="text-ink-2">Pin these</strong> above to lock them.
+            </span>
+          )}
+        </p>
+        <HeatLegend />
+      </div>
 
       <div className="bg-surface rounded-xl border border-divider overflow-hidden">
         <div className="overflow-x-auto">
@@ -785,22 +833,24 @@ function SourcingSOVTab({
                     {/* Brand columns */}
                     {orderedBrands.map(brand => {
                       const share = row.brand_sov[brand] ?? 0
-                      const isOwn = brand === brandName
                       const color = getBrandColor(brand, orderedBrands)
+                      const { bg, dark } = heatCell(color, share)
                       return (
-                        <td key={brand} className={`px-3 py-3 text-center ${isOwn ? 'bg-canvas/60' : ''}`}>
+                        <td
+                          key={brand}
+                          className="px-3 py-2.5 text-center transition-colors"
+                          style={bg ? { backgroundColor: bg } : undefined}
+                          title={share > 0 ? `${brand} · ${formatPct(share)} of ${row.domain}` : `${brand} · not sourced from ${row.domain}`}
+                        >
                           {share > 0 ? (
-                            <div className="flex flex-col items-center">
-                              <span className="font-mono font-semibold text-sm text-ink">{formatPct(share)}</span>
-                              <div className="mt-1 w-10 h-1 bg-surface-warm rounded-full overflow-hidden">
-                                <div
-                                  className="h-full rounded-full transition-all"
-                                  style={{ width: `${Math.min(share, 100)}%`, backgroundColor: color }}
-                                />
-                              </div>
-                            </div>
+                            <span
+                              className={`font-mono font-bold text-sm leading-none ${dark ? '' : 'text-ink'}`}
+                              style={dark ? { color: '#fff' } : undefined}
+                            >
+                              {formatPct(share)}
+                            </span>
                           ) : (
-                            <span className="text-ink-3 text-xs">—</span>
+                            <span className="text-ink-3 text-xs opacity-30">·</span>
                           )}
                         </td>
                       )
