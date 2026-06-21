@@ -10,7 +10,7 @@ import {
   ArrowRight, CheckCircle, Clock, TrendingUp, TrendingDown,
   ChevronRight, ChevronDown, Sparkles, Code, Eye,
   ArrowUpRight, Lock, RefreshCw, Save, Globe, Search,
-  Loader2, AlertTriangle, XCircle, X, History, Copy,
+  Loader2, AlertTriangle, XCircle, X, Copy,
   Download, Check, ExternalLink, Target, RotateCcw,
   ClipboardList, ChevronUp
 } from 'lucide-react'
@@ -180,27 +180,6 @@ function isValidUrl(input: string): boolean {
   } catch { return false }
 }
 
-// ─── Recent URLs (shared with GEO Audit via same key) ──
-const RECENT_URLS_KEY = 'geo_audit_recent_urls'
-const MAX_RECENT_URLS = 8
-
-function getRecentUrls(): string[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const stored = localStorage.getItem(RECENT_URLS_KEY)
-    return stored ? JSON.parse(stored) : []
-  } catch { return [] }
-}
-
-function addRecentUrl(url: string) {
-  if (typeof window === 'undefined') return
-  try {
-    const recent = getRecentUrls()
-    const normalized = url.replace(/\/$/, '').toLowerCase()
-    const updated = [normalized, ...recent.filter(u => u !== normalized)].slice(0, MAX_RECENT_URLS)
-    localStorage.setItem(RECENT_URLS_KEY, JSON.stringify(updated))
-  } catch { /* ignore */ }
-}
 
 // ─── Baseline Snapshot ─────────────────────────────────
 const BASELINE_KEY = 'geo_optimization_baseline'
@@ -883,9 +862,6 @@ export default function GEOOptimizationPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<OptimizationResult | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [urlError, setUrlError] = useState<string | null>(null)
-  const [recentUrls, setRecentUrls] = useState<string[]>([])
-  const [showRecentDropdown, setShowRecentDropdown] = useState(false)
   const [loadingUrl, setLoadingUrl] = useState('')
   const [baseline, setBaseline] = useState<BaselineSnapshot | null>(null)
   const [codePreview, setCodePreview] = useState<{ code: string; title: string } | null>(null)
@@ -897,7 +873,6 @@ export default function GEOOptimizationPage() {
 
   // ─── Restore from localStorage or URL param on mount ──
   useEffect(() => {
-    setRecentUrls(getRecentUrls())
     // Check URL param first (cross-module navigation)
     const params = new URLSearchParams(window.location.search)
     const paramUrl = params.get('url')
@@ -923,10 +898,6 @@ export default function GEOOptimizationPage() {
         if (session.auditContext) setAuditContext(session.auditContext)
       }
     } catch {}
-  }, [])
-
-  const refreshRecentUrls = useCallback(() => {
-    setRecentUrls(getRecentUrls())
   }, [])
 
   // ─── Auto-run optimization when navigated with URL param ──
@@ -956,16 +927,11 @@ export default function GEOOptimizationPage() {
 
   const handleRunOptimization = async () => {
     const trimmed = url.trim()
-    if (!trimmed) return
-    if (!isValidUrl(trimmed)) {
-      setUrlError('Please enter a valid URL (e.g., https://example.com)')
-      return
-    }
+    if (!trimmed || !isValidUrl(trimmed)) return
 
     setLoadingUrl(trimmed)
     setIsLoading(true)
     setError(null)
-    setUrlError(null)
     setResult(null)
     setApplyResult(null)
 
@@ -975,40 +941,16 @@ export default function GEOOptimizationPage() {
       setError(response.error)
     } else if (response.data) {
       setResult(response.data)
-      addRecentUrl(response.data.url)
-      refreshRecentUrls()
       setBaseline(getBaseline(response.data.url))
       notifyCreditUsed()
     }
     setIsLoading(false)
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !isLoading) handleRunOptimization()
-  }
-
-  const handleUrlChange = (value: string) => {
-    setUrl(value)
-    if (urlError) setUrlError(null)
-  }
-
-  const handleSelectRecentUrl = (recentUrl: string) => {
-    setUrl(recentUrl)
-    setUrlError(null)
-    setShowRecentDropdown(false)
-  }
-
-  const clearAllRecentUrls = () => {
-    localStorage.removeItem(RECENT_URLS_KEY)
-    setRecentUrls([])
-    setShowRecentDropdown(false)
-  }
-
   const handleReset = () => {
     setUrl('')
     setResult(null)
     setError(null)
-    setUrlError(null)
     setApplyResult(null)
     try { localStorage.removeItem('geo_optimization_session') } catch {}
   }
@@ -1064,98 +1006,13 @@ export default function GEOOptimizationPage() {
           />
         )}
 
-        {/* ═══ URL Input Section (same as GEO Audit) ═══ */}
-        <section className="bg-surface rounded-2xl border border-divider-light shadow-soft p-8 relative">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[#C84B31]/[0.06] rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#C84B31]/[0.05] rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl pointer-events-none" />
-
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-caution-bg rounded-xl flex items-center justify-center">
-                <Zap className="w-5 h-5 text-caution" />
-              </div>
-              <div>
-                <h2 className="heading-dash">{t.dashboard.geoOptimization}</h2>
-                <p className="text-ink-2 text-sm">{t.dashboard.geoOptimizationDesc}</p>
-              </div>
-            </div>
-
-            {/* URL Input */}
-            <div className="mt-6 flex gap-3">
-              <div className="flex-1 relative">
-                <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-2" />
-                <input
-                  type="text"
-                  value={url}
-                  onChange={(e) => handleUrlChange(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder={t.dashboard.urlPlaceholder}
-                  disabled={isLoading}
-                  className={`w-full pl-12 pr-4 py-4 bg-canvas border rounded-xl text-ink placeholder-ink-3 focus:ring-2 focus:ring-ink/10 focus:border-ink focus:bg-surface transition-all outline-none text-lg disabled:opacity-50 ${urlError ? 'border-red-soft/30' : isLoading ? 'border-caution/20' : 'border-divider'}`}
-                />
-              </div>
-              <button
-                onClick={handleRunOptimization}
-                disabled={!url.trim() || isLoading}
-                className="px-8 py-4 bg-ink hover:bg-[#2d2d2c] text-ink-inv font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap shadow-sm hover:shadow-md"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-5 h-5" />
-                    Generate Plan
-                  </>
-                )}
-              </button>
-              {/* Recent Records Dropdown */}
-              {recentUrls.length > 0 && (
-                <div className="relative">
-                  <button onClick={() => setShowRecentDropdown(!showRecentDropdown)}
-                    className="px-5 py-4 bg-canvas border border-divider text-ink-2 text-sm font-medium rounded-xl hover:bg-surface-warm flex items-center gap-2 transition-colors whitespace-nowrap">
-                    <History className="w-4 h-4" /> Recent ({recentUrls.length})
-                  </button>
-                  {showRecentDropdown && (
-                    <div className="absolute right-0 top-full mt-2 w-80 bg-surface border border-divider shadow-lg rounded-xl z-50 overflow-hidden">
-                      <div className="flex items-center justify-between px-4 py-2.5 border-b border-divider-light">
-                        <span className="text-xs text-ink-2 font-semibold uppercase tracking-wide">Recent URLs</span>
-                        <button onClick={clearAllRecentUrls} className="text-[10px] text-red-soft hover:text-red-soft/80">Clear All</button>
-                      </div>
-                      <div className="max-h-64 overflow-y-auto">
-                        {recentUrls.map(recentUrl => (
-                          <button key={recentUrl} onClick={() => handleSelectRecentUrl(recentUrl)}
-                            className="w-full text-left px-4 py-3 hover:bg-surface-warm border-b border-divider-light last:border-0 transition-colors flex items-center gap-2">
-                            <Globe className="w-3.5 h-3.5 text-ink-2 flex-shrink-0" />
-                            <span className="text-sm text-ink-2 truncate">{recentUrl.replace(/^https?:\/\//, '')}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* URL Error */}
-            {urlError && (
-              <div className="mt-3 flex items-center gap-2 text-red-soft text-sm">
-                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                <span>{urlError}</span>
-              </div>
-            )}
-
-            {/* Error */}
-            {error && !isLoading && (
-              <div className="mt-4 p-4 bg-red-soft-bg border border-red-soft/30 rounded-xl flex items-center gap-3">
-                <XCircle className="w-5 h-5 text-red-soft flex-shrink-0" />
-                <p className="text-red-soft text-sm">{error}</p>
-              </div>
-            )}
+        {/* Loading error */}
+        {error && !isLoading && (
+          <div className="p-4 bg-red-soft-bg border border-red-soft/30 rounded-xl flex items-center gap-3">
+            <XCircle className="w-5 h-5 text-red-soft flex-shrink-0" />
+            <p className="text-red-soft text-sm">{error}</p>
           </div>
-        </section>
+        )}
 
         {/* ═══ Scanning Progress ═══ */}
         {isLoading && <ScanProgressPanel url={loadingUrl} />}
@@ -1207,11 +1064,11 @@ export default function GEOOptimizationPage() {
                         Save Baseline
                       </button>
                     )}
-                    <button onClick={handleReset}
+                    <a href="/dashboard/geo-audit"
                       className="px-3 py-2 text-xs bg-canvas border border-divider text-ink-2 hover:bg-surface-warm rounded-lg transition-colors flex items-center gap-1.5">
-                      <RotateCcw className="w-3.5 h-3.5" />
-                      New URL
-                    </button>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                      Back to Audit
+                    </a>
                   </div>
                 </div>
 
@@ -1275,10 +1132,10 @@ export default function GEOOptimizationPage() {
                   <Zap className="w-8 h-8 text-caution" />
                 </div>
                 <h3 className="text-2xl font-bold text-ink mb-3">
-                  AI-Powered Code Generation for GEO Optimization
+                  Run an Audit to Generate Your Optimization Plan
                 </h3>
                 <p className="text-ink-2 text-lg leading-relaxed">
-                  Enter your website URL to get a complete optimization plan. We{"'"}ll audit your site, identify issues, classify fixes by stability type, and generate ready-to-use code for each dimension.
+                  Start from <a href="/dashboard/geo-audit" className="text-caution underline underline-offset-2">GEO Audit</a> — run an audit on your site, then click &quot;Fix Issues&quot; to land here with an instant optimization plan. Each issue gets its own targeted code or content fix.
                 </p>
                 <div className="mt-4 bg-surface-warm border border-divider rounded-xl p-4">
                   <div className="flex items-start gap-3">
