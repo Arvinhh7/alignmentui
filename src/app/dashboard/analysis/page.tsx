@@ -74,6 +74,22 @@ function AnalysisContent() {
     ? ctx.activeTab
     : 'visibility'
 
+  // ── Per-model data guard ──────────────────────────────────────────────────
+  // The metric cards/ranking show the latest scan's aggregate, not a per-engine
+  // breakdown. If the user selects a model that wasn't in the latest scan, the
+  // aggregate would be misread as that model's data — so show an explicit empty
+  // state instead. Engines that DID run still render normally.
+  const latestEngines = useMemo(
+    () => (ctx.scanResult?.engines_used ?? []).map(e => e.toLowerCase()),
+    [ctx.scanResult],
+  )
+  const selectedModel = ANALYSIS_MODELS.find(m => m.key === filterModel)
+  // Only block when we have a scan AND know its engines AND the selected model
+  // is genuinely absent — never block on unknown/empty engine lists.
+  const modelHasNoData =
+    !!ctx.scanResult && latestEngines.length > 0 && !latestEngines.includes(filterModel)
+  const firstEngineWithData = ANALYSIS_MODELS.find(m => latestEngines.includes(m.key))?.key ?? 'chatgpt'
+
   return (
     <div className="min-h-screen bg-canvas">
       {/* Header */}
@@ -160,12 +176,37 @@ function AnalysisContent() {
           </div>
         </div>
 
-        {/* Tab content */}
-        {activeTab === 'visibility'  && <VisibilityTab />}
-        {activeTab === 'mentions'    && <MentionsTab />}
-        {activeTab === 'citations'   && <CitationsTab />}
-        {activeTab === 'sentiment'   && <SentimentTab />}
-        {activeTab === 'competitors' && <CompetitorsTab />}
+        {/* Tab content — or a per-model empty state when the selected engine
+            wasn't in the latest scan (avoids showing aggregate as that model). */}
+        {modelHasNoData ? (
+          <div className="flex flex-col items-center justify-center rounded-xl border border-divider bg-surface px-6 py-16 text-center">
+            <span className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white ring-1 ring-black/5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={selectedModel?.logo} alt={selectedModel?.label} className="h-7 w-7 object-contain" />
+            </span>
+            <h3 className="text-base font-semibold text-ink mb-1">No {selectedModel?.label} data yet</h3>
+            <p className="max-w-md text-sm text-ink-3 mb-5">
+              Your latest scan covered {latestEngines.map(e => ANALYSIS_MODELS.find(m => m.key === e)?.label ?? e).join(', ')}.
+              {' '}{selectedModel?.label} wasn&apos;t included, so there&apos;s nothing to show for it yet — run a new scan
+              from Prompts with {selectedModel?.label} enabled to populate this view.
+            </p>
+            <button
+              type="button"
+              onClick={() => setFilterModel(firstEngineWithData)}
+              className="inline-flex items-center gap-2 rounded-full border border-ink bg-ink px-4 py-1.5 text-sm font-semibold text-ink-inv transition-all hover:bg-[#2d2d2c]"
+            >
+              View {ANALYSIS_MODELS.find(m => m.key === firstEngineWithData)?.label} data instead
+            </button>
+          </div>
+        ) : (
+          <>
+            {activeTab === 'visibility'  && <VisibilityTab />}
+            {activeTab === 'mentions'    && <MentionsTab />}
+            {activeTab === 'citations'   && <CitationsTab />}
+            {activeTab === 'sentiment'   && <SentimentTab />}
+            {activeTab === 'competitors' && <CompetitorsTab />}
+          </>
+        )}
       </div>
     </div>
   )

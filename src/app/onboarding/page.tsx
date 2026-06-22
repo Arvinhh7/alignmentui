@@ -310,11 +310,15 @@ export default function OnboardingPage() {
         }
 
         if (prompts.length > 0) {
-          setSetupMsg('Analyzing how ChatGPT talks about your brand…')
+          setSetupMsg('Analyzing how AI engines talk about your brand…')
           setScanPct(8)
           try {
+            // Request all 4 engines; the backend clamps to the plan entitlement
+            // (Starter → ChatGPT only, Standard/Pro/Growth → all 4) via
+            // _resolve_scan_entitlement, so paid users get a full multi-engine
+            // first scan for free instead of a ChatGPT-only snapshot.
             const job = await api.runMonitorScan(
-              { brand_name: bn, domain: du, customer_id: customerId, engines: ['chatgpt'] },
+              { brand_name: bn, domain: du, customer_id: customerId, engines: ['chatgpt', 'perplexity', 'gemini', 'claude'] },
               undefined,
               user.id,
               true, // is_onboarding → free
