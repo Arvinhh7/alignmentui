@@ -236,10 +236,10 @@ export function PromptsTab() {
                 onClick={() => ctx.handleRunScan()}
                 disabled={ctx.isScanning}
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-                title={ctx.warehouseLoaded ? 'Data is pre-loaded. Run to force a fresh visibility check.' : 'Run active prompts to measure AI visibility.'}
+                title="Pull fresh results for new or stale prompts now. Your tracking also refreshes automatically every day in the background."
               >
                 <Search className="w-4 h-4" />
-                {ctx.warehouseLoaded ? 'Run Fresh Check' : 'Run Prompts'}
+                Refresh
               </button>
             )
           )}
