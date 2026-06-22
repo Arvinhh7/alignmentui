@@ -205,11 +205,13 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
     const readiness = researchReady ? 100 : Math.round(((5 - ctx.researchMissingFields.length) / 5) * 100)
     const productSpace = ctx.brandConfig.product_space || ctx.brandConfig.keywords[0] || 'Product space not set'
     const market = ctx.brandConfig.target_market || 'Market not set'
-    // Optional fields that sharpen AI Research accuracy (not required to run it).
+    // Fields that actually feed PROMPT GENERATION (monitor_service builds prompts
+    // from brand_name + one_liner + target_audience + keywords). Richer prompts →
+    // richer scans, which is what AI Research aggregates. AI Research itself only
+    // reads product_space/brand/domain/market, so we don't overclaim here.
     const missingEnrich = [
-      !String(ctx.brandConfig.one_liner ?? '').trim() && 'one-liner',
-      !String(ctx.brandConfig.differentiation ?? '').trim() && 'differentiation',
-      !String(ctx.brandConfig.target_audience ?? '').trim() && 'audience',
+      !String(ctx.brandConfig.target_audience ?? '').trim() && 'a target audience',
+      !String(ctx.brandConfig.one_liner ?? '').trim() && 'a one-liner',
     ].filter(Boolean) as string[]
     return (
       <div className="bg-surface border border-divider rounded-xl px-5 py-4 flex flex-wrap items-center justify-between gap-4">
@@ -236,7 +238,7 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
             {!researchReady ? (
               <p className="mt-1.5 text-[11px] text-caution">Needed for AI Research: {ctx.researchMissingFields.join(', ')}</p>
             ) : missingEnrich.length > 0 ? (
-              <p className="mt-1.5 text-[11px] text-ink-3">Tip: add {missingEnrich.join(', ')} — the more detail you give, the sharper AI Research gets.</p>
+              <p className="mt-1.5 text-[11px] text-ink-3">Tip: add {missingEnrich.join(' and ')} — they sharpen the prompts we generate, which feeds richer scans.</p>
             ) : null}
           </div>
         </div>
