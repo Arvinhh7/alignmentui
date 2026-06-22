@@ -1,17 +1,17 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { api, customersApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 import { getSupabase } from '@/lib/supabase'
 import {
   LEGACY_CUSTOMER_DATA_KEYS,
-  TARGET_COUNTRIES,
+  WORLD_COUNTRIES,
   activeCustomerStorageKey,
   customerCacheStorageKey,
 } from '@/app/dashboard/geo-monitor/components/shared/constants'
-import { ArrowRight, ChevronDown, Globe, Home, Loader2, LogOut, MapPin, Sparkles } from 'lucide-react'
+import { ArrowRight, ChevronDown, Globe, Home, Loader2, LogOut, Search, Sparkles } from 'lucide-react'
 import { gaEvent } from '@/lib/gtag'
 
 const ONBOARDING_DONE_KEY = 'alignment_onboarding_done'
@@ -51,6 +51,16 @@ export default function OnboardingPage() {
   const [scanPct, setScanPct] = useState(0)
   const [completionError, setCompletionError] = useState('')
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const [countrySearch, setCountrySearch] = useState('')
+  const [countryOpen, setCountryOpen] = useState(false)
+  const [elapsedSecs, setElapsedSecs] = useState(0)
+  const countryRef = useRef<HTMLDivElement>(null)
+  const countrySearchRef = useRef<HTMLInputElement>(null)
+
+  const selectedCountry = WORLD_COUNTRIES.find(c => c.name === country)
+  const filteredCountries = WORLD_COUNTRIES.filter(c =>
+    c.name.toLowerCase().includes(countrySearch.toLowerCase())
+  )
 
   const handleGoHome = useCallback(() => {
     window.location.href = '/'
@@ -153,6 +163,31 @@ export default function OnboardingPage() {
       }))
     } catch {}
   }, [brandName, brandUrl, country])
+
+  // Close country dropdown on outside click
+  useEffect(() => {
+    if (!countryOpen) return
+    const handler = (e: MouseEvent) => {
+      if (countryRef.current && !countryRef.current.contains(e.target as Node)) {
+        setCountryOpen(false)
+        setCountrySearch('')
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [countryOpen])
+
+  // Auto-focus search input when dropdown opens
+  useEffect(() => {
+    if (countryOpen) setTimeout(() => countrySearchRef.current?.focus(), 30)
+  }, [countryOpen])
+
+  // Elapsed-seconds ticker while setup is running (for time-remaining display)
+  useEffect(() => {
+    if (!isCompleting) { setElapsedSecs(0); return }
+    const t = setInterval(() => setElapsedSecs(s => s + 1), 1000)
+    return () => clearInterval(t)
+  }, [isCompleting])
 
   // Poll a scan job for up to ~2 minutes, surfacing progress. Resolves on
   // done/failed/timeout — never throws — so onboarding always proceeds.
@@ -360,11 +395,20 @@ export default function OnboardingPage() {
                 </div>
 
                 <div className="rounded-2xl border border-divider-light bg-surface-warm p-5">
-                  <div className="flex items-center gap-3">
-                    {scanPct >= 100
-                      ? <Sparkles className="h-5 w-5 flex-shrink-0 text-sage" />
-                      : <Loader2 className="h-5 w-5 flex-shrink-0 animate-spin text-ink" />}
-                    <span className="text-sm font-medium text-ink-2">{setupMsg || 'Working…'}</span>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {scanPct >= 100
+                        ? <Sparkles className="h-5 w-5 flex-shrink-0 text-sage" />
+                        : <Loader2 className="h-5 w-5 flex-shrink-0 animate-spin text-ink" />}
+                      <span className="text-sm font-medium text-ink-2 truncate">{setupMsg || 'Working…'}</span>
+                    </div>
+                    <span className="flex-shrink-0 text-xs tabular-nums text-ink-3">
+                      {scanPct >= 100
+                        ? 'Done!'
+                        : elapsedSecs < 55
+                          ? `~${Math.max(5, 60 - elapsedSecs)}s`
+                          : 'Almost done…'}
+                    </span>
                   </div>
                   <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-surface-muted">
                     <div
@@ -431,24 +475,74 @@ export default function OnboardingPage() {
                     <label className="mb-1.5 block text-sm font-semibold text-ink-2">
                       Target Country / Region <span className="text-red-soft">*</span>
                     </label>
-                    <div className="relative">
-                      <MapPin className="absolute left-4 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-ink-3" />
-                      <select
-                        value={country}
-                        onChange={event => {
-                          setCountry(event.target.value)
-                          setCountryError('')
-                        }}
-                        className={`w-full appearance-none rounded-xl border bg-surface-warm py-3 pl-11 pr-10 text-base transition-all focus:outline-none focus:ring-2 focus:ring-ink/10 ${
-                          country ? 'text-ink' : 'text-ink-3'
-                        } ${countryError ? 'border-red-soft focus:border-red-soft' : 'border-divider-light focus:border-ink'}`}
+                    <div className="relative" ref={countryRef}>
+                      {/* Trigger button */}
+                      <button
+                        type="button"
+                        onClick={() => { setCountryOpen(o => !o); setCountrySearch('') }}
+                        className={`w-full flex items-center gap-2 rounded-xl border bg-surface-warm px-4 py-3 text-left text-base transition-all focus:outline-none focus:ring-2 focus:ring-ink/10 ${
+                          countryError ? 'border-red-soft focus:border-red-soft' : 'border-divider-light focus:border-ink'
+                        }`}
                       >
-                        <option value="" disabled>Select country or region…</option>
-                        {TARGET_COUNTRIES.map(c => (
-                          <option key={c} value={c}>{c}</option>
-                        ))}
-                      </select>
-                      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
+                        {selectedCountry ? (
+                          <>
+                            <span className="text-lg leading-none">{selectedCountry.flag}</span>
+                            <span className="flex-1 text-ink">{selectedCountry.name}</span>
+                          </>
+                        ) : (
+                          <span className="flex-1 text-ink-3">Select country or region…</span>
+                        )}
+                        <ChevronDown className={`h-4 w-4 flex-shrink-0 text-ink-3 transition-transform ${countryOpen ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {/* Dropdown popover */}
+                      {countryOpen && (
+                        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-xl border border-divider-light bg-surface shadow-lg shadow-surface-muted/40">
+                          {/* Search input */}
+                          <div className="flex items-center gap-2 border-b border-divider-light px-3 py-2.5">
+                            <Search className="h-3.5 w-3.5 flex-shrink-0 text-ink-3" />
+                            <input
+                              ref={countrySearchRef}
+                              value={countrySearch}
+                              onChange={e => setCountrySearch(e.target.value)}
+                              placeholder="Search countries…"
+                              className="flex-1 bg-transparent text-sm text-ink placeholder-ink-3 focus:outline-none"
+                              onKeyDown={e => {
+                                if (e.key === 'Escape') { setCountryOpen(false); setCountrySearch('') }
+                                if (e.key === 'Enter' && filteredCountries.length > 0) {
+                                  setCountry(filteredCountries[0].name)
+                                  setCountryError('')
+                                  setCountryOpen(false)
+                                  setCountrySearch('')
+                                }
+                              }}
+                            />
+                          </div>
+                          {/* Country list */}
+                          <div className="max-h-52 overflow-y-auto py-1">
+                            {filteredCountries.length === 0 ? (
+                              <p className="px-4 py-3 text-sm text-ink-3">No results</p>
+                            ) : filteredCountries.map(c => (
+                              <button
+                                key={c.code}
+                                type="button"
+                                onClick={() => {
+                                  setCountry(c.name)
+                                  setCountryError('')
+                                  setCountryOpen(false)
+                                  setCountrySearch('')
+                                }}
+                                className={`flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm transition-colors hover:bg-surface-warm ${
+                                  country === c.name ? 'bg-surface-warm font-medium text-ink' : 'text-ink-2'
+                                }`}
+                              >
+                                <span className="text-base leading-none">{c.flag}</span>
+                                <span>{c.name}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     {countryError && <p className="mt-1.5 text-xs text-red-soft">{countryError}</p>}
                   </div>

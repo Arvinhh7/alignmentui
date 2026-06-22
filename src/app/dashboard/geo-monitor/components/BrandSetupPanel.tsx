@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
-import { Settings, Save, X, ChevronDown, Trash2, Pencil, CheckCircle2 } from 'lucide-react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { Settings, Save, X, ChevronDown, Trash2, Pencil, CheckCircle2, Search } from 'lucide-react'
 import { useUnified } from './UnifiedContext'
 import { TagInput } from './shared/ChartComponents'
 import { BrandLogo } from '@/components/BrandLogo'
 import {
   INDUSTRY_LIST,
-  TARGET_COUNTRIES,
+  WORLD_COUNTRIES,
 } from './shared/constants'
 
 // ── Section divider ────────────────────────────────────────────────────────────
@@ -51,6 +51,89 @@ function SelectField({
         {children}
       </select>
       <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-3" />
+    </div>
+  )
+}
+
+// ── Searchable country dropdown ────────────────────────────────────────────────
+function CountrySelectField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [search, setSearch] = useState('')
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
+
+  const selected = WORLD_COUNTRIES.find(c => c.name === value)
+  const filtered = WORLD_COUNTRIES.filter(c => c.name.toLowerCase().includes(search.toLowerCase()))
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false); setSearch('')
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  useEffect(() => {
+    if (open) setTimeout(() => searchRef.current?.focus(), 30)
+  }, [open])
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <button
+        type="button"
+        onClick={() => { setOpen(o => !o); setSearch('') }}
+        className="flex w-full items-center gap-2 rounded-lg border border-divider bg-surface px-3 py-2 text-left text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
+      >
+        {selected ? (
+          <>
+            <span className="text-base leading-none">{selected.flag}</span>
+            <span className="flex-1 text-ink">{selected.name}</span>
+          </>
+        ) : (
+          <span className="flex-1 text-ink-3">Select country...</span>
+        )}
+        <ChevronDown className={`h-3.5 w-3.5 flex-shrink-0 text-ink-3 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-lg border border-divider-light bg-surface shadow-lg shadow-surface-muted/40">
+          <div className="flex items-center gap-2 border-b border-divider-light px-2.5 py-2">
+            <Search className="h-3.5 w-3.5 flex-shrink-0 text-ink-3" />
+            <input
+              ref={searchRef}
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search countries…"
+              className="flex-1 bg-transparent text-sm text-ink placeholder-ink-3 focus:outline-none"
+              onKeyDown={e => {
+                if (e.key === 'Escape') { setOpen(false); setSearch('') }
+                if (e.key === 'Enter' && filtered.length > 0) {
+                  onChange(filtered[0].name); setOpen(false); setSearch('')
+                }
+              }}
+            />
+          </div>
+          <div className="max-h-44 overflow-y-auto py-1">
+            {filtered.length === 0 ? (
+              <p className="px-3 py-2 text-xs text-ink-3">No results</p>
+            ) : filtered.map(c => (
+              <button
+                key={c.code}
+                type="button"
+                onClick={() => { onChange(c.name); setOpen(false); setSearch('') }}
+                className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors hover:bg-surface-warm ${
+                  value === c.name ? 'bg-surface-warm font-medium text-ink' : 'text-ink-2'
+                }`}
+              >
+                <span className="text-base leading-none">{c.flag}</span>
+                <span>{c.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -311,15 +394,10 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
         {/* Target Country */}
         <div>
           <FieldLabel required>Target Country</FieldLabel>
-          <SelectField
+          <CountrySelectField
             value={ctx.brandConfig.target_market ?? ''}
             onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, target_market: v })}
-          >
-            <option value="" disabled>Select country...</option>
-            {TARGET_COUNTRIES.map(c => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </SelectField>
+          />
         </div>
 
         {/* Target Audience */}
