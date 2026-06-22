@@ -1197,11 +1197,11 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     if (!isConfigured || !brandConfig.brand_name) return
     setIsLoadingTrends(true)
     try {
-      const res = await api.getMultiBrandTrends(brandConfig.brand_name, brandConfig.competitors, filterTimeRange)
+      const res = await api.getMultiBrandTrends(brandConfig.brand_name, brandConfig.competitors, filterTimeRange, activeCustomerId ?? undefined)
       if (res.data) setMultiBrandTrends(res.data)
     } catch { /* ignore */ }
     setIsLoadingTrends(false)
-  }, [isConfigured, brandConfig.brand_name, brandConfig.competitors, filterTimeRange])
+  }, [isConfigured, brandConfig.brand_name, brandConfig.competitors, filterTimeRange, activeCustomerId])
 
   useEffect(() => { if (scanResult) loadMultiBrandTrends() }, [scanResult, loadMultiBrandTrends])
 

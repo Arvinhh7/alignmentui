@@ -1819,9 +1819,10 @@ class APIClient {
 
   // ═══ Phase 4.2: Multi-brand Trends ═════════════════
 
-  async getMultiBrandTrends(brandName: string, competitors: string[], timeRange: string = 'all') {
+  async getMultiBrandTrends(brandName: string, competitors: string[], timeRange: string = 'all', customerId?: string) {
     const params = new URLSearchParams();
     params.set('brand_name', brandName);
+    if (customerId) params.set('customer_id', customerId);
     if (competitors.length > 0) params.set('competitors', competitors.join(','));
     if (timeRange !== 'all') params.set('time_range', timeRange);
     return this.request<MultiBrandTrendData>(`/api/monitor/multi-brand-trends?${params.toString()}`);
