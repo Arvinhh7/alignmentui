@@ -38,53 +38,6 @@ function SectionCard({ title, subtitle, icon: Icon, iconColor, children }: {
   )
 }
 
-function CompletionCard() {
-  const ctx = useUnified()
-  // Two readiness tiers:
-  //  • core (3 fields)  → Prompt scans / monitoring
-  //  • research (5)     → AI Research (needs Industry + Product Space)
-  const coreReady = ctx.isProfileComplete
-  const researchReady = ctx.isResearchReady
-  const researchMissing = ctx.researchMissingFields
-  const TOTAL = 5 // RESEARCH_PROFILE_FIELDS.length
-  const pct = researchReady ? 100 : Math.round(((TOTAL - researchMissing.length) / TOTAL) * 100)
-
-  // Headline reflects what's ACTUALLY ready, not the loose core-only definition.
-  const headline = researchReady
-    ? 'Profile ready for AI Research and Prompt scans'
-    : coreReady
-      ? 'Prompt scans ready — add Industry + Product Space to unlock AI Research'
-      : 'Complete your core profile to start scanning'
-
-  // Green only when fully research-ready; amber while AI Research is still gated.
-  const tone = researchReady
-    ? 'border-sage/25 bg-sage-bg/40'
-    : 'border-caution/30 bg-caution-bg/45'
-
-  return (
-    <div className={`rounded-2xl border p-5 ${tone}`}>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <div className="text-[11px] font-bold uppercase tracking-wider text-ink-3">Customer Intelligence Profile</div>
-          <h2 className="mt-1 text-[18px] font-bold text-ink">{headline}</h2>
-          <p className="mt-1 text-[13px] text-ink-3">
-            Brand Hub is the single source of truth for your market, brand profile, and prompt generation. Competitors are auto-detected from your scans — nothing to configure.
-          </p>
-        </div>
-        <div className="rounded-2xl border border-divider-light bg-surface px-4 py-3 text-right">
-          <div className="text-[24px] font-bold text-ink">{pct}%</div>
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-ink-3">Ready</div>
-        </div>
-      </div>
-      {!researchReady && (
-        <p className="mt-3 text-[12px] text-caution">
-          {coreReady ? 'Needed for AI Research' : 'Missing'}: {researchMissing.join(', ')}
-        </p>
-      )}
-    </div>
-  )
-}
-
 function BrandHubContent() {
   const ctx = useUnified()
   const { customerHydrating, isProfileComplete, setShowConfig, showConfig } = ctx
@@ -115,7 +68,8 @@ function BrandHubContent() {
         </div>
 
         <div className="space-y-6">
-          <CompletionCard />
+          {/* Single readiness indicator lives on the Brand Profile card itself
+              (BrandSetupPanel) — no separate banner, so there's one % of truth. */}
           <BrandSetupPanel forceOpen={!ctx.isProfileComplete} />
 
           {ctx.isProfileComplete && (
@@ -183,7 +137,7 @@ function BrandHubContent() {
             <div className="mt-4 bg-caution-bg border border-caution/30 rounded-xl p-4 flex items-start gap-3">
               <Info className="w-4 h-4 text-caution flex-shrink-0 mt-0.5" />
               <p className="text-[11px] text-caution leading-relaxed">
-                <strong>Knowledge Base is the AI era&apos;s SEO foundation.</strong> Structured, machine-readable content makes it easier for AI systems to understand, cite, and recommend your brand.
+                <strong>Knowledge Base is your AEO/GEO foundation.</strong> Where classic SEO ran on sitemaps and meta tags, Answer Engine Optimization (AEO) and Generative Engine Optimization (GEO) run on machine-readable signals — llms.txt, structured FAQs, and Schema.org markup. They are the baseline standard that lets AI engines parse, trust, cite, and recommend your brand.
               </p>
             </div>
           </SectionCard>

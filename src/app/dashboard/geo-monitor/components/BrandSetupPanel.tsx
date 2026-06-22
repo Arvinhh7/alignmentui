@@ -199,16 +199,18 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
   if (ctx.customerHydrating && !forceOpen) return null
 
   if (!forceOpen && !ctx.showConfig && ctx.isConfigured) {
-    const readinessItems = [
-      Boolean(ctx.brandConfig.brand_name),
-      Boolean(ctx.brandConfig.domain),
-      Boolean(ctx.brandConfig.product_space || ctx.brandConfig.keywords.length),
-      Boolean(ctx.brandConfig.target_market),
-      Boolean(ctx.brandConfig.one_liner || ctx.brandConfig.differentiation),
-    ]
-    const readiness = Math.round((readinessItems.filter(Boolean).length / readinessItems.length) * 100)
+    // Single readiness = AI Research readiness (same source the AI Research page
+    // uses), so every surface shows one consistent %.
+    const researchReady = ctx.isResearchReady
+    const readiness = researchReady ? 100 : Math.round(((5 - ctx.researchMissingFields.length) / 5) * 100)
     const productSpace = ctx.brandConfig.product_space || ctx.brandConfig.keywords[0] || 'Product space not set'
     const market = ctx.brandConfig.target_market || 'Market not set'
+    // Optional fields that sharpen AI Research accuracy (not required to run it).
+    const missingEnrich = [
+      !String(ctx.brandConfig.one_liner ?? '').trim() && 'one-liner',
+      !String(ctx.brandConfig.differentiation ?? '').trim() && 'differentiation',
+      !String(ctx.brandConfig.target_audience ?? '').trim() && 'audience',
+    ].filter(Boolean) as string[]
     return (
       <div className="bg-surface border border-divider rounded-xl px-5 py-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
@@ -216,7 +218,7 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-sm font-bold text-ink">Brand Profile</h3>
-              <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sage-bg text-sage">
+              <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${researchReady ? 'bg-sage-bg text-sage' : 'bg-caution-bg text-caution'}`}>
                 <CheckCircle2 className="w-3 h-3" />
                 {readiness}% ready
               </span>
@@ -231,6 +233,11 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
               <span>·</span>
               <span>{ctx.brandConfig.keywords.length} keywords</span>
             </div>
+            {!researchReady ? (
+              <p className="mt-1.5 text-[11px] text-caution">Needed for AI Research: {ctx.researchMissingFields.join(', ')}</p>
+            ) : missingEnrich.length > 0 ? (
+              <p className="mt-1.5 text-[11px] text-ink-3">Tip: add {missingEnrich.join(', ')} — the more detail you give, the sharper AI Research gets.</p>
+            ) : null}
           </div>
         </div>
         <button
