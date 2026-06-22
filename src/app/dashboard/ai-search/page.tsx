@@ -8,8 +8,10 @@ import { CheckCircle2, Loader2, TrendingUp } from 'lucide-react'
 
 function ProfileSnapshot() {
   const ctx = useUnified()
-  const missing = ctx.profileMissingFields
-  const isReady = ctx.isProfileComplete
+  // This is the AI Research surface, so readiness here = research-ready (the 5
+  // fields AI Research actually needs), not the looser core-profile definition.
+  const missing = ctx.researchMissingFields
+  const isReady = ctx.isResearchReady
   const productSpace = ctx.brandConfig.product_space || ctx.brandConfig.keywords[0] || 'Product space not set'
   const market = ctx.brandConfig.target_market || 'Market not set'
 

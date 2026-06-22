@@ -158,6 +158,8 @@ interface UnifiedState {
   isConfigured: boolean
   isProfileComplete: boolean
   profileMissingFields: string[]
+  isResearchReady: boolean
+  researchMissingFields: string[]
   showConfig: boolean
   setShowConfig: (v: boolean) => void
   configError: string
@@ -342,14 +344,30 @@ const _PREVIEW_CUSTOMER_ID = process.env.NEXT_PUBLIC_PREVIEW_CUSTOMER_ID || null
 // Name, Domain, Target Country — and that is enough to run the first scan and
 // show Analysis. Industry / Product Space are optional refinements the customer
 // can fill in later to sharpen prompt generation.
+// Tier 1 — core profile: the 3 fields onboarding collects. Enough to run
+// Prompt scans / monitoring.
 const REQUIRED_PROFILE_FIELDS: Array<{ key: keyof BrandConfig; label: string }> = [
   { key: 'brand_name', label: 'Brand Name' },
   { key: 'domain', label: 'Domain' },
   { key: 'target_market', label: 'Target Country' },
 ]
 
+// Tier 2 — research profile: core + the two fields AI Research needs to know
+// the category (it pulls shared Explore category data keyed by product_space).
+const RESEARCH_PROFILE_FIELDS: Array<{ key: keyof BrandConfig; label: string }> = [
+  ...REQUIRED_PROFILE_FIELDS,
+  { key: 'industry', label: 'Industry' },
+  { key: 'product_space', label: 'Product Space' },
+]
+
 function missingRequiredProfileFields(config: BrandConfig) {
   return REQUIRED_PROFILE_FIELDS
+    .filter(field => !String(config[field.key] ?? '').trim())
+    .map(field => field.label)
+}
+
+function missingResearchProfileFields(config: BrandConfig) {
+  return RESEARCH_PROFILE_FIELDS
     .filter(field => !String(config[field.key] ?? '').trim())
     .map(field => field.label)
 }
@@ -377,6 +395,8 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const [recentBrands, setRecentBrands] = useState<RecentBrandRecord[]>([])
   const profileMissingFields = useMemo(() => missingRequiredProfileFields(brandConfig), [brandConfig])
   const profileComplete = profileMissingFields.length === 0
+  const researchMissingFields = useMemo(() => missingResearchProfileFields(brandConfig), [brandConfig])
+  const researchReady = researchMissingFields.length === 0
 
   // ── Date / Filter ───────────────────────────────
   const [datePreset, setDatePreset] = useState<'7d' | '30d' | '90d' | 'custom'>('30d')
@@ -1451,7 +1471,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   // ═══ Context value ═══════════════════════════════
 
   const value: UnifiedState = {
-    brandConfig, setBrandConfig, isConfigured, isProfileComplete: profileComplete, profileMissingFields, showConfig, setShowConfig, configError, recentBrands,
+    brandConfig, setBrandConfig, isConfigured, isProfileComplete: profileComplete, profileMissingFields, isResearchReady: researchReady, researchMissingFields, showConfig, setShowConfig, configError, recentBrands,
     loadRecentBrand, clearRecentBrands, handleSaveConfig, handleClearConfig,
     datePreset, handleDatePreset, startDate, setStartDate, endDate, setEndDate,
     filterTimeRange, setFilterTimeRange, filterModel, setFilterModel,

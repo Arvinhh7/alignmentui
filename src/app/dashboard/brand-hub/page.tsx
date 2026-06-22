@@ -40,29 +40,45 @@ function SectionCard({ title, subtitle, icon: Icon, iconColor, children }: {
 
 function CompletionCard() {
   const ctx = useUnified()
-  const missing = ctx.profileMissingFields
-  const isReady = ctx.isProfileComplete
+  // Two readiness tiers:
+  //  • core (3 fields)  → Prompt scans / monitoring
+  //  • research (5)     → AI Research (needs Industry + Product Space)
+  const coreReady = ctx.isProfileComplete
+  const researchReady = ctx.isResearchReady
+  const researchMissing = ctx.researchMissingFields
+  const TOTAL = 5 // RESEARCH_PROFILE_FIELDS.length
+  const pct = researchReady ? 100 : Math.round(((TOTAL - researchMissing.length) / TOTAL) * 100)
+
+  // Headline reflects what's ACTUALLY ready, not the loose core-only definition.
+  const headline = researchReady
+    ? 'Profile ready for AI Research and Prompt scans'
+    : coreReady
+      ? 'Prompt scans ready — add Industry + Product Space to unlock AI Research'
+      : 'Complete your core profile to start scanning'
+
+  // Green only when fully research-ready; amber while AI Research is still gated.
+  const tone = researchReady
+    ? 'border-sage/25 bg-sage-bg/40'
+    : 'border-caution/30 bg-caution-bg/45'
 
   return (
-    <div className={`rounded-2xl border p-5 ${isReady ? 'border-sage/25 bg-sage-bg/40' : 'border-caution/30 bg-caution-bg/45'}`}>
+    <div className={`rounded-2xl border p-5 ${tone}`}>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="text-[11px] font-bold uppercase tracking-wider text-ink-3">Customer Intelligence Profile</div>
-          <h2 className="mt-1 text-[18px] font-bold text-ink">
-            {isReady ? 'Profile ready for AI Research and Prompt scans' : 'Complete this before running AI Research'}
-          </h2>
+          <h2 className="mt-1 text-[18px] font-bold text-ink">{headline}</h2>
           <p className="mt-1 text-[13px] text-ink-3">
             Brand Hub is the single source of truth for your market, brand profile, and prompt generation. Competitors are auto-detected from your scans — nothing to configure.
           </p>
         </div>
         <div className="rounded-2xl border border-divider-light bg-surface px-4 py-3 text-right">
-          <div className="text-[24px] font-bold text-ink">{isReady ? '100%' : `${Math.round(((5 - missing.length) / 5) * 100)}%`}</div>
+          <div className="text-[24px] font-bold text-ink">{pct}%</div>
           <div className="text-[10px] font-semibold uppercase tracking-wider text-ink-3">Ready</div>
         </div>
       </div>
-      {!isReady && (
+      {!researchReady && (
         <p className="mt-3 text-[12px] text-caution">
-          Missing: {missing.join(', ')}
+          {coreReady ? 'Needed for AI Research' : 'Missing'}: {researchMissing.join(', ')}
         </p>
       )}
     </div>
