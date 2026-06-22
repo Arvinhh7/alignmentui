@@ -35,14 +35,22 @@ function AnalysisContent() {
   const { filterModel, setFilterModel } = ctx
   const normalizedPlan = String(ctx.promptQuota.plan || 'starter').toLowerCase()
   const starterLocked = normalizedPlan === 'starter' || normalizedPlan === 'trial'
+  // 'all' = aggregate across every engine that ran (the default). Specific
+  // engines re-slice the Overview; Starter is locked to ChatGPT only.
   const allowedModels = useMemo(
-    () => starterLocked ? ['chatgpt'] : ANALYSIS_MODELS.map(model => model.key),
+    () => starterLocked ? ['all', 'chatgpt'] : ['all', ...ANALYSIS_MODELS.map(model => model.key)],
     [starterLocked],
   )
 
+  // Default the Analysis view to the aggregate ('all') on each open.
+  useEffect(() => {
+    setFilterModel('all')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   useEffect(() => {
     if (!allowedModels.includes(filterModel as typeof allowedModels[number])) {
-      setFilterModel('chatgpt')
+      setFilterModel('all')
     }
   }, [allowedModels, filterModel, setFilterModel])
 
@@ -75,19 +83,18 @@ function AnalysisContent() {
     : 'visibility'
 
   // ── Per-model data guard ──────────────────────────────────────────────────
-  // The metric cards/ranking show the latest scan's aggregate, not a per-engine
-  // breakdown. If the user selects a model that wasn't in the latest scan, the
-  // aggregate would be misread as that model's data — so show an explicit empty
-  // state instead. Engines that DID run still render normally.
+  // When a specific engine is selected, the Overview re-slices to that engine.
+  // If that engine wasn't in the latest scan there's nothing to show, so render
+  // an explicit empty state instead. 'all' (aggregate) is never blocked.
   const latestEngines = useMemo(
     () => (ctx.scanResult?.engines_used ?? []).map(e => e.toLowerCase()),
     [ctx.scanResult],
   )
   const selectedModel = ANALYSIS_MODELS.find(m => m.key === filterModel)
-  // Only block when we have a scan AND know its engines AND the selected model
-  // is genuinely absent — never block on unknown/empty engine lists.
+  // Only block when a SPECIFIC engine is selected, we have a scan, we know its
+  // engines, and the selected engine is genuinely absent.
   const modelHasNoData =
-    !!ctx.scanResult && latestEngines.length > 0 && !latestEngines.includes(filterModel)
+    filterModel !== 'all' && !!ctx.scanResult && latestEngines.length > 0 && !latestEngines.includes(filterModel)
   const firstEngineWithData = ANALYSIS_MODELS.find(m => latestEngines.includes(m.key))?.key ?? 'chatgpt'
 
   return (
@@ -143,9 +150,22 @@ function AnalysisContent() {
         <div className="flex flex-wrap items-center justify-between gap-3 bg-surface border border-divider-light rounded-xl px-4 py-3">
           <div>
             <div className="text-xs uppercase tracking-wider text-ink-3 font-semibold">AI Model</div>
-            <div className="text-sm text-ink-3">Filters trend history by model. Current scan aggregates all models.</div>
+            <div className="text-sm text-ink-3">Re-slice the Overview by engine. &ldquo;All&rdquo; aggregates every engine in the latest scan.</div>
           </div>
           <div className="flex flex-wrap gap-2">
+            {/* "All" aggregate pill */}
+            <button
+              type="button"
+              onClick={() => setFilterModel('all')}
+              title="Aggregate across all engines"
+              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold transition-all ${
+                filterModel === 'all'
+                  ? 'border-ink bg-ink text-ink-inv'
+                  : 'border-divider bg-canvas text-ink-2 hover:bg-surface-warm'
+              }`}
+            >
+              All Models
+            </button>
             {ANALYSIS_MODELS.map(model => {
               const enabled = allowedModels.includes(model.key)
               const selected = filterModel === model.key

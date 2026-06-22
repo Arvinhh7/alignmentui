@@ -19,6 +19,101 @@ import {
 import { METRIC_COLORS } from '../shared/constants'
 import { BrandLogo } from '@/components/BrandLogo'
 import { guessBrandDomain } from '../shared/brandDomain'
+import type { MonitorScanResult, ScanMention, SentimentBreakdown } from '@/lib/api'
+
+// ── Per-engine Overview slice ────────────────────────────────────────────────
+// Re-derive the Overview metrics for a single engine from the raw per-mention
+// data (every ScanMention carries `platform`). Authoritative per-engine numbers
+// (visibility / mentions / sentiment) come from backend per_engine_metrics; the
+// rest are count-based re-aggregations. Competitor soft fields (sentiment /
+// position) that can't be derived per-engine are carried from the aggregate.
+function _domainOf(url: string): string {
+  try { return new URL(url).hostname.replace(/^www\./, '') } catch { return '' }
+}
+function _recomputeSentiment(mentioned: ScanMention[]): SentimentBreakdown {
+  const pos = mentioned.filter(m => m.sentiment === 'positive').length
+  const neu = mentioned.filter(m => m.sentiment === 'neutral').length
+  const neg = mentioned.filter(m => m.sentiment === 'negative').length
+  const tm = pos + neu + neg
+  return {
+    positive: pos, neutral: neu, negative: neg,
+    positive_pct: tm ? Math.round(pos / tm * 1000) / 10 : 0,
+    neutral_pct: tm ? Math.round(neu / tm * 1000) / 10 : 0,
+    negative_pct: tm ? Math.round(neg / tm * 1000) / 10 : 0,
+  }
+}
+function sliceScanByEngine(scan: MonitorScanResult, engine: string): MonitorScanResult {
+  const eng = engine.toLowerCase()
+  const mentions = (scan.mention_results ?? []).filter(m => (m.platform || '').toLowerCase() === eng)
+  if (mentions.length === 0) return scan
+  const mentioned = mentions.filter(m => m.mentioned)
+  const total = mentions.length
+  const found = mentioned.length
+  const pem = (scan.per_engine_metrics ?? []).find(e => (e.platform || '').toLowerCase() === eng)
+
+  // Count-based share of voice: own brand vs each competitor's appearances
+  const counts: Record<string, number> = {}
+  if (found > 0) counts[scan.brand_name] = found
+  for (const m of mentions) for (const c of (m.competitors_mentioned ?? [])) counts[c] = (counts[c] ?? 0) + 1
+  const totalCounts = Object.values(counts).reduce((a, b) => a + b, 0)
+  const share_of_voice: Record<string, number> = {}
+  for (const [b, c] of Object.entries(counts)) share_of_voice[b] = totalCounts ? Math.round(c / totalCounts * 1000) / 10 : 0
+
+  // Source domains scoped to this engine; domain_type carried from the aggregate
+  const aggDom = new Map((scan.source_domains ?? []).map(d => [d.domain, d]))
+  const domUrls: Record<string, Set<string>> = {}
+  for (const m of mentions) for (const u of (m.cited_urls ?? [])) { const d = _domainOf(u); if (d) (domUrls[d] ??= new Set<string>()).add(u) }
+  const totalUrls = Object.values(domUrls).reduce((s, set) => s + set.size, 0)
+  const source_domains = Object.entries(domUrls).map(([domain, set]) => ({
+    domain, url_count: set.size, urls: Array.from(set),
+    domain_type: aggDom.get(domain)?.domain_type ?? 'other' as const,
+    frequency_pct: total ? Math.round(set.size / total * 1000) / 10 : 0,
+    citation_share: totalUrls ? Math.round(set.size / totalUrls * 1000) / 10 : 0,
+  })).sort((a, b) => b.url_count - a.url_count)
+
+  // Competitor comparison: per-engine visibility/mentions; soft fields from aggregate
+  const aggComp = new Map((scan.competitor_comparison ?? []).map(c => [c.name.toLowerCase(), c]))
+  const names = new Set<string>([scan.brand_name, ...Object.keys(counts)])
+  const competitor_comparison = Array.from(names).map(name => {
+    const isOwn = name.toLowerCase() === scan.brand_name.toLowerCase()
+    const appearances = isOwn ? found
+      : mentions.filter(m => (m.competitors_mentioned ?? []).some(c => c.toLowerCase() === name.toLowerCase())).length
+    const agg = aggComp.get(name.toLowerCase())
+    const sents = isOwn ? mentioned.map(m => m.sentiment_score) : []
+    const poss = isOwn ? mentioned.map(m => m.position_score) : []
+    const ranks = isOwn ? mentioned.map(m => m.ordinal_rank).filter((r): r is number => r != null) : []
+    return {
+      name: agg?.name ?? name,
+      visibility_pct: total ? Math.round(appearances / total * 1000) / 10 : 0,
+      mentions_count: appearances,
+      avg_sentiment_score: isOwn ? (sents.length ? Math.round(sents.reduce((a, b) => a + b, 0) / sents.length * 100) / 100 : 0) : (agg?.avg_sentiment_score ?? 0),
+      mention_types: agg?.mention_types ?? {},
+      avg_position_score: isOwn ? (poss.length ? Math.round(poss.reduce((a, b) => a + b, 0) / poss.length * 1000) / 1000 : 0) : (agg?.avg_position_score ?? 0),
+      avg_ordinal_position: isOwn ? (ranks.length ? Math.round(ranks.reduce((a, b) => a + b, 0) / ranks.length * 10) / 10 : null) : (agg?.avg_ordinal_position ?? null),
+      domain: agg?.domain,
+      key_phrases: agg?.key_phrases ?? [],
+      positioning: agg?.positioning ?? '',
+      is_discovered: agg?.is_discovered,
+    }
+  }).sort((a, b) => b.visibility_pct - a.visibility_pct)
+
+  const ranks = mentioned.map(m => m.ordinal_rank).filter((r): r is number => r != null)
+  const avg_ordinal_rank = ranks.length ? Math.round(ranks.reduce((a, b) => a + b, 0) / ranks.length * 10) / 10 : null
+
+  return {
+    ...scan,
+    visibility_score: pem ? pem.visibility_score : (total ? Math.round(found / total * 1000) / 10 : 0),
+    total_prompts: total,
+    mentions_found: pem ? pem.mentions_found : found,
+    citation_count: totalUrls,
+    sentiment_breakdown: pem ? pem.sentiment_breakdown : _recomputeSentiment(mentioned),
+    mention_results: mentions,
+    source_domains,
+    share_of_voice,
+    competitor_comparison,
+    avg_ordinal_rank,
+  }
+}
 
 // Sentiment as a 5-bar signal-strength indicator (green positive / red negative /
 // grey neutral), driven by avg_sentiment_score in [-1, 1].
@@ -45,9 +140,19 @@ function SentimentBars({ score }: { score: number }) {
 export function VisibilityTab() {
   const ctx = useUnified()
 
+  // ── Model scope ─────────────────────────────────────
+  // When a specific engine is selected (analysis page), re-derive the Overview
+  // metrics for just that engine. 'all' (or unset) keeps the aggregate scan.
+  const scopedToEngine = !!ctx.filterModel && ctx.filterModel !== 'all'
+  const scan = useMemo(
+    () => (scopedToEngine && ctx.scanResult)
+      ? sliceScanByEngine(ctx.scanResult, ctx.filterModel)
+      : ctx.scanResult,
+    [ctx.scanResult, ctx.filterModel, scopedToEngine],
+  )
+
   // ── Scan-derived KPIs ──────────────────────────────
   const { scanVisibility, scanSov, scanMentions, scanProminence, scanCitations } = useMemo(() => {
-    const scan = ctx.scanResult
     // Guard: scan may be {} (R2 placeholder row) before the full result is loaded
     if (!scan || !scan.mention_results) return { scanVisibility: 0, scanSov: 0, scanMentions: 0, scanTotalPrompts: 0, scanProminence: 0, scanCitations: 0 }
     const mentioned = scan.mention_results.filter(m => m.mentioned)
@@ -63,32 +168,32 @@ export function VisibilityTab() {
       scanProminence: prom,
       scanCitations: scan.source_domains?.reduce((s, d) => s + d.url_count, 0) ?? 0,
     }
-  }, [ctx.scanResult])
+  }, [scan])
 
   // ── Competitor ranking from scan ────────────────────
   const competitorRanking = useMemo(() =>
-    ctx.scanResult?.competitor_comparison
-      ? [...ctx.scanResult.competitor_comparison].sort((a, b) => b.visibility_pct - a.visibility_pct)
+    scan?.competitor_comparison
+      ? [...scan.competitor_comparison].sort((a, b) => b.visibility_pct - a.visibility_pct)
       : [],
-    [ctx.scanResult]
+    [scan]
   )
 
   // ── SoV donut segments ─────────────────────────────
   const sovSegments = useMemo(() => {
-    if (!ctx.scanResult?.share_of_voice) return []
+    if (!scan?.share_of_voice) return []
     // Own brand is always black; competitors cycle a distinct, non-black palette
     // so no two segments collide (the old palette had #000000 AND #0A0A0A, which
     // rendered several brands as indistinguishable black slices).
     const competitorColors = ['#4A6FA5', '#4A7C59', '#B8860B', '#7B5E96', '#C0392B', '#2980B9', '#16A085', '#D35400', '#8E44AD', '#5E8B7E']
     let ci = 0
-    return Object.entries(ctx.scanResult.share_of_voice).map(([name, pct]) => ({
+    return Object.entries(scan.share_of_voice).map(([name, pct]) => ({
       label: name,
       value: Math.round(pct * 10) / 10,
       color: name === ctx.brandConfig.brand_name ? '#000000' : competitorColors[ci++ % competitorColors.length],
     }))
-  }, [ctx.scanResult, ctx.brandConfig.brand_name])
+  }, [scan, ctx.brandConfig.brand_name])
 
-  const hasScanData = !!ctx.scanResult
+  const hasScanData = !!scan
   const activePromptCount = useMemo(
     () => ctx.prompts.filter(p => p.is_active).length,
     [ctx.prompts],
@@ -115,10 +220,10 @@ export function VisibilityTab() {
   return (
     <div className="space-y-6">
       {/* ── Level 3: Stale data warning ────────────────── */}
-      {ctx.scanResult && ctx.scanResult.brand_name?.toLowerCase() !== ctx.brandConfig.brand_name.toLowerCase() && (
+      {scan && scan.brand_name?.toLowerCase() !== ctx.brandConfig.brand_name.toLowerCase() && (
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-caution-bg border border-caution/30 text-caution text-sm">
           <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-          <span>Showing cached data for <strong>{ctx.scanResult.brand_name}</strong> — click <strong>Scan</strong> to refresh for <strong>{ctx.brandConfig.brand_name}</strong>.</span>
+          <span>Showing cached data for <strong>{scan.brand_name}</strong> — click <strong>Scan</strong> to refresh for <strong>{ctx.brandConfig.brand_name}</strong>.</span>
         </div>
       )}
       {/* ═══ Scan Progress ════════════════════════════ */}
@@ -159,12 +264,12 @@ export function VisibilityTab() {
             icon={<BarChart3 className="w-5 h-5 text-caution" />}
             label="Mention Share"
             value={
-              (ctx.scanResult?.share_of_voice && Object.keys(ctx.scanResult.share_of_voice).length > 0)
+              (scan?.share_of_voice && Object.keys(scan.share_of_voice).length > 0)
                 ? formatPct(scanSov)
                 : '—'
             }
             subtitle={
-              (!ctx.scanResult?.share_of_voice || Object.keys(ctx.scanResult.share_of_voice ?? {}).length === 0)
+              (!scan?.share_of_voice || Object.keys(scan.share_of_voice ?? {}).length === 0)
                 ? 'Scan to detect rivals'
                 : 'vs auto-discovered brands'
             }
@@ -176,7 +281,7 @@ export function VisibilityTab() {
             icon={<MessageSquare className="w-5 h-5 text-sage" />}
             label="Brand Mentions"
             value={formatNum(scanMentions, 0)}
-            subtitle={ctx.scanResult ? `out of ${ctx.scanResult.total_prompts} prompts` : undefined}
+            subtitle={scan ? `out of ${scan.total_prompts} prompts` : undefined}
             color={METRIC_COLORS.mentions.color}
             bgColor={METRIC_COLORS.mentions.bgColor}
           />
@@ -190,13 +295,13 @@ export function VisibilityTab() {
           />
           <MetricCard
             icon={<TrendingUp className="w-5 h-5 text-red-soft" />}
-            label={ctx.scanResult?.avg_ordinal_rank != null ? 'Avg List Rank' : 'Avg Position'}
+            label={scan?.avg_ordinal_rank != null ? 'Avg List Rank' : 'Avg Position'}
             value={
-              ctx.scanResult?.avg_ordinal_rank != null
-                ? `#${ctx.scanResult.avg_ordinal_rank}`
+              scan?.avg_ordinal_rank != null
+                ? `#${scan.avg_ordinal_rank}`
                 : formatPct(scanProminence)
             }
-            subtitle={ctx.scanResult?.avg_ordinal_rank != null ? 'Ordinal rank in AI lists' : 'Prominence'}
+            subtitle={scan?.avg_ordinal_rank != null ? 'Ordinal rank in AI lists' : 'Prominence'}
             color={METRIC_COLORS.position.color}
             bgColor={METRIC_COLORS.position.bgColor}
           />
@@ -299,7 +404,7 @@ export function VisibilityTab() {
           </div>
 
           {/* P6: Intent Funnel */}
-          <IntentFunnel prompts={ctx.prompts} scanResult={ctx.scanResult!} />
+          <IntentFunnel prompts={ctx.prompts} scanResult={scan!} />
         </div>
       )}
 
