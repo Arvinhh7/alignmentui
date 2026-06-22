@@ -178,19 +178,21 @@ export default function OnboardingPage() {
           }).eq('id', user.id)
         }
 
+        // One account == one brand: onboarding sets identity (name + domain) once.
+        // Competitors are NOT seeded here — they are an OUTPUT of the scan
+        // (auto-discovered from the brands the AI names), never a manual input.
+        // Source seeds were removed from the model entirely.
         const customer = await customersApi.create(user.id, {
           brand_name: bn,
           domain: du,
           config_json: {
             keywords: [],
-            competitors: [],
             industry: '',
             product_space: '',
             one_liner: '',
             target_audience: '',
             target_market: '',
             differentiation: '',
-            source_domains: [du],
             onboarding: {
               version: ONBOARDING_VERSION,
               completed_from: 'brand_hub_profile',

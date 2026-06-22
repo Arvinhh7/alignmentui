@@ -52,7 +52,7 @@ function CompletionCard() {
             {isReady ? 'Profile ready for AI Research and Prompt scans' : 'Complete this before running AI Research'}
           </h2>
           <p className="mt-1 text-[13px] text-ink-3">
-            Brand Hub is the single source of truth for market, brand, competitors, source seeds, and prompt generation.
+            Brand Hub is the single source of truth for your market, brand profile, and prompt generation. Competitors are auto-detected from your scans — nothing to configure.
           </p>
         </div>
         <div className="rounded-2xl border border-divider-light bg-surface px-4 py-3 text-right">
