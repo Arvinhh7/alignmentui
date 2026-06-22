@@ -79,7 +79,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [isLoading, isAuthenticated])
 
-  // Redirect users with no role AND no active subscription
+  // Redirect users with no role AND no active subscription.
+  // Carry the Stripe session_id so /unauthorized can auto-recover
+  // for users who just completed checkout but whose sync is still pending.
   useEffect(() => {
     if (
       !isLoading &&
@@ -88,7 +90,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       !subCheck.isLoading &&
       !subCheck.hasAccess
     ) {
-      window.location.href = '/unauthorized'
+      const sessionId =
+        typeof window !== 'undefined'
+          ? new URLSearchParams(window.location.search).get('session_id')
+          : null
+      window.location.href = sessionId
+        ? `/unauthorized?session_id=${encodeURIComponent(sessionId)}`
+        : '/unauthorized'
     }
   }, [isLoading, isAuthenticated, role, subCheck.isLoading, subCheck.hasAccess])
 
