@@ -11,7 +11,7 @@ import { api } from '@/lib/api'
 import LanguageSwitch from '@/components/LanguageSwitch'
 import {
   Loader2, AlertCircle, CheckCircle2, Mail, Lock,
-  Eye, EyeOff, ChevronDown, ShieldCheck, ArrowRight, User, Building2,
+  Eye, EyeOff, ChevronDown, ShieldCheck, ArrowRight, User,
   MailCheck, RefreshCw,
 } from 'lucide-react'
 import { gaEvent } from '@/lib/gtag'
@@ -66,7 +66,6 @@ function LoginPageInner() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
-  const [companyName, setCompanyName] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showEmailForm, setShowEmailForm] = useState(false)
   const [rememberMe, setRememberMe] = useState(true)
@@ -175,7 +174,7 @@ function LoginPageInner() {
           }
           redirectTo = `${window.location.origin}/login?${cbParams.toString()}`
         }
-        const result = await signUp(email, password, { company_name: companyName, full_name: fullName }, redirectTo)
+        const result = await signUp(email, password, { full_name: fullName }, redirectTo)
 
         if (result === 'already_registered') {
           // Switch to Sign In mode and show an amber notice with the email pre-filled
@@ -645,15 +644,6 @@ function LoginPageInner() {
                             <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
                             <input id="fullName" type="text" value={fullName} required
                               onChange={(e) => setFullName(e.target.value)} placeholder="Your full name"
-                              className="w-full pl-10 pr-4 border border-divider rounded-xl bg-surface py-3 text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink transition-colors" />
-                          </div>
-                        </div>
-                        <div>
-                          <label htmlFor="company" className="block text-xs font-medium text-ink-2 mb-1.5">Company Name</label>
-                          <div className="relative">
-                            <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
-                            <input id="company" type="text" value={companyName} required
-                              onChange={(e) => setCompanyName(e.target.value)} placeholder="Your company"
                               className="w-full pl-10 pr-4 border border-divider rounded-xl bg-surface py-3 text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink transition-colors" />
                           </div>
                         </div>

@@ -129,11 +129,11 @@ export default function OnboardingPage() {
           window.location.href = dest
           return
         }
+        // Only resume from a prior onboarding (profiles.company is written by
+        // onboarding completion, never by signup). The signup "company name"
+        // must NOT seed brand identity — onboarding is the single source of truth.
         if (data?.company) setBrandName(data.company)
         if (data?.company_website) setBrandUrl(data.company_website)
-      }
-      if (user?.user_metadata?.company_name) {
-        setBrandName(prev => prev || user.user_metadata.company_name)
       }
       setAuthChecked(true)
     }

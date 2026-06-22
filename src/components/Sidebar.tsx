@@ -91,8 +91,9 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
 
   const TOTAL_STEPS = 5
   const userEmail = user?.email ?? ''
-  const displayName = user?.user_metadata?.company_name
-    || user?.user_metadata?.full_name
+  // User identity = the person's name, never the signup company name.
+  // Brand identity lives on the customer record (set at onboarding), not here.
+  const displayName = user?.user_metadata?.full_name
     || userEmail.split('@')[0]
     || 'User'
   const initial = displayName[0]?.toUpperCase() ?? 'U'
