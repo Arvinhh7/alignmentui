@@ -81,7 +81,7 @@ export function useSubscription(
     )
 
     let mounted = true
-    const MAX_RETRIES = 5
+    const MAX_RETRIES = 8
     const RETRY_DELAY_MS = 2000
 
     const checkSubscription = async (attempt = 0): Promise<void> => {

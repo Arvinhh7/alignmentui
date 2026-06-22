@@ -124,8 +124,8 @@ export default function OnboardingPage() {
           .single()
         if (data?.onboarding_completed) {
           const dest = checkoutSessionId
-            ? `/dashboard/brand-hub?subscription=success&session_id=${encodeURIComponent(checkoutSessionId)}`
-            : '/dashboard/brand-hub'
+            ? `/dashboard/analysis?subscription=success&session_id=${encodeURIComponent(checkoutSessionId)}`
+            : '/dashboard/analysis'
           window.location.href = dest
           return
         }
@@ -338,8 +338,14 @@ export default function OnboardingPage() {
     } catch {}
 
     localStorage.removeItem(ONBOARDING_SESSION_KEY)
-    // Land directly in Analysis — the seeded scan results are waiting there.
-    router.push('/dashboard/analysis')
+    // Carry subscription params so useSubscription triggers syncCheckoutAndCheck
+    // at the dashboard (handles the case where initial sync in check() failed).
+    const _exitParams = new URLSearchParams(window.location.search)
+    const _exitSessionId = _exitParams.get('session_id')
+    const _exitDest = _exitSessionId
+      ? `/dashboard/analysis?subscription=success&session_id=${encodeURIComponent(_exitSessionId)}`
+      : '/dashboard/analysis'
+    router.push(_exitDest)
   }, [brandName, brandUrl, country, pollScan, router, user])
 
   if (authLoading || !authChecked) {
