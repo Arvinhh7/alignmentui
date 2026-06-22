@@ -45,6 +45,14 @@ function citationShare(citations: number, totalCitations: number) {
   return totalCitations > 0 ? citations / totalCitations * 100 : 0
 }
 
+function formatPercent(value: number) {
+  if (!Number.isFinite(value) || value === 0) return '0%'
+  const absoluteValue = Math.abs(value)
+  if (absoluteValue < 0.01) return '<0.01%'
+  if (absoluteValue < 0.1) return `${value.toFixed(2)}%`
+  return `${value.toFixed(1)}%`
+}
+
 function TypeBadge({ type }: { type: SourceType }) {
   const style = SOURCE_TYPE_STYLES[type]
   return (
@@ -118,8 +126,10 @@ export default function SourcesPage() {
       count: byType.get(type)?.source_count ?? 0,
       citations: byType.get(type)?.citation_count ?? 0,
       share: byType.get(type)?.citation_share_pct ?? 0,
-    }))
+    })).sort((a, b) => b.share - a.share || a.type.localeCompare(b.type))
   }, [distribution])
+
+  const activeTypeCount = typeDistribution.filter(item => item.count > 0 || item.citations > 0).length
 
   const maxCitations = sources[0]?.citation_count ?? 1
   const hasExpanded = sources.length > PAGE_SIZE
@@ -165,7 +175,7 @@ export default function SourcesPage() {
           </div>
           <div className="rounded-xl border border-divider bg-surface p-5">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-3">Top Source Share</p>
-            <p className="mt-3 font-mono text-3xl font-bold text-ink">{summary.top_source.share_pct.toFixed(1)}%</p>
+            <p className="mt-3 font-mono text-3xl font-bold text-ink">{formatPercent(summary.top_source.share_pct)}</p>
             <p className="mt-1 text-xs text-ink-3">{summary.top_source.name || 'Top source'} across AI models</p>
           </div>
         </section>
@@ -176,7 +186,7 @@ export default function SourcesPage() {
               <h2 className="text-base font-semibold text-ink">Sources by Distribution</h2>
               <p className="mt-1 text-sm text-ink-3">Domain types for where AI models cite evidence.</p>
             </div>
-            <span className="text-xs font-medium text-ink-3">{typeDistribution.length} active source types</span>
+            <span className="text-xs font-medium text-ink-3">{activeTypeCount} active source types</span>
           </div>
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             {typeDistribution.map(item => {
@@ -193,10 +203,10 @@ export default function SourcesPage() {
                 >
                   <div className="flex items-center justify-between gap-3">
                     <TypeBadge type={item.type} />
-                    <span className="font-mono text-sm font-semibold text-ink">{item.share.toFixed(1)}%</span>
+                    <span className="font-mono text-sm font-semibold text-ink">{formatPercent(item.share)}</span>
                   </div>
                   <div className="mt-4 h-2 overflow-hidden rounded-full bg-surface-muted">
-                    <div className={`h-full rounded-full ${style.bar}`} style={{ width: `${Math.max(5, item.share)}%` }} />
+                    <div className={`h-full rounded-full ${style.bar}`} style={{ width: `${item.share > 0 ? Math.max(5, item.share) : 0}%` }} />
                   </div>
                   <div className="mt-3 flex items-center justify-between text-xs text-ink-3">
                     <span>{item.count} sources</span>
@@ -299,7 +309,7 @@ export default function SourcesPage() {
                         <span className="font-mono text-sm font-semibold text-ink">{formatNumber(source.citation_count)}</span>
                       </div>
                     </td>
-                    <td className="px-5 py-4 align-top text-right font-mono text-sm font-semibold text-ink">{citationShare(source.citation_count, summary.citations).toFixed(1)}%</td>
+                    <td className="px-5 py-4 align-top text-right font-mono text-sm font-semibold text-ink">{formatPercent(citationShare(source.citation_count, summary.citations))}</td>
                     <td className="px-5 py-4 align-top text-right font-mono text-sm text-ink-2">{typeof source.avg_position === 'number' ? source.avg_position.toFixed(1) : '—'}</td>
                     <td className="px-5 py-4 align-top text-right font-mono text-sm text-ink-2">{formatNumber(source.topic_count)}</td>
                   </tr>

@@ -40,6 +40,8 @@ export interface PublicSourceDomain {
   answer_count: number
   topic_count: number
   fact_row_count?: number
+  raw_domain_count?: number
+  raw_domains?: string[]
   sample_topics: string[]
   avg_position?: number | null
   last_observed_at?: string | null
