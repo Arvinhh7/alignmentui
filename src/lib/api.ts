@@ -2506,6 +2506,13 @@ class APIClient {
 
 // ── Credit Types ────────────────────────────────────────────────────────────
 
+export interface MonitoringOndemandBudget {
+  limit: number;       // -1 = unlimited
+  used: number;
+  remaining: number;   // -1 = unlimited; clamped to 0 when exhausted
+  unlimited: boolean;
+}
+
 export interface CreditBalance {
   plan: string;
   credits_used: number;
@@ -2516,6 +2523,8 @@ export interface CreditBalance {
   // Layer 1 — monitoring quota (-1 = unlimited)
   prompts_tracked_daily: number;
   prompts_active: number;
+  // Layer 1 — on-demand monitoring budget (Refresh + auto-scan-on-add)
+  monitoring_ondemand?: MonitoringOndemandBudget;
 }
 
 // ── ROI Estimate Type ────────────────────────────────────────────────────────

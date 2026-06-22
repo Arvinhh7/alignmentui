@@ -12,7 +12,7 @@ import {
   ShieldCheck, Zap, PenTool, BarChart3, Activity,
   LogOut, Settings, Wrench, PanelLeftClose, PanelLeft,
   Sparkles, ExternalLink, HelpCircle, Home, ChevronRight, CreditCard,
-  LineChart, Search, MessageSquare,
+  LineChart, Search, MessageSquare, RefreshCw,
   BookOpen, TrendingUp, Database, X, Globe, Users, ShoppingCart, Briefcase,
   Compass, Plug, Cpu, Megaphone, Bot, Share2,
 } from 'lucide-react'
@@ -274,6 +274,18 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
     ? Math.min(100, Math.round((promptsActive / promptsDaily) * 100))
     : 0
   const promptsNearLimit = !promptsUnlimited && promptsDaily > 0 && promptsActive >= Math.round(promptsDaily * 0.9)
+
+  // ── On-demand budget display (Layer 1 — Refresh + auto-scan-on-add cap) ─
+  const ondemand           = credits?.monitoring_ondemand
+  const ondemandUnlimited  = ondemand?.unlimited ?? false
+  const ondemandLimit      = ondemand?.limit ?? 0
+  const ondemandUsed       = ondemand?.used ?? 0
+  const ondemandRemaining  = ondemand?.remaining ?? 0
+  const ondemandPct        = (!ondemandUnlimited && ondemandLimit > 0)
+    ? Math.min(100, Math.round((ondemandUsed / ondemandLimit) * 100))
+    : 0
+  const ondemandLow        = !ondemandUnlimited && ondemandLimit > 0 && ondemandRemaining <= Math.round(ondemandLimit * 0.2)
+  const showOndemand       = !!ondemand && !ondemandUnlimited && ondemandLimit > 0
 
   // ── Search results ─────────────────────────────────────────────────────
   const allNavItems = displayNavGroups.flatMap(g => g.items)
@@ -767,6 +779,27 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                         </div>
                       )}
                       {promptsNearLimit && <p className="text-[10px] text-caution mt-1.5">{t.dashboard.sidebarPromptLimitNear}</p>}
+                    </div>
+                  )}
+
+                  {/* Layer 1 — On-demand budget (Refresh + auto-scan-on-add) */}
+                  {showOndemand && (
+                    <div className="mt-3 pt-3 border-t border-[rgba(250,245,236,0.06)]">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <RefreshCw className="w-3 h-3 flex-shrink-0 text-[rgba(250,245,236,0.35)]" />
+                        <span className="text-[11px] text-[rgba(250,245,236,0.4)]">{t.dashboard.sidebarOndemandChecks}</span>
+                        <span className={`text-[11px] font-semibold ml-auto ${ondemandLow ? 'text-caution' : 'text-ink-inv'}`}>
+                          {ondemandRemaining.toLocaleString()}
+                          <span className="text-[rgba(250,245,236,0.3)] font-normal"> / {ondemandLimit.toLocaleString()}</span>
+                        </span>
+                      </div>
+                      <div className="h-1 bg-[rgba(250,245,236,0.08)] rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${ondemandLow ? 'bg-caution' : 'bg-[rgba(250,245,236,0.25)]'}`}
+                          style={{ width: `${ondemandPct}%` }}
+                        />
+                      </div>
+                      {ondemandLow && <p className="text-[10px] text-caution mt-1.5">{t.dashboard.sidebarOndemandLow}</p>}
                     </div>
                   )}
 

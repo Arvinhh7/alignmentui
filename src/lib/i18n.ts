@@ -327,6 +327,8 @@ export const translations = {
       sidebarCreditLow: 'Running low — consider upgrading',
       sidebarMonitoringPrompts: 'Monitoring prompts',
       sidebarPromptLimitNear: 'Prompt limit almost reached',
+      sidebarOndemandChecks: 'On-demand checks',
+      sidebarOndemandLow: 'Monthly refresh budget running low',
       sidebarUpgradePlan: 'Upgrade plan',
       // Overview page
       overviewTitle: 'Overview',
@@ -1029,6 +1031,8 @@ export const translations = {
       sidebarCreditLow: 'Credits 不足，建议升级',
       sidebarMonitoringPrompts: '监控 Prompts',
       sidebarPromptLimitNear: 'Prompt 配额即将用尽',
+      sidebarOndemandChecks: '按需查询次数',
+      sidebarOndemandLow: '本月刷新配额即将用尽',
       sidebarUpgradePlan: '升级套餐',
       // Overview page
       overviewTitle: '总览',
