@@ -184,10 +184,13 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
   // customers — one account == one brand. Only internal admin/staff, who manage
   // many tenant brands, can edit identity or switch between brands here.
   const isAdminOrStaff = ctx.userRole === 'admin' || ctx.userRole === 'staff'
-  // Only Target Country is required here — Industry / Product Space are optional
-  // refinements (the scan infers category from the brand + domain otherwise).
+  // Required: product_space, keywords, target_audience, one_liner (+ brand/domain for admin/staff).
+  // target_market / industry / differentiation are optional refinements.
   const missingRequired = [
-    !String(ctx.brandConfig.target_market ?? '').trim() ? 'Target Country' : null,
+    !String(ctx.brandConfig.product_space ?? '').trim() ? 'Product Space' : null,
+    ctx.brandConfig.keywords.length === 0 ? 'Keywords' : null,
+    !String(ctx.brandConfig.target_audience ?? '').trim() ? 'Target Audience' : null,
+    !String(ctx.brandConfig.one_liner ?? '').trim() ? 'One-liner' : null,
     // Identity is onboarding-guaranteed; only enforce it where it can be edited.
     isAdminOrStaff && !ctx.brandConfig.brand_name.trim() ? 'Brand Name' : null,
     isAdminOrStaff && !ctx.brandConfig.domain.trim() ? 'Domain' : null,
@@ -202,17 +205,10 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
     // Single readiness = AI Research readiness (same source the AI Research page
     // uses), so every surface shows one consistent %.
     const researchReady = ctx.isResearchReady
-    const readiness = researchReady ? 100 : Math.round(((5 - ctx.researchMissingFields.length) / 5) * 100)
+    const totalFields = 6 // brand_name + domain + product_space + keywords + target_audience + one_liner
+    const readiness = researchReady ? 100 : Math.round(((totalFields - ctx.researchMissingFields.length) / totalFields) * 100)
     const productSpace = ctx.brandConfig.product_space || ctx.brandConfig.keywords[0] || 'Product space not set'
     const market = ctx.brandConfig.target_market || 'Market not set'
-    // Fields that actually feed PROMPT GENERATION (monitor_service builds prompts
-    // from brand_name + one_liner + target_audience + keywords). Richer prompts →
-    // richer scans, which is what AI Research aggregates. AI Research itself only
-    // reads product_space/brand/domain/market, so we don't overclaim here.
-    const missingEnrich = [
-      !String(ctx.brandConfig.target_audience ?? '').trim() && 'a target audience',
-      !String(ctx.brandConfig.one_liner ?? '').trim() && 'a one-liner',
-    ].filter(Boolean) as string[]
     return (
       <div className="bg-surface border border-divider rounded-xl px-5 py-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
@@ -235,11 +231,9 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
               <span>·</span>
               <span>{ctx.brandConfig.keywords.length} keywords</span>
             </div>
-            {!researchReady ? (
-              <p className="mt-1.5 text-[11px] text-caution">Needed for AI Research: {ctx.researchMissingFields.join(', ')}</p>
-            ) : missingEnrich.length > 0 ? (
-              <p className="mt-1.5 text-[11px] text-ink-3">Tip: add {missingEnrich.join(' and ')} — they sharpen the prompts we generate, which feeds richer scans.</p>
-            ) : null}
+            {!researchReady && (
+              <p className="mt-1.5 text-[11px] text-caution">Profile incomplete: {ctx.researchMissingFields.join(', ')}</p>
+            )}
           </div>
         </div>
         <button
@@ -360,7 +354,7 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
         </div>
 
         <div>
-          <FieldLabel>Product Space</FieldLabel>
+          <FieldLabel required>Product Space</FieldLabel>
           <input
             type="text"
             placeholder="e.g. Portable power stations, gaming phones, projectors"
@@ -375,7 +369,7 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
 
         {/* One-liner */}
         <div>
-          <FieldLabel>One-liner</FieldLabel>
+          <FieldLabel required>One-liner</FieldLabel>
           <CharInput
             value={ctx.brandConfig.one_liner ?? ''}
             onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, one_liner: v })}
@@ -402,7 +396,7 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
 
         {/* Target Country */}
         <div>
-          <FieldLabel required>Target Country</FieldLabel>
+          <FieldLabel>Target Country</FieldLabel>
           <CountrySelectField
             value={ctx.brandConfig.target_market ?? ''}
             onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, target_market: v })}
@@ -411,7 +405,7 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
 
         {/* Target Audience */}
         <div>
-          <FieldLabel>Target Audience</FieldLabel>
+          <FieldLabel required>Target Audience</FieldLabel>
           <input
             type="text"
             placeholder="e.g. outdoor enthusiasts, RV owners, homeowners aged 30-55"
@@ -426,7 +420,7 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
 
         {/* SEO Keywords */}
         <div>
-          <FieldLabel>SEO Keywords</FieldLabel>
+          <FieldLabel required>SEO Keywords</FieldLabel>
           <TagInput
             value={ctx.brandConfig.keywords}
             onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, keywords: v })}

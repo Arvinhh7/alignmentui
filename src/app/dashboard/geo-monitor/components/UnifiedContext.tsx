@@ -340,25 +340,21 @@ const _PREVIEW_BRAND: BrandConfig | null =
 // Preview lands on this real customer so prompts/scan hydrate with real data.
 const _PREVIEW_CUSTOMER_ID = process.env.NEXT_PUBLIC_PREVIEW_CUSTOMER_ID || null
 
-// One account == one brand. Onboarding collects exactly three things — Brand
-// Name, Domain, Target Country — and that is enough to run the first scan and
-// show Analysis. Industry / Product Space are optional refinements the customer
-// can fill in later to sharpen prompt generation.
-// Tier 1 — core profile: the 3 fields onboarding collects. Enough to run
-// Prompt scans / monitoring.
+// Required profile fields — the 6 fields customers must fill in to unlock the
+// full platform. brand_name + domain are always set at onboarding; the other 4
+// are collected in Brand Hub. target_market / industry / differentiation are
+// optional refinements.
 const REQUIRED_PROFILE_FIELDS: Array<{ key: keyof BrandConfig; label: string }> = [
   { key: 'brand_name', label: 'Brand Name' },
   { key: 'domain', label: 'Domain' },
-  { key: 'target_market', label: 'Target Country' },
+  { key: 'product_space', label: 'Product Space' },
+  { key: 'keywords', label: 'Keywords' },
+  { key: 'target_audience', label: 'Target Audience' },
+  { key: 'one_liner', label: 'One-liner' },
 ]
 
-// Tier 2 — research profile: core + the two fields AI Research needs to know
-// the category (it pulls shared Explore category data keyed by product_space).
-const RESEARCH_PROFILE_FIELDS: Array<{ key: keyof BrandConfig; label: string }> = [
-  ...REQUIRED_PROFILE_FIELDS,
-  { key: 'industry', label: 'Industry' },
-  { key: 'product_space', label: 'Product Space' },
-]
+// Research profile = same required set (all 6 fields feed AI Research quality).
+const RESEARCH_PROFILE_FIELDS = REQUIRED_PROFILE_FIELDS
 
 function missingRequiredProfileFields(config: BrandConfig) {
   return REQUIRED_PROFILE_FIELDS
