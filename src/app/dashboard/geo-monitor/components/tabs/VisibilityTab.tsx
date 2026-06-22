@@ -161,10 +161,8 @@ export function VisibilityTab() {
             }
             subtitle={
               (!ctx.scanResult?.share_of_voice || Object.keys(ctx.scanResult.share_of_voice ?? {}).length === 0)
-                ? 'Add competitors to enable'
-                : ctx.scanResult?.has_discovered_brands
-                  ? 'vs auto-discovered brands'
-                  : 'vs listed competitors'
+                ? 'Scan to detect rivals'
+                : 'vs auto-discovered brands'
             }
             color={METRIC_COLORS.sov.color}
             bgColor={METRIC_COLORS.sov.bgColor}
@@ -283,17 +281,15 @@ export function VisibilityTab() {
               Mention Share
             </h4>
             <p className="text-xs text-ink-3 mb-4">
-              {ctx.scanResult?.has_discovered_brands
-                ? 'Auto-discovered brands from AI responses — add them in settings to track over time'
-                : 'Brand mentions vs listed competitors across all AI responses'}
+              Brand mentions vs the rivals auto-detected in your AI responses
             </p>
             {sovSegments.length > 0 ? (
               <DonutChart segments={sovSegments} centerLabel={`${sovSegments.reduce((s, seg) => s + seg.value, 0).toFixed(0)}%`} />
             ) : (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <BarChart3 className="w-8 h-8 text-ink-3 mb-3 opacity-40" />
-                <p className="text-sm font-medium text-ink-3 mb-1">No competitors configured</p>
-                <p className="text-xs text-ink-3">Add competitors in brand settings to see Mention Share vs. competitors</p>
+                <p className="text-sm font-medium text-ink-3 mb-1">No rivals detected yet</p>
+                <p className="text-xs text-ink-3">Run a scan — competitors are auto-detected from the brands the AI names alongside you</p>
               </div>
             )}
           </div>

@@ -1,16 +1,13 @@
 'use client'
 
-import { useState, useMemo, type ReactNode } from 'react'
-import { Settings, Save, X, ChevronDown, Trash2, AlertTriangle, Pencil, CheckCircle2 } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
+import { Settings, Save, X, ChevronDown, Trash2, Pencil, CheckCircle2 } from 'lucide-react'
 import { useUnified } from './UnifiedContext'
 import { TagInput } from './shared/ChartComponents'
 import { BrandLogo } from '@/components/BrandLogo'
 import {
-  isBrandSelfVariant,
   INDUSTRY_LIST,
   TARGET_COUNTRIES,
-  EDU_INSTITUTION_TERMS,
-  GOV_INSTITUTION_TERMS,
 } from './shared/constants'
 
 // ── Section divider ────────────────────────────────────────────────────────────
@@ -100,31 +97,19 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
   const ctx = useUnified()
   const [showRecentDropdown, setShowRecentDropdown] = useState(false)
   const [keywordInput, setKeywordInput]       = useState('')
-  const [competitorInput, setCompetitorInput] = useState('')
-  const [sourceInput, setSourceInput] = useState('')
+  // Brand identity (name + domain) is set once at onboarding and is immutable for
+  // customers — one account == one brand. Only internal admin/staff, who manage
+  // many tenant brands, can edit identity or switch between brands here.
+  const isAdminOrStaff = ctx.userRole === 'admin' || ctx.userRole === 'staff'
   const missingRequired = [
-    !ctx.brandConfig.brand_name.trim() ? 'Brand Name' : null,
-    !ctx.brandConfig.domain.trim() ? 'Domain' : null,
     !String(ctx.brandConfig.industry ?? '').trim() ? 'Industry' : null,
     !String(ctx.brandConfig.product_space ?? '').trim() ? 'Product Space' : null,
     !String(ctx.brandConfig.target_market ?? '').trim() ? 'Target Country' : null,
+    // Identity is onboarding-guaranteed; only enforce it where it can be edited.
+    isAdminOrStaff && !ctx.brandConfig.brand_name.trim() ? 'Brand Name' : null,
+    isAdminOrStaff && !ctx.brandConfig.domain.trim() ? 'Domain' : null,
   ].filter(Boolean) as string[]
   const canSaveProfile = missingRequired.length === 0
-
-  // ── P2: Competitor industry-mismatch warning ───────────────────────────────
-  // Warn when a competitor tag looks like an educational/gov institution while
-  // the brand's industry is something else (e.g. SaaS).
-  const competitorMismatch = useMemo(() => {
-    const ind = ctx.brandConfig.industry ?? ''
-    if (!ind || ind === 'education_edtech' || ind === 'nonprofit_gov' || ind === 'other') return []
-    return ctx.brandConfig.competitors.filter(c => {
-      const lc = c.toLowerCase()
-      return (
-        EDU_INSTITUTION_TERMS.some(t => lc.includes(t)) ||
-        GOV_INSTITUTION_TERMS.some(t => lc.includes(t))
-      )
-    })
-  }, [ctx.brandConfig.competitors, ctx.brandConfig.industry])
 
   // Don't show the config panel while customer data is loading — prevents a
   // 1-2s flash of an empty form before the DB-hydrated config arrives.
@@ -136,7 +121,6 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
       Boolean(ctx.brandConfig.domain),
       Boolean(ctx.brandConfig.product_space || ctx.brandConfig.keywords.length),
       Boolean(ctx.brandConfig.target_market),
-      ctx.brandConfig.competitors.length > 0,
       Boolean(ctx.brandConfig.one_liner || ctx.brandConfig.differentiation),
     ]
     const readiness = Math.round((readinessItems.filter(Boolean).length / readinessItems.length) * 100)
@@ -161,8 +145,6 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
               <span>{market}</span>
               <span>·</span>
               <span>{productSpace}</span>
-              <span>·</span>
-              <span>{ctx.brandConfig.competitors.length} competitors</span>
               <span>·</span>
               <span>{ctx.brandConfig.keywords.length} keywords</span>
             </div>
@@ -201,64 +183,74 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
 
       <div className="p-6 space-y-5">
 
-        {/* ═══ IDENTITY ══════════════════════════════════════════════════════ */}
-        <SectionLabel label="Identity" />
+        {/* ═══ IDENTITY (admin/staff only) ═══════════════════════════════════
+            One account == one brand. Brand Name + Domain are set at onboarding and
+            are immutable for customers; only internal staff (who manage many tenant
+            brands) can edit identity or switch brands via the Recent picker. */}
+        {isAdminOrStaff && (
+          <>
+            <SectionLabel label="Identity" />
 
-        {/* Brand Name + Recent */}
-        <div>
-          <FieldLabel required>Brand Name</FieldLabel>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="e.g. EcoFlow"
-              value={ctx.brandConfig.brand_name}
-              onChange={e => ctx.setBrandConfig({ ...ctx.brandConfig, brand_name: e.target.value })}
-              className="w-full px-3 py-2 border border-divider rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink pr-24"
-            />
-            {ctx.recentBrands.length > 0 && (
-              <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                <button
-                  onClick={() => setShowRecentDropdown(!showRecentDropdown)}
-                  className="flex items-center gap-1 px-2 py-1 bg-surface-warm hover:bg-surface-muted rounded text-xs text-ink-3 transition-colors"
-                >
-                  Recent <ChevronDown className="w-3 h-3" />
-                </button>
-                {showRecentDropdown && (
-                  <div className="absolute right-0 top-full mt-1 w-60 bg-surface border border-divider rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto">
-                    {ctx.recentBrands.map((r, i) => (
-                      <button
-                        key={i}
-                        onClick={() => { ctx.loadRecentBrand(r); setShowRecentDropdown(false) }}
-                        className="w-full text-left px-3 py-2 text-xs hover:bg-surface-warm transition-colors"
-                      >
-                        <span className="font-medium text-ink">{r.brand_name}</span>
-                        <span className="text-ink-3 ml-2">{r.domain}</span>
-                      </button>
-                    ))}
+            {/* Brand Name + Recent */}
+            <div>
+              <FieldLabel required>Brand Name</FieldLabel>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="e.g. EcoFlow"
+                  value={ctx.brandConfig.brand_name}
+                  onChange={e => ctx.setBrandConfig({ ...ctx.brandConfig, brand_name: e.target.value })}
+                  className="w-full px-3 py-2 border border-divider rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink pr-24"
+                />
+                {ctx.recentBrands.length > 0 && (
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
                     <button
-                      onClick={() => { ctx.clearRecentBrands(); setShowRecentDropdown(false) }}
-                      className="w-full text-left px-3 py-2 text-xs text-red-soft hover:bg-red-soft-bg border-t border-divider-light"
+                      onClick={() => setShowRecentDropdown(!showRecentDropdown)}
+                      className="flex items-center gap-1 px-2 py-1 bg-surface-warm hover:bg-surface-muted rounded text-xs text-ink-3 transition-colors"
                     >
-                      Clear history
+                      Recent <ChevronDown className="w-3 h-3" />
                     </button>
+                    {showRecentDropdown && (
+                      <div className="absolute right-0 top-full mt-1 w-60 bg-surface border border-divider rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto">
+                        {ctx.recentBrands.map((r, i) => (
+                          <button
+                            key={i}
+                            onClick={() => { ctx.loadRecentBrand(r); setShowRecentDropdown(false) }}
+                            className="w-full text-left px-3 py-2 text-xs hover:bg-surface-warm transition-colors"
+                          >
+                            <span className="font-medium text-ink">{r.brand_name}</span>
+                            <span className="text-ink-3 ml-2">{r.domain}</span>
+                          </button>
+                        ))}
+                        <button
+                          onClick={() => { ctx.clearRecentBrands(); setShowRecentDropdown(false) }}
+                          className="w-full text-left px-3 py-2 text-xs text-red-soft hover:bg-red-soft-bg border-t border-divider-light"
+                        >
+                          Clear history
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
-          </div>
-        </div>
+            </div>
 
-        {/* Domain */}
-        <div>
-          <FieldLabel required>Domain</FieldLabel>
-          <input
-            type="text"
-            placeholder="e.g. https://us.ecoflow.com/"
-            value={ctx.brandConfig.domain}
-            onChange={e => ctx.setBrandConfig({ ...ctx.brandConfig, domain: e.target.value })}
-            className="w-full px-3 py-2 border border-divider rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
-          />
-        </div>
+            {/* Domain */}
+            <div>
+              <FieldLabel required>Domain</FieldLabel>
+              <input
+                type="text"
+                placeholder="e.g. https://us.ecoflow.com/"
+                value={ctx.brandConfig.domain}
+                onChange={e => ctx.setBrandConfig({ ...ctx.brandConfig, domain: e.target.value })}
+                className="w-full px-3 py-2 border border-divider rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
+              />
+            </div>
+          </>
+        )}
+
+        {/* ═══ CATEGORY ══════════════════════════════════════════════════════ */}
+        <SectionLabel label="Category" />
 
         {/* Industry */}
         <div>
@@ -357,38 +349,9 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
           />
         </div>
 
-        {/* Competitors */}
-        <div>
-          <FieldLabel>Competitors</FieldLabel>
-          <TagInput
-            value={ctx.brandConfig.competitors}
-            onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, competitors: v })}
-            placeholder="Add competitor (comma to add multiple)..."
-            inputValue={competitorInput}
-            onInputChange={setCompetitorInput}
-            validate={(tag) => !isBrandSelfVariant(tag, ctx.brandConfig.brand_name, ctx.brandConfig.domain)}
-          />
-          {competitorMismatch.length > 0 && (
-            <div className="flex items-start gap-1.5 mt-1.5 text-caution text-xs">
-              <AlertTriangle className="w-3 h-3 mt-0.5 flex-shrink-0" />
-              <span>
-                <strong>{competitorMismatch.join(', ')}</strong>{' '}
-                look like educational or government institutions — are these the right competitors for your industry?
-              </span>
-            </div>
-          )}
-        </div>
-
-        <div>
-          <FieldLabel>Source Seeds</FieldLabel>
-          <TagInput
-            value={ctx.brandConfig.source_domains ?? []}
-            onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, source_domains: v })}
-            placeholder="Add source domain (official pages, reviews, media)..."
-            inputValue={sourceInput}
-            onInputChange={setSourceInput}
-          />
-        </div>
+        {/* Competitors are NOT configured here — they are an output of measurement.
+            The scan auto-discovers every rival the AI names; to analyze a specific
+            competitor's own visibility, that competitor registers their own account. */}
 
         {/* Error */}
         {ctx.configError && <p className="text-xs text-red-soft">{ctx.configError}</p>}
@@ -403,10 +366,8 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
           <button
             disabled={!canSaveProfile}
             onClick={() => {
-              ctx.handleSaveConfig(keywordInput, competitorInput, sourceInput)
+              ctx.handleSaveConfig(keywordInput, '', '')
               setKeywordInput('')
-              setCompetitorInput('')
-              setSourceInput('')
             }}
             className="flex items-center gap-2 px-5 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv rounded-xl text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-ink"
           >
