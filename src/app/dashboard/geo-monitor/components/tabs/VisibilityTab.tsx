@@ -314,7 +314,12 @@ export function VisibilityTab() {
           <TrendingUp className="w-4 h-4 text-ink-3" />
           Visibility Score Trend
         </h4>
-        {ctx.multiBrandTrends && ctx.scanHistory.length > 1 ? (
+        {ctx.multiBrandTrends && ctx.multiBrandTrends.data_points.length > 0 ? (
+          // UnifiedTrendChart plots own brand + competitors. data_points already
+          // carries the own-brand series (and scanHistory overrides it as the
+          // source of truth), so render it whenever multi-brand points exist —
+          // not only when scanHistory has 2+ entries, otherwise competitor
+          // curves stay hidden on accounts with a short own-brand history.
           <UnifiedTrendChart data={ctx.multiBrandTrends} brandName={ctx.brandConfig.brand_name} scanHistory={ctx.scanHistory} />
         ) : ctx.scanHistory.length > 0 ? (
           <ScanHistoryTrendChart data={ctx.scanHistory} />
