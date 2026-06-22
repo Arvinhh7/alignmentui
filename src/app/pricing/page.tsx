@@ -223,7 +223,6 @@ function PricingPageInner() {
         { name: 'ChatGPT', logo: '/logos/openai.png' },
         { name: 'Perplexity', logo: '/logos/perplexity.png' },
         { name: 'Gemini', logo: '/logos/gemini.png' },
-        { name: 'Claude', logo: '/logos/anthropic.png' },
       ],
       features: lang === 'zh' ? [
         '7 天免费试用',
@@ -262,6 +261,7 @@ function PricingPageInner() {
       features: lang === 'zh' ? [
         '7 天免费试用',
         '包含所有 Standard 功能',
+        'Claude 引擎监控（Pro 专属）',
         '250 条 prompts 每日追踪',
         '多品牌 / 多项目',
         '高级 AI Research',
@@ -271,6 +271,7 @@ function PricingPageInner() {
       ] : [
         '7-day free trial',
         'All Standard features',
+        'Claude engine monitoring (Pro exclusive)',
         '250 prompts tracked daily',
         'Multi projects / brands',
         'Advanced AI Research',
