@@ -13,9 +13,7 @@ import {
   notifyCreditUsed,
   MonitorScanResult,
   MonitorPrompt,
-  GapAnalysisResult,
   AdvancedMentionAnalysis,
-  CompetitiveIntelReport,
   MultiBrandTrendData,
   AEOContentScore,
   DiscoverResult,
@@ -24,7 +22,6 @@ import {
   BRAND_CONFIG_KEY,
   SCAN_RESULTS_KEY,
   SCAN_HISTORY_KEY,
-  GAP_RESULTS_KEY,
   ADV_MENTIONS_KEY,
   DISCOVER_RESULT_KEY,
   ACTIVE_CUSTOMER_EVENT,
@@ -150,7 +147,7 @@ function applyBrandClassification(
 
 export type TabKey =
   | 'visibility' | 'discover' | 'prompts' | 'mentions' | 'citations' | 'sentiment'
-  | 'competitors' | 'gap_analysis' | 'shopping' | 'personas' | 'ai_research'
+  | 'competitors' | 'shopping' | 'personas' | 'ai_research'
 
 // ─── Context shape ───────────────────────────────────
 
@@ -194,12 +191,6 @@ interface UnifiedState {
   metricTrends: Record<string, number> | null
 
   // Geo-monitor analysis
-  gapResult: GapAnalysisResult | null
-  isRunningGap: boolean
-  gapError: string
-  handleRunGapAnalysis: () => void
-  handleStopGapAnalysis: () => void
-
   advancedMentions: AdvancedMentionAnalysis | null
   isRunningAdvMentions: boolean
   advMentionsError: string
@@ -210,12 +201,6 @@ interface UnifiedState {
   aiResearchResult: Record<string, unknown> | null
   saveAiResearch: (result: Record<string, unknown>) => void
   clearAiResearch: () => void
-
-  intelReport: CompetitiveIntelReport | null
-  isGeneratingReport: boolean
-  reportError: string
-  handleGenerateReport: () => void
-  handleStopReport: () => void
 
   multiBrandTrends: MultiBrandTrendData | null
   isLoadingTrends: boolean
@@ -353,11 +338,13 @@ const _PREVIEW_BRAND: BrandConfig | null =
 // Preview lands on this real customer so prompts/scan hydrate with real data.
 const _PREVIEW_CUSTOMER_ID = process.env.NEXT_PUBLIC_PREVIEW_CUSTOMER_ID || null
 
+// One account == one brand. Onboarding collects exactly three things — Brand
+// Name, Domain, Target Country — and that is enough to run the first scan and
+// show Analysis. Industry / Product Space are optional refinements the customer
+// can fill in later to sharpen prompt generation.
 const REQUIRED_PROFILE_FIELDS: Array<{ key: keyof BrandConfig; label: string }> = [
   { key: 'brand_name', label: 'Brand Name' },
   { key: 'domain', label: 'Domain' },
-  { key: 'industry', label: 'Industry' },
-  { key: 'product_space', label: 'Product Space' },
   { key: 'target_market', label: 'Target Country' },
 ]
 
@@ -415,16 +402,10 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const [scanHistory, setScanHistory] = useState<ScanHistoryEntry[]>([])
 
   // ── Geo-monitor analysis state ──────────────────
-  const [gapResult, setGapResult] = useState<GapAnalysisResult | null>(null)
-  const [isRunningGap, setIsRunningGap] = useState(false)
-  const [gapError, setGapError] = useState('')
   const [advancedMentions, setAdvancedMentions] = useState<AdvancedMentionAnalysis | null>(null)
   const [isRunningAdvMentions, setIsRunningAdvMentions] = useState(false)
   const [advMentionsError, setAdvMentionsError] = useState('')
-  const [intelReport, setIntelReport] = useState<CompetitiveIntelReport | null>(null)
   const [aiResearchResult, setAiResearchResult] = useState<Record<string, unknown> | null>(null)
-  const [isGeneratingReport, setIsGeneratingReport] = useState(false)
-  const [reportError, setReportError] = useState('')
   const [multiBrandTrends, setMultiBrandTrends] = useState<MultiBrandTrendData | null>(null)
   const [isLoadingTrends, setIsLoadingTrends] = useState(false)
 
@@ -493,9 +474,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const scanAbortRef = useRef<AbortController | null>(null)
   const scanTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const scanJobPollRef = useRef<ReturnType<typeof setInterval> | null>(null)  // A′-2: job polling
-  const gapAbortRef = useRef<AbortController | null>(null)
   const advMentionsAbortRef = useRef<AbortController | null>(null)
-  const reportAbortRef = useRef<AbortController | null>(null)
   const discoverAbortRef = useRef<AbortController | null>(null)
   const autoScanTriggered = useRef(false)
   const initializedForAuth = useRef<string | null>(null)
@@ -569,9 +548,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
         const autoScan = params.get('autoScan') === 'true'
         setScanResult(null)
         setScanHistory([])
-        setGapResult(null)
         setAdvancedMentions(null)
-        setIntelReport(null)
         setAiResearchResult(null)
         setDiscoverResults({})
         setMultiBrandTrends(null)
@@ -650,8 +627,6 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       if (savedResults) setScanResult(normalizeScanResult(JSON.parse(savedResults)))
       const savedHistory = localStorage.getItem(SCAN_HISTORY_KEY)
       if (savedHistory) setScanHistory(JSON.parse(savedHistory))
-      const savedGap = localStorage.getItem(GAP_RESULTS_KEY)
-      if (savedGap) setGapResult(JSON.parse(savedGap))
       const savedAdvMentions = localStorage.getItem(ADV_MENTIONS_KEY)
       if (savedAdvMentions) setAdvancedMentions(JSON.parse(savedAdvMentions))
       const savedDiscover = localStorage.getItem(DISCOVER_RESULT_KEY)
@@ -696,9 +671,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     // with no scan/discover yet doesn't briefly show the old customer's data.
     setScanResult(null)
     setScanHistory([])
-    setGapResult(null)
     setAdvancedMentions(null)
-    setIntelReport(null)
     setAiResearchResult(null)
     setDiscoverResults({})
     setMultiBrandTrends(null)
@@ -809,11 +782,9 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
             setDiscoverResults({ [eng]: dr })
           }
         }
-        // Restore cached analyses (gap / intel / advanced_mentions) — Phase 4
+        // Restore cached analyses (advanced_mentions / ai_research) — Phase 4
         const ac = (data as unknown as { analysis_cache?: Record<string, unknown> }).analysis_cache
         if (ac && typeof ac === 'object') {
-          if (ac.gap)               setGapResult(ac.gap as GapAnalysisResult)
-          if (ac.intel)             setIntelReport(ac.intel as CompetitiveIntelReport)
           if (ac.advanced_mentions) setAdvancedMentions(ac.advanced_mentions as AdvancedMentionAnalysis)
           if (ac.ai_research)       setAiResearchResult(ac.ai_research as Record<string, unknown>)
         }
@@ -1018,16 +989,13 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
       if (!activeCustomerId) {
         localStorage.removeItem(SCAN_RESULTS_KEY)
         localStorage.removeItem(SCAN_HISTORY_KEY)
-        localStorage.removeItem(GAP_RESULTS_KEY)
         localStorage.removeItem(ADV_MENTIONS_KEY)
         localStorage.removeItem(DISCOVER_RESULT_KEY)
       }
       // Clear all result state
       setScanResult(null)
       setScanHistory([])
-      setGapResult(null)
       setAdvancedMentions(null)
-      setIntelReport(null)
       setDiscoverResults({})
       setMultiBrandTrends(null)
       // ── Level 2: Auto re-scan for the new brand ────────────────────────────
@@ -1049,13 +1017,13 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   const handleClearConfig = () => {
     if (!activeCustomerId) {
       localStorage.removeItem(BRAND_CONFIG_KEY); localStorage.removeItem(SCAN_RESULTS_KEY)
-      localStorage.removeItem(SCAN_HISTORY_KEY); localStorage.removeItem(GAP_RESULTS_KEY); localStorage.removeItem(ADV_MENTIONS_KEY)
+      localStorage.removeItem(SCAN_HISTORY_KEY); localStorage.removeItem(ADV_MENTIONS_KEY)
       localStorage.removeItem(DISCOVER_RESULT_KEY)
     }
     setBrandConfig(EMPTY_BRAND_CONFIG)
     persistedBrandRef.current = ''
     setIsConfigured(false); setShowConfig(true)
-    setScanResult(null); setScanHistory([]); setGapResult(null); setAdvancedMentions(null); setIntelReport(null); setAiResearchResult(null); setDiscoverResults({})
+    setScanResult(null); setScanHistory([]); setAdvancedMentions(null); setAiResearchResult(null); setDiscoverResults({})
   }
 
   // ═══ Scan handlers ═══════════════════════════════
@@ -1221,23 +1189,6 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { if (scanResult) loadMultiBrandTrends() }, [scanResult, loadMultiBrandTrends])
 
-  // ═══ Gap Analysis ════════════════════════════════
-
-  const handleRunGapAnalysis = async () => {
-    if (!brandConfig.brand_name || brandConfig.competitors.length === 0) { setGapError('Add at least one competitor'); return }
-    gapAbortRef.current?.abort()
-    const controller = new AbortController()
-    gapAbortRef.current = controller
-    setIsRunningGap(true); setGapError('')
-    try {
-      const res = await api.runGapAnalysis({ brand_name: brandConfig.brand_name, domain: brandConfig.domain, keywords: brandConfig.keywords, competitors: brandConfig.competitors }, controller.signal, user?.id)
-      if (res.error === '__ABORTED__') { setIsRunningGap(false); return }
-      if (res.error) { setGapError(res.error) } else if (res.data) { setGapResult(res.data); if (!activeCustomerId) localStorage.setItem(GAP_RESULTS_KEY, JSON.stringify(res.data)); if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'gap', res.data, user?.id).catch(() => {}); notifyCreditUsed() }
-    } catch (e: any) { if (e.name !== 'AbortError') setGapError(e.message || 'Gap analysis failed') }
-    gapAbortRef.current = null; setIsRunningGap(false)
-  }
-  const handleStopGapAnalysis = () => { gapAbortRef.current?.abort(); gapAbortRef.current = null; setIsRunningGap(false) }
-
   // ═══ Advanced Mentions ═══════════════════════════
 
   const handleRunAdvancedMentions = async () => {
@@ -1254,24 +1205,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   }
   const handleStopAdvMentions = () => { advMentionsAbortRef.current?.abort(); advMentionsAbortRef.current = null; setIsRunningAdvMentions(false) }
 
-  // ═══ Intel Report ════════════════════════════════
-
-  const handleGenerateReport = async () => {
-    if (brandConfig.competitors.length === 0) { setReportError('Add at least one competitor'); return }
-    reportAbortRef.current?.abort()
-    const controller = new AbortController()
-    reportAbortRef.current = controller
-    setIsGeneratingReport(true); setReportError('')
-    try {
-      const res = await api.generateIntelReport({ brand_name: brandConfig.brand_name, domain: brandConfig.domain, keywords: brandConfig.keywords, competitors: brandConfig.competitors }, controller.signal, user?.id)
-      if (res.error === '__ABORTED__') { setIsGeneratingReport(false); return }
-      if (res.error) { setReportError(res.error) } else if (res.data) { setIntelReport(res.data); if (activeCustomerId) api.saveAnalysisCache(activeCustomerId, 'intel', res.data, user?.id).catch(() => {}); notifyCreditUsed() }
-    } catch (e: any) { if (e.name !== 'AbortError') setReportError(e.message || 'Report generation failed') }
-    reportAbortRef.current = null; setIsGeneratingReport(false)
-  }
-  const handleStopReport = () => { reportAbortRef.current?.abort(); reportAbortRef.current = null; setIsGeneratingReport(false) }
-
-  // ═══ AI Research persistence (same 4-step contract as gap/intel) ═══
+  // ═══ AI Research persistence (same cache contract as advanced mentions) ═══
   // Save → DB (monitor_analysis_cache 'ai_research'); hydrated by getLatest on load.
   const saveAiResearch = useCallback((result: Record<string, unknown>) => {
     setAiResearchResult(result)
@@ -1523,9 +1457,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     filterTimeRange, setFilterTimeRange, filterModel, setFilterModel,
     scanResult, isScanning, scanStep, scanError, handleRunScan, handleStopScan,
     scanHistory, filteredScanHistory, metricTrends,
-    gapResult, isRunningGap, gapError, handleRunGapAnalysis, handleStopGapAnalysis,
     advancedMentions, isRunningAdvMentions, advMentionsError, handleRunAdvancedMentions, handleStopAdvMentions,
-    intelReport, isGeneratingReport, reportError, handleGenerateReport, handleStopReport,
     aiResearchResult, saveAiResearch, clearAiResearch,
     multiBrandTrends, isLoadingTrends,
     discoverResult, discoverResults, isRunningDiscover, isRunningDeepDiscover, discoverError, discoverEngine, setDiscoverEngine, availableEngines, engineModels, userRole, handleRunDiscover, handleRunDeepDiscover, handleStopDiscover, showGeneratePromptsModal, setShowGeneratePromptsModal, handleBatchSavePrompts,

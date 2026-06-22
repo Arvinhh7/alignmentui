@@ -64,12 +64,11 @@ function chooseCustomer(customers: CustomerSummary[], userId: string): CustomerS
   }
 }
 
+// Profile is "complete" once the three onboarding fields exist — brand name and
+// domain (always set at onboarding) plus a target country. Industry/product_space
+// are optional refinements, so they no longer gate dashboard access.
 function isCustomerProfileComplete(config: Record<string, unknown> | null | undefined): boolean {
-  return Boolean(
-    String(config?.industry ?? '').trim() &&
-    String(config?.product_space ?? '').trim() &&
-    String(config?.target_market ?? '').trim()
-  )
+  return Boolean(String(config?.target_market ?? '').trim())
 }
 
 export default function DashboardRootPage() {

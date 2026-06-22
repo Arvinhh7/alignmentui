@@ -7,15 +7,16 @@ import { useAuth } from '@/hooks/useAuth'
 import { getSupabase } from '@/lib/supabase'
 import {
   LEGACY_CUSTOMER_DATA_KEYS,
+  TARGET_COUNTRIES,
   activeCustomerStorageKey,
   customerCacheStorageKey,
 } from '@/app/dashboard/geo-monitor/components/shared/constants'
-import { ArrowRight, Globe, Home, Loader2, LogOut } from 'lucide-react'
+import { ArrowRight, ChevronDown, Globe, Home, Loader2, LogOut, MapPin, Sparkles } from 'lucide-react'
 import { gaEvent } from '@/lib/gtag'
 
 const ONBOARDING_DONE_KEY = 'alignment_onboarding_done'
 const ONBOARDING_SESSION_KEY = 'alignment_onboarding_session'
-const ONBOARDING_VERSION = 5
+const ONBOARDING_VERSION = 6
 
 function normalizeUrl(url: string) {
   if (!url.trim()) return ''
@@ -41,9 +42,13 @@ export default function OnboardingPage() {
   const [authChecked, setAuthChecked] = useState(false)
   const [brandName, setBrandName] = useState('')
   const [brandUrl, setBrandUrl] = useState('')
+  const [country, setCountry] = useState('')
   const [brandNameError, setBrandNameError] = useState('')
   const [urlError, setUrlError] = useState('')
+  const [countryError, setCountryError] = useState('')
   const [isCompleting, setIsCompleting] = useState(false)
+  const [setupMsg, setSetupMsg] = useState('')
+  const [scanPct, setScanPct] = useState(0)
   const [completionError, setCompletionError] = useState('')
   const [isSigningOut, setIsSigningOut] = useState(false)
 
@@ -134,6 +139,7 @@ export default function OnboardingPage() {
       if (s._version !== ONBOARDING_VERSION) return
       if (s.brandName) setBrandName(s.brandName)
       if (s.brandUrl) setBrandUrl(s.brandUrl)
+      if (s.country) setCountry(s.country)
     } catch {}
   }, [])
 
@@ -143,19 +149,44 @@ export default function OnboardingPage() {
         _version: ONBOARDING_VERSION,
         brandName,
         brandUrl,
+        country,
       }))
     } catch {}
-  }, [brandName, brandUrl])
+  }, [brandName, brandUrl, country])
+
+  // Poll a scan job for up to ~2 minutes, surfacing progress. Resolves on
+  // done/failed/timeout — never throws — so onboarding always proceeds.
+  const pollScan = useCallback(async (jobId: string) => {
+    const maxPolls = 60 // 60 × 2s ≈ 120s
+    for (let i = 0; i < maxPolls; i++) {
+      await new Promise(r => setTimeout(r, 2000))
+      try {
+        const s = (await api.getScanJob(jobId)).data
+        if (!s) continue
+        if (typeof s.progress === 'number') {
+          setScanPct(Math.max(8, Math.min(99, Math.round(s.progress))))
+        }
+        if (s.status === 'done') { setScanPct(100); return }
+        if (s.status === 'failed' || s.status === 'cancelled') return
+      } catch {
+        // transient — keep polling
+      }
+    }
+  }, [])
 
   const handleComplete = useCallback(async () => {
     const bn = brandName.trim()
     const urlMessage = validateWebsiteUrl(brandUrl)
+    const ct = country.trim()
     setBrandNameError(bn ? '' : 'Brand Name is required.')
     setUrlError(urlMessage)
+    setCountryError(ct ? '' : 'Please select your target country or region.')
     setCompletionError('')
-    if (!bn || urlMessage) return
+    if (!bn || urlMessage || !ct) return
 
     setIsCompleting(true)
+    setScanPct(0)
+    setSetupMsg('Creating your workspace…')
     const du = normalizeUrl(brandUrl)
 
     try {
@@ -178,10 +209,10 @@ export default function OnboardingPage() {
           }).eq('id', user.id)
         }
 
-        // One account == one brand: onboarding sets identity (name + domain) once.
-        // Competitors are NOT seeded here — they are an OUTPUT of the scan
-        // (auto-discovered from the brands the AI names), never a manual input.
-        // Source seeds were removed from the model entirely.
+        // One account == one brand: onboarding sets identity (name + domain) and
+        // target country once. Competitors are NOT seeded — they are an OUTPUT of
+        // the scan (auto-discovered), never a manual input. Industry / product
+        // space are optional refinements the customer can add later.
         const customer = await customersApi.create(user.id, {
           brand_name: bn,
           domain: du,
@@ -191,11 +222,11 @@ export default function OnboardingPage() {
             product_space: '',
             one_liner: '',
             target_audience: '',
-            target_market: '',
+            target_market: ct,
             differentiation: '',
             onboarding: {
               version: ONBOARDING_VERSION,
-              completed_from: 'brand_hub_profile',
+              completed_from: 'onboarding_quickstart',
             },
           },
         })
@@ -210,6 +241,7 @@ export default function OnboardingPage() {
       console.error('[Onboarding] customer creation failed:', err)
       setCompletionError('We could not create your customer workspace. Please try again.')
       setIsCompleting(false)
+      setSetupMsg('')
       return
     }
 
@@ -224,6 +256,41 @@ export default function OnboardingPage() {
       }
     } catch {}
 
+    // ── Seed 4 default prompts (2 branded + 2 non-branded) and run ONE
+    //    ChatGPT-only scan so the customer lands on a populated Analysis view.
+    //    All best-effort: any failure still completes onboarding gracefully. ──
+    try {
+      if (user?.id && customerId) {
+        setSetupMsg('Designing your first 4 monitoring prompts…')
+        const res = await api.onboardingStarterPrompts({ brand_name: bn, domain: du, country: ct })
+        const prompts = (res.data?.prompts ?? []).filter(p => p.prompt_text?.trim())
+        for (const p of prompts) {
+          try {
+            await api.createMonitorPrompt({
+              template: p.prompt_text.trim(),
+              category: p.intent,
+              customer_id: customerId,
+            })
+          } catch { /* dedup / limit — skip */ }
+        }
+
+        if (prompts.length > 0) {
+          setSetupMsg('Analyzing how ChatGPT talks about your brand…')
+          setScanPct(8)
+          try {
+            const job = await api.runMonitorScan(
+              { brand_name: bn, domain: du, customer_id: customerId, engines: ['chatgpt'] },
+              undefined,
+              user.id,
+              true, // is_onboarding → free
+            )
+            const jobId = job.data?.job_id
+            if (jobId) await pollScan(jobId)
+          } catch { /* scan unavailable — land on empty Analysis, user can rescan */ }
+        }
+      }
+    } catch { /* non-fatal */ }
+
     localStorage.setItem(ONBOARDING_DONE_KEY, 'true')
     try {
       const supabase = getSupabase()
@@ -236,11 +303,9 @@ export default function OnboardingPage() {
     } catch {}
 
     localStorage.removeItem(ONBOARDING_SESSION_KEY)
-    const brandHubUrl = customerId
-      ? `/dashboard/brand-hub?customer=${customerId}&url=${encodeURIComponent(du)}`
-      : `/dashboard/brand-hub?url=${encodeURIComponent(du)}`
-    router.push(brandHubUrl)
-  }, [brandName, brandUrl, router, user])
+    // Land directly in Analysis — the seeded scan results are waiting there.
+    router.push('/dashboard/analysis')
+  }, [brandName, brandUrl, country, pollScan, router, user])
 
   if (authLoading || !authChecked) {
     return (
@@ -284,77 +349,122 @@ export default function OnboardingPage() {
 
         <div className="flex-1 overflow-y-auto px-8 py-10">
           <div className="space-y-6">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-ink-3">Brand Setup</p>
-              <h1 className="mt-3 text-2xl font-bold text-ink">Set up your brand</h1>
-              <p className="mt-2 text-sm leading-relaxed text-ink-3">
-                Enter your brand and website. We will take you to Brand Hub to finish the Customer Intelligence Profile.
-              </p>
-            </div>
-
-            <div className="space-y-5">
-              <div>
-                <label className="mb-1.5 block text-sm font-semibold text-ink-2">
-                  Brand Name <span className="text-red-soft">*</span>
-                </label>
-                <input
-                  value={brandName}
-                  onChange={event => {
-                    setBrandName(event.target.value)
-                    setBrandNameError('')
-                  }}
-                  placeholder="e.g., Alignment AI"
-                  className={`w-full rounded-xl border bg-surface-warm px-4 py-3 text-base text-ink placeholder-ink-3 transition-all focus:outline-none focus:ring-2 focus:ring-ink/10 ${
-                    brandNameError ? 'border-red-soft focus:border-red-soft' : 'border-divider-light focus:border-ink'
-                  }`}
-                />
-                {brandNameError && <p className="mt-1.5 text-xs text-red-soft">{brandNameError}</p>}
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-sm font-semibold text-ink-2">
-                  Website URL <span className="text-red-soft">*</span>
-                </label>
-                <div className="relative">
-                  <Globe className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
-                  <input
-                    value={brandUrl}
-                    onChange={event => {
-                      setBrandUrl(event.target.value)
-                      setUrlError('')
-                    }}
-                    onKeyDown={event => {
-                      if (event.key === 'Enter' && !isCompleting) handleComplete()
-                    }}
-                    placeholder="e.g., alignmenttech.ai"
-                    className={`w-full rounded-xl border bg-surface-warm py-3 pl-11 pr-4 text-base text-ink placeholder-ink-3 transition-all focus:outline-none focus:ring-2 focus:ring-ink/10 ${
-                      urlError ? 'border-red-soft focus:border-red-soft' : 'border-divider-light focus:border-ink'
-                    }`}
-                  />
+            {isCompleting ? (
+              <>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-ink-3">Building your workspace</p>
+                  <h1 className="mt-3 text-2xl font-bold text-ink">Setting up {brandName.trim() || 'your brand'}</h1>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-3">
+                    We&apos;re generating your first monitoring prompts and running an instant ChatGPT analysis. This usually takes under a minute.
+                  </p>
                 </div>
-                {urlError && <p className="mt-1.5 text-xs text-red-soft">{urlError}</p>}
-              </div>
-            </div>
 
-            <button
-              onClick={handleComplete}
-              disabled={isCompleting}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-ink py-4 text-base font-semibold text-ink-inv shadow-sm transition-all hover:bg-[#2d2d2c] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isCompleting ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  Setting up your audit...
-                </>
-              ) : (
-                <>
-                  Start Audit
+                <div className="rounded-2xl border border-divider-light bg-surface-warm p-5">
+                  <div className="flex items-center gap-3">
+                    {scanPct >= 100
+                      ? <Sparkles className="h-5 w-5 flex-shrink-0 text-sage" />
+                      : <Loader2 className="h-5 w-5 flex-shrink-0 animate-spin text-ink" />}
+                    <span className="text-sm font-medium text-ink-2">{setupMsg || 'Working…'}</span>
+                  </div>
+                  <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-surface-muted">
+                    <div
+                      className="h-full rounded-full bg-ink transition-all duration-700"
+                      style={{ width: `${Math.max(8, scanPct)}%` }}
+                    />
+                  </div>
+                  <p className="mt-3 text-xs text-ink-3">Hang tight — you&apos;ll land straight in your Analysis dashboard.</p>
+                </div>
+
+                {completionError && <p className="text-sm text-red-soft">{completionError}</p>}
+              </>
+            ) : (
+              <>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-ink-3">Brand Setup</p>
+                  <h1 className="mt-3 text-2xl font-bold text-ink">Set up your brand</h1>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-3">
+                    Three quick details. We&apos;ll generate your first prompts and run an instant ChatGPT analysis — fine-tune everything later.
+                  </p>
+                </div>
+
+                <div className="space-y-5">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-semibold text-ink-2">
+                      Brand Name <span className="text-red-soft">*</span>
+                    </label>
+                    <input
+                      value={brandName}
+                      onChange={event => {
+                        setBrandName(event.target.value)
+                        setBrandNameError('')
+                      }}
+                      placeholder="e.g., Alignment AI"
+                      className={`w-full rounded-xl border bg-surface-warm px-4 py-3 text-base text-ink placeholder-ink-3 transition-all focus:outline-none focus:ring-2 focus:ring-ink/10 ${
+                        brandNameError ? 'border-red-soft focus:border-red-soft' : 'border-divider-light focus:border-ink'
+                      }`}
+                    />
+                    {brandNameError && <p className="mt-1.5 text-xs text-red-soft">{brandNameError}</p>}
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-semibold text-ink-2">
+                      Website URL <span className="text-red-soft">*</span>
+                    </label>
+                    <div className="relative">
+                      <Globe className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
+                      <input
+                        value={brandUrl}
+                        onChange={event => {
+                          setBrandUrl(event.target.value)
+                          setUrlError('')
+                        }}
+                        placeholder="e.g., alignmenttech.ai"
+                        className={`w-full rounded-xl border bg-surface-warm py-3 pl-11 pr-4 text-base text-ink placeholder-ink-3 transition-all focus:outline-none focus:ring-2 focus:ring-ink/10 ${
+                          urlError ? 'border-red-soft focus:border-red-soft' : 'border-divider-light focus:border-ink'
+                        }`}
+                      />
+                    </div>
+                    {urlError && <p className="mt-1.5 text-xs text-red-soft">{urlError}</p>}
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-semibold text-ink-2">
+                      Target Country / Region <span className="text-red-soft">*</span>
+                    </label>
+                    <div className="relative">
+                      <MapPin className="absolute left-4 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-ink-3" />
+                      <select
+                        value={country}
+                        onChange={event => {
+                          setCountry(event.target.value)
+                          setCountryError('')
+                        }}
+                        className={`w-full appearance-none rounded-xl border bg-surface-warm py-3 pl-11 pr-10 text-base transition-all focus:outline-none focus:ring-2 focus:ring-ink/10 ${
+                          country ? 'text-ink' : 'text-ink-3'
+                        } ${countryError ? 'border-red-soft focus:border-red-soft' : 'border-divider-light focus:border-ink'}`}
+                      >
+                        <option value="" disabled>Select country or region…</option>
+                        {TARGET_COUNTRIES.map(c => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
+                    </div>
+                    {countryError && <p className="mt-1.5 text-xs text-red-soft">{countryError}</p>}
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleComplete}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-ink py-4 text-base font-semibold text-ink-inv shadow-sm transition-all hover:bg-[#2d2d2c] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Generate my Analysis
                   <ArrowRight className="h-5 w-5" />
-                </>
-              )}
-            </button>
+                </button>
 
-            {completionError && <p className="text-center text-sm text-red-soft">{completionError}</p>}
+                {completionError && <p className="text-center text-sm text-red-soft">{completionError}</p>}
+              </>
+            )}
           </div>
         </div>
       </div>

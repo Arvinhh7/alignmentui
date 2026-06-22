@@ -59,7 +59,7 @@ const AGENT_TEMPLATES: AgentTemplate[] = [
     iconBg: 'bg-sage-bg',
     title: 'Competitor AI Analysis',
     description: 'Compare your brand\'s AI visibility against competitors. Find where competitors outrank you and discover content gaps to close.',
-    tags: ['Competitors', 'Gap Analysis', 'Strategy'],
+    tags: ['Competitors', 'Strategy'],
     estimatedTime: '~5 min',
     isPreset: true,
   },

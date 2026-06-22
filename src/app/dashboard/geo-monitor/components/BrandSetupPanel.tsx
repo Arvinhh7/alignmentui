@@ -101,9 +101,9 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
   // customers — one account == one brand. Only internal admin/staff, who manage
   // many tenant brands, can edit identity or switch between brands here.
   const isAdminOrStaff = ctx.userRole === 'admin' || ctx.userRole === 'staff'
+  // Only Target Country is required here — Industry / Product Space are optional
+  // refinements (the scan infers category from the brand + domain otherwise).
   const missingRequired = [
-    !String(ctx.brandConfig.industry ?? '').trim() ? 'Industry' : null,
-    !String(ctx.brandConfig.product_space ?? '').trim() ? 'Product Space' : null,
     !String(ctx.brandConfig.target_market ?? '').trim() ? 'Target Country' : null,
     // Identity is onboarding-guaranteed; only enforce it where it can be edited.
     isAdminOrStaff && !ctx.brandConfig.brand_name.trim() ? 'Brand Name' : null,
@@ -254,7 +254,7 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
 
         {/* Industry */}
         <div>
-          <FieldLabel required>Industry</FieldLabel>
+          <FieldLabel>Industry</FieldLabel>
           <SelectField
             value={ctx.brandConfig.industry ?? ''}
             onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, industry: v })}
@@ -268,7 +268,7 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
         </div>
 
         <div>
-          <FieldLabel required>Product Space</FieldLabel>
+          <FieldLabel>Product Space</FieldLabel>
           <input
             type="text"
             placeholder="e.g. Portable power stations, gaming phones, projectors"

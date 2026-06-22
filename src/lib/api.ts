@@ -1803,20 +1803,6 @@ class APIClient {
 
   // ═══ Phase 3: Advanced ═════════════════════════════
 
-  async runGapAnalysis(data: {
-    brand_name: string;
-    domain?: string;
-    keywords?: string[];
-    competitors: string[];
-  }, signal?: AbortSignal, userId?: string) {
-    const qs = userId ? `?user_id=${userId}` : '';
-    return this.request<GapAnalysisResult>(`/api/monitor/gap-analysis${qs}`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-      signal,
-    });
-  }
-
   async runAdvancedMentionAnalysis(data: {
     brand_name: string;
     domain?: string;
@@ -1825,20 +1811,6 @@ class APIClient {
   }, signal?: AbortSignal, userId?: string) {
     const qs = userId ? `?user_id=${userId}` : '';
     return this.request<AdvancedMentionAnalysis>(`/api/monitor/advanced-mentions${qs}`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-      signal,
-    });
-  }
-
-  async generateIntelReport(data: {
-    brand_name: string;
-    domain?: string;
-    keywords?: string[];
-    competitors: string[];
-  }, signal?: AbortSignal, userId?: string) {
-    const qs = userId ? `?user_id=${userId}` : '';
-    return this.request<CompetitiveIntelReport>(`/api/monitor/intel-report${qs}`, {
       method: 'POST',
       body: JSON.stringify(data),
       signal,
@@ -2272,6 +2244,15 @@ class APIClient {
 
   async onboardingGeneratePrompts(data: { brand_name: string; topics: string[] }) {
     return this.request<{ topic_prompts: Record<string, { prompt_text: string; intent: string }[]>; total_count: number }>('/api/onboarding/generate-prompts', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Cold-start: 4 default prompts (2 branded + 2 non-branded) from brand + domain + country.
+  async onboardingStarterPrompts(data: { brand_name: string; domain?: string; country?: string }) {
+    return this.request<{ prompts: { prompt_text: string; branded: boolean; intent: string }[]; fallback: boolean }>('/api/onboarding/starter-prompts', {
       method: 'POST',
       headers: authHeaders(),
       body: JSON.stringify(data),
