@@ -1,27 +1,48 @@
 /* eslint-disable @next/next/no-img-element */
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Database, ExternalLink, Filter, Search, ShieldCheck } from 'lucide-react'
+import { API_BASE_URL } from '@/lib/api'
 import {
-  PUBLIC_SOURCE_DOMAINS,
-  SOURCE_TYPE_DISTRIBUTION,
   SOURCE_TYPES,
   SOURCE_TYPE_STYLES,
   faviconUrl,
+  type PublicSourceDomain,
+  type SourceDistributionItem,
+  type SourcesResponse,
+  type SourceSummary,
   type SourceType,
 } from './source-data'
 
-const TOTAL_DOMAINS = 103530
-const TOTAL_CITATIONS = 2438763
-const maxCitations = PUBLIC_SOURCE_DOMAINS[0]?.citations ?? 1
+const PAGE_SIZE = 50
+
+const EMPTY_SUMMARY: SourceSummary = {
+  source_domains: 0,
+  citations: 0,
+  featured_sources: 0,
+  top_source: {
+    name: '',
+    domain: '',
+    citations: 0,
+    share_pct: 0,
+  },
+}
+
+const EMPTY_DISTRIBUTION: SourceDistributionItem[] = SOURCE_TYPES.map(sourceType => ({
+  source_type: sourceType,
+  source_count: 0,
+  citation_count: 0,
+  domain_share_pct: 0,
+  citation_share_pct: 0,
+}))
 
 function formatNumber(value: number) {
   return value.toLocaleString('en-US')
 }
 
-function citationShare(citations: number) {
-  return citations / TOTAL_CITATIONS * 100
+function citationShare(citations: number, totalCitations: number) {
+  return totalCitations > 0 ? citations / totalCitations * 100 : 0
 }
 
 function TypeBadge({ type }: { type: SourceType }) {
@@ -36,26 +57,72 @@ function TypeBadge({ type }: { type: SourceType }) {
 export default function SourcesPage() {
   const [query, setQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState<SourceType | 'All'>('All')
+  const [summary, setSummary] = useState<SourceSummary>(EMPTY_SUMMARY)
+  const [distribution, setDistribution] = useState<SourceDistributionItem[]>(EMPTY_DISTRIBUTION)
+  const [sources, setSources] = useState<PublicSourceDomain[]>([])
+  const [pagination, setPagination] = useState<SourcesResponse['pagination'] | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const filteredSources = useMemo(() => {
-    const needle = query.trim().toLowerCase()
-    return PUBLIC_SOURCE_DOMAINS.filter(source => {
-      const matchesQuery = !needle
-        || source.name.toLowerCase().includes(needle)
-        || source.domain.toLowerCase().includes(needle)
-        || source.sampleTopics.some(topic => topic.toLowerCase().includes(needle))
-      const matchesType = typeFilter === 'All' || source.type === typeFilter
-      return matchesQuery && matchesType
-    })
+  const loadSources = useCallback(async (offset = 0) => {
+    const isInitial = offset === 0
+    if (isInitial) {
+      setIsLoading(true)
+      setError(null)
+    } else {
+      setIsLoadingMore(true)
+    }
+
+    try {
+      const params = new URLSearchParams({
+        limit: String(PAGE_SIZE),
+        offset: String(offset),
+      })
+      const needle = query.trim()
+      if (needle) params.set('search', needle)
+      if (typeFilter !== 'All') params.set('source_type', typeFilter)
+
+      const response = await fetch(`${API_BASE_URL}/api/sources?${params.toString()}`)
+      if (!response.ok) {
+        throw new Error(`Sources API returned ${response.status}`)
+      }
+      const payload = await response.json() as SourcesResponse
+      setSummary(payload.summary ?? EMPTY_SUMMARY)
+      setDistribution(payload.distribution?.length ? payload.distribution : EMPTY_DISTRIBUTION)
+      setPagination(payload.pagination ?? null)
+      setSources(previous => isInitial ? payload.sources ?? [] : [...previous, ...(payload.sources ?? [])])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to load sources.')
+      if (isInitial) {
+        setSources([])
+        setPagination(null)
+      }
+    } finally {
+      setIsLoading(false)
+      setIsLoadingMore(false)
+    }
   }, [query, typeFilter])
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      loadSources(0)
+    }, query.trim() ? 250 : 0)
+    return () => window.clearTimeout(timer)
+  }, [loadSources, query])
+
   const typeDistribution = useMemo(() => {
+    const byType = new Map(distribution.map(item => [item.source_type, item]))
     return SOURCE_TYPES.map(type => ({
       type,
-      ...SOURCE_TYPE_DISTRIBUTION[type],
-      share: citationShare(SOURCE_TYPE_DISTRIBUTION[type].citations),
-    })).filter(item => item.count > 0)
-  }, [])
+      count: byType.get(type)?.source_count ?? 0,
+      citations: byType.get(type)?.citation_count ?? 0,
+      share: byType.get(type)?.citation_share_pct ?? 0,
+    }))
+  }, [distribution])
+
+  const maxCitations = sources[0]?.citation_count ?? 1
+  const hasExpanded = sources.length > PAGE_SIZE
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -83,23 +150,23 @@ export default function SourcesPage() {
         <section className="grid gap-4 md:grid-cols-4">
           <div className="rounded-xl border border-divider bg-surface p-5">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-3">Source Domains</p>
-            <p className="mt-3 font-mono text-3xl font-bold text-ink">{formatNumber(TOTAL_DOMAINS)}</p>
-            <p className="mt-1 text-xs text-ink-3">domains across AI models</p>
+            <p className="mt-3 font-mono text-3xl font-bold text-ink">{formatNumber(summary.source_domains)}</p>
+            <p className="mt-1 text-xs text-ink-3">cited domains across AI models</p>
           </div>
           <div className="rounded-xl border border-divider bg-surface p-5">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-3">Citations</p>
-            <p className="mt-3 font-mono text-3xl font-bold text-ink">{formatNumber(TOTAL_CITATIONS)}</p>
+            <p className="mt-3 font-mono text-3xl font-bold text-ink">{formatNumber(summary.citations)}</p>
             <p className="mt-1 text-xs text-ink-3">citations across AI models</p>
           </div>
           <div className="rounded-xl border border-divider bg-surface p-5">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-3">Featured Sources</p>
-            <p className="mt-3 font-mono text-3xl font-bold text-ink">{PUBLIC_SOURCE_DOMAINS.length}</p>
-            <p className="mt-1 text-xs text-ink-3">ranked source domains</p>
+            <p className="mt-3 font-mono text-3xl font-bold text-ink">{formatNumber(summary.featured_sources)}</p>
+            <p className="mt-1 text-xs text-ink-3">top domains in the first view</p>
           </div>
           <div className="rounded-xl border border-divider bg-surface p-5">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-3">Top Source Share</p>
-            <p className="mt-3 font-mono text-3xl font-bold text-ink">{citationShare(PUBLIC_SOURCE_DOMAINS[0].citations).toFixed(1)}%</p>
-            <p className="mt-1 text-xs text-ink-3">Reddit across AI models</p>
+            <p className="mt-3 font-mono text-3xl font-bold text-ink">{summary.top_source.share_pct.toFixed(1)}%</p>
+            <p className="mt-1 text-xs text-ink-3">{summary.top_source.name || 'Top source'} across AI models</p>
           </div>
         </section>
 
@@ -147,7 +214,7 @@ export default function SourcesPage() {
               <div>
                 <h2 className="text-base font-semibold text-ink">Most-Cited Source Domains</h2>
                 <p className="mt-1 text-sm text-ink-3">
-                  {formatNumber(TOTAL_DOMAINS)} domains, {formatNumber(TOTAL_CITATIONS)} citations cross AI models
+                  {formatNumber(summary.source_domains)} domains, {formatNumber(summary.citations)} citations across AI models
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -189,7 +256,7 @@ export default function SourcesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-divider-light">
-                {filteredSources.map(source => (
+                {sources.map(source => (
                   <tr key={source.rank} className={source.rank <= 5 ? 'bg-[#EFFAFF]' : 'hover:bg-surface-warm'}>
                     <td className="px-5 py-4 align-top font-mono text-sm font-semibold text-ink-3">{source.rank}</td>
                     <td className="px-5 py-4 align-top">
@@ -214,7 +281,7 @@ export default function SourcesPage() {
                             </a>
                           </div>
                           <div className="mt-2 flex flex-wrap gap-1.5">
-                            {source.sampleTopics.map(topic => (
+                          {(source.sample_topics ?? []).map(topic => (
                               <span key={topic} className="rounded-md border border-divider-light bg-surface px-2 py-1 text-[11px] font-medium text-ink-3">
                                 {topic}
                               </span>
@@ -223,26 +290,63 @@ export default function SourcesPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-4 align-top"><TypeBadge type={source.type} /></td>
+                    <td className="px-5 py-4 align-top"><TypeBadge type={source.source_type} /></td>
                     <td className="px-5 py-4 align-top text-right">
                       <div className="flex items-center justify-end gap-3">
                         <div className="hidden h-1.5 w-24 overflow-hidden rounded-full bg-surface-muted lg:block">
-                          <div className="h-full rounded-full bg-ink" style={{ width: `${Math.max(4, source.citations / maxCitations * 100)}%` }} />
+                          <div className="h-full rounded-full bg-ink" style={{ width: `${Math.max(4, source.citation_count / maxCitations * 100)}%` }} />
                         </div>
-                        <span className="font-mono text-sm font-semibold text-ink">{formatNumber(source.citations)}</span>
+                        <span className="font-mono text-sm font-semibold text-ink">{formatNumber(source.citation_count)}</span>
                       </div>
                     </td>
-                    <td className="px-5 py-4 align-top text-right font-mono text-sm font-semibold text-ink">{citationShare(source.citations).toFixed(1)}%</td>
-                    <td className="px-5 py-4 align-top text-right font-mono text-sm text-ink-2">{source.avgPosition.toFixed(1)}</td>
-                    <td className="px-5 py-4 align-top text-right font-mono text-sm text-ink-2">{formatNumber(source.topics)}</td>
+                    <td className="px-5 py-4 align-top text-right font-mono text-sm font-semibold text-ink">{citationShare(source.citation_count, summary.citations).toFixed(1)}%</td>
+                    <td className="px-5 py-4 align-top text-right font-mono text-sm text-ink-2">{typeof source.avg_position === 'number' ? source.avg_position.toFixed(1) : '—'}</td>
+                    <td className="px-5 py-4 align-top text-right font-mono text-sm text-ink-2">{formatNumber(source.topic_count)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
 
-          {filteredSources.length === 0 && (
+          {isLoading && (
+            <div className="px-5 py-16 text-center text-sm text-ink-3">Loading source domains...</div>
+          )}
+
+          {!isLoading && error && (
+            <div className="px-5 py-16 text-center text-sm text-red-600">{error}</div>
+          )}
+
+          {!isLoading && !error && sources.length === 0 && (
             <div className="px-5 py-16 text-center text-sm text-ink-3">No sources match the current filter.</div>
+          )}
+
+          {!isLoading && !error && sources.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-divider-light px-5 py-4">
+              <p className="text-xs text-ink-3">
+                Showing {formatNumber(sources.length)} of {formatNumber(pagination?.total ?? sources.length)} source domains
+              </p>
+              <div className="flex items-center gap-2">
+                {hasExpanded && (
+                  <button
+                    type="button"
+                    onClick={() => loadSources(0)}
+                    className="h-9 rounded-lg border border-divider bg-canvas px-3 text-sm font-semibold text-ink-2 hover:border-ink"
+                  >
+                    Collapse to top 50
+                  </button>
+                )}
+                {pagination?.has_next && (
+                  <button
+                    type="button"
+                    onClick={() => loadSources(sources.length)}
+                    disabled={isLoadingMore}
+                    className="h-9 rounded-lg bg-ink px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isLoadingMore ? 'Loading...' : 'Load more'}
+                  </button>
+                )}
+              </div>
+            </div>
           )}
         </section>
       </div>
