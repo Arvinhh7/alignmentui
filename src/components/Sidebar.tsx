@@ -487,6 +487,8 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
               const Icon = item.icon
               const label = getLabel(item.labelKey)
               const disabled = !!item.disabled
+              // Anchor for the Product Tour spotlight (e.g. /dashboard/analysis → "analysis").
+              const dataTour = item.href.split('/').filter(Boolean).pop()
               const itemClassName = `relative flex items-center gap-3 rounded-lg transition-all duration-200 group mb-0.5 ${
                 displayExpanded ? 'px-3 py-2' : 'w-11 h-10 justify-center'
               } ${
@@ -553,7 +555,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                     </div>
                   )}
                   {disabled ? (
-                    <div className={itemClassName} aria-disabled="true" title={`${label} is coming soon`}>
+                    <div className={itemClassName} data-tour={dataTour} aria-disabled="true" title={`${label} is coming soon`}>
                       {navContent}
                     </div>
                   ) : (
@@ -562,6 +564,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                       scroll={false}
                       onClick={handleNavClick}
                       className={itemClassName}
+                      data-tour={dataTour}
                     >
                       {navContent}
                     </Link>

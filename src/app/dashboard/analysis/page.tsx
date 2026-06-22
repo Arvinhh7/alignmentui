@@ -3,9 +3,12 @@
 import { useEffect, useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
-import { Loader2, LineChart, Eye, MessageSquare, Link2, ThumbsUp, Users, Lock } from 'lucide-react'
+import { Loader2, LineChart, Eye, MessageSquare, Link2, ThumbsUp, Users, Lock, Compass } from 'lucide-react'
 import { UnifiedProvider, useUnified, type TabKey } from '../geo-monitor/components/UnifiedContext'
 import { DateRangeControls } from '../geo-monitor/components/ControlBar'
+import { useLanguage } from '@/lib/LanguageContext'
+import { startProductTour } from '@/components/tour/ProductTour'
+import { TOUR_UI } from '@/components/tour/tourSteps'
 
 const TabLoader = () => (
   <div className="flex items-center justify-center py-12">
@@ -32,6 +35,7 @@ const ANALYSIS_MODELS = [
 function AnalysisContent() {
   const ctx = useUnified()
   const router = useRouter()
+  const { lang } = useLanguage()
   const { filterModel, setFilterModel } = ctx
   const normalizedPlan = String(ctx.promptQuota.plan || 'starter').toLowerCase()
   const starterLocked = normalizedPlan === 'starter' || normalizedPlan === 'trial'
@@ -61,6 +65,13 @@ function AnalysisContent() {
     }
   }, [ctx.activeCustomerId, ctx.customerHydrating, ctx.isProfileComplete, router])
 
+  // Engines present in the latest scan. Declared before the early return below
+  // so this hook always runs (React requires a stable hook order every render).
+  const latestEngines = useMemo(
+    () => (ctx.scanResult?.engines_used ?? []).map(e => e.toLowerCase()),
+    [ctx.scanResult],
+  )
+
   if (ctx.activeCustomerId && !ctx.customerHydrating && !ctx.isProfileComplete) {
     return (
       <div className="min-h-screen bg-canvas flex items-center justify-center">
@@ -86,10 +97,6 @@ function AnalysisContent() {
   // When a specific engine is selected, the Overview re-slices to that engine.
   // If that engine wasn't in the latest scan there's nothing to show, so render
   // an explicit empty state instead. 'all' (aggregate) is never blocked.
-  const latestEngines = useMemo(
-    () => (ctx.scanResult?.engines_used ?? []).map(e => e.toLowerCase()),
-    [ctx.scanResult],
-  )
   const selectedModel = ANALYSIS_MODELS.find(m => m.key === filterModel)
   // Only block when a SPECIFIC engine is selected, we have a scan, we know its
   // engines, and the selected engine is genuinely absent.
@@ -101,14 +108,23 @@ function AnalysisContent() {
     <div className="min-h-screen bg-canvas">
       {/* Header */}
       <div className="bg-surface border-b border-divider-light px-8 py-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-sage-bg flex items-center justify-center">
-            <LineChart className="w-5 h-5 text-sage" />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-sage-bg flex items-center justify-center">
+              <LineChart className="w-5 h-5 text-sage" />
+            </div>
+            <div>
+              <h1 className="heading-dash">Analysis</h1>
+              <p className="text-sm text-ink-3">AI visibility and performance metrics across dimensions</p>
+            </div>
           </div>
-          <div>
-            <h1 className="heading-dash">Analysis</h1>
-            <p className="text-sm text-ink-3">AI visibility and performance metrics across dimensions</p>
-          </div>
+          <button
+            onClick={startProductTour}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-divider-light bg-surface px-3 py-1.5 text-[12px] font-semibold text-ink-2 hover:bg-surface-warm transition-colors"
+          >
+            <Compass className="w-3.5 h-3.5" />
+            {TOUR_UI.replay[lang]}
+          </button>
         </div>
       </div>
 

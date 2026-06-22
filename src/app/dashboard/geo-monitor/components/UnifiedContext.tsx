@@ -340,11 +340,20 @@ const _PREVIEW_BRAND: BrandConfig | null =
 // Preview lands on this real customer so prompts/scan hydrate with real data.
 const _PREVIEW_CUSTOMER_ID = process.env.NEXT_PUBLIC_PREVIEW_CUSTOMER_ID || null
 
-// Required profile fields — the 6 fields customers must fill in to unlock the
-// full platform. brand_name + domain are always set at onboarding; the other 4
-// are collected in Brand Hub. target_market / industry / differentiation are
-// optional refinements.
+// Tier 1 — gate: the minimal fields that let a customer INTO the dashboard.
+// All three are collected at onboarding, so a freshly-onboarded user passes the
+// gate, lands on Analysis, and the product tour can run. This must stay minimal
+// — it is NOT the "rich profile" requirement (that's RESEARCH_PROFILE_FIELDS).
 const REQUIRED_PROFILE_FIELDS: Array<{ key: keyof BrandConfig; label: string }> = [
+  { key: 'brand_name', label: 'Brand Name' },
+  { key: 'domain', label: 'Domain' },
+  { key: 'target_market', label: 'Target Country' },
+]
+
+// Tier 2 — complete profile: the 6 fields a customer must fill for a profile to
+// count as "ready". Drives the Brand Profile Save button, the readiness %, and
+// AI Research readiness. Brand Hub is where the post-onboarding fields are added.
+const RESEARCH_PROFILE_FIELDS: Array<{ key: keyof BrandConfig; label: string }> = [
   { key: 'brand_name', label: 'Brand Name' },
   { key: 'domain', label: 'Domain' },
   { key: 'product_space', label: 'Product Space' },
@@ -352,9 +361,6 @@ const REQUIRED_PROFILE_FIELDS: Array<{ key: keyof BrandConfig; label: string }> 
   { key: 'target_audience', label: 'Target Audience' },
   { key: 'one_liner', label: 'One-liner' },
 ]
-
-// Research profile = same required set (all 6 fields feed AI Research quality).
-const RESEARCH_PROFILE_FIELDS = REQUIRED_PROFILE_FIELDS
 
 function missingRequiredProfileFields(config: BrandConfig) {
   return REQUIRED_PROFILE_FIELDS

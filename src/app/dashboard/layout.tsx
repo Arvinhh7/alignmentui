@@ -12,6 +12,7 @@ import { useLanguage } from '@/lib/LanguageContext'
 import { getSupabase } from '@/lib/supabase'
 import { useScrollRestoration } from '@/hooks/useScrollRestoration'
 import DashboardGlobalSearch from '@/components/DashboardGlobalSearch'
+import { ProductTour } from '@/components/tour/ProductTour'
 
 const SIDEBAR_KEY = 'sidebar_expanded'
 
@@ -184,6 +185,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <SubscriptionBanner lang={lang} />
           <FeatureGate>{children}</FeatureGate>
         </main>
+        {/* Product Tour — auto-starts once for new customers landing on Analysis */}
+        <ProductTour />
       </div>
     </ToastProvider>
   )
