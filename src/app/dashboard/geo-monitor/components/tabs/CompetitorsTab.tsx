@@ -456,9 +456,10 @@ function OverallSOVTab({
             </span>
           </h4>
           <div className="flex flex-col sm:flex-row items-start gap-6">
-            {/* Left: donut */}
+            {/* Left: donut — legend hidden; the leaderboard bars on the right
+                already list every brand with its color + share (no duplication). */}
             <div className="flex-shrink-0 flex items-center justify-center">
-              <DonutChart segments={sovSegments} centerLabel="SOV" size={160} />
+              <DonutChart segments={sovSegments} centerLabel="SOV" size={160} showLegend={false} />
             </div>
             {/* Right: leaderboard bars — replaces the separate "Brand Ranking" block */}
             <div className="flex-1 min-w-0 space-y-3 self-center">

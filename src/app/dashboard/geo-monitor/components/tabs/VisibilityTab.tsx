@@ -76,11 +76,15 @@ export function VisibilityTab() {
   // ── SoV donut segments ─────────────────────────────
   const sovSegments = useMemo(() => {
     if (!ctx.scanResult?.share_of_voice) return []
-    const colors = ['#000000', '#4A6FA5', '#4A7C59', '#B8860B', '#7B5E96', '#0A0A0A']
-    return Object.entries(ctx.scanResult.share_of_voice).map(([name, pct], i) => ({
+    // Own brand is always black; competitors cycle a distinct, non-black palette
+    // so no two segments collide (the old palette had #000000 AND #0A0A0A, which
+    // rendered several brands as indistinguishable black slices).
+    const competitorColors = ['#4A6FA5', '#4A7C59', '#B8860B', '#7B5E96', '#C0392B', '#2980B9', '#16A085', '#D35400', '#8E44AD', '#5E8B7E']
+    let ci = 0
+    return Object.entries(ctx.scanResult.share_of_voice).map(([name, pct]) => ({
       label: name,
       value: Math.round(pct * 10) / 10,
-      color: name === ctx.brandConfig.brand_name ? '#000000' : colors[(i + 1) % colors.length],
+      color: name === ctx.brandConfig.brand_name ? '#000000' : competitorColors[ci++ % competitorColors.length],
     }))
   }, [ctx.scanResult, ctx.brandConfig.brand_name])
 
@@ -284,7 +288,7 @@ export function VisibilityTab() {
               Brand mentions vs the rivals auto-detected in your AI responses
             </p>
             {sovSegments.length > 0 ? (
-              <DonutChart segments={sovSegments} centerLabel={`${sovSegments.reduce((s, seg) => s + seg.value, 0).toFixed(0)}%`} />
+              <DonutChart segments={sovSegments} centerLabel={`${sovSegments.reduce((s, seg) => s + seg.value, 0).toFixed(0)}%`} valueIsPercent />
             ) : (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <BarChart3 className="w-8 h-8 text-ink-3 mb-3 opacity-40" />

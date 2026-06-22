@@ -278,10 +278,15 @@ export function MetricCard({ icon, label, value, subtitle, color, bgColor, trend
 
 // ─── DonutChart ──────────────────────────────────────
 
-export function DonutChart({ segments, centerLabel, size = 160 }: {
+export function DonutChart({ segments, centerLabel, size = 160, showLegend = true, valueIsPercent = false }: {
   segments: { label: string; value: number; color: string }[]
   centerLabel?: string
   size?: number
+  showLegend?: boolean
+  // When the segment value is already a percentage (e.g. share of voice), show a
+  // single "23.1%" instead of the count-style "23.1 (23%)" — the latter is only
+  // meaningful when value is a raw count.
+  valueIsPercent?: boolean
 }) {
   const total = segments.reduce((s, d) => s + d.value, 0)
   if (total === 0) return <div className="text-center py-6 text-ink-3 text-sm">No data</div>
@@ -301,17 +306,23 @@ export function DonutChart({ segments, centerLabel, size = 160 }: {
           {centerLabel && <span className="text-base font-bold text-ink">{centerLabel}</span>}
         </div>
       </div>
-      <div className="mt-4 space-y-1.5 w-full max-w-[240px]">
-        {segments.filter(s => s.value > 0).map((s, i) => (
-          <div key={i} className="flex items-center justify-between gap-2 text-sm">
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
-              <span className="text-ink-2 text-xs truncate" title={s.label}>{s.label}</span>
+      {showLegend && (
+        <div className="mt-4 space-y-1.5 w-full max-w-[240px]">
+          {segments.filter(s => s.value > 0).map((s, i) => (
+            <div key={i} className="flex items-center justify-between gap-2 text-sm">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
+                <span className="text-ink-2 text-xs truncate" title={s.label}>{s.label}</span>
+              </div>
+              <span className="font-mono text-xs font-medium text-ink flex-shrink-0">
+                {valueIsPercent
+                  ? `${((s.value / total) * 100).toFixed(1)}%`
+                  : `${s.value} (${((s.value / total) * 100).toFixed(0)}%)`}
+              </span>
             </div>
-            <span className="font-mono text-xs font-medium text-ink flex-shrink-0">{s.value} ({((s.value / total) * 100).toFixed(0)}%)</span>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

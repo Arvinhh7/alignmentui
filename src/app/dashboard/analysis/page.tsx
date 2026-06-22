@@ -23,10 +23,10 @@ const CompetitorsTab = dynamic(() => import('../geo-monitor/components/tabs/Comp
 // Component file (tabs/PersonasTab.tsx) is kept intact for future revival.
 
 const ANALYSIS_MODELS = [
-  { key: 'chatgpt', label: 'ChatGPT' },
-  { key: 'perplexity', label: 'Perplexity' },
-  { key: 'gemini', label: 'Gemini' },
-  { key: 'claude', label: 'Claude' },
+  { key: 'chatgpt', label: 'ChatGPT', logo: '/logos/openai.png' },
+  { key: 'perplexity', label: 'Perplexity', logo: '/logos/perplexity.png' },
+  { key: 'gemini', label: 'Gemini', logo: '/logos/gemini.png' },
+  { key: 'claude', label: 'Claude', logo: '/logos/anthropic.png' },
 ] as const
 
 function AnalysisContent() {
@@ -148,6 +148,10 @@ function AnalysisContent() {
                         : 'cursor-not-allowed border-divider-light bg-surface-muted text-ink-3 opacity-55'
                   }`}
                 >
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white ring-1 ring-black/5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={model.logo} alt={model.label} className="h-3.5 w-3.5 object-contain" />
+                  </span>
                   {model.label}
                   {!enabled && <Lock className="h-3.5 w-3.5" />}
                 </button>
