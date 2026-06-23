@@ -13,7 +13,7 @@ const START_EVENT = 'alignment:start-tour'    // manual replay trigger
 
 // The tour auto-starts only here (the post-onboarding landing). Manual replay
 // (the START_EVENT) can fire from any dashboard page.
-const AUTOSTART_PATH = '/dashboard/analysis'
+const AUTOSTART_PATH = '/dashboard/analysis/'
 
 const POPOVER_W = 320
 
