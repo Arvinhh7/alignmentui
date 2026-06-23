@@ -65,6 +65,7 @@ interface ResearchResult {
   standings: Standing[]
   prompt_gaps: PromptGap[]
   source_gaps: SourceItem[]
+  source_fallback?: boolean
   category_sources: SourceItem[]
   summary: { prompt_gap_count: number; source_gap_count: number; competitor_count: number; category_source_count: number }
   generated_at: string
@@ -320,9 +321,17 @@ function WhereYouLoseCard({ result }: { result: ResearchResult }) {
                     <BrandLogo domain={s.domain} name={s.name} size={18} />
                     <span className="truncate text-[12px] font-medium text-ink">{s.name}</span>
                   </div>
-                  <span className="flex-shrink-0 text-[10px] text-ink-3">{SOURCE_TYPE_LABEL[s.source_type] || "Source"} &middot; {s.citation_count} cites</span>
+                  <span className="flex-shrink-0 text-[10px] text-ink-3">
+                    {SOURCE_TYPE_LABEL[s.source_type] || "Source"}
+                    {s.citation_count > 0 && <> &middot; {s.citation_count} URLs</>}
+                  </span>
                 </div>
               ))}
+              {result.source_fallback && (
+                <p className="mt-1 text-[10px] text-ink-3">
+                  From your scan &mdash; <Link href="/dashboard/brand-hub" className="underline underline-offset-2 hover:text-ink-2">update Product Space</Link> for category-level coverage.
+                </p>
+              )}
             </div>
           ) : result.category_slug ? (
             <p className="text-[12px] text-sage">You&apos;re cited by every tracked source in your category.</p>
