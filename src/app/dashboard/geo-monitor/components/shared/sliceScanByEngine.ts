@@ -37,6 +37,31 @@ export function sliceScanByEngine(scan: MonitorScanResult, engine: string): Moni
   const found = mentioned.length
   const pem = (scan.per_engine_metrics ?? []).find(e => (e.platform || '').toLowerCase() === eng)
 
+  // ── SSOT fast-path ──────────────────────────────────────────────────────────
+  // When the backend computed the full per-engine slice (_attach_per_engine_slices),
+  // read it directly — competitor ranking, SOV, source domains and citations are
+  // already scoped to this engine using the LLM-extracted response_brands (the SOV
+  // source of truth), not fuzzy substring matching. This is authoritative and
+  // reconciles with the trend chart (which reads the same slice). The legacy
+  // client-side re-derivation below is kept only for older scans persisted before
+  // this field existed.
+  if (pem && pem.competitor_comparison !== undefined) {
+    return {
+      ...scan,
+      visibility_score: pem.visibility_score,
+      total_prompts: total,
+      mentions_found: pem.mentions_found,
+      citation_count: pem.citation_count ?? 0,
+      sentiment_breakdown: pem.sentiment_breakdown,
+      mention_results: mentions,
+      source_domains: pem.source_domains ?? [],
+      share_of_voice: pem.share_of_voice ?? {},
+      competitor_comparison: pem.competitor_comparison ?? [],
+      avg_ordinal_rank: pem.avg_ordinal_rank ?? null,
+    }
+  }
+
+  // ── Legacy fallback (scans persisted before per-engine SSOT) ─────────────────
   // Brand universe = own brand + every brand the aggregate knows about.
   // CRITICAL: auto-discovered competitors (brands the user never configured)
   // live ONLY in scan.competitor_comparison — the backend's discovery pass

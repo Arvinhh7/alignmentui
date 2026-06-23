@@ -613,6 +613,13 @@ export interface EngineMetrics {
   total_prompts: number;
   sentiment_breakdown: SentimentBreakdown;
   prominence_avg: number;
+  // SSOT per-engine slice (computed backend-side; the Analysis page reads these
+  // directly instead of re-deriving per-engine numbers client-side).
+  citation_count?: number;
+  avg_ordinal_rank?: number | null;
+  source_domains?: SourceDomainInfo[];
+  competitor_comparison?: CompetitorVisibility[];
+  share_of_voice?: Record<string, number>;
 }
 
 // Phase 5: AEO Content Score
@@ -1819,12 +1826,16 @@ class APIClient {
 
   // ═══ Phase 4.2: Multi-brand Trends ═════════════════
 
-  async getMultiBrandTrends(brandName: string, competitors: string[], timeRange: string = 'all', customerId?: string) {
+  async getMultiBrandTrends(brandName: string, competitors: string[], timeRange: string = 'all', customerId?: string, engine?: string) {
     const params = new URLSearchParams();
     params.set('brand_name', brandName);
     if (customerId) params.set('customer_id', customerId);
     if (competitors.length > 0) params.set('competitors', competitors.join(','));
     if (timeRange !== 'all') params.set('time_range', timeRange);
+    // Per-engine trend: when a specific engine pill is active, the chart reads
+    // that engine's slice so it reconciles with the KPI cards. 'all'/undefined
+    // keeps the aggregate.
+    if (engine && engine !== 'all') params.set('engine', engine);
     return this.request<MultiBrandTrendData>(`/api/monitor/multi-brand-trends?${params.toString()}`);
   }
 

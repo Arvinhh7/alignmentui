@@ -1220,11 +1220,13 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     if (!isConfigured || !brandConfig.brand_name) return
     setIsLoadingTrends(true)
     try {
-      const res = await api.getMultiBrandTrends(brandConfig.brand_name, brandConfig.competitors, filterTimeRange, activeCustomerId ?? undefined)
+      // Pass the selected engine pill so the trend chart slices per engine and
+      // reconciles with the KPI cards (which read the same per-engine slice).
+      const res = await api.getMultiBrandTrends(brandConfig.brand_name, brandConfig.competitors, filterTimeRange, activeCustomerId ?? undefined, filterModel)
       if (res.data) setMultiBrandTrends(res.data)
     } catch { /* ignore */ }
     setIsLoadingTrends(false)
-  }, [isConfigured, brandConfig.brand_name, brandConfig.competitors, filterTimeRange, activeCustomerId])
+  }, [isConfigured, brandConfig.brand_name, brandConfig.competitors, filterTimeRange, activeCustomerId, filterModel])
 
   useEffect(() => { if (scanResult) loadMultiBrandTrends() }, [scanResult, loadMultiBrandTrends])
 
