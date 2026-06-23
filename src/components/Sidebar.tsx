@@ -307,7 +307,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
   }
 
   const handleNavClick = () => { onMobileClose?.() }
-  const shouldHoverExpand = !mobileOpen && !expandedPref && !viewportCollapsed
+  const shouldHoverExpand = !mobileOpen && !expandedPref
   const handleMouseEnter = () => {
     if (shouldHoverExpand) setHoverExpanded(true)
   }
