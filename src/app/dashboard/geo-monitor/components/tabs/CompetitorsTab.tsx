@@ -98,9 +98,10 @@ function guessBrandDomain(brand: string): string {
       return domain
     }
   }
-  // Fallback: first alpha word + .com
-  const firstWord = lower.split(/[\s\d]/)[0].replace(/[^a-z]/g, '')
-  return firstWord ? firstWord + '.com' : 'google.com'
+  // No known mapping — return empty so BrandLogo falls through to letter avatar.
+  // Guessing word.com returns domains Google s2/favicons shows as globe (valid
+  // image, not 404), which blocks the letter-avatar fallback.
+  return ''
 }
 
 function normalizeDomain(rawDomain: string): string {
