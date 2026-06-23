@@ -54,7 +54,7 @@ interface ResearchResult {
   v: number
   brand_name: string
   domain: string
-  product_space: string
+  category: string
   market: string
   engines: string[]
   has_scan: boolean
@@ -173,7 +173,7 @@ function CommandCenter({ result, activePrompts, hasScan, running, onUpdate, onGe
           <div className="flex items-center gap-2">
             <BrandLogo domain={result.domain} name={result.brand_name} size={28} />
             <span className="text-[13px] font-semibold text-ink">{result.brand_name}</span>
-            <span className="text-[11px] text-ink-3">· {result.product_space} · {result.market}</span>
+            <span className="text-[11px] text-ink-3">· {result.category} · {result.market}</span>
           </div>
           <div className="mt-3 flex items-end gap-3">
             {result.has_scan ? (
@@ -362,7 +362,7 @@ function SourcesMapCard({ result }: { result: ResearchResult }) {
   return (
     <SectionCard
       icon={ExternalLink}
-      title={`Trusted sources AI cites for ${result.category_name || result.product_space}`}
+      title={`Trusted sources AI cites for ${result.category_name || result.category}`}
       hint="Shared category data from Explore (not re-collected per customer). ✓ = a source that already cites you."
     >
       <div className="grid gap-1.5 sm:grid-cols-2">
@@ -397,7 +397,7 @@ function EmptyState({ brandName, canRun, onRun, running, stale }: {
     !ctx.brandConfig.brand_name.trim() ? 'Brand Name' : null,
     !ctx.brandConfig.domain.trim() ? 'Domain' : null,
     !String(ctx.brandConfig.industry ?? '').trim() ? 'Industry' : null,
-    !String(ctx.brandConfig.product_space ?? '').trim() ? 'Product Space' : null,
+    !String(ctx.brandConfig.category ?? '').trim() ? 'Product Space' : null,
     !String(ctx.brandConfig.target_market ?? '').trim() ? 'Target Country' : null,
   ].filter(Boolean) as string[]
   const missingReason = !ctx.activeCustomerId
@@ -457,7 +457,7 @@ export function AIResearchTab() {
     ctx.brandConfig.brand_name.trim() &&
     ctx.brandConfig.domain.trim() &&
     String(ctx.brandConfig.industry ?? '').trim() &&
-    String(ctx.brandConfig.product_space ?? '').trim() &&
+    String(ctx.brandConfig.category ?? '').trim() &&
     String(ctx.brandConfig.target_market ?? '').trim(),
   )
   const canRun = hasProfile
@@ -544,7 +544,7 @@ export function AIResearchTab() {
         const audience = String(ctx.brandConfig.target_audience ?? '') || 'buyers'
         await ctx.handleBatchSavePrompts(buildDefaultPrompts(
           cleanText(result.brand_name, 'this brand'),
-          cleanText(result.product_space, 'this product category'),
+          cleanText(result.category, 'this product category'),
           cleanText(result.market, 'the target market'),
           audience,
           competitor,

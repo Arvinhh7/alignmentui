@@ -1,14 +1,94 @@
 'use client'
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Settings, Save, X, ChevronDown, Trash2, Pencil, CheckCircle2, Search } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { CheckCircle2, ChevronDown, Pencil, Save, Search, Settings, Trash2, X } from 'lucide-react'
 import { useUnified } from './UnifiedContext'
 import { TagInput } from './shared/ChartComponents'
 import { BrandLogo } from '@/components/BrandLogo'
+import { API_BASE_URL } from '@/lib/api'
 import {
   INDUSTRY_LIST,
   WORLD_COUNTRIES,
 } from './shared/constants'
+
+// ── Explore-backed category combobox ──────────────────────────────────────────
+interface ExploreCategory { slug: string; name: string }
+
+function CategoryCombobox({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [cats, setCats] = useState<ExploreCategory[]>([])
+  const [input, setInput] = useState(value)
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/explore/categories`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(d => setCats((d.categories ?? []).map((c: ExploreCategory) => ({ slug: c.slug, name: c.name }))))
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => { setInput(value) }, [value])
+
+  const filtered = useMemo(() => {
+    const q = input.trim().toLowerCase()
+    if (!q) return cats.slice(0, 50)
+    return cats.filter(c => c.name.toLowerCase().includes(q)).slice(0, 30)
+  }, [input, cats])
+
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim()
+  const matched = cats.some(c => norm(c.name) === norm(value) || c.slug === norm(value))
+
+  const select = (cat: ExploreCategory) => {
+    onChange(cat.name)
+    setInput(cat.name)
+    setOpen(false)
+  }
+
+  const handleBlur = () => {
+    setTimeout(() => {
+      if (!containerRef.current?.contains(document.activeElement)) {
+        setOpen(false)
+        onChange(input)
+      }
+    }, 150)
+  }
+
+  return (
+    <div ref={containerRef} className="relative">
+      <div className="relative">
+        <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-ink-3 pointer-events-none" />
+        <input
+          type="text"
+          value={input}
+          onChange={e => { setInput(e.target.value); setOpen(true) }}
+          onFocus={() => setOpen(true)}
+          onBlur={handleBlur}
+          placeholder="e.g. Jewelry, Cameras, Projectors"
+          className="w-full pl-8 pr-20 py-2 border border-divider rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
+        />
+        {matched && (
+          <span className="absolute right-2.5 top-2 text-[10px] font-semibold text-sage bg-sage-bg/60 px-1.5 py-0.5 rounded">
+            ✓ Explore
+          </span>
+        )}
+      </div>
+      {open && filtered.length > 0 && (
+        <div className="absolute z-50 mt-1 w-full max-h-52 overflow-y-auto rounded-lg border border-divider bg-surface shadow-lg">
+          {filtered.map(cat => (
+            <button
+              key={cat.slug}
+              type="button"
+              onMouseDown={() => select(cat)}
+              className={`w-full text-left px-3 py-2 text-sm hover:bg-canvas transition-colors ${norm(value) === norm(cat.name) ? 'font-semibold text-ink' : 'text-ink-2'}`}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 // ── Section divider ────────────────────────────────────────────────────────────
 function SectionLabel({ label }: { label: string }) {
@@ -194,10 +274,10 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
   // customers — one account == one brand. Only internal admin/staff, who manage
   // many tenant brands, can edit identity or switch between brands here.
   const isAdminOrStaff = ctx.userRole === 'admin' || ctx.userRole === 'staff'
-  // Required: product_space, keywords, target_audience, one_liner (+ brand/domain for admin/staff).
+  // Required: category, keywords, target_audience, one_liner (+ brand/domain for admin/staff).
   // target_market / industry / differentiation are optional refinements.
   const missingRequired = [
-    !String(ctx.brandConfig.product_space ?? '').trim() ? 'Product Space' : null,
+    !String(ctx.brandConfig.category ?? '').trim() ? 'Category' : null,
     ctx.brandConfig.keywords.length === 0 ? 'Keywords' : null,
     !String(ctx.brandConfig.target_audience ?? '').trim() ? 'Target Audience' : null,
     !String(ctx.brandConfig.one_liner ?? '').trim() ? 'One-liner' : null,
@@ -215,9 +295,9 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
     // Single readiness = AI Research readiness (same source the AI Research page
     // uses), so every surface shows one consistent %.
     const researchReady = ctx.isResearchReady
-    const totalFields = 6 // brand_name + domain + product_space + keywords + target_audience + one_liner
+    const totalFields = 6 // brand_name + domain + category + keywords + target_audience + one_liner
     const readiness = researchReady ? 100 : Math.round(((totalFields - ctx.researchMissingFields.length) / totalFields) * 100)
-    const productSpace = ctx.brandConfig.product_space || ctx.brandConfig.keywords[0] || 'Product space not set'
+    const productSpace = ctx.brandConfig.category || ctx.brandConfig.keywords[0] || 'Category not set'
     const market = ctx.brandConfig.target_market || 'Market not set'
     return (
       <div className="bg-surface border border-divider rounded-xl px-5 py-4 flex flex-wrap items-center justify-between gap-4">
@@ -364,13 +444,10 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
         </div>
 
         <div>
-          <FieldLabel required>Product Space</FieldLabel>
-          <input
-            type="text"
-            placeholder="e.g. Portable power stations, gaming phones, projectors"
-            value={ctx.brandConfig.product_space ?? ''}
-            onChange={e => ctx.setBrandConfig({ ...ctx.brandConfig, product_space: e.target.value })}
-            className="w-full px-3 py-2 border border-divider rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ink/10 focus:border-ink"
+          <FieldLabel required>Category</FieldLabel>
+          <CategoryCombobox
+            value={ctx.brandConfig.category ?? ''}
+            onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, category: v })}
           />
         </div>
 

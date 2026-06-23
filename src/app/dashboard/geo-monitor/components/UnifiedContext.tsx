@@ -321,7 +321,7 @@ const EMPTY_BRAND_CONFIG: BrandConfig = {
   keywords: [],
   competitors: [],
   industry: '',
-  product_space: '',
+  category: '',
   one_liner: '',
   target_audience: '',
   target_market: '',
@@ -337,7 +337,7 @@ const _PREVIEW_BRAND: BrandConfig | null =
         ...EMPTY_BRAND_CONFIG,
         brand_name:      process.env.NEXT_PUBLIC_PREVIEW_BRAND_NAME,
         domain:          process.env.NEXT_PUBLIC_PREVIEW_BRAND_DOMAIN,
-        product_space:   process.env.NEXT_PUBLIC_PREVIEW_BRAND_PRODUCT_SPACE || '',
+        category:        process.env.NEXT_PUBLIC_PREVIEW_BRAND_PRODUCT_SPACE || '',
         one_liner:       process.env.NEXT_PUBLIC_PREVIEW_BRAND_ONELINER || '',
         target_market:   process.env.NEXT_PUBLIC_PREVIEW_BRAND_MARKET || '',
         industry:        process.env.NEXT_PUBLIC_PREVIEW_BRAND_INDUSTRY || '',
@@ -364,7 +364,7 @@ const RESEARCH_PROFILE_FIELDS: Array<{ key: keyof BrandConfig; label: string }> 
   { key: 'brand_name', label: 'Brand Name' },
   { key: 'domain', label: 'Domain' },
   { key: 'industry', label: 'Industry' },
-  { key: 'product_space', label: 'Product Space' },
+  { key: 'category', label: 'Category' },
   { key: 'keywords', label: 'Keywords' },
   { key: 'target_audience', label: 'Target Audience' },
   { key: 'one_liner', label: 'One-liner' },
@@ -726,7 +726,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
           keywords:         (cfg.keywords as string[])        ?? [],
           competitors:      (cfg.competitors as string[])     ?? [],
           industry:         (cfg.industry as string)          ?? '',
-          product_space:    (cfg.product_space as string)     ?? '',
+          category:         ((cfg.category as string | undefined) ?? ((cfg as Record<string, unknown>).product_space as string | undefined)) ?? '',
           one_liner:        (cfg.one_liner as string)         ?? '',
           target_audience:  (cfg.target_audience as string)   ?? '',
           target_market:    (cfg.target_market as string)     ?? '',
@@ -939,7 +939,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
 
   const saveRecentBrand = useCallback(() => {
     if (!brandConfig.brand_name.trim()) return
-    const entry: RecentBrandRecord = { brand_name: brandConfig.brand_name.trim(), domain: brandConfig.domain.trim(), keywords: brandConfig.keywords, competitors: brandConfig.competitors, product_space: brandConfig.product_space, one_liner: brandConfig.one_liner, target_audience: brandConfig.target_audience, target_market: brandConfig.target_market, differentiation: brandConfig.differentiation, source_domains: brandConfig.source_domains, usedAt: new Date().toISOString() }
+    const entry: RecentBrandRecord = { brand_name: brandConfig.brand_name.trim(), domain: brandConfig.domain.trim(), keywords: brandConfig.keywords, competitors: brandConfig.competitors, category: brandConfig.category, one_liner: brandConfig.one_liner, target_audience: brandConfig.target_audience, target_market: brandConfig.target_market, differentiation: brandConfig.differentiation, source_domains: brandConfig.source_domains, usedAt: new Date().toISOString() }
     setRecentBrands(prev => {
       const filtered = prev.filter(r => !(r.brand_name === entry.brand_name && r.domain === entry.domain))
       const updated = [entry, ...filtered].slice(0, 10)
@@ -949,7 +949,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
   }, [brandConfig, user?.id])
 
   const loadRecentBrand = (rec: RecentBrandRecord) => {
-    setBrandConfig({ brand_name: rec.brand_name, domain: rec.domain, keywords: rec.keywords, competitors: rec.competitors, industry: rec.industry ?? '', product_space: rec.product_space ?? '', one_liner: rec.one_liner ?? '', target_audience: rec.target_audience ?? '', target_market: rec.target_market ?? '', differentiation: rec.differentiation ?? '', source_domains: rec.source_domains ?? [] })
+    setBrandConfig({ brand_name: rec.brand_name, domain: rec.domain, keywords: rec.keywords, competitors: rec.competitors, industry: rec.industry ?? '', category: rec.category ?? '', one_liner: rec.one_liner ?? '', target_audience: rec.target_audience ?? '', target_market: rec.target_market ?? '', differentiation: rec.differentiation ?? '', source_domains: rec.source_domains ?? [] })
   }
 
   const clearRecentBrands = () => { localStorage.removeItem(recentBrandsStorageKey(user?.id)); setRecentBrands([]) }
@@ -1004,7 +1004,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
           keywords:        merged.keywords,
           competitors:     merged.competitors,
           industry:        merged.industry,
-          product_space:   merged.product_space,
+          category:        merged.category,
           one_liner:       merged.one_liner,
           target_audience: merged.target_audience,
           target_market:   merged.target_market,
@@ -1044,7 +1044,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     setIsConfigured(true); setShowConfig(false)
 
     // Save to recent brands with merged config (avoids stale closure in saveRecentBrand)
-    const entry: RecentBrandRecord = { brand_name: merged.brand_name.trim(), domain: merged.domain.trim(), keywords: merged.keywords, competitors: merged.competitors, industry: merged.industry, product_space: merged.product_space, one_liner: merged.one_liner, target_audience: merged.target_audience, target_market: merged.target_market, differentiation: merged.differentiation, source_domains: merged.source_domains, usedAt: new Date().toISOString() }
+    const entry: RecentBrandRecord = { brand_name: merged.brand_name.trim(), domain: merged.domain.trim(), keywords: merged.keywords, competitors: merged.competitors, industry: merged.industry, category: merged.category, one_liner: merged.one_liner, target_audience: merged.target_audience, target_market: merged.target_market, differentiation: merged.differentiation, source_domains: merged.source_domains, usedAt: new Date().toISOString() }
     setRecentBrands(prev => {
       const filtered = prev.filter(r => !(r.brand_name === entry.brand_name && r.domain === entry.domain))
       const updated = [entry, ...filtered].slice(0, 10)

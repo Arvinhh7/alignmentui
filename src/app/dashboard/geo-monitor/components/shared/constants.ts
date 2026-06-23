@@ -537,7 +537,7 @@ export interface BrandConfig {
   keywords: string[]
   competitors: string[]
   industry?: string        // e.g. "saas_b2b", "ecommerce_dtc" — from INDUSTRY_LIST
-  product_space?: string
+  category?: string        // Explore-backed: name of matched market_category, or free text
   one_liner?: string
   target_audience?: string
   target_market?: string   // displayed as "Target Country"; key kept for backward compat
@@ -630,7 +630,7 @@ export interface RecentBrandRecord {
   keywords: string[]
   competitors: string[]
   industry?: string
-  product_space?: string
+  category?: string
   one_liner?: string
   target_audience?: string
   target_market?: string

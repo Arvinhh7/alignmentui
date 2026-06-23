@@ -12,7 +12,7 @@ function ProfileSnapshot() {
   // fields AI Research actually needs), not the looser core-profile definition.
   const missing = ctx.researchMissingFields
   const isReady = ctx.isResearchReady
-  const productSpace = ctx.brandConfig.product_space || ctx.brandConfig.keywords[0] || 'Product space not set'
+  const productSpace = ctx.brandConfig.category || ctx.brandConfig.keywords[0] || 'Category not set'
   const market = ctx.brandConfig.target_market || 'Market not set'
 
   if (ctx.customerHydrating && !ctx.brandConfig.brand_name && !ctx.brandConfig.domain) {

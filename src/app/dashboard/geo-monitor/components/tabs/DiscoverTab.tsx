@@ -83,7 +83,7 @@ function findPublicCategory(categories: PublicCategoryRow[], productSpace: strin
 
 function PublicCategorySourcesMap() {
   const ctx = useUnified()
-  const productSpace = ctx.brandConfig.product_space?.trim() || ctx.brandConfig.industry?.trim() || ''
+  const productSpace = ctx.brandConfig.category?.trim() || ctx.brandConfig.industry?.trim() || ''
   const [state, setState] = useState<PublicSourceMapState>({ status: 'loading', sources: [] })
 
   useEffect(() => {
