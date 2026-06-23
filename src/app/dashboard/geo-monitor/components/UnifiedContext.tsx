@@ -356,12 +356,14 @@ const REQUIRED_PROFILE_FIELDS: Array<{ key: keyof BrandConfig; label: string }> 
   { key: 'target_market', label: 'Target Country' },
 ]
 
-// Tier 2 — complete profile: the 6 fields a customer must fill for a profile to
+// Tier 2 — complete profile: the 7 fields a customer must fill for a profile to
 // count as "ready". Drives the Brand Profile Save button, the readiness %, and
 // AI Research readiness. Brand Hub is where the post-onboarding fields are added.
+// IMPORTANT: keep in sync with AIResearchTab.hasProfile check.
 const RESEARCH_PROFILE_FIELDS: Array<{ key: keyof BrandConfig; label: string }> = [
   { key: 'brand_name', label: 'Brand Name' },
   { key: 'domain', label: 'Domain' },
+  { key: 'industry', label: 'Industry' },
   { key: 'product_space', label: 'Product Space' },
   { key: 'keywords', label: 'Keywords' },
   { key: 'target_audience', label: 'Target Audience' },

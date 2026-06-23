@@ -350,7 +350,7 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
 
         {/* Industry */}
         <div>
-          <FieldLabel>Industry</FieldLabel>
+          <FieldLabel required>Industry</FieldLabel>
           <SelectField
             value={ctx.brandConfig.industry ?? ''}
             onChange={v => ctx.setBrandConfig({ ...ctx.brandConfig, industry: v })}
