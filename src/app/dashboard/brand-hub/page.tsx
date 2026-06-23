@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import type { ElementType, ReactNode } from 'react'
 import { useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
 import {
   ArrowRight,
   BookOpen,
@@ -41,14 +40,16 @@ function SectionCard({ title, subtitle, icon: Icon, iconColor, children }: {
 
 function BrandHubContent() {
   const ctx = useUnified()
-  const { customerHydrating, isResearchReady, setShowConfig, showConfig } = ctx
-  const searchParams = useSearchParams()
+  const { customerHydrating, setShowConfig, showConfig } = ctx
 
-  // Open the form when arriving from the tour (?setup=1) and profile is already complete
+  // Open the form when arriving from the tour (?setup=1).
+  // Read the URL param directly in the effect — avoids useSearchParams() which
+  // requires a Suspense boundary and causes a hooks-count mismatch in Next.js 14.
   useEffect(() => {
     if (customerHydrating) return
-    if (searchParams.get('setup') === '1' && !showConfig) setShowConfig(true)
-  }, [customerHydrating, showConfig, setShowConfig, searchParams])
+    const isSetup = new URLSearchParams(window.location.search).get('setup') === '1'
+    if (isSetup && !showConfig) setShowConfig(true)
+  }, [customerHydrating, showConfig, setShowConfig])
 
   return (
     <div className="min-h-screen bg-canvas">

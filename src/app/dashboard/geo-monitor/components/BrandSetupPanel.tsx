@@ -180,6 +180,16 @@ export function BrandSetupPanel({ forceOpen = false }: { forceOpen?: boolean }) 
   const ctx = useUnified()
   const [showRecentDropdown, setShowRecentDropdown] = useState(false)
   const [keywordInput, setKeywordInput]       = useState('')
+
+  // When forceOpen is true the hydration path may have set showConfig=false (because
+  // isProfileComplete was true even though isResearchReady was false — e.g. product_space
+  // filled but keywords missing). Lock showConfig=true so that when the user fills the
+  // last required field (forceOpen flips to false), showConfig keeps the form open
+  // until they explicitly click Save.
+  useEffect(() => {
+    if (forceOpen && !ctx.showConfig) ctx.setShowConfig(true)
+  }, [forceOpen, ctx.showConfig, ctx.setShowConfig])
+
   // Brand identity (name + domain) is set once at onboarding and is immutable for
   // customers — one account == one brand. Only internal admin/staff, who manage
   // many tenant brands, can edit identity or switch between brands here.
