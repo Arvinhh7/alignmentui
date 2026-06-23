@@ -417,30 +417,55 @@ export default function OnboardingPage() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-divider-light bg-surface-warm p-5">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      {scanPct >= 100
-                        ? <Sparkles className="h-5 w-5 flex-shrink-0 text-sage" />
-                        : <Loader2 className="h-5 w-5 flex-shrink-0 animate-spin text-ink" />}
-                      <span className="text-sm font-medium text-ink-2 truncate">{setupMsg || 'Working…'}</span>
+                {(() => {
+                  // Time-based simulated progress: ease-out curve 5%→92% over 75s.
+                  // Real backend progress overrides when it arrives higher than the sim.
+                  const simPct = Math.min(92, Math.round(Math.sqrt(elapsedSecs / 75) * 92))
+                  const displayPct = scanPct >= 100 ? 100 : Math.max(scanPct, simPct, 5)
+                  // Estimated time remaining
+                  const secsLeft = Math.max(0, 75 - elapsedSecs)
+                  const etaLabel = scanPct >= 100
+                    ? 'Done!'
+                    : elapsedSecs < 6
+                      ? '~1 min'
+                      : secsLeft >= 60
+                        ? `~1 min`
+                        : secsLeft > 10
+                          ? `~${secsLeft}s`
+                          : 'Almost done…'
+                  return (
+                    <div className="rounded-2xl border border-divider-light bg-surface-warm p-5">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          {scanPct >= 100
+                            ? <Sparkles className="h-5 w-5 flex-shrink-0 text-sage" />
+                            : <Loader2 className="h-5 w-5 flex-shrink-0 animate-spin text-ink" />}
+                          <span className="text-sm font-medium text-ink-2 truncate">{setupMsg || 'Working…'}</span>
+                        </div>
+                        <span className="flex-shrink-0 text-xs tabular-nums text-ink-3 min-w-[60px] text-right">
+                          {etaLabel}
+                        </span>
+                      </div>
+                      {/* Progress bar: real width driven by displayPct, shimmer overlay when in-flight */}
+                      <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-surface-muted relative">
+                        <div
+                          className="h-full rounded-full bg-ink transition-all duration-1000 ease-out"
+                          style={{ width: `${displayPct}%` }}
+                        />
+                        {scanPct < 100 && (
+                          <div
+                            className="absolute inset-y-0 rounded-full animate-pulse opacity-30 bg-ink"
+                            style={{ left: `${Math.max(0, displayPct - 20)}%`, width: '20%' }}
+                          />
+                        )}
+                      </div>
+                      <div className="mt-2 flex items-center justify-between">
+                        <p className="text-xs text-ink-3">Hang tight — you&apos;ll land straight in your Analysis dashboard.</p>
+                        <span className="text-xs tabular-nums text-ink-3">{Math.round(displayPct)}%</span>
+                      </div>
                     </div>
-                    <span className="flex-shrink-0 text-xs tabular-nums text-ink-3">
-                      {scanPct >= 100
-                        ? 'Done!'
-                        : elapsedSecs < 55
-                          ? `~${Math.max(5, 60 - elapsedSecs)}s`
-                          : 'Almost done…'}
-                    </span>
-                  </div>
-                  <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-surface-muted">
-                    <div
-                      className="h-full rounded-full bg-ink transition-all duration-700"
-                      style={{ width: `${Math.max(8, scanPct)}%` }}
-                    />
-                  </div>
-                  <p className="mt-3 text-xs text-ink-3">Hang tight — you&apos;ll land straight in your Analysis dashboard.</p>
-                </div>
+                  )
+                })()}
 
                 {completionError && <p className="text-sm text-red-soft">{completionError}</p>}
               </>
