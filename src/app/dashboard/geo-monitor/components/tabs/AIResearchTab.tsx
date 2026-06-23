@@ -119,11 +119,42 @@ function buildDefaultPrompts(
     engines: engines.length ? engines : ['chatgpt'],
     why: 'Auto-created after AI Research so the first scan has a measurable baseline.',
   }
+  // Defense-in-depth: a missing field must NEVER reach a saved prompt as a
+  // placeholder literal ("this product category", "the target market"). Such
+  // generic prompts make AI assistants name random famous brands, which
+  // competitor discovery then mis-harvests as rivals — polluting the whole
+  // dashboard. Treat the known cleanText sentinels (and empty strings) as
+  // "absent" and drop their clause, degrading to a natural, still-scannable
+  // phrasing rather than emitting the placeholder verbatim.
+  const has = (v: string, sentinel: string) => v.trim() !== '' && v.trim() !== sentinel
+  const hasSpace = has(productSpace, 'this product category')
+  // "Worldwide" is a global default, not a place — drop the "in X" clause for it
+  // (mirrors onboarding_service._starter_fallback) so we never emit "in Worldwide".
+  const hasMarket = has(market, 'the target market') && market.trim().toLowerCase() !== 'worldwide'
+  const hasAudience = has(audience, 'buyers')
+  const space = hasSpace ? productSpace : 'this product category' // safe inside "options for X" only when real
+  const forAud = hasAudience ? ` for ${audience}` : ''
+  const inMkt = hasMarket ? ` in ${market}` : ''
+
+  // When the category is unknown, fall back to brand/audience-anchored phrasings
+  // that don't require a product space — never the literal placeholder.
+  const q1 = hasSpace
+    ? `What is ${brand} and what problem does it solve${hasAudience ? ` for ${audience}` : ''} looking for ${productSpace}?`
+    : `What is ${brand} and what problem does it solve${hasAudience ? ` for ${audience}` : ''}?`
+  const q2 = hasSpace
+    ? `What are the best ${space} options${forAud}${inMkt}?`
+    : `What are the best options to consider${forAud}${inMkt}?`
+  const q3 = hasSpace
+    ? `How does ${brand} compare with ${competitor} for ${productSpace}?`
+    : `How does ${brand} compare with ${competitor}?`
+  const q4 = hasSpace
+    ? `Should I choose ${brand} for ${productSpace}, and what trusted sources support that?`
+    : `Should I choose ${brand}, and what trusted sources support that?`
   return [
-    { template: `What is ${brand} and what problem does it solve for ${audience} looking for ${productSpace}?`, intent: 'info_cognition', layer: 'foundation', provenance },
-    { template: `What are the best ${productSpace} options for ${audience} in ${market}?`, intent: 'solution_explore', layer: 'foundation', provenance },
-    { template: `How does ${brand} compare with ${competitor} for ${productSpace}?`, intent: 'comparison_decision', layer: 'gap', provenance },
-    { template: `Should I choose ${brand} for ${productSpace}, and what trusted sources support that?`, intent: 'action_choice', layer: 'gap', provenance },
+    { template: q1, intent: 'info_cognition', layer: 'foundation', provenance },
+    { template: q2, intent: 'solution_explore', layer: 'foundation', provenance },
+    { template: q3, intent: 'comparison_decision', layer: 'gap', provenance },
+    { template: q4, intent: 'action_choice', layer: 'gap', provenance },
   ]
 }
 
@@ -582,14 +613,24 @@ export function AIResearchTab() {
       setError('')
       try {
         const competitor = (ctx.brandConfig.competitors || []).find(c => c.trim()) || 'top alternatives'
-        const audience = String(ctx.brandConfig.target_audience ?? '') || 'buyers'
+        const audience = String(ctx.brandConfig.target_audience ?? '').trim() || 'buyers'
+        // Source every prompt field from the LIVE brand profile — the same object
+        // `hasProfile` validated above — NOT the cached research-run snapshot
+        // (result_json). The snapshot's `category` can be null even when the
+        // profile is complete (the run aggregation doesn't always persist it), so
+        // reading two different sources let the completeness gate pass while the
+        // builder still fell back to placeholder literals ("this product
+        // category"). Those literals got baked into real, auto-scanned prompts,
+        // producing generic AI answers that polluted competitor discovery with
+        // random famous brands. brandConfig.category / target_market are
+        // guaranteed non-empty by hasProfile, so no placeholder can leak here.
         await ctx.handleBatchSavePrompts(buildDefaultPrompts(
-          cleanText(result.brand_name, 'this brand'),
-          cleanText(result.category, 'this product category'),
-          cleanText(result.market, 'the target market'),
+          cleanText(ctx.brandConfig.brand_name, 'this brand'),
+          cleanText(ctx.brandConfig.category, 'this product category'),
+          cleanText(ctx.brandConfig.target_market, 'the target market'),
           audience,
           competitor,
-          result.domain,
+          ctx.brandConfig.domain || result.domain,
           result.engines,
         ))
         if (cancelled) return
