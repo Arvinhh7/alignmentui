@@ -141,6 +141,19 @@ export default function OnboardingPage() {
     check()
   }, [authLoading, isAuthenticated, user])
 
+  // Referral attribution: if this user arrived via a ?refer=CODE link, record it
+  // now that they're authenticated. Fire-and-forget — the backend is idempotent
+  // per referee, and a failure must never block onboarding.
+  useEffect(() => {
+    if (!user?.id) return
+    let pending = ''
+    try { pending = localStorage.getItem('pending_refer') || '' } catch {}
+    if (!pending) return
+    api.recordReferralSignup(pending, user.id, user.email ?? undefined)
+      .catch(() => {})
+      .finally(() => { try { localStorage.removeItem('pending_refer') } catch {} })
+  }, [user?.id, user?.email])
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem(ONBOARDING_SESSION_KEY)

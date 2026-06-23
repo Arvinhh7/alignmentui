@@ -2345,6 +2345,21 @@ class APIClient {
     return this.request<CreditBalance>(`/api/stripe/credits/${user_id}`);
   }
 
+  async getReferral(user_id: string) {
+    return this.request<ReferralOverview>(`/api/referral/me?user_id=${encodeURIComponent(user_id)}`);
+  }
+
+  async recordReferralSignup(code: string, user_id: string, email?: string) {
+    return this.request<{ ok: boolean; reason?: string; referee_bonus?: number }>(
+      '/api/referral/signup',
+      {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ code, user_id, email: email ?? null }),
+      }
+    );
+  }
+
   async cancelSubscription(user_id: string) {
     return this.request<{ success: boolean; cancel_at_period_end: boolean; current_period_end: string | null }>(
       '/api/stripe/cancel-subscription',
@@ -2519,6 +2534,8 @@ export interface CreditBalance {
   credits_used: number;
   credits_limit: number;
   credits_bonus: number;
+  // Layer 2b — no-expiry wallet (referral rewards / bonuses)
+  wallet_balance?: number;
   credits_total: number;
   credits_remaining: number;
   // Layer 1 — monitoring quota (-1 = unlimited)
@@ -2526,6 +2543,19 @@ export interface CreditBalance {
   prompts_active: number;
   // Layer 1 — on-demand monitoring budget (Refresh + auto-scan-on-add)
   monitoring_ondemand?: MonitoringOndemandBudget;
+}
+
+// ── Referral Program ─────────────────────────────────────────────────────────
+
+export interface ReferralOverview {
+  code: string;
+  share_url: string;
+  invited: number;
+  converted: number;
+  credits_earned: number;
+  wallet_balance: number;
+  referrer_reward: number;
+  referee_bonus: number;
 }
 
 // ── ROI Estimate Type ────────────────────────────────────────────────────────

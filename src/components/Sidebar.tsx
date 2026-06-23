@@ -14,7 +14,7 @@ import {
   Sparkles, ExternalLink, HelpCircle, Home, ChevronRight, CreditCard,
   LineChart, Search, MessageSquare, RefreshCw,
   BookOpen, TrendingUp, Database, X, Globe, Users, ShoppingCart, Briefcase,
-  Compass, Plug, Cpu, Megaphone, Bot, Share2,
+  Compass, Plug, Cpu, Megaphone, Bot, Share2, Gift,
 } from 'lucide-react'
 
 const SIDEBAR_KEY = 'sidebar_expanded'
@@ -210,6 +210,8 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         { href: '/dashboard/geo-audit',        icon: ShieldCheck, labelKey: 'webInfraNav',       permissionKey: 'geo-audit' },
         { href: '/dashboard/geo-optimization', icon: Zap,          labelKey: 'GEO Optimization' as never, permissionKey: 'geo-optimization' },
         { href: '/dashboard/brand-hub',        icon: Database,   labelKey: 'brandNav',           permissionKey: 'brand-hub' },
+        // Universal growth feature — no permissionKey, so every role sees it.
+        { href: '/dashboard/refer',            icon: Gift,       labelKey: 'Refer & Earn' as never, isNew: true },
         { href: '/dashboard/ga4-attribution',  icon: LineChart,  labelKey: 'GA4 Attribution' as never, permissionKey: 'ga4-attribution', sectionLabel: 'Integrations' },
         { href: '/dashboard/mcp-integration',  icon: Cpu,        labelKey: 'mcpIntegrationNav', isBeta: true, disabled: true, disabledLabel: 'Coming soon' },
       ],

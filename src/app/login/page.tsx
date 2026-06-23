@@ -58,6 +58,7 @@ function LoginPageInner() {
   const domainParam    = searchParams.get('domain') || ''
   const signupParam    = searchParams.get('signup') === 'true'
   const forgotParam    = searchParams.get('forgot') === 'true'
+  const referParam     = searchParams.get('refer') || ''
 
   const [isSignUp, setIsSignUp] = useState(false)
   const [isForgotPassword, setIsForgotPassword] = useState(forgotParam)
@@ -106,6 +107,16 @@ function LoginPageInner() {
   useEffect(() => {
     if (authError) { setError(authError); setIsSubmitting(false) }
   }, [authError])
+
+  // Referral link (?refer=CODE): persist the code through the email-verification
+  // round trip and default to signup mode. Attribution is recorded post-auth in
+  // onboarding once the new user has an id.
+  useEffect(() => {
+    if (referParam) {
+      try { localStorage.setItem('pending_refer', referParam) } catch {}
+      setIsSignUp(true)
+    }
+  }, [referParam])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
