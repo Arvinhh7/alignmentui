@@ -100,16 +100,12 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
   const initial = displayName[0]?.toUpperCase() ?? 'U'
   const roleCfg = ROLE_CONFIG[role ?? 'user']
 
-  // ── Auto-collapse on tablet (768–1024px) ──────────────────────────────
-  const [viewportCollapsed, setViewportCollapsed] = useState(false)
-  // Derived: on tablet, always collapse regardless of user preference
-  const expanded = expandedPref && !viewportCollapsed
+  const expanded = expandedPref
   const displayExpanded = mobileOpen || expanded || hoverExpanded
 
   useEffect(() => {
     const check = () => {
       const w = window.innerWidth
-      setViewportCollapsed(w >= 768 && w < 1024)
       if (w < 768) setHoverExpanded(false)
     }
     check()

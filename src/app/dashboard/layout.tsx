@@ -20,9 +20,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { isLoading, isAuthenticated, role, user } = useAuth()
   const { lang } = useLanguage()
   const [expandedPref, setExpandedPref] = useState(true)
-  const [viewportCollapsed, setViewportCollapsed] = useState(false)
   const [hoverExpanded, setHoverExpanded] = useState(false)
-  const expanded = expandedPref && !viewportCollapsed
+  const expanded = expandedPref
   const displayExpanded = expanded || hoverExpanded
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -60,12 +59,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return () => window.removeEventListener('sidebarHoverExpanded', handler)
   }, [])
 
-  // Close mobile menu and sync viewport-collapsed state on resize
+  // Close mobile menu on resize to desktop
   useEffect(() => {
     const onResize = () => {
       const w = window.innerWidth
       if (w >= 768) setMobileMenuOpen(false)
-      setViewportCollapsed(w >= 768 && w < 1024)
       if (w < 768) setHoverExpanded(false)
     }
     onResize()
