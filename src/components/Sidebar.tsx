@@ -119,10 +119,8 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
 
   // ── Persist sidebar state ──────────────────────────────────────────────
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(SIDEBAR_KEY)
-      if (saved !== null) setExpandedPref(saved === 'true')
-    } catch {}
+    // Sidebar defaults to expanded (useState(true)); we don't restore a previously-
+    // saved collapsed preference so it stays open for new and returning users alike.
     setCompletedSteps(getCompletedSteps())
     try {
       const cnt = localStorage.getItem('alignment_prompts_count')

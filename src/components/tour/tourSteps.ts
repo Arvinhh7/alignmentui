@@ -94,8 +94,20 @@ export const TOUR_STEPS: TourStep[] = [
       zh: '把差距变成修复',
     },
     body: {
-      en: 'GEO Optimization converts what AI is missing into concrete fixes — llms.txt, FAQ, and Schema markup that engines read. Ready to see your diagnosis?',
-      zh: 'GEO Optimization 把 AI 缺失的信息转成具体修复 —— 引擎能读的 llms.txt、FAQ、Schema 标记。准备好看你的诊断了吗?',
+      en: 'GEO Optimization converts what AI is missing into concrete fixes — llms.txt, FAQ, and Schema markup that engines read.',
+      zh: 'GEO Optimization 把 AI 缺失的信息转成具体修复 —— 引擎能读的 llms.txt、FAQ、Schema 标记。',
+    },
+  },
+  {
+    key: 'brand-hub',
+    anchor: 'brand-hub',
+    title: {
+      en: 'Start with your Brand Profile',
+      zh: '从品牌档案开始',
+    },
+    body: {
+      en: "Your Brand Profile gives AI engines the exact context they need to cite and recommend {brand}. Let's fill it in now.",
+      zh: '品牌档案为 AI 引擎提供引用和推荐 {brand} 所需的精准上下文。现在就来填写吧。',
     },
   },
 ]

@@ -62,7 +62,7 @@ export function ProductTour() {
   const close = useCallback((navigate: boolean) => {
     setActive(false)
     markDone()
-    if (navigate) router.push('/dashboard/ai-search')
+    if (navigate) router.push('/dashboard/brand-hub')
   }, [markDone, router])
 
   // ── Auto-start: real customers, post-onboarding landing, not yet completed ──

@@ -70,7 +70,7 @@ function BrandHubContent() {
         <div className="space-y-6">
           {/* Single readiness indicator lives on the Brand Profile card itself
               (BrandSetupPanel) — no separate banner, so there's one % of truth. */}
-          <BrandSetupPanel forceOpen={!ctx.isProfileComplete} />
+          <BrandSetupPanel forceOpen />
 
           {ctx.isProfileComplete && (
             <div className="rounded-2xl border border-divider-light bg-surface p-5">
