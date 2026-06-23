@@ -29,11 +29,12 @@ function CategoryCombobox({ value, onChange }: { value: string; onChange: (v: st
 
   useEffect(() => { setInput(value) }, [value])
 
-  const filtered = useMemo(() => {
+  const matches = useMemo(() => {
     const q = input.trim().toLowerCase()
-    if (!q) return cats.slice(0, 50)
-    return cats.filter(c => c.name.toLowerCase().includes(q)).slice(0, 30)
+    if (!q) return cats
+    return cats.filter(c => c.name.toLowerCase().includes(q))
   }, [input, cats])
+  const filtered = matches.slice(0, 60)
 
   const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim()
   const matched = cats.some(c => norm(c.name) === norm(value) || c.slug === norm(value))
@@ -73,7 +74,7 @@ function CategoryCombobox({ value, onChange }: { value: string; onChange: (v: st
         )}
       </div>
       {open && filtered.length > 0 && (
-        <div className="absolute z-50 mt-1 w-full max-h-52 overflow-y-auto rounded-lg border border-divider bg-surface shadow-lg">
+        <div className="absolute z-50 mt-1 w-full max-h-60 overflow-y-auto rounded-lg border border-divider bg-surface shadow-lg">
           {filtered.map(cat => (
             <button
               key={cat.slug}
@@ -84,6 +85,11 @@ function CategoryCombobox({ value, onChange }: { value: string; onChange: (v: st
               {cat.name}
             </button>
           ))}
+          <div className="sticky bottom-0 border-t border-divider bg-canvas px-3 py-1.5 text-[10px] text-ink-3">
+            {matches.length > filtered.length
+              ? `Showing ${filtered.length} of ${matches.length} — keep typing to narrow`
+              : `${matches.length} categor${matches.length === 1 ? 'y' : 'ies'} · or type your own`}
+          </div>
         </div>
       )}
     </div>

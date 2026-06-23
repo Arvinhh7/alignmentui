@@ -93,6 +93,17 @@ function domainFromName(name: string) {
   return `${name.toLowerCase().replace(/[^a-z0-9]+/g, '')}.com`
 }
 
+// Tolerant timestamp parse. The cached run's scanned_at is a Python str
+// ("2026-06-23T18:06:56.348259", often tz-naive) while the live scan API returns
+// "2026-06-23 18:51:07+00". Normalize both so a stale report can be detected.
+function parseTs(s: string | null | undefined): number {
+  if (!s) return NaN
+  let v = String(s).trim().replace(' ', 'T')
+  if (/[+-]\d{2}$/.test(v)) v += ':00'                              // "+00" → "+00:00"
+  if (!/([zZ]|[+-]\d{2}:?\d{2})$/.test(v)) v += 'Z'                 // assume UTC when tz missing
+  return Date.parse(v)
+}
+
 function buildDefaultPrompts(
   brand: string,
   productSpace: string,
@@ -339,9 +350,9 @@ function WhereYouLoseCard({ result }: { result: ResearchResult }) {
             <div className="flex items-start gap-2.5 rounded-lg border border-caution/30 bg-caution-bg px-3 py-2.5">
               <AlertTriangle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-caution" />
               <div className="min-w-0">
-                <p className="text-[12px] text-ink">No Explore category matched your product space.</p>
+                <p className="text-[12px] text-ink">No Explore category matched your brand.</p>
                 <p className="mt-0.5 text-[11px] text-ink-3">
-                  Update <strong>Product Space</strong> in your Brand Profile to a specific category (e.g. &quot;jewelry&quot;, &quot;cameras&quot;) so we can map trusted sources for you.
+                  Set <strong>Category</strong> in your Brand Profile to a tracked category (e.g. &quot;Jewelry&quot;, &quot;Cameras&quot;) so we can map trusted sources for you.
                 </p>
                 <Link href="/dashboard/brand-hub" className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-ink underline underline-offset-2 hover:text-ink-2">
                   Open Brand Hub <ArrowRight className="h-3 w-3" />
@@ -447,6 +458,7 @@ export function AIResearchTab() {
   const [error, setError] = useState('')
   const [autoBootstrapStatus, setAutoBootstrapStatus] = useState<'idle' | 'running' | 'done' | 'error'>('idle')
   const autoBootstrappedKeys = useRef(new Set<string>())
+  const autoRegenKeys = useRef(new Set<string>())
 
   const result = useMemo(() => asResearchResult(run?.result_json), [run])
   const stale = useMemo(() => !result && isStaleRun(run?.result_json), [result, run])
@@ -520,6 +532,31 @@ export function AIResearchTab() {
       setRunning(false)
     }
   }
+
+  // Keep a stable ref to the latest handleRun so the auto-regenerate effect can
+  // call it without re-subscribing every render.
+  const handleRunRef = useRef(handleRun)
+  handleRunRef.current = handleRun
+
+  // Auto-regenerate when the cached report is older than the latest scan. The
+  // report is a cached object — re-running prompts (a new scan) does NOT refresh
+  // it on its own, so a fresh scan would otherwise never reach this view. Aggregation
+  // is cheap (no LLM; just reads the latest scan + Explore), and we gate on the
+  // scan timestamp so it fires once per new scan, then settles.
+  const latestScanAt = ctx.scanResult?.scanned_at || ''
+  useEffect(() => {
+    if (!result || !ctx.activeCustomerId || !canRun) return
+    if (running || loading) return
+    const liveT = parseTs(latestScanAt)
+    if (!Number.isFinite(liveT)) return
+    const runT = parseTs(result.scanned_at)
+    // Not stale: the report already aggregated this scan (allow 1s of clock slack).
+    if (Number.isFinite(runT) && liveT <= runT + 1000) return
+    const key = `${ctx.activeCustomerId}:${latestScanAt}`
+    if (autoRegenKeys.current.has(key)) return
+    autoRegenKeys.current.add(key)
+    handleRunRef.current()
+  }, [result, latestScanAt, ctx.activeCustomerId, canRun, running, loading])
 
   // Auto-bootstrap: a customer with no prompts gets a default set + first scan, so
   // the report has real data to aggregate on the next refresh.
