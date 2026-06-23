@@ -66,19 +66,24 @@ export function CitationsTab() {
       }))
   }, [scanResult])
 
-  const domainDetailRows = useMemo(() => {
+  // Flattened to one row per actual cited URL (URL Detail tab)
+  const urlDetailRows = useMemo(() => {
     if (!scanResult?.source_domains) return []
     return scanResult.source_domains
       .slice()
       .sort((a, b) => b.url_count - a.url_count)
-      .map(d => ({
-        domain: d.domain,
-        domain_type: d.domain_type,
-        type: DOMAIN_TYPE_LABELS[d.domain_type]?.label || d.domain_type,
-        urls: d.url_count,
-        citation_share: d.citation_share ?? d.frequency_pct,
-        frequency_pct: d.frequency_pct,
-      }))
+      .flatMap(d => {
+        const share = d.citation_share ?? d.frequency_pct
+        if (d.urls && d.urls.length > 0) {
+          return d.urls.map(url => ({
+            domain: d.domain,
+            domain_type: d.domain_type,
+            url,
+            citation_share: share,
+          }))
+        }
+        return [{ domain: d.domain, domain_type: d.domain_type, url: `https://${d.domain}`, citation_share: share }]
+      })
   }, [scanResult])
 
   return (
@@ -195,6 +200,30 @@ export function CitationsTab() {
                             <SignalIcon className={`w-3 h-3 flex-shrink-0 ${signal.className}`} />
                             <span className={`text-xs font-medium ${signal.className}`}>{signal.label}</span>
                           </div>
+
+                          {/* Actual cited URLs */}
+                          {d.urls && d.urls.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              {d.urls.slice(0, 3).map((url, j) => (
+                                <a
+                                  key={j}
+                                  href={url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="flex items-center gap-1 text-[11px] text-ink-3 hover:text-sage transition-colors group"
+                                  title={url}
+                                >
+                                  <Link2 className="w-3 h-3 flex-shrink-0 opacity-50 group-hover:opacity-100" />
+                                  <span className="truncate hover:underline underline-offset-2">
+                                    {url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                                  </span>
+                                </a>
+                              ))}
+                              {d.urls.length > 3 && (
+                                <p className="text-[11px] text-ink-3 pl-4">+{d.urls.length - 3} more</p>
+                              )}
+                            </div>
+                          )}
                         </div>
                       )
                     })}
@@ -235,7 +264,7 @@ export function CitationsTab() {
                     key: 'domain',
                     label: 'Domain',
                     format: (_v, row) => (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
                         <img
                           src={`https://www.google.com/s2/favicons?domain=${row.domain}&sz=32`}
                           onError={e => {
@@ -247,35 +276,40 @@ export function CitationsTab() {
                           alt=""
                         />
                         <Globe className="w-4 h-4 text-ink-3 flex-shrink-0 hidden" />
-                        <a
-                          href={`https://${String(row.domain)}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-ink font-medium hover:text-sage hover:underline underline-offset-2 transition-colors"
-                        >
-                          {String(row.domain)}
-                        </a>
+                        <span className="text-ink font-medium text-sm">{String(row.domain)}</span>
                       </div>
                     ),
                   },
                   {
-                    key: 'type',
+                    key: 'url',
+                    label: 'Cited URL',
+                    format: (v) => (
+                      <a
+                        href={String(v)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-1.5 text-sm text-sage hover:underline underline-offset-2 transition-colors max-w-[380px] group"
+                        title={String(v)}
+                      >
+                        <Link2 className="w-3.5 h-3.5 flex-shrink-0 opacity-60 group-hover:opacity-100" />
+                        <span className="truncate">
+                          {String(v).replace(/^https?:\/\//, '')}
+                        </span>
+                      </a>
+                    ),
+                  },
+                  {
+                    key: 'domain_type',
                     label: 'Type',
-                    format: (_v, row) => {
-                      const typeInfo = DOMAIN_TYPE_LABELS[String(row.domain_type)]
-                      if (!typeInfo) return <span className="text-ink-3">{String(_v)}</span>
+                    format: (_v) => {
+                      const typeInfo = DOMAIN_TYPE_LABELS[String(_v)]
+                      if (!typeInfo) return <span className="text-ink-3 text-xs">{String(_v)}</span>
                       return (
                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${typeInfo.color}`}>
                           {typeInfo.label}
                         </span>
                       )
                     },
-                  },
-                  {
-                    key: 'urls',
-                    label: 'AI-Mentioned URLs',
-                    align: 'right',
-                    format: v => formatNum(v as number, 0),
                   },
                   {
                     key: 'citation_share',
@@ -298,7 +332,7 @@ export function CitationsTab() {
                     },
                   },
                 ]}
-                rows={domainDetailRows}
+                rows={urlDetailRows}
                 emptyText="No citation data available"
               />
             </div>
