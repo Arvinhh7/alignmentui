@@ -43,12 +43,23 @@ function AnalysisContent() {
   const { lang } = useLanguage()
   const { filterModel, setFilterModel } = ctx
   const normalizedPlan = String(ctx.promptQuota.plan || 'starter').toLowerCase()
-  const starterLocked = normalizedPlan === 'starter' || normalizedPlan === 'trial'
+  // Mirror backend PLAN_LIMITS[*].scan_engines_allowed. Claude is Pro/Enterprise only.
+  const PLAN_ENGINE_ALLOWLIST: Record<string, string[]> = {
+    starter:    ['chatgpt'],
+    trial:      ['chatgpt'],
+    standard:   ['chatgpt', 'perplexity', 'ai_overviews', 'gemini'],
+    growth:     ['chatgpt', 'perplexity', 'ai_overviews', 'gemini'],
+    pro:        ['chatgpt', 'perplexity', 'ai_overviews', 'gemini', 'claude'],
+    enterprise: ['chatgpt', 'perplexity', 'ai_overviews', 'gemini', 'claude'],
+    admin:      ['chatgpt', 'perplexity', 'ai_overviews', 'gemini', 'claude'],
+  }
+  const planEngines = PLAN_ENGINE_ALLOWLIST[normalizedPlan] ?? PLAN_ENGINE_ALLOWLIST['starter']
   // 'all' = aggregate across every engine that ran (the default). Specific
-  // engines re-slice the Overview; Starter is locked to ChatGPT only.
+  // engines re-slice the Overview; locked engines show an upgrade prompt.
   const allowedModels = useMemo(
-    () => starterLocked ? ['all', 'chatgpt'] : ['all', ...ANALYSIS_MODELS.map(model => model.key)],
-    [starterLocked],
+    () => ['all', ...planEngines],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [normalizedPlan],
   )
 
   // Default the Analysis view to the aggregate ('all') on each open.
@@ -206,7 +217,7 @@ function AnalysisContent() {
                   type="button"
                   disabled={!enabled}
                   onClick={() => enabled && setFilterModel(model.key)}
-                  title={enabled ? `View ${model.label} metrics` : 'Starter includes ChatGPT only. Upgrade to unlock this model.'}
+                  title={enabled ? `View ${model.label} metrics` : `Upgrade to Pro to unlock ${model.label}.`}
                   className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold transition-all ${
                     selected
                       ? 'border-ink bg-ink text-ink-inv'
