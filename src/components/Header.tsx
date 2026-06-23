@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
+import { normalizePath } from '@/lib/path'
 import { useLanguage } from '@/lib/LanguageContext'
 import LanguageSwitch from './LanguageSwitch'
 import { ShieldCheck, Zap, PenTool, Share2, BarChart3, LineChart, LayoutDashboard, Bot, TrendingUp, MessageSquare, Database, type LucideIcon } from 'lucide-react'
@@ -39,7 +40,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
     return () => clearInterval(interval)
   }, [])
 
-  const routeInfo = routeIconMap[pathname] || null
+  const routeInfo = routeIconMap[normalizePath(pathname)] || null
   const ModuleIcon = routeInfo?.icon
 
   return (

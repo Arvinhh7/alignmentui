@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { isActivePath } from "@/lib/path";
 
 // Layer 3 nav: role-neutral, protocol-first
 const NAV_ITEMS = [
@@ -65,10 +66,9 @@ function AgenticCommerceShell({ children, pathname }: { children: React.ReactNod
       {/* Sub-nav */}
       <nav className="flex items-center gap-1 border-b border-divider pb-0 overflow-x-auto">
         {NAV_ITEMS.map((item) => {
-          const isActive =
-            item.href === "/dashboard/agentic-commerce"
-              ? pathname === item.href
-              : pathname.startsWith(item.href);
+          const isActive = isActivePath(pathname, item.href, {
+            prefix: item.href !== "/dashboard/agentic-commerce",
+          });
           return (
             <Link key={item.href} href={item.href}
               className={`px-3 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors ${

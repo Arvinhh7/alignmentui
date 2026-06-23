@@ -6,14 +6,17 @@ import { X } from 'lucide-react'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useAuth } from '@/hooks/useAuth'
 import { getSupabase } from '@/lib/supabase'
+import { normalizePath } from '@/lib/path'
 import { TOUR_STEPS, TOUR_UI, fillBrand } from './tourSteps'
 
 const TOUR_DONE_KEY = 'alignment_tour_done'   // + ':' + userId
 const START_EVENT = 'alignment:start-tour'    // manual replay trigger
 
 // The tour auto-starts only here (the post-onboarding landing). Manual replay
-// (the START_EVENT) can fire from any dashboard page.
-const AUTOSTART_PATH = '/dashboard/analysis/'
+// (the START_EVENT) can fire from any dashboard page. Compared trailing-slash
+// agnostically via normalizePath — usePathname() returns a trailing slash under
+// next.config trailingSlash:true, but this literal must not depend on that.
+const AUTOSTART_PATH = '/dashboard/analysis'
 
 const POPOVER_W = 320
 
@@ -66,7 +69,7 @@ export function ProductTour() {
   useEffect(() => {
     if (startedRef.current) return
     if (role !== 'user' || !user?.id) return
-    if (pathname !== AUTOSTART_PATH) return
+    if (normalizePath(pathname) !== AUTOSTART_PATH) return
     if (lsKey && (() => { try { return localStorage.getItem(lsKey) === '1' } catch { return false } })()) return
 
     let cancelled = false

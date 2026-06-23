@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { isActivePath } from '@/lib/path'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useAuth, type UserRole, type PermissionsMap } from '@/hooks/useAuth'
 import { api, CreditBalance } from '@/lib/api'
@@ -306,8 +307,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
 
   const isItemActive = (item: NavItem) => {
     if (item.disabled) return false
-    if (item.matchPrefix) return pathname === item.href || pathname.startsWith(item.href + '/')
-    return pathname === item.href
+    return isActivePath(pathname, item.href, { prefix: item.matchPrefix })
   }
 
   const handleNavClick = () => { onMobileClose?.() }
@@ -587,9 +587,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
             )}
             {!displayExpanded && <div className="w-full h-px bg-[rgba(250,245,236,0.06)] my-2" />}
             {staffAdvancedItems.map((item) => {
-              const isActive = item.matchPrefix
-                ? pathname === item.href || pathname.startsWith(item.href + '/')
-                : pathname === item.href
+              const isActive = isActivePath(pathname, item.href, { prefix: item.matchPrefix })
               const Icon = item.icon
               const label = getLabel(item.labelKey)
               return (
@@ -637,9 +635,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
             )}
             {!displayExpanded && <div className="w-full h-px bg-[rgba(250,245,236,0.06)] my-2" />}
             {adminItems.map((item) => {
-              const isActive = item.matchPrefix
-                ? pathname === item.href || pathname.startsWith(item.href + '/')
-                : pathname === item.href
+              const isActive = isActivePath(pathname, item.href, { prefix: item.matchPrefix })
               const Icon = item.icon
               const label = getLabel(item.labelKey)
               return (
