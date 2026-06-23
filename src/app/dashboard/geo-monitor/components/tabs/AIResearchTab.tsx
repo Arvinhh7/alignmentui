@@ -66,6 +66,7 @@ interface ResearchResult {
   prompt_gaps: PromptGap[]
   source_gaps: SourceItem[]
   source_fallback?: boolean
+  source_fallback_cross_customer?: boolean
   category_sources: SourceItem[]
   summary: { prompt_gap_count: number; source_gap_count: number; competitor_count: number; category_source_count: number }
   generated_at: string
@@ -340,7 +341,10 @@ function WhereYouLoseCard({ result }: { result: ResearchResult }) {
               ))}
               {result.source_fallback && (
                 <p className="mt-1 text-[10px] text-ink-3">
-                  From your scan &mdash; <Link href="/dashboard/brand-hub" className="underline underline-offset-2 hover:text-ink-2">update Product Space</Link> for category-level coverage.
+                  {result.source_fallback_cross_customer
+                    ? <>From similar brands&apos; scans &mdash; <Link href="/dashboard/brand-hub" className="underline underline-offset-2 hover:text-ink-2">set your Category</Link> for full Explore coverage.</>
+                    : <>From your scan &mdash; <Link href="/dashboard/brand-hub" className="underline underline-offset-2 hover:text-ink-2">update Product Space</Link> for category-level coverage.</>
+                  }
                 </p>
               )}
             </div>
