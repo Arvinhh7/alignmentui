@@ -171,21 +171,31 @@ function AnalysisContent() {
         <div className="flex flex-wrap items-center justify-between gap-3 bg-surface border border-divider-light rounded-xl px-4 py-3">
           <div>
             <div className="text-xs uppercase tracking-wider text-ink-3 font-semibold">AI Model</div>
-            <div className="text-sm text-ink-3">Re-slice the Overview by engine. &ldquo;All&rdquo; aggregates every engine in the latest scan.</div>
+            <div className="text-sm text-ink-3">
+              {latestEngines.length === 1
+                ? `Showing ${ANALYSIS_MODELS.find(m => m.key === latestEngines[0])?.label ?? latestEngines[0]} data. Upgrade to scan more engines.`
+                : latestEngines.length > 1
+                  ? `"All" aggregates all ${latestEngines.length} engines. Click a pill to re-slice by engine.`
+                  : 'Re-slice the Overview by engine. “All” aggregates every engine in the latest scan.'}
+            </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            {/* "All" aggregate pill */}
+            {/* "All" aggregate pill — label reflects actual engine count in latest scan */}
             <button
               type="button"
               onClick={() => setFilterModel('all')}
-              title="Aggregate across all engines"
+              title={latestEngines.length > 1 ? `Aggregate across ${latestEngines.length} engines` : 'Aggregate view'}
               className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold transition-all ${
                 filterModel === 'all'
                   ? 'border-ink bg-ink text-ink-inv'
                   : 'border-divider bg-canvas text-ink-2 hover:bg-surface-warm'
               }`}
             >
-              All Models
+              {latestEngines.length === 1
+                ? `All Models (${ANALYSIS_MODELS.find(m => m.key === latestEngines[0])?.label ?? latestEngines[0]})`
+                : latestEngines.length > 1
+                  ? `All Models (${latestEngines.length})`
+                  : 'All Models'}
             </button>
             {ANALYSIS_MODELS.map(model => {
               const enabled = allowedModels.includes(model.key)
