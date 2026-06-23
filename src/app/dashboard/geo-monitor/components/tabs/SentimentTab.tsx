@@ -7,18 +7,21 @@ import { DonutChart, formatPct } from '../shared/ChartComponents'
 
 export function SentimentTab() {
   const ctx = useUnified()
+  // Engine-scoped view: when a model pill is selected the scan is re-sliced to
+  // that engine (UnifiedContext.scopedScanResult). 'all' = aggregate passthrough.
+  const scan = ctx.scopedScanResult
 
   // ── Scan sentiment data ──────────────────────────
-  const scanSentiment = ctx.scanResult?.sentiment_breakdown
+  const scanSentiment = scan?.sentiment_breakdown
   const totalScanSentiment = scanSentiment
     ? scanSentiment.positive + scanSentiment.neutral + scanSentiment.negative
     : 0
 
   // ── Sentiment Themes (aggregated from all mention results) ──
   const sentimentThemes = useMemo(() => {
-    if (!ctx.scanResult?.mention_results) return []
+    if (!scan?.mention_results) return []
     const themeMap: Record<string, { positive: number; negative: number; neutral: number; contexts: string[] }> = {}
-    for (const m of ctx.scanResult.mention_results) {
+    for (const m of scan.mention_results) {
       if (!m.mentioned || !m.sentiment_themes) continue
       for (const t of m.sentiment_themes) {
         if (!themeMap[t.theme]) themeMap[t.theme] = { positive: 0, negative: 0, neutral: 0, contexts: [] }
@@ -33,7 +36,7 @@ export function SentimentTab() {
         return { theme, dominant, positive: counts.positive, negative: counts.negative, neutral: counts.neutral, total, contexts: counts.contexts }
       })
       .sort((a, b) => b.total - a.total)
-  }, [ctx.scanResult])
+  }, [scan])
 
   // ── Donut segments from scan data ──────────────
   const donutSegments = useMemo(() => {

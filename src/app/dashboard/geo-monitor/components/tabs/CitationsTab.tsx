@@ -41,7 +41,9 @@ function DomainFavicon({ domain }: { domain: string }) {
 
 export function CitationsTab() {
   const ctx = useUnified()
-  const scanResult = ctx.scanResult
+  // Engine-scoped view: when a model pill is selected the scan is re-sliced to
+  // that engine (UnifiedContext.scopedScanResult). 'all' = aggregate passthrough.
+  const scanResult = ctx.scopedScanResult
 
   const subTabs: { key: typeof ctx.citationsSubTab; label: string }[] = [
     { key: 'sources_overview', label: 'Sources Overview' },

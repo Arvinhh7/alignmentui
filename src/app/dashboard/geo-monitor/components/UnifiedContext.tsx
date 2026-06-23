@@ -37,6 +37,7 @@ import {
   type ReportSnapshot,
 } from './shared/constants'
 import { formatDate } from './shared/ChartComponents'
+import { sliceScanByEngine } from './shared/sliceScanByEngine'
 
 const PLAN_PROMPT_LIMITS: Record<string, number> = {
   trial: 50,
@@ -183,6 +184,11 @@ interface UnifiedState {
 
   // Scan state
   scanResult: MonitorScanResult | null
+  // scanResult re-sliced to the selected engine (filterModel). Equals scanResult
+  // when filterModel is 'all'/unset. Every Analysis tab reads THIS so switching
+  // the model pill re-slices the whole page — Overview, Mentions, Citations,
+  // Sentiment, Competitors — not just the Overview.
+  scopedScanResult: MonitorScanResult | null
   isScanning: boolean
   scanStep: number
   scanError: string
@@ -529,6 +535,15 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
     return modelScopedHistory.filter(s => s.date >= cutoff)
   }, [scanHistory, filterTimeRange, filterModel])
+
+  // ── Engine-scoped scan ──────────────────────────
+  // When a specific engine is selected on the Analysis page, re-slice the latest
+  // scan to that engine once, here, so every tab consumes a consistent view.
+  // 'all' (or unset) passes the aggregate scan through untouched.
+  const scopedScanResult = useMemo(() => {
+    if (!scanResult || !filterModel || filterModel === 'all') return scanResult
+    return sliceScanByEngine(scanResult, filterModel)
+  }, [scanResult, filterModel])
 
   const metricTrends = useMemo(() => {
     if (filteredScanHistory.length < 2) return null
@@ -1477,7 +1492,7 @@ export function UnifiedProvider({ children }: { children: ReactNode }) {
     loadRecentBrand, clearRecentBrands, handleSaveConfig, handleClearConfig,
     datePreset, handleDatePreset, startDate, setStartDate, endDate, setEndDate,
     filterTimeRange, setFilterTimeRange, filterModel, setFilterModel,
-    scanResult, isScanning, scanStep, scanError, handleRunScan, handleStopScan,
+    scanResult, scopedScanResult, isScanning, scanStep, scanError, handleRunScan, handleStopScan,
     scanHistory, filteredScanHistory, metricTrends,
     advancedMentions, isRunningAdvMentions, advMentionsError, handleRunAdvancedMentions, handleStopAdvMentions,
     aiResearchResult, saveAiResearch, clearAiResearch,

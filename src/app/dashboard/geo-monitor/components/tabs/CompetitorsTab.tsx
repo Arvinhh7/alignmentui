@@ -184,7 +184,10 @@ function SOVBar({
 // ─── Main component ───────────────────────────────────
 export function CompetitorsTab() {
   const ctx = useUnified()
-  const { scanResult, brandConfig } = ctx
+  const { brandConfig } = ctx
+  // Engine-scoped view: when a model pill is selected the scan is re-sliced to
+  // that engine (UnifiedContext.scopedScanResult). 'all' = aggregate passthrough.
+  const scanResult = ctx.scopedScanResult
 
   // No data state
   if (!scanResult) {
