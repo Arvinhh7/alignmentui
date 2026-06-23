@@ -79,7 +79,7 @@ const BASE_VISIBLE_CATEGORY_SLUGS = new Set([
 function isVisibleCategory(cat: Category): boolean {
   return Boolean(cat.slug && cat.name) && (
     BASE_VISIBLE_CATEGORY_SLUGS.has(cat.slug)
-    || cat.source === 'geoly_clean_public'
+    || cat.source === 'alignment_clean_public'
     || cat.depth_tier === 'public'
     || Boolean(cat.last_scanned_at)
   )
