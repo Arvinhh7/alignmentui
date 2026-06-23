@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
+  AlertTriangle,
   ArrowRight,
   CheckCircle2,
   ExternalLink,
@@ -319,12 +320,25 @@ function WhereYouLoseCard({ result }: { result: ResearchResult }) {
                     <BrandLogo domain={s.domain} name={s.name} size={18} />
                     <span className="truncate text-[12px] font-medium text-ink">{s.name}</span>
                   </div>
-                  <span className="flex-shrink-0 text-[10px] text-ink-3">{SOURCE_TYPE_LABEL[s.source_type] || 'Source'} · {s.citation_count} cites</span>
+                  <span className="flex-shrink-0 text-[10px] text-ink-3">{SOURCE_TYPE_LABEL[s.source_type] || "Source"} &middot; {s.citation_count} cites</span>
                 </div>
               ))}
             </div>
+          ) : result.category_slug ? (
+            <p className="text-[12px] text-sage">You&apos;re cited by every tracked source in your category.</p>
           ) : (
-            <p className="text-[12px] text-ink-3">{result.category_slug ? 'You’re cited by every tracked source in your category.' : 'No matching Explore category found for your product space yet.'}</p>
+            <div className="flex items-start gap-2.5 rounded-lg border border-caution/30 bg-caution-bg px-3 py-2.5">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-caution" />
+              <div className="min-w-0">
+                <p className="text-[12px] text-ink">No Explore category matched your product space.</p>
+                <p className="mt-0.5 text-[11px] text-ink-3">
+                  Update <strong>Product Space</strong> in your Brand Profile to a specific category (e.g. &quot;jewelry&quot;, &quot;cameras&quot;) so we can map trusted sources for you.
+                </p>
+                <Link href="/dashboard/brand-hub" className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-ink underline underline-offset-2 hover:text-ink-2">
+                  Open Brand Hub <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+            </div>
           )}
         </div>
       </div>
