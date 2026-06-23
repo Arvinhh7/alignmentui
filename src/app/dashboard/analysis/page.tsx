@@ -25,9 +25,14 @@ const CompetitorsTab = dynamic(() => import('../geo-monitor/components/tabs/Comp
 // Persona tab archived 2026-06-20 — hidden from UI pending a clearer purpose.
 // Component file (tabs/PersonasTab.tsx) is kept intact for future revival.
 
+// Keep in sync with backend PLAN_LIMITS[*].scan_engines_allowed and the engine
+// client registry (engine_clients.get_engine_client). ai_overviews = Google AI
+// Overview via SerpAPI; it only yields data once SERPAPI_KEY is configured on
+// the Railway API + worker — otherwise it renders the per-model empty state.
 const ANALYSIS_MODELS = [
   { key: 'chatgpt', label: 'ChatGPT', logo: '/logos/openai.png' },
   { key: 'perplexity', label: 'Perplexity', logo: '/logos/perplexity.png' },
+  { key: 'ai_overviews', label: 'Google AI Overview', logo: '/logos/google.png' },
   { key: 'gemini', label: 'Gemini', logo: '/logos/gemini.png' },
   { key: 'claude', label: 'Claude', logo: '/logos/anthropic.png' },
 ] as const
