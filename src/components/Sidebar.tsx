@@ -125,7 +125,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
   useEffect(() => {
     try {
       const saved = localStorage.getItem(SIDEBAR_KEY)
-      if (saved === 'true') setExpandedPref(true)
+      if (saved !== null) setExpandedPref(saved === 'true')
     } catch {}
     setCompletedSteps(getCompletedSteps())
     try {

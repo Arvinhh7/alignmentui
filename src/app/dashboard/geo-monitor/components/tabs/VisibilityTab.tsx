@@ -51,10 +51,40 @@ function sliceScanByEngine(scan: MonitorScanResult, engine: string): MonitorScan
   const found = mentioned.length
   const pem = (scan.per_engine_metrics ?? []).find(e => (e.platform || '').toLowerCase() === eng)
 
+  // Brand universe = own brand + every brand the aggregate knows about.
+  // CRITICAL: auto-discovered competitors (brands the user never configured)
+  // live ONLY in scan.competitor_comparison — the backend's discovery pass
+  // (_enrich_with_discovered_brands) substring-matches them against response_text
+  // and never writes them back into per-mention competitors_mentioned. If we
+  // counted from competitors_mentioned alone, a single-engine plan's per-engine
+  // slice would collapse to just the own brand while "All Models" shows the full
+  // ranking — the exact mismatch this guards against. Mirror the backend: count a
+  // competitor as present in a mention if it's tagged in competitors_mentioned OR
+  // its name appears in that mention's response_text (case-insensitive).
+  const competitorAppearances = (name: string): number => {
+    const lc = name.toLowerCase()
+    return mentions.filter(m =>
+      (m.competitors_mentioned ?? []).some(c => c.toLowerCase() === lc) ||
+      (m.response_text ?? '').toLowerCase().includes(lc),
+    ).length
+  }
+  const ownLc = scan.brand_name.toLowerCase()
+  const universe = new Set<string>(
+    (scan.competitor_comparison ?? [])
+      .map(c => c.name)
+      .filter(n => n.toLowerCase() !== ownLc),
+  )
+  for (const m of mentions) for (const c of (m.competitors_mentioned ?? [])) {
+    if (c.toLowerCase() !== ownLc) universe.add(c)
+  }
+
   // Count-based share of voice: own brand vs each competitor's appearances
   const counts: Record<string, number> = {}
   if (found > 0) counts[scan.brand_name] = found
-  for (const m of mentions) for (const c of (m.competitors_mentioned ?? [])) counts[c] = (counts[c] ?? 0) + 1
+  for (const name of Array.from(universe)) {
+    const c = competitorAppearances(name)
+    if (c > 0) counts[name] = c
+  }
   const totalCounts = Object.values(counts).reduce((a, b) => a + b, 0)
   const share_of_voice: Record<string, number> = {}
   for (const [b, c] of Object.entries(counts)) share_of_voice[b] = totalCounts ? Math.round(c / totalCounts * 1000) / 10 : 0
@@ -76,8 +106,7 @@ function sliceScanByEngine(scan: MonitorScanResult, engine: string): MonitorScan
   const names = new Set<string>([scan.brand_name, ...Object.keys(counts)])
   const competitor_comparison = Array.from(names).map(name => {
     const isOwn = name.toLowerCase() === scan.brand_name.toLowerCase()
-    const appearances = isOwn ? found
-      : mentions.filter(m => (m.competitors_mentioned ?? []).some(c => c.toLowerCase() === name.toLowerCase())).length
+    const appearances = isOwn ? found : competitorAppearances(name)
     const agg = aggComp.get(name.toLowerCase())
     const sents = isOwn ? mentioned.map(m => m.sentiment_score) : []
     const poss = isOwn ? mentioned.map(m => m.position_score) : []

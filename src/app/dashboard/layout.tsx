@@ -19,7 +19,7 @@ const SIDEBAR_KEY = 'sidebar_expanded'
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { isLoading, isAuthenticated, role, user } = useAuth()
   const { lang } = useLanguage()
-  const [expandedPref, setExpandedPref] = useState(false)
+  const [expandedPref, setExpandedPref] = useState(true)
   const [viewportCollapsed, setViewportCollapsed] = useState(false)
   const [hoverExpanded, setHoverExpanded] = useState(false)
   const expanded = expandedPref && !viewportCollapsed
@@ -40,7 +40,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     try {
       const saved = localStorage.getItem(SIDEBAR_KEY)
-      if (saved === 'true') setExpandedPref(true)
+      if (saved !== null) setExpandedPref(saved === 'true')
     } catch {}
 
     const handler = () => {
