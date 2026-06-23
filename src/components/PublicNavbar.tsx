@@ -14,7 +14,6 @@ const SOLUTIONS = [
   { label: 'Analysis',               href: '/dashboard/analysis' },
   { label: 'Agent Audit',            href: '/dashboard/geo-audit' },
   { label: 'Brand Hub',              href: '/dashboard/brand-hub' },
-  { label: 'GA4 Attribution',        href: '/dashboard/ga4-attribution' },
 ]
 
 const FREE_TOOLS = [

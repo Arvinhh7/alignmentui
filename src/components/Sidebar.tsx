@@ -207,7 +207,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         { href: '/dashboard/brand-hub',        icon: Database,   labelKey: 'brandNav',           permissionKey: 'brand-hub' },
         // Universal growth feature — no permissionKey, so every role sees it.
         { href: '/dashboard/refer',            icon: Gift,       labelKey: 'Refer & Earn' as never, isNew: true },
-        { href: '/dashboard/ga4-attribution',  icon: LineChart,  labelKey: 'GA4 Attribution' as never, permissionKey: 'ga4-attribution', sectionLabel: 'Integrations' },
+        { href: '/dashboard/ga4-attribution',  icon: LineChart,  labelKey: 'GA4 Attribution' as never, disabled: true, disabledLabel: 'Coming soon', sectionLabel: 'Integrations' },
         { href: '/dashboard/mcp-integration',  icon: Cpu,        labelKey: 'mcpIntegrationNav', isBeta: true, disabled: true, disabledLabel: 'Coming soon' },
       ],
     },

@@ -98,12 +98,12 @@ export const LAUNCH_VISIBLE_FEATURES = new Set<FeatureKey>([
   'geo-audit',
   'geo-optimization',
   'brand-hub',
-  'ga4-attribution',
   'prompts',
 ])
 
 export const LAUNCH_HIDDEN_FEATURES = new Set<FeatureKey>([
   'ads',
+  'ga4-attribution',
   'gci',
   'geo-content',
   'geo-distribution',
