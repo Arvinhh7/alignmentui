@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import type { ElementType, ReactNode } from 'react'
 import { useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import {
   ArrowRight,
   BookOpen,
@@ -40,13 +41,14 @@ function SectionCard({ title, subtitle, icon: Icon, iconColor, children }: {
 
 function BrandHubContent() {
   const ctx = useUnified()
-  const { customerHydrating, isProfileComplete, setShowConfig, showConfig } = ctx
+  const { customerHydrating, isResearchReady, setShowConfig, showConfig } = ctx
+  const searchParams = useSearchParams()
 
+  // Open the form when arriving from the tour (?setup=1) and profile is already complete
   useEffect(() => {
-    if (!customerHydrating && !isProfileComplete && !showConfig) {
-      setShowConfig(true)
-    }
-  }, [customerHydrating, isProfileComplete, setShowConfig, showConfig])
+    if (customerHydrating) return
+    if (searchParams.get('setup') === '1' && !showConfig) setShowConfig(true)
+  }, [customerHydrating, showConfig, setShowConfig, searchParams])
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -70,9 +72,13 @@ function BrandHubContent() {
         <div className="space-y-6">
           {/* Single readiness indicator lives on the Brand Profile card itself
               (BrandSetupPanel) — no separate banner, so there's one % of truth. */}
-          <BrandSetupPanel forceOpen />
+          {/* forceOpen when any of the 6 research fields is missing — ensures
+              the form stays expanded until keywords/audience/one_liner are filled.
+              isProfileComplete (3 fields) is not enough: a new user has brand/domain/
+              product_space from onboarding but still needs these 3 more. */}
+          <BrandSetupPanel forceOpen={!ctx.isResearchReady} />
 
-          {ctx.isProfileComplete && (
+          {ctx.isResearchReady && (
             <div className="rounded-2xl border border-divider-light bg-surface p-5">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
