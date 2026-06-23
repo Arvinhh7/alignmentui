@@ -153,7 +153,14 @@ export function CitationsTab() {
                                 alt=""
                               />
                               <Globe className="w-4 h-4 text-ink-3 flex-shrink-0 hidden" />
-                              <span className="text-sm font-medium text-ink truncate">{d.domain}</span>
+                              <a
+                                href={`https://${d.domain}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-sm font-medium text-ink truncate hover:text-sage hover:underline underline-offset-2 transition-colors"
+                              >
+                                {d.domain}
+                              </a>
                             </div>
                             {typeInfo && (
                               <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ml-2 ${typeInfo.color}`}>
@@ -240,7 +247,14 @@ export function CitationsTab() {
                           alt=""
                         />
                         <Globe className="w-4 h-4 text-ink-3 flex-shrink-0 hidden" />
-                        <span className="text-ink font-medium">{String(row.domain)}</span>
+                        <a
+                          href={`https://${String(row.domain)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-ink font-medium hover:text-sage hover:underline underline-offset-2 transition-colors"
+                        >
+                          {String(row.domain)}
+                        </a>
                       </div>
                     ),
                   },
