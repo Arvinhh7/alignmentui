@@ -14,8 +14,6 @@ import { useScrollRestoration } from '@/hooks/useScrollRestoration'
 import DashboardGlobalSearch from '@/components/DashboardGlobalSearch'
 import { ProductTour } from '@/components/tour/ProductTour'
 
-const SIDEBAR_KEY = 'sidebar_expanded'
-
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { isLoading, isAuthenticated, role, user } = useAuth()
   const { lang } = useLanguage()
@@ -36,19 +34,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     role,
   )
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(SIDEBAR_KEY)
-      if (saved !== null) setExpandedPref(saved === 'true')
-    } catch {}
-
-    const handler = () => {
-      try { setExpandedPref(localStorage.getItem(SIDEBAR_KEY) === 'true') } catch {}
-    }
-    const interval = setInterval(handler, 200)
-    window.addEventListener('storage', handler)
-    return () => { clearInterval(interval); window.removeEventListener('storage', handler) }
-  }, [])
+  // Sidebar is permanently expanded; no localStorage restore needed.
 
   useEffect(() => {
     const handler = (event: Event) => {
