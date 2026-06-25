@@ -1,79 +1,129 @@
-# Alignment AI - GEO Platform Website
+# Alignment AI — GEO Platform Frontend
 
-基于 Figma 设计稿创建的 Alignment AI 官网仪表板。
+Next.js 14 frontend for the Alignment AI GEO Platform (`alignmenttech.ai`).
 
-## 📁 项目结构
-
-```
-alignment-website/
-├── src/
-│   ├── app/
-│   │   ├── page.tsx                        # 登录页面
-│   │   ├── layout.tsx                      # 根布局
-│   │   ├── globals.css                     # 全局样式
-│   │   └── dashboard/
-│   │       ├── layout.tsx                  # 仪表板布局
-│   │       ├── signal-intake/page.tsx      # AI Signal Intake 页面
-│   │       ├── path-engine/page.tsx        # Path Decision Engine 页面
-│   │       └── execution/page.tsx          # Multi-Agent Execution 页面
-│   └── components/
-│       ├── Sidebar.tsx                     # 左侧导航栏
-│       └── Header.tsx                      # 顶部状态栏
-├── package.json
-├── tailwind.config.ts
-├── tsconfig.json
-└── next.config.js
-```
-
-## 🚀 快速开始
-
-### 1. 安装依赖
+## Quick Start
 
 ```bash
-cd alignment-website
 npm install
+cp env.example.txt .env.local   # fill in your values
+npm run dev                      # http://localhost:3000
 ```
 
-### 2. 启动开发服务器
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_API_URL` | Backend API (prod: `https://api.alignmenttech.ai`) |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── layout.tsx                    # Root layout
+│   ├── page.tsx                      # Landing page
+│   ├── login/                        # Auth: login
+│   ├── signup/                       # Auth: signup
+│   ├── onboarding/                   # New user onboarding (3-step)
+│   ├── pricing/                      # Pricing page
+│   ├── unauthorized/                 # Paywall / no subscription
+│   │
+│   ├── dashboard/                    # Main product (auth-gated)
+│   │   ├── layout.tsx                # Sidebar + top bar shell
+│   │   ├── page.tsx                  # /dashboard redirect
+│   │   │
+│   │   ├── analysis/                 # INSIGHTS: AI visibility overview
+│   │   ├── geo-monitor/              # INSIGHTS: Brand monitoring
+│   │   │   ├── page.tsx
+│   │   │   └── components/
+│   │   │       ├── shared/
+│   │   │       │   ├── ChartComponents.tsx   # ECharts trend charts
+│   │   │       │   └── MentionCard.tsx
+│   │   │       └── tabs/             # VisibilityTab, CompetitorsTab, PromptsTab ...
+│   │   ├── explore/                  # INSIGHTS: Market explore (beta)
+│   │   ├── sources/                  # INSIGHTS: Source domains
+│   │   ├── ai-search/                # INSIGHTS: AI research (new)
+│   │   ├── shopping/                 # INSIGHTS: Shopping signals (new)
+│   │   │
+│   │   ├── geo-audit/                # ACTIONS: GEO audit
+│   │   ├── geo-optimization/         # ACTIONS: Content optimization
+│   │   ├── geo-content/              # ACTIONS: Content generation
+│   │   ├── geo-distribution/         # ACTIONS: Distribution
+│   │   ├── prompts/                  # ACTIONS: Prompt management
+│   │   │
+│   │   ├── brand-hub/                # ASSISTANT: Brand profile
+│   │   ├── settings/                 # ASSISTANT: Account settings
+│   │   ├── refer/                    # ASSISTANT: Refer & earn
+│   │   │
+│   │   ├── visibility-proxy/         # Cloudflare Worker proxy management
+│   │   ├── agentic-commerce/         # Agentic Commerce module
+│   │   ├── ga4-attribution/          # GA4 Attribution (coming soon)
+│   │   │
+│   │   └── admin/                    # Admin-only
+│   │       ├── customers/            # Customer management
+│   │       ├── team/                 # Team / staff access
+│   │       └── domain-checker/
+│   │
+│   ├── ai-visibility-check/          # Public: free GEO check tool
+│   ├── blog/
+│   ├── docs/
+│   ├── roi-simulator/
+│   └── ...
+│
+├── components/
+│   ├── Sidebar.tsx                   # Left nav (collapse/expand)
+│   ├── DashboardGlobalSearch.tsx     # Cmd+K search
+│   ├── FeatureGate.tsx               # Permission-gated wrapper
+│   ├── EChartsWorldMap.tsx           # World map (ECharts)
+│   ├── SidebarCustomerSwitcher.tsx   # Admin customer switcher
+│   ├── SubscriptionBanner.tsx        # Plan upgrade banner
+│   ├── Toast.tsx                     # Toast notifications
+│   ├── tour/ProductTour.tsx          # Onboarding product tour
+│   └── ...
+│
+├── hooks/
+│   ├── useAuth.ts                    # Auth + role + permissions
+│   └── useSubscription.ts            # Plan access check
+│
+└── lib/
+    ├── api.ts                        # API client
+    ├── supabase.ts                   # Supabase client
+    └── LanguageContext.tsx           # i18n (zh/en)
+```
+
+## Key Conventions
+
+- **Tailwind** for all styling; design tokens in `tailwind.config.ts`
+- **i18n**: every new UI string needs both `zh` and `en` translations
+- **Sidebar** collapse state persisted in `localStorage` (`sidebar_expanded`)
+- **Charts**: use ECharts via `echarts-for-react` tree-shaking pattern (see `ChartComponents.tsx`)
+- **Auth roles**: `admin` / `staff` / `user` / `demo` — use `hasFeatureAccess()` for feature gates, never `role === 'admin'`
+
+## Branch Workflow (Intern)
+
+1. Make UI changes on this branch (`intern/ui-redesign`)
+2. `npm run dev` to preview locally — connects to production API (read-only)
+3. Open a PR for UI review
+4. After approval, changes will be merged into `alignment-workspace`
+
+## Commands
 
 ```bash
-npm run dev
+npm run dev          # dev server
+npm run build        # production build
+tsc --noEmit         # type-check (run before committing)
+next lint
 ```
 
-访问 http://localhost:3000 查看网站
+## Tech Stack
 
-### 3. 构建生产版本
-
-```bash
-npm run build
-```
-
-构建产物在 `out/` 文件夹中，可直接上传到 Cloudflare Pages。
-
-## 📄 页面说明
-
-| 页面 | 路径 | 说明 |
-|------|------|------|
-| 登录页 | `/` | 用户登录界面 |
-| AI Signal Intake | `/dashboard/signal-intake` | AI平台偏好分析、品牌存在监控 |
-| Path Decision Engine | `/dashboard/path-engine` | 候选路径评分、最优路径选择 |
-| Multi-Agent Execution | `/dashboard/execution` | 多代理管道、执行日志 |
-
-## 🎨 技术栈
-
-- **Framework**: Next.js 14
-- **Styling**: Tailwind CSS
+- **Framework**: Next.js 14 (static export via `next.config.js`)
+- **Styling**: Tailwind CSS + CSS custom properties (design tokens)
 - **Language**: TypeScript
+- **Charts**: ECharts 6 via echarts-for-react
 - **Icons**: Lucide React
-
-## ☁️ 部署到 Cloudflare Pages
-
-1. 运行 `npm run build`
-2. 进入 Cloudflare Dashboard → Workers & Pages
-3. 选择您的 `alignmenttech` 项目
-4. 上传 `out/` 文件夹
-5. 部署完成！
-
-## 📝 License
-
-© 2026 Alignment AI. All rights reserved.
+- **Auth**: Supabase Auth
+- **DB**: Supabase (PostgreSQL)
