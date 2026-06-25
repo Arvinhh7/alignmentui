@@ -199,26 +199,10 @@ export function useBrandMutations() {
     }
   }, []);
 
-  const scanBrand = useCallback(async (brandId: string): Promise<ScanResult | null> => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await api.scanBrand(brandId);
-      if (response.error) {
-        setError(response.error);
-        return null;
-      }
-      return response.data;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   return {
     createBrand,
     updateBrand,
     deleteBrand,
-    scanBrand,
     isLoading,
     error,
   };

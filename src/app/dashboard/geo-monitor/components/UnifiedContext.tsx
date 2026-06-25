@@ -39,11 +39,14 @@ import {
 import { formatDate } from './shared/ChartComponents'
 import { sliceScanByEngine } from './shared/sliceScanByEngine'
 
+// Keep in sync with backend PLAN_LIMITS[*].prompts_tracked_daily
+// (stripe_service.py). Pro is 250 — NOT 300; the old 300 let the quota bar
+// invite a Pro user past prompt #251, where the backend silently 402s.
 const PLAN_PROMPT_LIMITS: Record<string, number> = {
   trial: 50,
   starter: 50,
   standard: 100,
-  pro: 300,
+  pro: 250,
   enterprise: -1,
   growth: 100,
   admin: -1,

@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { Tag, Plus, Edit2, Trash2, Save, X, Download, Loader2, Square, CheckCircle, AlertCircle, Filter, Search, StopCircle, PauseCircle, PlayCircle } from 'lucide-react'
 import { useUnified } from '../UnifiedContext'
 import { CATEGORY_LABEL_MAP, CATEGORY_COLORS, INTENT_COLORS, autoClassify } from '../shared/constants'
+import PromptDetailDrawer from '../PromptDetailDrawer'
 
 const COUNTRY_LABELS: Record<string, string> = {
   'united states': 'US',
@@ -91,6 +92,8 @@ function promptStatus(prompt: { is_active: boolean; scan_count?: number | null; 
 
 export function PromptsTab() {
   const ctx = useUnified()
+  // Step 1: which prompt's drill-down dashboard is open (null = closed).
+  const [detailPromptId, setDetailPromptId] = useState<string | null>(null)
   const quotaReached = !ctx.promptQuota.isUnlimited && ctx.promptQuota.activeCount >= ctx.promptQuota.limit
   const totalPromptCount = ctx.prompts.length
   const quotaLabel = ctx.promptQuota.isUnlimited
@@ -549,11 +552,17 @@ export function PromptsTab() {
                         </button>
                       </td>
 
-                      {/* Prompt */}
+                      {/* Prompt — click to open the per-prompt dashboard */}
                       <td className="px-4 py-3 text-sm text-ink min-w-[320px] max-w-[520px]">
-                        <span title={prompt.template}>
+                        <button
+                          type="button"
+                          onClick={() => ctx.activeCustomerId && setDetailPromptId(prompt.id)}
+                          disabled={!ctx.activeCustomerId}
+                          title={ctx.activeCustomerId ? prompt.template : 'Select a customer to view prompt detail'}
+                          className="text-left hover:text-sage hover:underline underline-offset-2 transition-colors disabled:hover:text-ink disabled:hover:no-underline disabled:cursor-default"
+                        >
                           {prompt.template.length > 96 ? prompt.template.slice(0, 96) + '...' : prompt.template}
-                        </span>
+                        </button>
                       </td>
 
                       {/* Intent */}
@@ -662,6 +671,15 @@ export function PromptsTab() {
           </div>
         )}
       </div>
+
+      {/* Step 1: per-prompt drill-down dashboard */}
+      {detailPromptId && ctx.activeCustomerId && (
+        <PromptDetailDrawer
+          promptId={detailPromptId}
+          customerId={ctx.activeCustomerId}
+          onClose={() => setDetailPromptId(null)}
+        />
+      )}
     </div>
   )
 }

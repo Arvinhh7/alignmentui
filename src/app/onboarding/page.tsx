@@ -304,25 +304,40 @@ export default function OnboardingPage() {
       }
     } catch {}
 
-    // ── Seed 4 default prompts (2 branded + 2 non-branded) and run ONE
-    //    ChatGPT-only scan so the customer lands on a populated Analysis view.
-    //    All best-effort: any failure still completes onboarding gracefully. ──
+    // ── Seed 4 default prompts (2 branded + 2 non-branded) and run ONE first
+    //    scan so the customer lands on a POPULATED Analysis view. We must not
+    //    complete onboarding with zero prompts: a swallowed failure here used to
+    //    still flip onboarding_completed and redirect, stranding the user on a
+    //    permanently-blank Analysis they could never re-trigger. So we verify
+    //    how many prompts actually persisted and gate completion on it. ──
+    let persistedPromptCount = 0
     try {
       if (user?.id && customerId) {
         setSetupMsg('Designing your first 4 monitoring prompts…')
         const res = await api.onboardingStarterPrompts({ brand_name: bn, domain: du, country: ct })
         const prompts = (res.data?.prompts ?? []).filter(p => p.prompt_text?.trim())
+        let createdOk = 0
         for (const p of prompts) {
           try {
-            await api.createMonitorPrompt({
+            const created = await api.createMonitorPrompt({
               template: p.prompt_text.trim(),
               category: p.intent,
               customer_id: customerId,
             })
+            if (created.data?.id) createdOk++
           } catch { /* dedup / limit — skip */ }
         }
+        // Authoritative count = what's actually in the DB for this customer
+        // (robust to dedup and to onboarding being re-run). Fall back to the
+        // create count if the verification read itself fails, so a transient
+        // network blip on the read doesn't wrongly block a successful setup.
+        persistedPromptCount = createdOk
+        try {
+          const after = await api.getMonitorPrompts(false, customerId)
+          if (typeof after.data?.length === 'number') persistedPromptCount = after.data.length
+        } catch { /* keep createdOk fallback */ }
 
-        if (prompts.length > 0) {
+        if (persistedPromptCount > 0) {
           setSetupMsg('Analyzing how AI engines talk about your brand…')
           setScanPct(8)
           try {
@@ -338,10 +353,20 @@ export default function OnboardingPage() {
             )
             const jobId = job.data?.job_id
             if (jobId) await pollScan(jobId)
-          } catch { /* scan unavailable — land on empty Analysis, user can rescan */ }
+          } catch { /* scan failed but prompts exist — Analysis can rescan */ }
         }
       }
-    } catch { /* non-fatal */ }
+    } catch { /* non-fatal — handled by the zero-prompt guard below */ }
+
+    // Guard: never finish onboarding without at least one persisted prompt.
+    // Leave onboarding_completed unset and let the user retry, rather than drop
+    // them on a blank dashboard with no way back into this flow.
+    if (persistedPromptCount === 0) {
+      setCompletionError('We could not set up your monitoring prompts. Please try again.')
+      setIsCompleting(false)
+      setSetupMsg('')
+      return
+    }
 
     localStorage.setItem(ONBOARDING_DONE_KEY, 'true')
     try {

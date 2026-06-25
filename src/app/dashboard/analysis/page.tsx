@@ -54,12 +54,21 @@ function AnalysisContent() {
     admin:      ['chatgpt', 'perplexity', 'ai_overviews', 'gemini', 'claude'],
   }
   const planEngines = PLAN_ENGINE_ALLOWLIST[normalizedPlan] ?? PLAN_ENGINE_ALLOWLIST['starter']
+  // Prefer the backend's authoritative engine set (GET /api/monitor/engines →
+  // ctx.availableEngines) — it is already intersected with the plan AND the
+  // engines actually configured on the server (e.g. SERPAPI_KEY present for
+  // Google AI Overview). This removes the hardcoded mirror that drifted from
+  // PLAN_LIMITS and stops the AI-Overview pill showing enabled when SerpAPI is
+  // not configured. The static allowlist is only a fallback before /engines
+  // resolves (availableEngines defaults to ['chatgpt']).
+  const backendEngines = (ctx.availableEngines ?? []).map(e => e.toLowerCase())
+  const resolvedEngines = backendEngines.length > 0 ? backendEngines : planEngines
   // 'all' = aggregate across every engine that ran (the default). Specific
   // engines re-slice the Overview; locked engines show an upgrade prompt.
   const allowedModels = useMemo(
-    () => ['all', ...planEngines],
+    () => ['all', ...resolvedEngines],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [normalizedPlan],
+    [resolvedEngines.join(',')],
   )
 
   // Default the Analysis view to the aggregate ('all') on each open.
@@ -114,10 +123,17 @@ function AnalysisContent() {
   // If that engine wasn't in the latest scan there's nothing to show, so render
   // an explicit empty state instead. 'all' (aggregate) is never blocked.
   const selectedModel = ANALYSIS_MODELS.find(m => m.key === filterModel)
+  // When the scan was read back via the compact R2-fallback path, engines_used
+  // collapses to ['all'] — we genuinely don't know which engines ran. Treat that
+  // (and an empty list) as "engines unknown" and DON'T block: falsely telling a
+  // user "No ChatGPT data yet" for an engine that definitely ran is worse than
+  // falling through to the aggregate slice.
+  const enginesUnknown =
+    latestEngines.length === 0 || (latestEngines.length === 1 && latestEngines[0] === 'all')
   // Only block when a SPECIFIC engine is selected, we have a scan, we know its
   // engines, and the selected engine is genuinely absent.
   const modelHasNoData =
-    filterModel !== 'all' && !!ctx.scanResult && latestEngines.length > 0 && !latestEngines.includes(filterModel)
+    filterModel !== 'all' && !!ctx.scanResult && !enginesUnknown && !latestEngines.includes(filterModel)
   const firstEngineWithData = ANALYSIS_MODELS.find(m => latestEngines.includes(m.key))?.key ?? 'chatgpt'
 
   return (
@@ -217,7 +233,11 @@ function AnalysisContent() {
                   type="button"
                   disabled={!enabled}
                   onClick={() => enabled && setFilterModel(model.key)}
-                  title={enabled ? `View ${model.label} metrics` : `Upgrade to Pro to unlock ${model.label}.`}
+                  title={enabled
+                    ? `View ${model.label} metrics`
+                    : model.key === 'claude'
+                      ? 'Upgrade to Pro to unlock Claude.'
+                      : `Upgrade your plan to unlock ${model.label}.`}
                   className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold transition-all ${
                     selected
                       ? 'border-ink bg-ink text-ink-inv'

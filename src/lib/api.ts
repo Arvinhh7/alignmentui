@@ -605,6 +605,50 @@ export interface MultiBrandTrendData {
   scan_count: number;
 }
 
+// Step 1: per-prompt drill-down dashboard
+export interface PromptDetailTrendPoint {
+  date: string;
+  visibility_score: number;
+  mentioned: boolean;
+  engines_used: string[];
+}
+export interface PromptDetailEngineRow {
+  platform: string;
+  mentioned: boolean;
+  sentiment: string;
+  sentiment_score: number;
+  position: number | null;
+  ordinal_rank: number | null;
+  response_snippet: string;
+  cited_urls: string[];
+}
+export interface PromptDetailSource {
+  domain: string;
+  url_count: number;
+  urls: string[];
+}
+export interface PromptDetailBrandRank {
+  name: string;
+  mentions_count: number;
+  is_own_brand: boolean;
+}
+export interface PromptDetail {
+  prompt_id: string;
+  prompt_text: string;
+  template: string;
+  category: string;
+  latest_scanned_at: string | null;
+  visibility_score: number;
+  mentioned: boolean;
+  sentiment_score: number;
+  position_score: number;
+  scan_count: number;
+  trend: PromptDetailTrendPoint[];
+  engines: PromptDetailEngineRow[];
+  sources: PromptDetailSource[];
+  ranking: PromptDetailBrandRank[];
+}
+
 // Phase 5: Per-engine metrics
 export interface EngineMetrics {
   platform: string;
@@ -815,28 +859,6 @@ export interface ScanJobStatus {
     scanned_at: string;
   } | null;
 }
-// Warehouse summary — pre-aggregated, no scan needed ──────────────────────────
-export interface WarehouseSummary {
-  has_data: boolean
-  history: Array<{
-    scan_id: string
-    date: string
-    visibility_score: number
-    mentions_found: number
-    total_prompts: number
-    citation_count: number
-    positive_pct: number
-    engines_used?: string[]
-  }>
-  latest_metrics: {
-    visibility_score: number
-    avg_rank: number | null
-    last_day: string
-  } | null
-  last_refreshed: string | null
-}
-// ─────────────────────────────────────────────────────────────────────────────
-
 export interface MonitorScanResult {
   scan_id: string;
   brand_name: string;
@@ -1603,12 +1625,6 @@ class APIClient {
     });
   }
 
-  async scanBrand(brandId: string) {
-    return this.request<ScanResult>(`/api/brands/${brandId}/scan`, {
-      method: 'POST',
-    });
-  }
-
   async getBrandStats(brandId: string) {
     return this.request<BrandStats>(`/api/brands/${brandId}/stats`);
   }
@@ -1640,11 +1656,6 @@ class APIClient {
 
   async getRecentMentions(brandId: string, limit: number = 10) {
     return this.request<any[]>(`/api/mentions/brand/${brandId}/recent?limit=${limit}`);
-  }
-
-  // Prompt endpoints
-  async getPrompts() {
-    return this.request<any[]>('/api/prompts');
   }
 
   // GEO Audit endpoints
@@ -1767,14 +1778,6 @@ class APIClient {
     return this.request<ScanJobStatus>(`/api/monitor/scan/${encodeURIComponent(jobId)}`);
   }
 
-  // ── Warehouse summary — reads pre-aggregated data, 0 scan cost ──────────────
-  async getWarehouseSummary(brandName: string, days = 30) {
-    const params = new URLSearchParams()
-    params.set('brand_name', brandName)
-    params.set('days', String(days))
-    return this.request<WarehouseSummary>(`/api/monitor/warehouse/summary?${params}`)
-  }
-
   async runAEOScore(url: string, userId?: string) {
     const params = new URLSearchParams();
     if (userId) params.set('user_id', userId);
@@ -1837,6 +1840,12 @@ class APIClient {
     // keeps the aggregate.
     if (engine && engine !== 'all') params.set('engine', engine);
     return this.request<MultiBrandTrendData>(`/api/monitor/multi-brand-trends?${params.toString()}`);
+  }
+
+  // Step 1: single-prompt dashboard (trend + per-engine chats + sources + ranking)
+  async getPromptDetail(promptId: string, customerId: string) {
+    const params = new URLSearchParams({ customer_id: customerId });
+    return this.request<PromptDetail>(`/api/monitor/prompts/${encodeURIComponent(promptId)}/detail?${params.toString()}`);
   }
 
   // ─── Phase 4.3: Advanced Analysis ────────────────────
