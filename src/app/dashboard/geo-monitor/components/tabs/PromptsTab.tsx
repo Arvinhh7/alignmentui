@@ -677,6 +677,8 @@ export function PromptsTab() {
         <PromptDetailDrawer
           promptId={detailPromptId}
           customerId={ctx.activeCustomerId}
+          userId={ctx.userId ?? undefined}
+          brandName={ctx.brandConfig.brand_name}
           onClose={() => setDetailPromptId(null)}
         />
       )}

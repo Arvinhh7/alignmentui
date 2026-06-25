@@ -631,6 +631,7 @@ export interface PromptDetailBrandRank {
   name: string;
   mentions_count: number;
   is_own_brand: boolean;
+  domain: string;
 }
 export interface PromptDetail {
   prompt_id: string;
@@ -1843,8 +1844,9 @@ class APIClient {
   }
 
   // Step 1: single-prompt dashboard (trend + per-engine chats + sources + ranking)
-  async getPromptDetail(promptId: string, customerId: string) {
+  async getPromptDetail(promptId: string, customerId: string, userId?: string) {
     const params = new URLSearchParams({ customer_id: customerId });
+    if (userId) params.set('user_id', userId);
     return this.request<PromptDetail>(`/api/monitor/prompts/${encodeURIComponent(promptId)}/detail?${params.toString()}`);
   }
 

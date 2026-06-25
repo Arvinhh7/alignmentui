@@ -33,6 +33,23 @@ export const ACTIVE_CUSTOMER_KEY = 'alignment_monitor_active_customer'
 export const ACTIVE_CUSTOMER_EVENT = 'alignment:active-customer-changed'
 // Customer name cache: {customerId → {brand_name, domain}} — pre-fills header instantly on new tab
 export const CUSTOMER_CACHE_KEY = 'alignment_monitor_customer_cache'
+
+// ── AI engine display standard (logo + label) ────────────────────────────────
+// Single source of truth for how an engine is shown across the prompt/analysis
+// UI. Logos live in /public/logos. Use engineMeta(platform) everywhere so every
+// prompt-related surface renders engines identically (the house standard).
+export const ENGINE_META: Record<string, { label: string; logo: string }> = {
+  chatgpt:      { label: 'ChatGPT',            logo: '/logos/openai.png' },
+  perplexity:   { label: 'Perplexity',         logo: '/logos/perplexity.png' },
+  gemini:       { label: 'Gemini',             logo: '/logos/gemini.png' },
+  claude:       { label: 'Claude',             logo: '/logos/anthropic.png' },
+  ai_overviews: { label: 'Google AI Overview', logo: '/logos/google.png' },
+}
+
+export function engineMeta(platform?: string): { label: string; logo: string } {
+  const key = (platform || 'chatgpt').toLowerCase()
+  return ENGINE_META[key] ?? { label: platform || 'AI', logo: '/logos/openai.png' }
+}
 // Brand Profile confirmation map. Once a profile is saved for a
 // customer, modules consume it silently instead of expanding the setup form.
 export const CUSTOMER_PROFILE_CONFIRMED_KEY = 'alignment_customer_profile_confirmed'
