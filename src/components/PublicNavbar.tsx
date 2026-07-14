@@ -48,7 +48,7 @@ export default function PublicNavbar({ activeHref }: { activeHref?: string }) {
           {/* Logo */}
           <Link href="/" className="relative block h-11 w-36 overflow-hidden transition-opacity duration-200 hover:opacity-90">
             <img
-              src="/landing/alignment-logo-option-1-refined-crop.png"
+              src="/landing/alignment-logo-final.svg"
               alt="Alignment AI"
               width={188}
               height={148}

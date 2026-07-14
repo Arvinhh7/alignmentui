@@ -340,7 +340,7 @@ function LoginPageInner() {
       <div className="min-h-screen flex items-center justify-center bg-canvas px-6">
         <div className="w-full max-w-[400px] text-center">
           <Link href="/" className="inline-block mb-8 hover:opacity-80 transition-opacity">
-            <Image src="/logo.svg" alt="Alignment AI" width={140} height={47} className="object-contain mx-auto" priority />
+            <Image src="/landing/alignment-logo-final.svg" alt="Alignment AI" width={140} height={47} className="object-contain mx-auto" priority />
           </Link>
 
           <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-ink flex items-center justify-center shadow-lg">
@@ -403,7 +403,7 @@ function LoginPageInner() {
         <div className="relative z-10">
           <Link href="/" className="inline-flex items-center hover:opacity-80 transition-opacity">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-white.svg" alt="Alignment AI" width={160} height={53} className="object-contain" />
+            <img src="/landing/alignment-logo-final.svg" alt="Alignment AI" width={160} height={53} className="object-contain" />
           </Link>
         </div>
 
@@ -460,7 +460,7 @@ function LoginPageInner() {
       <div className="flex-1 flex flex-col bg-canvas min-h-screen">
         <div className="flex items-center justify-between px-6 py-4 sm:px-10">
           <Link href="/" className="lg:hidden hover:opacity-80 transition-opacity">
-            <Image src="/logo.svg" alt="Alignment AI" width={120} height={40} className="object-contain" priority />
+            <Image src="/landing/alignment-logo-final.svg" alt="Alignment AI" width={120} height={40} className="object-contain" priority />
           </Link>
           <div className="hidden lg:block" />
           <LanguageSwitch />

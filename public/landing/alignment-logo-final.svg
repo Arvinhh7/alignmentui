@@ -20,10 +20,27 @@
   <rect width="960" height="720" fill="#050607"/>
 
   <g filter="url(#softShadow)">
-    <path fill="url(#orangeMark)" fill-rule="evenodd" d="M568 64h68l216 496h-88l-58-136H589l28-66h61l-79-188-63 149-43-96L568 64Zm71 0 216 496h-8L631 64h8Z"/>
-    <path fill="url(#whiteMark)" fill-rule="evenodd" d="M367 64h66l210 496h-88l-48-116H336l-46 116H170L367 64Zm33 103-79 191h157L400 167Z"/>
-    <path fill="url(#whiteMark)" d="M439 318h54l136 242h-82l-62-119-58 119h-82l94-242Z"/>
-    <path fill="#050607" d="M353 358h126l-36 66H326l27-66Z"/>
+    <path
+      fill="url(#orangeMark)"
+      fill-rule="evenodd"
+      d="M568 64h68l216 496h-88l-58-136H589l28-66h61l-79-188-63 149-43-96L568 64Zm71 0 216 496h-8L631 64h8Z"
+    />
+
+    <path
+      fill="url(#whiteMark)"
+      fill-rule="evenodd"
+      d="M367 64h66l210 496h-88l-48-116H336l-46 116H170L367 64Zm33 103-79 191h157L400 167Z"
+    />
+
+    <path
+      fill="url(#whiteMark)"
+      d="M439 318h54l136 242h-82l-62-119-58 119h-82l94-242Z"
+    />
+
+    <path
+      fill="#050607"
+      d="M353 358h126l-36 66H326l27-66Z"
+    />
   </g>
 
   <g font-family="Inter, Arial, Helvetica, sans-serif" font-weight="800" font-size="94" letter-spacing="-4">

@@ -108,7 +108,7 @@ function LogoMark() {
   return (
     <span className="relative block h-16 w-44 overflow-hidden">
       <img
-        src="/landing/alignment-logo-option-1-refined-crop.png"
+        src="/landing/alignment-logo-final.svg"
         alt="Alignment AI"
         className="absolute left-0 top-1/2 h-16 w-auto max-w-none -translate-y-1/2 object-contain"
       />

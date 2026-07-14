@@ -80,7 +80,7 @@ export default function UnauthorizedPage() {
       <div className="min-h-screen bg-canvas flex flex-col">
         <nav className="px-6 py-4 sm:px-10">
           <Link href="/" className="inline-block hover:opacity-80 transition-opacity">
-            <Image src="/logo.svg" alt="Alignment AI" width={140} height={46} className="object-contain" priority />
+            <Image src="/landing/alignment-logo-final.svg" alt="Alignment AI" width={140} height={46} className="object-contain" priority />
           </Link>
         </nav>
         <div className="flex-1 flex items-center justify-center px-6 py-12">
@@ -107,7 +107,7 @@ export default function UnauthorizedPage() {
     <div className="min-h-screen bg-canvas flex flex-col">
       <nav className="px-6 py-4 sm:px-10">
         <Link href="/" className="inline-block hover:opacity-80 transition-opacity">
-          <Image src="/logo.svg" alt="Alignment AI" width={140} height={46} className="object-contain" priority />
+          <Image src="/landing/alignment-logo-final.svg" alt="Alignment AI" width={140} height={46} className="object-contain" priority />
         </Link>
       </nav>
 

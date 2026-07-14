@@ -24,7 +24,7 @@ export default function Logo({
   return (
     <div className={`flex items-center ${className}`}>
       <Image
-        src="/logo-white.svg"
+        src="/landing/alignment-logo-final.svg"
         alt="Alignment AI"
         width={width}
         height={height}
@@ -43,7 +43,7 @@ interface LogoIconProps {
 export function LogoIcon({ size = 40, className = '' }: LogoIconProps) {
   return (
     <Image
-      src="/logo-icon.png"
+      src="/landing/alignment-logo-final.svg"
       alt="Alignment AI"
       width={size}
       height={size}
@@ -62,7 +62,7 @@ interface LogoFullProps {
 export function LogoFull({ width = 180, height = 120, className = '' }: LogoFullProps) {
   return (
     <Image
-      src="/logo-white.svg"
+      src="/landing/alignment-logo-final.svg"
       alt="Alignment AI"
       width={width}
       height={height}

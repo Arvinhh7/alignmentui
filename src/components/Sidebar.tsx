@@ -336,7 +336,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
       <div className={`flex items-center h-14 border-b border-[#1B2028] ${displayExpanded ? 'px-4' : 'justify-center px-2'}`}>
         <Link href="/" onClick={handleNavClick} className="hover:opacity-80 transition-opacity flex items-center gap-2.5 overflow-hidden flex-1 min-w-0">
           <div className="w-8 h-8 rounded-lg bg-[rgba(243,107,43,0.10)] p-1 flex items-center justify-center flex-shrink-0 ring-1 ring-[rgba(243,107,43,0.18)]">
-            <Image src="/landing/alignment-logo-option-1-refined-crop.png" alt="Alignment AI" width={28} height={28} className="object-contain" priority />
+            <Image src="/landing/alignment-logo-final.svg" alt="Alignment AI" width={28} height={28} className="object-contain" priority />
           </div>
           {displayExpanded && (
             <span className="text-sm font-semibold text-ink whitespace-nowrap">Alignment AI</span>

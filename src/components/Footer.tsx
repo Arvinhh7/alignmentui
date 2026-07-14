@@ -14,7 +14,7 @@ export default function Footer() {
           <div className="md:col-span-1">
             <div className="relative mb-4 h-14 w-40 overflow-hidden">
               <img
-                src="/landing/alignment-logo-option-1-refined-crop.png"
+                src="/landing/alignment-logo-final.svg"
                 alt="Alignment AI"
                 width={188}
                 height={148}

@@ -120,7 +120,7 @@ function ResetPasswordInner() {
 
         <div className="relative z-10">
           <Link href="/" className="inline-block hover:opacity-80 transition-opacity">
-            <Image src="/logo.svg" alt="Alignment AI" width={160} height={53} className="object-contain" priority />
+            <Image src="/landing/alignment-logo-final.svg" alt="Alignment AI" width={160} height={53} className="object-contain" priority />
           </Link>
         </div>
 
@@ -144,7 +144,7 @@ function ResetPasswordInner() {
       <div className="flex-1 flex flex-col bg-canvas min-h-screen">
         <div className="flex items-center justify-between px-6 py-4 sm:px-10">
           <Link href="/" className="lg:hidden hover:opacity-80 transition-opacity">
-            <Image src="/logo.svg" alt="Alignment AI" width={120} height={40} className="object-contain" priority />
+            <Image src="/landing/alignment-logo-final.svg" alt="Alignment AI" width={120} height={40} className="object-contain" priority />
           </Link>
           <div />
         </div>
