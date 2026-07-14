@@ -324,16 +324,25 @@ function PricingPageInner() {
 
       <section className="bg-canvas px-6 pb-8 pt-28">
         <div className="mx-auto max-w-7xl text-center">
-          <div className="mb-10 inline-flex items-center gap-4 rounded-full border border-divider-light bg-surface p-1">
+          <div className="brand-eyebrow mx-auto mb-6">
+            Pricing & Access
+          </div>
+          <h1 className="mx-auto mb-5 max-w-4xl text-balance font-serif text-5xl font-normal leading-[1.02] text-white md:text-6xl">
+            Clear pricing for teams building durable AI visibility
+          </h1>
+          <p className="mx-auto mb-10 max-w-2xl text-base leading-7 text-[#c7c7c7] md:text-lg">
+            Choose a plan based on monitoring depth, platform coverage, and workflow complexity. The structure stays simple as usage grows.
+          </p>
+          <div className="mb-10 inline-flex items-center gap-4 rounded-full border border-[#202530] bg-[#0f1319] p-1">
             <button
               onClick={() => setIsYearly(false)}
-              className={`cursor-pointer rounded-full px-6 py-2 font-medium transition-all ${!isYearly ? 'bg-ink text-ink-inv' : 'text-ink-2 hover:text-ink'}`}
+              className={`cursor-pointer rounded-full px-6 py-2 font-medium transition-colors ${!isYearly ? 'bg-[#f0d8ca] text-[#15100d]' : 'text-[#8d97a6] hover:text-[#f0d8ca]'}`}
             >
               {lang === 'zh' ? '月付' : 'Monthly'}
             </button>
             <button
               onClick={() => setIsYearly(true)}
-              className={`cursor-pointer rounded-full px-6 py-2 font-medium transition-all ${isYearly ? 'bg-ink text-ink-inv' : 'text-ink-2 hover:text-ink'}`}
+              className={`cursor-pointer rounded-full px-6 py-2 font-medium transition-colors ${isYearly ? 'bg-[#f0d8ca] text-[#15100d]' : 'text-[#8d97a6] hover:text-[#f0d8ca]'}`}
             >
               {lang === 'zh' ? '年付' : 'Yearly'}
               <span className="ml-2 text-xs font-semibold text-sage">{lang === 'zh' ? '赠2个月' : '2 months free'}</span>

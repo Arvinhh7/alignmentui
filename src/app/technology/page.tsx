@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useEffect, useState, useRef } from 'react'
 import { useLanguage } from '@/lib/LanguageContext'
-import { LogoFull } from '@/components/Logo'
 import Footer from '@/components/Footer'
 import PublicNavbar from '@/components/PublicNavbar'
 
@@ -204,20 +203,18 @@ export default function TechnologyPage() {
 
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
           <div
-            className={`inline-flex items-center gap-2 px-4 py-2 bg-surface/80 backdrop-blur border border-divider-light/50 rounded-full shadow-soft mb-8 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+            className={`brand-eyebrow mb-8 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
           >
-            <svg className="w-4 h-4 text-red-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
             </svg>
-            <span className="text-sm text-ink-2 font-medium">AI Commerce Infrastructure</span>
+            <span>Platform Architecture</span>
           </div>
 
           <h1
-            className={`text-5xl md:text-6xl lg:text-7xl font-bold text-ink leading-[1.1] mb-6 transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+            className={`font-serif text-4xl font-normal leading-[1.02] text-white md:text-6xl lg:text-7xl mb-6 transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
           >
-            The Technology Behind
-            <br />
-            <span className="gradient-text">AI Commerce</span>
+            The Technology Behind AI Commerce
           </h1>
 
           <p
@@ -233,14 +230,14 @@ export default function TechnologyPage() {
         <div className="absolute inset-0 bg-dots opacity-20" />
         <div className="relative max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-ink rounded-full text-ink-inv text-sm font-medium mb-6">
+            <div className="brand-eyebrow mb-6">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
               Platform Architecture
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-ink mb-4">
-              Built on <span className="gradient-text">Three Layers</span>
+              Built on Three Layers
             </h2>
             <p className="text-lg text-ink-2 max-w-2xl mx-auto">
               Most tools stop at monitoring. Alignment connects market intelligence, visibility infrastructure, and agentic commerce protocols.
@@ -249,7 +246,7 @@ export default function TechnologyPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {/* Layer 1 — Visibility Infrastructure */}
-            <div className="bg-ink rounded-2xl p-8 relative overflow-hidden">
+            <div className="bg-[#111] border border-[#2a2a2a] p-8 relative overflow-hidden shadow-[0_24px_80px_rgba(0,0,0,0.32)]">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/[0.04] rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl pointer-events-none" />
               <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-6">
@@ -263,7 +260,7 @@ export default function TechnologyPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
                     </svg>
                   </div>
-                  <h3 className="text-2xl font-bold text-ink-inv">AI Market Intelligence</h3>
+                  <h3 className="text-2xl font-bold text-white">AI Market Intelligence</h3>
                 </div>
                 <p className="text-white/65 text-sm leading-relaxed mb-8">
                   Alignment observes how AI systems answer buyer questions, which sources they cite, which competitors they recommend, and which products appear in shopping-mode responses.
@@ -296,7 +293,7 @@ export default function TechnologyPage() {
                         {item.icon}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-ink-inv">{item.label}</p>
+                        <p className="text-sm font-medium text-white">{item.label}</p>
                         <p className="text-xs text-white/50 mt-0.5">{item.desc}</p>
                       </div>
                     </div>
@@ -363,12 +360,12 @@ export default function TechnologyPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border-2 border-[#E5B5A4] bg-[#FAF0EC] p-8 mb-8">
+          <div className="border border-[#2a2a2a] bg-[#111] p-8 mb-8 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
             <div className="flex flex-col lg:flex-row lg:items-start gap-6">
               <div className="lg:w-[280px]">
-                <span className="text-[10px] font-bold text-[#A33820] font-mono bg-white/60 px-2 py-1 rounded">LAYER 3</span>
-                <h3 className="mt-4 text-2xl font-bold text-ink">Agentic Commerce Protocol</h3>
-                <p className="mt-3 text-sm leading-relaxed text-ink-2">
+                <span className="border border-[#3a251d] bg-[#17100d] px-2 py-1 font-mono text-[10px] font-medium tracking-[0.16em] text-[#d89a80]">LAYER 3</span>
+                <h3 className="mt-4 text-2xl font-bold text-white">Agentic Commerce Protocol</h3>
+                <p className="mt-3 text-sm leading-relaxed text-[#b7b7b7]">
                   Brands expose a Product Agent once. Consumer agents query the Broker, receive ranked quotes, commit transactions, and send attribution back to the commerce graph.
                 </p>
               </div>
@@ -379,9 +376,9 @@ export default function TechnologyPage() {
                   ['Commit', 'The chosen quote becomes an auditable transaction'],
                   ['Measure', 'GMV, latency, failures, and broker rank are tracked'],
                 ].map(([title, desc]) => (
-                  <div key={title} className="rounded-xl border border-[#E5B5A4] bg-white/70 p-4">
-                    <div className="text-[12px] font-bold uppercase tracking-[0.14em] text-[#A33820]">{title}</div>
-                    <p className="mt-2 text-[12px] leading-relaxed text-ink-2">{desc}</p>
+                  <div key={title} className="border border-[#333] bg-[#151515] p-4">
+                    <div className="text-[12px] font-bold uppercase tracking-[0.14em] text-[#d89a80]">{title}</div>
+                    <p className="mt-2 text-[12px] leading-relaxed text-[#b7b7b7]">{desc}</p>
                   </div>
                 ))}
               </div>
@@ -406,7 +403,7 @@ export default function TechnologyPage() {
               Understanding the Shift
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-ink mb-4">
-              GEO is the <span className="gradient-text">First Layer</span>
+              GEO is the First Layer
             </h2>
             <p className="text-lg text-ink-2 max-w-2xl mx-auto">
               AI visibility is still the starting point. Modern brands need to connect visibility to recommendations, shopping surfaces, and agent transactions.
@@ -465,7 +462,7 @@ export default function TechnologyPage() {
               </div>
 
               {/* AI Commerce Card */}
-              <div className="bg-ink rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+              <div className="border border-[#2a2a2a] bg-[#111] p-6 text-white shadow-[0_24px_80px_rgba(0,0,0,0.32)] relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-4">
@@ -520,7 +517,7 @@ export default function TechnologyPage() {
               Our Framework
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-ink mb-4">
-              Our 5-Dimension <span className="gradient-text">Methodology</span>
+              Our 5-Dimension Methodology
             </h2>
             <p className="text-lg text-ink-2 max-w-2xl mx-auto">
               Every GEO audit and optimization is measured across five critical dimensions that determine how AI platforms perceive your content.
@@ -561,7 +558,7 @@ export default function TechnologyPage() {
               Academic Foundations
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-ink mb-4">
-              Research We <span className="gradient-text">Track</span>
+              Research We Track
             </h2>
             <p className="text-lg text-ink-2 max-w-2xl mx-auto">
               Our methodology is grounded in the latest academic research on generative AI search behavior and content optimization.
@@ -661,7 +658,7 @@ export default function TechnologyPage() {
               Data Infrastructure
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-ink mb-4">
-              Powered by <span className="gradient-text">Data</span>
+              Powered by Data
             </h2>
             <p className="text-lg text-ink-2 max-w-2xl mx-auto">
               Our research engine continuously ingests and processes data from the most authoritative sources in AI and GEO.
@@ -718,7 +715,7 @@ export default function TechnologyPage() {
             Ready to Optimize
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-ink mb-6">
-            See GEO in <span className="gradient-text">Action</span>
+            See GEO in Action
           </h2>
           <p className="text-lg text-ink-2 mb-10 max-w-2xl mx-auto">
             Run a free 5-dimension audit on your website and see exactly how AI platforms perceive your content today.

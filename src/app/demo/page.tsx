@@ -343,8 +343,12 @@ export default function DemoPage() {
     >
       {/* Logo + step indicator */}
       <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-8 py-5">
-        <div className="flex items-center gap-2">
-          <span className="text-white font-bold text-sm tracking-tight">Alignment AI</span>
+        <div className="flex items-center gap-3">
+          <img
+            src="/landing/alignment-logo-option-1-refined-crop.png"
+            alt="Alignment AI"
+            className="h-8 w-auto object-contain"
+          />
           <span
             className="text-xs px-2 py-0.5 rounded-full font-medium"
             style={{ background: 'rgba(167,139,250,0.15)', color: '#a78bfa', border: '1px solid rgba(167,139,250,0.3)' }}

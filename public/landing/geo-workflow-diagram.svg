@@ -1,0 +1,264 @@
+<svg width="1440" height="760" viewBox="0 0 1440 760" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">GEO Service Workflow</title>
+  <desc id="desc">A website-ready workflow diagram showing how brand input moves through GEO audit, AI visibility monitoring, scoring, recommendations, continuous tracking, and dashboard insights.</desc>
+  <defs>
+    <linearGradient id="surface" x1="0" y1="0" x2="1440" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B0D11"/>
+      <stop offset="0.52" stop-color="#08090C"/>
+      <stop offset="1" stop-color="#111318"/>
+    </linearGradient>
+    <linearGradient id="lineMain" x1="140" y1="380" x2="1260" y2="220" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F15A2B" stop-opacity="0.15"/>
+      <stop offset="0.46" stop-color="#F0D8CA" stop-opacity="0.86"/>
+      <stop offset="1" stop-color="#D9E5FF" stop-opacity="0.58"/>
+    </linearGradient>
+    <linearGradient id="lineBranch" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#596171" stop-opacity="0.2"/>
+      <stop offset="0.55" stop-color="#AEB8C8" stop-opacity="0.58"/>
+      <stop offset="1" stop-color="#F0D8CA" stop-opacity="0.42"/>
+    </linearGradient>
+    <linearGradient id="cardGlow" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#1A1F29"/>
+      <stop offset="1" stop-color="#0E1117"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(816 300) rotate(90) scale(310 620)">
+      <stop stop-color="#F15A2B" stop-opacity="0.18"/>
+      <stop offset="0.46" stop-color="#8EA5D8" stop-opacity="0.1"/>
+      <stop offset="1" stop-color="#0B0D11" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softShadow" x="-20%" y="-35%" width="140%" height="170%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="24" stdDeviation="24" flood-color="#000000" flood-opacity="0.36"/>
+    </filter>
+    <filter id="lineGlow" x="-20%" y="-80%" width="140%" height="260%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <marker id="arrowMain" markerWidth="13" markerHeight="13" refX="10" refY="6.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M2 2L10 6.5L2 11" stroke="#F0D8CA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arrowBranch" markerWidth="11" markerHeight="11" refX="8" refY="5.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M2 2L8 5.5L2 9" stroke="#8E97A6" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <style>
+      .label {
+        font: 600 18px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        fill: #F3F6FB;
+        letter-spacing: 0;
+      }
+      .small {
+        font: 500 12px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        fill: #8892A3;
+        letter-spacing: .09em;
+      }
+      .micro {
+        font: 500 11px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        fill: #778193;
+        letter-spacing: .02em;
+      }
+      .metric {
+        font: 700 22px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        fill: #F0D8CA;
+      }
+      .node {
+        fill: url(#cardGlow);
+        stroke: #252B36;
+        stroke-width: 1;
+        filter: url(#softShadow);
+      }
+      .node-hot {
+        stroke: rgba(241, 90, 43, .55);
+      }
+      .node-cool {
+        stroke: rgba(142, 165, 216, .48);
+      }
+      .branch {
+        stroke: url(#lineBranch);
+        stroke-width: 2;
+        marker-end: url(#arrowBranch);
+      }
+      .main {
+        stroke: url(#lineMain);
+        stroke-width: 2.8;
+        marker-end: url(#arrowMain);
+        filter: url(#lineGlow);
+      }
+      .pulse {
+        animation: pulse 2.8s ease-in-out infinite;
+      }
+      .data-flow {
+        stroke-dasharray: 9 12;
+        animation: dash 14s linear infinite;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .pulse,
+        .data-flow {
+          animation: none;
+        }
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: .55; }
+        50% { opacity: 1; }
+      }
+      @keyframes dash {
+        to { stroke-dashoffset: -210; }
+      }
+    </style>
+  </defs>
+
+  <rect width="1440" height="760" fill="url(#surface)"/>
+  <rect x="1" y="1" width="1438" height="758" stroke="#1E232C" stroke-width="2"/>
+  <circle cx="836" cy="294" r="426" fill="url(#halo)"/>
+  <path d="M78 140H1362" stroke="#FFFFFF" stroke-opacity="0.045"/>
+  <path d="M78 620H1362" stroke="#FFFFFF" stroke-opacity="0.045"/>
+  <path d="M140 96H1300" stroke="#FFFFFF" stroke-opacity="0.035" stroke-dasharray="2 14"/>
+  <path d="M140 664H1300" stroke="#FFFFFF" stroke-opacity="0.035" stroke-dasharray="2 14"/>
+
+  <text x="76" y="74" class="small">INTERNAL GEO PIPELINE</text>
+  <text x="76" y="106" class="label" style="font-size: 30px; font-weight: 500;">From brand input to monitored AI visibility</text>
+  <text x="1040" y="92" class="micro">audit/run/score/recommend/track</text>
+
+  <!-- Main workflow -->
+  <path class="main data-flow" d="M218 368 C270 368 280 336 330 336"/>
+  <path class="main data-flow" d="M482 336 C544 336 548 292 612 292"/>
+  <path class="main data-flow" d="M792 292 C854 292 850 338 912 338"/>
+  <path class="main data-flow" d="M1090 338 C1140 338 1148 274 1204 274"/>
+  <path class="main data-flow" d="M1316 274 C1342 274 1348 274 1364 274"/>
+
+  <!-- Branches -->
+  <path class="branch" d="M405 380 C418 430 458 472 524 492"/>
+  <path class="branch" d="M694 338 C704 394 742 432 800 456"/>
+  <path class="branch" d="M1004 382 C1020 430 1060 464 1126 484"/>
+  <path class="branch" d="M1098 328 C1156 394 1208 430 1282 452"/>
+  <path class="branch" d="M1284 318 C1302 392 1266 472 1194 520"/>
+  <path d="M1194 520 C958 610 570 596 380 412" stroke="#596171" stroke-opacity=".28" stroke-width="1.8" marker-end="url(#arrowBranch)"/>
+
+  <!-- Brand Input -->
+  <g transform="translate(76 326)">
+    <rect class="node" width="142" height="84" rx="8"/>
+    <rect x="14" y="14" width="32" height="32" rx="6" fill="#151923" stroke="#303745"/>
+    <circle cx="30" cy="30" r="6" fill="#F15A2B" opacity=".85"/>
+    <text x="58" y="32" class="small">STEP 01</text>
+    <text x="22" y="64" class="label">Brand Input</text>
+  </g>
+
+  <!-- GEO Audit -->
+  <g transform="translate(330 294)">
+    <rect class="node node-hot" width="152" height="94" rx="8"/>
+    <text x="22" y="30" class="small">BASELINE</text>
+    <text x="22" y="58" class="label">GEO Audit</text>
+    <text x="22" y="79" class="micro">domain + category</text>
+  </g>
+
+  <!-- Readiness -->
+  <g transform="translate(520 460)">
+    <rect class="node" width="210" height="78" rx="8"/>
+    <text x="22" y="30" class="small">SITE LAYER</text>
+    <text x="22" y="58" class="label" style="font-size: 17px;">Website Readiness Score</text>
+  </g>
+
+  <!-- Monitoring -->
+  <g transform="translate(612 248)">
+    <rect class="node node-cool" width="180" height="94" rx="8"/>
+    <text x="22" y="30" class="small">RUN LOOP</text>
+    <text x="22" y="58" class="label">AI Visibility</text>
+    <text x="22" y="79" class="micro">prompts across engines</text>
+  </g>
+
+  <!-- Prompt Results -->
+  <g transform="translate(800 420)">
+    <rect class="node" width="202" height="78" rx="8"/>
+    <text x="22" y="30" class="small">EVIDENCE</text>
+    <text x="22" y="58" class="label" style="font-size: 17px;">Prompt-level AI Results</text>
+  </g>
+
+  <!-- Scoring -->
+  <g transform="translate(912 296)">
+    <rect class="node node-hot" width="178" height="94" rx="8"/>
+    <text x="22" y="30" class="small">ANALYSIS</text>
+    <text x="22" y="58" class="label">Scoring</text>
+    <text x="22" y="79" class="micro">benchmarks + gaps</text>
+  </g>
+
+  <!-- Metrics -->
+  <g transform="translate(1126 452)">
+    <rect class="node" width="220" height="92" rx="8"/>
+    <text x="22" y="30" class="small">METRICS</text>
+    <text x="22" y="60" class="label" style="font-size: 16px;">Visibility / Citation /</text>
+    <text x="22" y="81" class="label" style="font-size: 16px;">Competitor Signals</text>
+  </g>
+
+  <!-- Recommendations -->
+  <g transform="translate(1204 232)">
+    <rect class="node node-hot" width="174" height="86" rx="8"/>
+    <text x="22" y="30" class="small">OUTPUT</text>
+    <text x="22" y="60" class="label">Recommendations</text>
+  </g>
+
+  <!-- Actions -->
+  <g transform="translate(1282 414)">
+    <rect class="node" width="112" height="124" rx="8"/>
+    <text x="18" y="28" class="small">ACTIONS</text>
+    <text x="18" y="58" class="label" style="font-size: 15px;">Content</text>
+    <text x="18" y="80" class="label" style="font-size: 15px;">Technical</text>
+    <text x="18" y="102" class="label" style="font-size: 15px;">Distribution</text>
+  </g>
+
+  <!-- Continuous Tracking -->
+  <g transform="translate(1210 112)">
+    <rect class="node node-cool" width="170" height="78" rx="8"/>
+    <text x="22" y="30" class="small">MONITOR</text>
+    <text x="22" y="58" class="label" style="font-size: 17px;">Continuous Tracking</text>
+  </g>
+  <path class="branch" d="M1296 232 C1298 206 1296 202 1295 190"/>
+
+  <!-- Dashboard -->
+  <g transform="translate(1188 576)">
+    <rect class="node" width="184" height="78" rx="8"/>
+    <text x="22" y="30" class="small">VIEW</text>
+    <text x="22" y="58" class="label" style="font-size: 17px;">Dashboard Insights</text>
+  </g>
+  <path class="branch" d="M1298 190 C1300 330 1338 498 1278 576"/>
+
+  <!-- Data foundation -->
+  <g transform="translate(88 606)">
+    <rect x="0" y="0" width="760" height="62" rx="8" fill="#0D1016" stroke="#222834"/>
+    <text x="22" y="25" class="small">DATA FOUNDATION</text>
+    <text x="22" y="49" class="micro">Supabase / warehouse / storage / historical runs / customer workspace</text>
+    <g class="pulse">
+      <circle cx="678" cy="31" r="5" fill="#F15A2B"/>
+      <circle cx="706" cy="31" r="5" fill="#F0D8CA" opacity=".8"/>
+      <circle cx="734" cy="31" r="5" fill="#8EA5D8" opacity=".8"/>
+    </g>
+  </g>
+
+  <!-- Signal chips -->
+  <g transform="translate(76 164)">
+    <rect width="248" height="52" rx="26" fill="#10141B" stroke="#262C37"/>
+    <circle cx="28" cy="26" r="6" fill="#F15A2B" class="pulse"/>
+    <text x="48" y="31" class="small">QUERY + CITATION SIGNALS</text>
+  </g>
+  <g transform="translate(356 164)">
+    <rect width="216" height="52" rx="26" fill="#10141B" stroke="#262C37"/>
+    <text x="24" y="31" class="metric">18.4K</text>
+    <text x="104" y="31" class="small">PROMPT RUNS</text>
+  </g>
+  <g transform="translate(604 164)">
+    <rect width="216" height="52" rx="26" fill="#10141B" stroke="#262C37"/>
+    <text x="24" y="31" class="metric">2.1M</text>
+    <text x="104" y="31" class="small">SOURCES READ</text>
+  </g>
+  <g transform="translate(852 164)">
+    <rect width="222" height="52" rx="26" fill="#10141B" stroke="#262C37"/>
+    <text x="24" y="31" class="metric">94K</text>
+    <text x="92" y="31" class="small">PRODUCT SIGNALS</text>
+  </g>
+
+  <!-- Subtle code texture -->
+  <g opacity=".22">
+    <text x="78" y="716" class="micro">&lt;run id="geo.audit" status="monitoring" /&gt;</text>
+    <text x="982" y="716" class="micro">visibility.score -> citations -> recommendations -> tracking</text>
+  </g>
+</svg>

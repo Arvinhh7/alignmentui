@@ -2,9 +2,9 @@
 
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
-import { LogoFull } from '@/components/Logo'
 import Footer from '@/components/Footer'
 import PublicNavbar from '@/components/PublicNavbar'
+import { fetchWithRetry } from '@/lib/api'
 import { useEffect, useState, useCallback } from 'react'
 
 const API_BASE = 'https://alignment-data-collection-production.up.railway.app'
@@ -107,6 +107,31 @@ function getSourceLogo(sourceName: string, url?: string): LogoInfo | null {
   return null
 }
 
+function getYouTubeVideoId(url?: string): string | null {
+  if (!url) return null
+
+  try {
+    const parsed = new URL(url)
+    const host = parsed.hostname.replace(/^www\./, '').toLowerCase()
+
+    if (host === 'youtu.be') {
+      return parsed.pathname.split('/').filter(Boolean)[0] ?? null
+    }
+
+    if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtube-nocookie.com') {
+      const watchId = parsed.searchParams.get('v')
+      if (watchId) return watchId
+
+      const [prefix, id] = parsed.pathname.split('/').filter(Boolean)
+      if (['embed', 'shorts', 'live'].includes(prefix) && id) return id
+    }
+  } catch {
+    return null
+  }
+
+  return null
+}
+
 function getCategoryBadge(category: string) {
   switch (category.toLowerCase()) {
     case 'paper':
@@ -135,9 +160,36 @@ function formatDate(dateStr: string) {
 /** Source logo avatar: real img with text fallback */
 function SourceLogo({ source, url }: { source: string; url?: string }) {
   const [imgError, setImgError] = useState(false)
+  const youtubeVideoId = getYouTubeVideoId(url)
+  const isYouTube = Boolean(youtubeVideoId || source?.toLowerCase().includes('youtube'))
   const info = getSourceLogo(source, url)
 
+  if (youtubeVideoId && !imgError) {
+    return (
+      <img
+        src={`https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg`}
+        alt={source}
+        width={32}
+        height={20}
+        className="h-5 w-8 rounded object-cover flex-shrink-0"
+        onError={() => setImgError(true)}
+      />
+    )
+  }
+
   if (!info || imgError) {
+    if (isYouTube) {
+      return (
+        <img
+          src="/logos/youtube.png"
+          alt={source}
+          width={20}
+          height={20}
+          className="w-5 h-5 rounded object-contain flex-shrink-0"
+        />
+      )
+    }
+
     return (
       <span
         className="inline-flex items-center justify-center w-5 h-5 rounded text-white text-[9px] font-bold flex-shrink-0"
@@ -186,22 +238,28 @@ export default function InsightsPage() {
   const [category, setCategory] = useState<CategoryKey>('all')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [technicalError, setTechnicalError] = useState<string | null>(null)
 
   const pageSize = 20
 
   const fetchInsights = useCallback(async () => {
     setLoading(true)
     setError(null)
+    setTechnicalError(null)
     try {
-      const catParam = category === 'all' ? '' : category
-      const res = await fetch(
-        `${API_BASE}/public/insights?page=${page}&page_size=${pageSize}&category=${catParam}`
-      )
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const params = new URLSearchParams({
+        page: String(page),
+        page_size: String(pageSize),
+      })
+      if (category !== 'all') params.set('category', category)
+      const url = `${API_BASE}/public/insights?${params.toString()}`
+      const res = await fetchWithRetry(url, {}, { timeoutMs: 9000, budgetMs: 45000 })
+      if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText || ''}`.trim())
       const data: InsightsResponse = await res.json()
       setItems(data.items ?? [])
     } catch (err) {
       setError('Failed to load insights. Please try again later.')
+      setTechnicalError(err instanceof Error ? err.message : String(err))
       setItems([])
     } finally {
       setLoading(false)
@@ -223,25 +281,22 @@ export default function InsightsPage() {
       <PublicNavbar activeHref="/insights/" />
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-16 overflow-hidden">
-        <div className="absolute inset-0 bg-stripe-gradient" />
-        <div className="absolute inset-0 bg-grid opacity-50" />
-        <div className="absolute top-1/3 left-1/4 w-80 h-80 bg-[#C84B31]/[0.08] rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-[#C84B31]/[0.08] rounded-full blur-3xl" />
+      <section className="relative overflow-hidden border-b border-[#1f1f1f] bg-[#090909] pb-16 pt-32">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.022)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.022)_1px,transparent_1px)] bg-[size:44px_44px]" />
+        <div className="absolute left-1/2 top-0 h-80 w-[620px] -translate-x-1/2 bg-[rgba(241,90,43,0.10)] blur-[110px]" />
 
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-surface-muted border border-divider rounded-full text-ink-2 text-sm font-medium mb-6">
+          <div className="brand-eyebrow mb-6">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
             </svg>
-            Industry Research
+            Market Research
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-ink leading-[1.1] mb-4">
-            GEO Industry{' '}
-            <span className="text-ink underline underline-offset-4">Insights</span>
+          <h1 className="mb-5 font-serif text-4xl font-normal leading-[1.02] text-white md:text-6xl lg:text-7xl">
+            Signals shaping answer-engine discovery
           </h1>
-          <p className="text-lg md:text-xl text-ink-2 max-w-2xl mx-auto leading-relaxed">
-            Stay ahead with curated research on how AI platforms discover, rank, and cite brands like yours.
+          <p className="text-base md:text-lg text-[#c7c7c7] max-w-2xl mx-auto leading-7">
+            Curated analysis on how AI platforms discover, rank, and cite brands, products, and supporting evidence.
           </p>
         </div>
       </section>
@@ -280,6 +335,11 @@ export default function InsightsPage() {
                 </svg>
               </div>
               <p className="text-ink-3 mb-4">{error}</p>
+              {technicalError && (
+                <p className="mx-auto mb-4 max-w-[620px] rounded-xl border border-divider-light bg-surface px-4 py-3 font-mono text-xs leading-5 text-ink-3">
+                  GET {API_BASE}/public/insights failed: {technicalError}
+                </p>
+              )}
               <button
                 onClick={fetchInsights}
                 className="px-5 py-2.5 bg-ink hover:bg-[#2d2d2c] text-ink-inv text-sm font-medium rounded-xl transition-colors"

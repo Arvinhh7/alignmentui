@@ -22,7 +22,7 @@ const SIDEBAR_KEY = 'sidebar_expanded'
 
 // DESIGN.md: admin → amber (caution), staff → blue, demo/user → muted
 const ROLE_CONFIG: Record<UserRole, { label: string; color: string }> = {
-  admin:  { label: 'ADMIN',  color: 'bg-[rgba(184,134,11,0.12)] text-caution border-[rgba(184,134,11,0.25)]' },
+  admin:  { label: 'ADMIN',  color: 'bg-[rgba(243,107,43,0.14)] text-sage border-[rgba(243,107,43,0.28)]' },
   staff:  { label: 'STAFF',  color: 'bg-[rgba(100,180,255,0.12)] text-[rgba(100,180,255,0.85)] border-[rgba(100,180,255,0.25)]' },
   demo:   { label: 'DEMO',   color: 'bg-[rgba(250,245,236,0.08)] text-[rgba(250,245,236,0.45)] border-[rgba(250,245,236,0.12)]' },
   user:   { label: 'USER',   color: 'bg-[rgba(250,245,236,0.08)] text-[rgba(250,245,236,0.35)] border-[rgba(250,245,236,0.10)]' },
@@ -326,27 +326,27 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
     <aside
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`fixed left-0 top-0 h-screen bg-ink border-r border-[rgba(250,245,236,0.08)] flex flex-col z-50 transition-all duration-300 ease-in-out ${
+      className={`fixed left-0 top-0 h-screen bg-[#080A0E]/98 border-r border-[#1B2028] shadow-[24px_0_80px_rgba(0,0,0,0.22)] flex flex-col z-50 transition-all duration-300 ease-in-out ${
         mobileOpen ? 'translate-x-0 w-[240px]' : '-translate-x-full md:translate-x-0'
       } ${
         !mobileOpen ? (displayExpanded ? 'md:w-[240px]' : 'md:w-[68px]') : ''
       }`}
     >
       {/* ── Header: Logo + Toggle ─────────────────────────────────────────── */}
-      <div className={`flex items-center h-14 border-b border-[rgba(250,245,236,0.08)] ${displayExpanded ? 'px-4' : 'justify-center px-2'}`}>
+      <div className={`flex items-center h-14 border-b border-[#1B2028] ${displayExpanded ? 'px-4' : 'justify-center px-2'}`}>
         <Link href="/" onClick={handleNavClick} className="hover:opacity-80 transition-opacity flex items-center gap-2.5 overflow-hidden flex-1 min-w-0">
-          <div className="w-8 h-8 rounded-lg bg-[rgba(250,245,236,0.08)] p-1 flex items-center justify-center flex-shrink-0">
-            <Image src="/logo-icon.png" alt="Alignment AI" width={28} height={28} className="object-contain" priority />
+          <div className="w-8 h-8 rounded-lg bg-[rgba(243,107,43,0.10)] p-1 flex items-center justify-center flex-shrink-0 ring-1 ring-[rgba(243,107,43,0.18)]">
+            <Image src="/landing/alignment-logo-option-1-refined-crop.png" alt="Alignment AI" width={28} height={28} className="object-contain" priority />
           </div>
           {displayExpanded && (
-            <span className="text-sm font-semibold text-ink-inv whitespace-nowrap">Alignment AI</span>
+            <span className="text-sm font-semibold text-ink whitespace-nowrap">Alignment AI</span>
           )}
         </Link>
         {/* Mobile close button — only shown when drawer is open */}
         {mobileOpen ? (
           <button
             onClick={onMobileClose}
-            className="w-7 h-7 flex items-center justify-center rounded-md text-[rgba(250,245,236,0.35)] hover:bg-[rgba(250,245,236,0.06)] hover:text-[rgba(250,245,236,0.7)] transition-all flex-shrink-0 md:hidden"
+            className="w-7 h-7 flex items-center justify-center rounded-md text-ink-3 hover:bg-[rgba(243,107,43,0.10)] hover:text-sage transition-all flex-shrink-0 md:hidden"
             aria-label="Close menu"
           >
             <X className="w-4 h-4" strokeWidth={1.8} />
@@ -355,12 +355,12 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
           <div className="relative group">
             <button
               onClick={toggleExpanded}
-              className="w-7 h-7 flex items-center justify-center rounded-md text-[rgba(250,245,236,0.35)] hover:bg-[rgba(250,245,236,0.06)] hover:text-[rgba(250,245,236,0.7)] transition-all flex-shrink-0"
+              className="w-7 h-7 flex items-center justify-center rounded-md text-ink-3 hover:bg-[rgba(243,107,43,0.10)] hover:text-sage transition-all flex-shrink-0"
               aria-label={expandedPref ? 'Close sidebar' : 'Open sidebar'}
             >
               {expandedPref ? <PanelLeftClose className="w-4 h-4" strokeWidth={1.8} /> : <PanelLeft className="w-4 h-4" strokeWidth={1.8} />}
             </button>
-            <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2.5 py-1 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,245,236,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+            <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2.5 py-1 bg-[#0B0D11] text-ink text-xs font-medium rounded-lg shadow-elevation-lg border border-divider-light opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
               {expandedPref ? 'Close sidebar' : 'Open sidebar'}
             </span>
           </div>
@@ -397,7 +397,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
               </button>
             )}
             {showSearch && searchQuery && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-ink border border-[rgba(250,245,236,0.08)] rounded-xl shadow-elevation-lg z-[80] overflow-hidden">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-[#0B0D11] border border-divider-light rounded-xl shadow-elevation-lg z-[80] overflow-hidden">
                 {searchResults.length > 0 ? searchResults.map(item => {
                   const Icon = item.icon
                   const disabled = !!item.disabled
@@ -441,7 +441,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
             >
               <Search className="w-4 h-4" strokeWidth={1.8} />
             </button>
-            <span className="absolute left-full ml-3 px-3 py-1.5 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,245,236,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+            <span className="absolute left-full ml-3 px-3 py-1.5 bg-[#0B0D11] text-ink text-xs font-medium rounded-lg shadow-elevation-lg border border-divider-light opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
               Search
             </span>
           </div>
@@ -489,15 +489,15 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                 displayExpanded ? 'px-3 py-2' : 'w-11 h-10 justify-center'
               } ${
                 disabled
-                  ? 'cursor-not-allowed text-[rgba(250,245,236,0.18)]'
+                  ? 'cursor-not-allowed text-[rgba(255,255,255,0.20)]'
                   : isActive
-                    ? 'bg-[rgba(250,245,236,0.08)] text-ink-inv'
-                    : 'text-[rgba(250,245,236,0.45)] hover:bg-[rgba(250,245,236,0.06)] hover:text-[rgba(250,245,236,0.75)]'
+                    ? 'bg-[rgba(243,107,43,0.13)] text-ink ring-1 ring-[rgba(243,107,43,0.22)]'
+                    : 'text-ink-3 hover:bg-[rgba(255,255,255,0.045)] hover:text-ink-2'
               }`
               const navContent = (
                 <>
                   {isActive && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-[rgba(250,245,236,0.5)] rounded-r-full" />
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-sage rounded-r-full shadow-[0_0_12px_rgba(243,107,43,0.45)]" />
                   )}
                   <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={isActive ? 2.2 : 1.8} />
                   {displayExpanded && (
@@ -516,7 +516,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                     </span>
                   )}
                   {displayExpanded && !disabled && item.isNew && !item.isBeta && (
-                    <span className="text-[8px] font-bold px-1.5 py-0.5 bg-caution-bg text-caution border border-[rgba(184,134,11,0.2)] rounded-full flex-shrink-0">
+                    <span className="text-[8px] font-bold px-1.5 py-0.5 bg-sage-bg text-sage border border-[rgba(243,107,43,0.22)] rounded-full flex-shrink-0">
                       NEW
                     </span>
                   )}
@@ -526,11 +526,11 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                     </span>
                   )}
                   {!displayExpanded && (
-                    <span className="absolute left-full ml-3 px-3 py-1.5 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,245,236,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
+                    <span className="absolute left-full ml-3 px-3 py-1.5 bg-[#0B0D11] text-ink text-xs font-medium rounded-lg shadow-elevation-lg border border-divider-light opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[60]">
                       {label}
                       {disabled && <span className="ml-1.5 text-[8px] text-[rgba(250,245,236,0.35)]">{item.disabledLabel ?? 'Soon'}</span>}
                       {!disabled && item.badge && !item.isNew && !item.isBeta && <span className="ml-1.5 text-[9px] text-[rgba(250,245,236,0.4)]">({item.badge})</span>}
-                      {!disabled && item.isNew && !item.isBeta && <span className="ml-1.5 text-[8px] text-caution">NEW</span>}
+                      {!disabled && item.isNew && !item.isBeta && <span className="ml-1.5 text-[8px] text-sage">NEW</span>}
                       {!disabled && item.isBeta && <span className="ml-1.5 text-[8px] text-[rgba(100,180,255,0.75)]">Beta</span>}
                       <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-ink" />
                     </span>
@@ -594,12 +594,12 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                     displayExpanded ? 'px-3 py-2' : 'w-11 h-10 justify-center'
                   } ${
                     isActive
-                      ? 'bg-[rgba(250,245,236,0.08)] text-ink-inv'
-                      : 'text-[rgba(250,245,236,0.45)] hover:bg-[rgba(250,245,236,0.06)] hover:text-[rgba(250,245,236,0.75)]'
+                      ? 'bg-[rgba(243,107,43,0.13)] text-ink ring-1 ring-[rgba(243,107,43,0.22)]'
+                      : 'text-ink-3 hover:bg-[rgba(255,255,255,0.045)] hover:text-ink-2'
                   }`}
                 >
                   {isActive && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-[rgba(250,245,236,0.5)] rounded-r-full" />
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-sage rounded-r-full shadow-[0_0_12px_rgba(243,107,43,0.45)]" />
                   )}
                   <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={isActive ? 2.2 : 1.8} />
                   {displayExpanded && (
@@ -608,7 +608,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                     </span>
                   )}
                   {!displayExpanded && (
-                    <span className="absolute left-full ml-3 px-3 py-1.5 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,245,236,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[60]">
+                    <span className="absolute left-full ml-3 px-3 py-1.5 bg-[#0B0D11] text-ink text-xs font-medium rounded-lg shadow-elevation-lg border border-divider-light opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[60]">
                       {label}
                       <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-ink" />
                     </span>
@@ -652,14 +652,14 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                       displayExpanded ? 'px-3 py-2' : 'w-11 h-10 justify-center'
                     } ${
                       isActive
-                        ? 'bg-caution-bg text-caution'
-                        : 'text-[rgba(250,245,236,0.35)] hover:bg-[rgba(250,245,236,0.06)] hover:text-[rgba(250,245,236,0.6)]'
+                        ? 'bg-sage-bg text-sage ring-1 ring-[rgba(243,107,43,0.22)]'
+                        : 'text-ink-3 hover:bg-[rgba(255,255,255,0.045)] hover:text-ink-2'
                     }`}
                   >
                     <Icon className="w-[17px] h-[17px] flex-shrink-0" strokeWidth={1.8} />
                     {displayExpanded && <span className="text-[12px] whitespace-nowrap font-medium">{label}</span>}
                     {!displayExpanded && (
-                      <span className="absolute left-full ml-3 px-3 py-1.5 bg-ink text-ink-inv text-xs font-medium rounded-lg shadow-elevation-lg border border-[rgba(250,245,236,0.08)] opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[60]">
+                      <span className="absolute left-full ml-3 px-3 py-1.5 bg-[#0B0D11] text-ink text-xs font-medium rounded-lg shadow-elevation-lg border border-divider-light opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[60]">
                         {label}
                         <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-ink" />
                       </span>
@@ -682,10 +682,10 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
             }`}
           >
             <div className="relative w-8 h-8 rounded-full bg-[rgba(250,245,236,0.10)] flex items-center justify-center flex-shrink-0">
-              <span className="text-[12px] font-bold text-ink-inv">{initial}</span>
+              <span className="text-[12px] font-bold text-ink">{initial}</span>
               {!displayExpanded && role && role !== 'user' && (
                 <span className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-ink ${
-                  role === 'admin' ? 'bg-caution' :
+                  role === 'admin' ? 'bg-sage' :
                   role === 'staff' ? 'bg-[rgba(100,180,255,0.85)]' :
                   'bg-[rgba(250,245,236,0.4)]'
                 }`} />
@@ -709,14 +709,14 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
 
           {/* ── User Profile Popup ─────────────────────────────────────── */}
           {showUserMenu && (
-            <div className="absolute bottom-full mb-2 bg-ink border border-[rgba(250,245,236,0.08)] rounded-2xl shadow-elevation-lg overflow-hidden z-[70] w-[240px] left-0">
+            <div className="absolute bottom-full mb-2 bg-[#0B0D11] border border-divider-light rounded-2xl shadow-elevation-lg overflow-hidden z-[70] w-[240px] left-0">
               <div className="flex items-center gap-3 p-4 border-b border-[rgba(250,245,236,0.08)]">
                 <div className="w-10 h-10 rounded-full bg-[rgba(250,245,236,0.10)] flex items-center justify-center flex-shrink-0">
-                  <span className="text-[14px] font-bold text-ink-inv">{initial}</span>
+                  <span className="text-[14px] font-bold text-ink">{initial}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[13px] font-semibold text-ink-inv truncate">{displayName}</span>
+                    <span className="text-[13px] font-semibold text-ink truncate">{displayName}</span>
                     {role && (
                       <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded border flex-shrink-0 ${roleCfg.color}`}>
                         {roleCfg.label}
@@ -731,13 +731,13 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
               {credits && creditsTotal > 0 && (
                 <div className="m-3 p-3 bg-[rgba(250,245,236,0.04)] rounded-xl border border-[rgba(250,245,236,0.06)]">
                   <div className="flex items-center justify-between mb-2.5">
-                    <span className="text-[12px] font-semibold text-ink-inv">{planLabel} Plan</span>
-                    {credits.plan !== 'enterprise' && <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-caution">{t.dashboard.sidebarUpgradeAvailable}</span>}
+                    <span className="text-[12px] font-semibold text-ink">{planLabel} Plan</span>
+                    {credits.plan !== 'enterprise' && <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-sage">{t.dashboard.sidebarUpgradeAvailable}</span>}
                   </div>
                   <div className="flex items-center gap-1.5 mb-1.5">
-                    <Sparkles className={`w-3 h-3 flex-shrink-0 ${creditLow ? 'text-red-soft' : 'text-caution'}`} />
+                    <Sparkles className={`w-3 h-3 flex-shrink-0 ${creditLow ? 'text-red-soft' : 'text-sage'}`} />
                     <span className="text-[11px] text-[rgba(250,245,236,0.4)]">{t.dashboard.sidebarCredits}</span>
-                    <span className={`text-[11px] font-semibold ml-auto ${creditLow ? 'text-red-soft' : 'text-ink-inv'}`}>
+                    <span className={`text-[11px] font-semibold ml-auto ${creditLow ? 'text-red-soft' : 'text-ink'}`}>
                       {creditsRemaining.toLocaleString()}
                       <span className="text-[rgba(250,245,236,0.3)] font-normal"> / {creditsTotal.toLocaleString()}</span>
                     </span>
@@ -758,7 +758,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                       <div className="flex items-center gap-1.5 mb-1.5">
                         <Activity className="w-3 h-3 flex-shrink-0 text-[rgba(250,245,236,0.35)]" />
                         <span className="text-[11px] text-[rgba(250,245,236,0.4)]">{t.dashboard.sidebarMonitoringPrompts}</span>
-                        <span className={`text-[11px] font-semibold ml-auto ${promptsNearLimit ? 'text-caution' : 'text-ink-inv'}`}>
+                        <span className={`text-[11px] font-semibold ml-auto ${promptsNearLimit ? 'text-caution' : 'text-ink'}`}>
                           {promptsUnlimited
                             ? <span className="text-[rgba(250,245,236,0.5)]">{lang === 'zh' ? '不限' : 'Unlimited'}</span>
                             : <>{promptsActive}<span className="text-[rgba(250,245,236,0.3)] font-normal"> / {promptsDaily}</span></>
@@ -783,7 +783,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                       <div className="flex items-center gap-1.5 mb-1.5">
                         <RefreshCw className="w-3 h-3 flex-shrink-0 text-[rgba(250,245,236,0.35)]" />
                         <span className="text-[11px] text-[rgba(250,245,236,0.4)]">{t.dashboard.sidebarOndemandChecks}</span>
-                        <span className={`text-[11px] font-semibold ml-auto ${ondemandLow ? 'text-caution' : 'text-ink-inv'}`}>
+                        <span className={`text-[11px] font-semibold ml-auto ${ondemandLow ? 'text-caution' : 'text-ink'}`}>
                           {ondemandRemaining.toLocaleString()}
                           <span className="text-[rgba(250,245,236,0.3)] font-normal"> / {ondemandLimit.toLocaleString()}</span>
                         </span>
@@ -802,7 +802,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                     <Link
                       href="/pricing"
                       onClick={() => setShowUserMenu(false)}
-                      className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#F9D66B] text-[13px] font-black text-ink shadow-[inset_0_0_0_1px_rgba(0,0,0,0.16),0_10px_22px_rgba(249,214,107,0.16)] transition-all hover:-translate-y-0.5 hover:bg-[#FFE38A] active:translate-y-0"
+                      className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#F36B2B] text-[13px] font-black text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18),0_10px_28px_rgba(243,107,43,0.22)] transition-all hover:-translate-y-0.5 hover:bg-[#FF7A45] active:translate-y-0"
                     >
                       {t.dashboard.sidebarUpgradePlan} <span aria-hidden="true">→</span>
                     </Link>
@@ -814,14 +814,14 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
               <div className="py-1.5">
                 <button
                   onClick={() => { setShowUserMenu(false); router.push('/dashboard/settings?section=account') }}
-                  className="w-full flex items-center gap-2.5 px-4 py-2 text-[13px] text-[rgba(250,245,236,0.5)] hover:bg-[rgba(250,245,236,0.06)] hover:text-ink-inv transition-colors text-left"
+                  className="w-full flex items-center gap-2.5 px-4 py-2 text-[13px] text-ink-3 hover:bg-[rgba(255,255,255,0.045)] hover:text-ink transition-colors text-left"
                 >
                   <CreditCard className="w-3.5 h-3.5 flex-shrink-0" />
                   Account
                 </button>
                 <button
                   onClick={() => { setShowUserMenu(false); router.push('/dashboard/settings?section=settings') }}
-                  className="w-full flex items-center gap-2.5 px-4 py-2 text-[13px] text-[rgba(250,245,236,0.5)] hover:bg-[rgba(250,245,236,0.06)] hover:text-ink-inv transition-colors text-left"
+                  className="w-full flex items-center gap-2.5 px-4 py-2 text-[13px] text-ink-3 hover:bg-[rgba(255,255,255,0.045)] hover:text-ink transition-colors text-left"
                 >
                   <Settings className="w-3.5 h-3.5 flex-shrink-0" />
                   Settings
@@ -832,7 +832,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setShowUserMenu(false)}
-                  className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-[rgba(250,245,236,0.5)] hover:bg-[rgba(250,245,236,0.06)] hover:text-ink-inv transition-colors"
+                  className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-ink-3 hover:bg-[rgba(255,255,255,0.045)] hover:text-ink transition-colors"
                 >
                   <Home className="w-3.5 h-3.5 flex-shrink-0" />
                   <span className="flex-1">Homepage</span>
@@ -841,7 +841,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                 <a
                   href="mailto:contact@alignmenttech.ai"
                   onClick={() => setShowUserMenu(false)}
-                  className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-[rgba(250,245,236,0.5)] hover:bg-[rgba(250,245,236,0.06)] hover:text-ink-inv transition-colors"
+                  className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-ink-3 hover:bg-[rgba(255,255,255,0.045)] hover:text-ink transition-colors"
                 >
                   <HelpCircle className="w-3.5 h-3.5 flex-shrink-0" />
                   <span className="flex-1">Get help</span>

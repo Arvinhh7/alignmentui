@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
 import LanguageSwitch from '@/components/LanguageSwitch'
-import { LogoFull } from '@/components/Logo'
+import { ArrowRight, ChevronDown } from 'lucide-react'
 
 // ── Solutions dropdown items ───────────────────────────────────────────────────
 const SOLUTIONS = [
@@ -37,25 +37,35 @@ export default function PublicNavbar({ activeHref }: { activeHref?: string }) {
   ]
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
-      <div className="max-w-7xl mx-auto px-6 py-3">
-        <div className="flex items-center justify-between">
+    <>
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-black">
+        Skip to main content
+      </a>
+      <nav className="fixed left-0 right-0 top-0 z-50 border-b border-[#1d1714] bg-[rgba(9,11,14,0.88)] backdrop-blur-xl">
+      <div className="mx-auto max-w-[1240px] px-5 md:px-8">
+        <div className="flex items-center justify-between py-3">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center group hover:opacity-90 transition-opacity">
-            <LogoFull width={140} height={45} />
+          <Link href="/" className="relative block h-11 w-36 overflow-hidden transition-opacity duration-200 hover:opacity-90">
+            <img
+              src="/landing/alignment-logo-option-1-refined-crop.png"
+              alt="Alignment AI"
+              width={188}
+              height={148}
+              className="absolute left-0 top-1/2 h-12 w-auto max-w-none -translate-y-1/2 object-contain"
+            />
           </Link>
 
           {/* Desktop links */}
-          <div className="hidden lg:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-7">
             {navLinks.map((item, i) => (
               <Link
                 key={i}
                 href={item.href}
-                className={`px-3 py-2 text-sm font-medium transition-colors rounded-lg flex items-center gap-1 ${
+                className={`relative flex items-center gap-1 text-[11px] font-medium uppercase tracking-[0.12em] transition-colors after:absolute after:-bottom-2 after:left-0 after:h-px after:w-full after:origin-left after:bg-[#f15a2b] after:transition-transform after:duration-200 ${
                   item.href === activeHref
-                    ? 'text-ink bg-surface-muted'
-                    : 'text-ink-2 hover:text-ink hover:bg-surface-warm'
+                    ? 'text-[#f0d8ca] after:scale-x-100'
+                    : 'text-[#727b89] after:scale-x-0 hover:text-[#eef3fb] hover:after:scale-x-100'
                 }`}
               >
                 {item.label}
@@ -64,41 +74,40 @@ export default function PublicNavbar({ activeHref }: { activeHref?: string }) {
 
             {/* Solutions dropdown */}
             <div className="relative group">
-              <button className="px-3 py-2 text-ink-2 hover:text-ink text-sm font-medium transition-colors rounded-lg hover:bg-surface-warm flex items-center gap-1">
+              <button
+                type="button"
+                aria-haspopup="true"
+                className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-[0.12em] text-[#727b89] transition-colors hover:text-[#f0d8ca]"
+              >
                 {t.nav.solutions}
-                <svg
-                  className="w-3.5 h-3.5 opacity-50 transition-transform group-hover:rotate-180"
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+                <ChevronDown className="h-3 w-3 opacity-60 transition-transform group-hover:rotate-180" aria-hidden="true" />
               </button>
 
-              <div className="absolute top-full right-0 mt-1 w-64 bg-surface rounded-xl shadow-xl border border-divider-light py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <div className="absolute right-0 top-full z-50 mt-4 invisible w-72 border border-[#2a211d] bg-[#0e1218] py-2 opacity-0 shadow-[0_28px_90px_rgba(0,0,0,0.45)] transition-all duration-200 group-hover:visible group-hover:opacity-100">
                 {/* Platform modules */}
                 {SOLUTIONS.map((item, i) => (
                   <Link
                     key={i}
                     href={item.href}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-2 hover:bg-surface-warm hover:text-ink transition-colors"
+                    className="flex items-center gap-3 px-4 py-2.5 text-[12px] text-[#b6bfcc] transition-colors hover:bg-[#15110f] hover:text-[#f0d8ca]"
                   >
                     <span className="font-medium">{item.label}</span>
                   </Link>
                 ))}
 
                 {/* Divider */}
-                <div className="border-t border-divider-light my-1" />
+                <div className="my-1 border-t border-[#1d2330]" />
 
                 {/* Free tools */}
                 {FREE_TOOLS.map((item, i) => (
                   <Link
                     key={i}
                     href={item.href}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-2 hover:bg-surface-warm hover:text-ink transition-colors"
+                    className="flex items-center gap-3 px-4 py-2.5 text-[12px] text-[#b6bfcc] transition-colors hover:bg-[#15110f] hover:text-[#f0d8ca]"
                   >
-                    <span className="font-semibold">
+                    <span className="font-medium">
                       {item.label}{' '}
-                      <span className="text-[10px] bg-surface-muted text-ink-2 px-1.5 py-0.5 rounded-full ml-1">
+                      <span className="ml-1 border border-[#3a251d] bg-[#17100d] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-[#d89a80]">
                         Free
                       </span>
                     </span>
@@ -109,17 +118,19 @@ export default function PublicNavbar({ activeHref }: { activeHref?: string }) {
           </div>
 
           {/* Right side: language + CTA */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <LanguageSwitch />
             <Link
               href="/login/"
-              className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-ink-inv bg-ink rounded-lg hover:bg-[#2d2d2c] transition-all shadow-soft hover:shadow-medium btn-shine"
+              className="hidden items-center justify-center gap-1.5 border border-[#3a251d] bg-[#13100f] px-3.5 py-2 text-[11px] font-medium uppercase tracking-[0.12em] text-[#f0d8ca] transition-[background-color,border-color,color] duration-200 hover:border-[#f15a2b]/50 hover:bg-[#18110e] sm:inline-flex"
             >
               {t.nav.getStarted}
+              <ArrowRight className="h-3 w-3" aria-hidden="true" />
             </Link>
           </div>
         </div>
       </div>
-    </nav>
+      </nav>
+    </>
   )
 }

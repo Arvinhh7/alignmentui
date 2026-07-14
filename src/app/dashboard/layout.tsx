@@ -139,9 +139,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <ToastProvider>
-      <div className="min-h-screen bg-canvas">
+      <div className="dashboard-shell min-h-screen bg-canvas text-ink">
         {/* Mobile top bar — hidden on md+ (sidebar is always visible there) */}
-        <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-canvas border-b border-divider flex items-center px-4 z-30">
+        <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-[#080A0E]/95 border-b border-divider-light flex items-center px-4 z-30 backdrop-blur">
           <button
             onClick={() => setMobileMenuOpen(true)}
             className="w-9 h-9 flex items-center justify-center rounded-lg text-ink-2 hover:bg-surface-muted transition-colors"
@@ -161,7 +161,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           className="transition-all duration-300 ease-in-out pt-14 md:pt-0 md:[margin-left:var(--sidebar-w)]"
           style={{ '--sidebar-w': `${sidebarW}px` } as React.CSSProperties}
         >
-          <div className="sticky top-0 z-30 hidden h-14 items-center border-b border-divider-light bg-surface/95 px-6 backdrop-blur md:flex">
+          <div className="sticky top-0 z-30 hidden h-14 items-center border-b border-divider-light bg-[#080A0E]/88 px-6 backdrop-blur md:flex">
             <div className="flex flex-1 items-center justify-center">
               <DashboardGlobalSearch />
             </div>

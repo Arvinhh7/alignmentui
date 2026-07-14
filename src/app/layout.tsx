@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import Script from 'next/script'
 import './globals.css'
 import { LanguageProvider } from '@/lib/LanguageContext'
@@ -6,7 +6,11 @@ import { GA_ID } from '@/lib/gtag'
 
 export const metadata: Metadata = {
   title: 'Alignment AI - GEO Platform',
-  description: 'Make your brand visible and cited across 58 AI platforms — no code changes needed.',
+  description: 'Make your brand visible and cited across 58 AI platforms with no code changes needed.',
+}
+
+export const viewport: Viewport = {
+  themeColor: '#090909',
 }
 
 export default function RootLayout({
@@ -28,7 +32,6 @@ export default function RootLayout({
           {children}
         </LanguageProvider>
 
-        {/* GA4 — only injected when Measurement ID is configured */}
         {GA_ID && (
           <>
             <Script
@@ -42,7 +45,6 @@ export default function RootLayout({
               gtag('config', '${GA_ID}', { send_page_view: true });
               window._ga4MeasurementId = '${GA_ID}';
             `}</Script>
-            {/* AI traffic attribution tracker — detects ChatGPT/Perplexity/Gemini referrals */}
             <Script
               src="/alignment-ga4-tracker.js"
               strategy="afterInteractive"

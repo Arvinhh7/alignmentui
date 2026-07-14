@@ -1,9 +1,21 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState, useRef } from 'react'
-import { useLanguage } from '@/lib/LanguageContext'
-import { LogoFull } from '@/components/Logo'
+import { useEffect, useMemo, useState } from 'react'
+import {
+  ArrowRight,
+  BarChart3,
+  CheckCircle2,
+  Database,
+  FileSearch,
+  Gauge,
+  Layers3,
+  Network,
+  RadioTower,
+  SearchCheck,
+  Server,
+  ShieldCheck,
+} from 'lucide-react'
 import Footer from '@/components/Footer'
 import PublicNavbar from '@/components/PublicNavbar'
 
@@ -25,146 +37,85 @@ interface Stats {
   data_sources?: DataSource[]
 }
 
-function AnimatedCounter({ target, duration = 2000 }: { target: number; duration?: number }) {
-  const [count, setCount] = useState(0)
-  const ref = useRef<HTMLSpanElement>(null)
-  const started = useRef(false)
-
-  useEffect(() => {
-    if (target <= 0 || started.current) return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !started.current) {
-          started.current = true
-          const startTime = performance.now()
-          const step = (now: number) => {
-            const elapsed = now - startTime
-            const progress = Math.min(elapsed / duration, 1)
-            const eased = 1 - Math.pow(1 - progress, 3)
-            setCount(Math.floor(eased * target))
-            if (progress < 1) requestAnimationFrame(step)
-          }
-          requestAnimationFrame(step)
-        }
-      },
-      { threshold: 0.3 }
-    )
-
-    if (ref.current) observer.observe(ref.current)
-    return () => observer.disconnect()
-  }, [target, duration])
-
-  return <span ref={ref}>{count.toLocaleString()}</span>
-}
-
 const pipelineStages = [
   {
-    key: 'collect',
-    label: 'COLLECT',
-    color: 'from-[#C84B31] to-[#A33820]',
-    icon: (
-      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-      </svg>
-    ),
-    description: 'AI answers, category topics, citation domains, shopping surfaces, product feeds, and broker events',
+    label: 'Collect',
+    detail: 'AI answers, citation domains, category prompts, shopping surfaces, product feeds, and broker events.',
+    icon: FileSearch,
+    meta: 'Input Layer',
   },
   {
-    key: 'process',
-    label: 'PROCESS',
-    color: 'from-[#C84B31] to-[#A33820]',
-    icon: (
-      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-    ),
-    description: 'Entity normalization, brand/product deduplication, citation canonicalization, and quality gates',
+    label: 'Normalize',
+    detail: 'Entity resolution, brand/product deduplication, citation canonicalization, and source quality gates.',
+    icon: SearchCheck,
+    meta: 'Processing Layer',
   },
   {
-    key: 'store',
-    label: 'STORE',
-    color: 'from-[#4A6FA5] to-[#3D5E8C]',
-    icon: (
-      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-      </svg>
-    ),
-    description: 'A durable AI commerce graph for brands, products, sources, prompts, offers, and quotes',
+    label: 'Model',
+    detail: 'A durable commerce graph connecting prompts, products, sources, claims, offers, and answer patterns.',
+    icon: Database,
+    meta: 'Graph Layer',
   },
   {
-    key: 'deliver',
-    label: 'DELIVER',
-    color: 'from-[#4A7B5C] to-[#386248]',
-    icon: (
-      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-      </svg>
-    ),
-    description: 'Dashboards, Visibility Proxy, MCP/API, Product Agents, and Broker telemetry',
+    label: 'Activate',
+    detail: 'Dashboards, Visibility Proxy, MCP/API, Product Agents, alerts, and broker telemetry.',
+    icon: RadioTower,
+    meta: 'Delivery Layer',
   },
 ]
 
-const techStack = [
-  { name: 'Python',         logo: '/logos/python.png' },
-  { name: 'FastAPI',        logo: '/logos/fastapi.png' },
-  { name: 'Supabase',       logo: '/logos/supabase.png' },
-  { name: 'Next.js',        logo: '/logos/nextjs.png' },
-  { name: 'Railway',        logo: '/logos/railway.png' },
-  { name: 'Tailwind CSS',   logo: '/logos/tailwindcss.png' },
-  { name: 'Vercel',         logo: '/logos/vercel.png' },
-  { name: 'GitHub Actions', logo: '/logos/github.png' },
+const reliabilityControls = [
+  ['Canonical IDs', 'Every brand, product, source, and prompt is mapped to stable identifiers before reporting.'],
+  ['Source Tiers', 'Authoritative sources are separated from volatile community signals and crawled artifacts.'],
+  ['Quality Gates', 'Records pass completeness, duplication, freshness, and citation checks before entering the graph.'],
+  ['Audit Trails', 'Teams can trace a visibility shift back to the prompt, answer, source, and run context.'],
 ]
 
-const SOURCE_LOGOS: Record<string, string> = {
-  'arXiv':                  '/logos/arxiv.png',
-  'Semantic Scholar':       '/logos/semanticscholar.png',
-  'Papers with Code':       '/logos/paperswithcode.png',
-  'OpenReview':             '/logos/openreview.png',
-  'OpenAI':                 '/logos/openai.png',
-  'Google AI':              '/logos/google.png',
-  'Anthropic':              '/logos/anthropic.png',
-  'Perplexity':             '/logos/perplexity.png',
-  'AWS AI':                 '/logos/aws.png',
-  'Google Cloud':           '/logos/googlecloud.png',
-  'GitHub':                 '/logos/github.png',
-  'HuggingFace':            '/logos/huggingface.png',
-  'Search Engine Journal':  '/logos/searchenginejournal.png',
-  'Moz':                    '/logos/moz.png',
-  'Ahrefs':                 '/logos/ahrefs.png',
-  'Medium AI':              '/logos/medium.png',
-  'YouTube':                '/logos/youtube.png',
-  'Google Drive':           '/logos/googledrive.png',
+const outputChannels = [
+  { label: 'Executive Dashboards', desc: 'Category-level visibility, share of answer, and citation movement.', icon: BarChart3 },
+  { label: 'Visibility Proxy', desc: 'Machine-readable pages and structured facts for agent consumption.', icon: Network },
+  { label: 'MCP / API', desc: 'Graph records delivered to internal tools, analytics, and product workflows.', icon: Server },
+  { label: 'Product Agents', desc: 'Offer, quote, and broker telemetry connected back to brand evidence.', icon: Layers3 },
+]
+
+const fallbackSources: DataSource[] = [
+  { name: 'OpenAI', tier: 1, type: 'model' },
+  { name: 'Perplexity', tier: 1, type: 'model' },
+  { name: 'Google AI', tier: 1, type: 'model' },
+  { name: 'Anthropic', tier: 1, type: 'model' },
+  { name: 'Reddit', tier: 2, type: 'community' },
+  { name: 'YouTube', tier: 2, type: 'media' },
+  { name: 'G2', tier: 2, type: 'review' },
+  { name: 'Search Engine Journal', tier: 3, type: 'research' },
+]
+
+const sourceLogos: Record<string, string> = {
+  OpenAI: '/logos/openai.png',
+  Perplexity: '/logos/perplexity.png',
+  'Google AI': '/logos/google.png',
+  Anthropic: '/logos/anthropic.png',
+  Reddit: '/logos/reddit.png',
+  YouTube: '/logos/youtube.png',
+  G2: '/logos/g2.png',
+  'Search Engine Journal': '/logos/searchenginejournal.png',
 }
 
-function SourceIcon({ name }: { name: string }) {
-  const [err, setErr] = useState(false)
-  const logoUrl = SOURCE_LOGOS[name]
-
-  if (!logoUrl || err) {
-    return null
-  }
-
-  return (
-    <img
-      src={logoUrl}
-      alt={name}
-      width={20}
-      height={20}
-      className="w-5 h-5 rounded object-contain flex-shrink-0"
-      onError={() => setErr(true)}
-    />
-  )
+function formatCount(value: number | undefined, fallback: string) {
+  if (!value || value <= 0) return fallback
+  return new Intl.NumberFormat('en-US', {
+    notation: value >= 100000 ? 'compact' : 'standard',
+    maximumFractionDigits: 1,
+  }).format(value)
 }
 
-function TechLogo({ name, logo }: { name: string; logo: string }) {
-  const [err, setErr] = useState(false)
+function SourceLogo({ source }: { source: DataSource }) {
+  const [failed, setFailed] = useState(false)
+  const logo = sourceLogos[source.name]
 
-  if (err) {
+  if (!logo || failed) {
     return (
-      <span className="w-12 h-12 mx-auto mb-3 bg-surface-muted rounded-xl flex items-center justify-center text-ink-3 text-lg font-bold">
-        {name.charAt(0)}
+      <span className="grid h-8 w-8 flex-shrink-0 place-items-center border border-[#262b34] bg-[#11161f] text-[11px] font-medium text-[#9aa4b5]">
+        {source.name.charAt(0)}
       </span>
     )
   }
@@ -172,382 +123,438 @@ function TechLogo({ name, logo }: { name: string; logo: string }) {
   return (
     <img
       src={logo}
-      alt={name}
-      width={48}
-      height={48}
-      className="w-12 h-12 mx-auto mb-3 rounded-xl object-contain group-hover:scale-110 transition-transform duration-300"
-      onError={() => setErr(true)}
+      alt={source.name}
+      width={32}
+      height={32}
+      loading="lazy"
+      className="h-8 w-8 flex-shrink-0 object-contain"
+      onError={() => setFailed(true)}
     />
   )
 }
 
-function tierBadge(tier: number) {
-  if (tier === 1) return { label: 'Tier 1', bg: 'bg-surface-warm', text: 'text-caution', border: 'border-divider' }
-  if (tier === 2) return { label: 'Tier 2', bg: 'bg-surface-warm', text: 'text-ink-2', border: 'border-divider-light' }
-  return { label: 'Tier 3', bg: 'bg-surface-warm', text: 'text-caution', border: 'border-divider' }
+function MetricTile({ label, value, detail }: { label: string; value: string; detail: string }) {
+  return (
+    <div className="border border-[#232832] bg-[#0f1319] p-4">
+      <div className="font-mono text-2xl font-semibold tabular-nums text-white md:text-3xl">{value}</div>
+      <div className="mt-2 text-[11px] font-medium uppercase tracking-[0.16em] text-[#d89a80]">{label}</div>
+      <p className="mt-3 text-sm leading-6 text-[#9da6b5]">{detail}</p>
+    </div>
+  )
 }
 
-function typeTag(type: string) {
-  const map: Record<string, string> = {
-    papers: 'bg-surface-warm text-ink-2',
-    blog: 'bg-surface-warm text-ink-2',
-    tools: 'bg-sage-bg text-sage',
-    video: 'bg-red-soft-bg text-red-soft',
-    manual: 'bg-surface-muted text-ink-3',
-  }
-  return map[type] || 'bg-surface-muted text-ink-3'
+function SectionIntro({
+  eyebrow,
+  title,
+  children,
+}: {
+  eyebrow: string
+  title: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="mx-auto mb-12 max-w-3xl text-center">
+      <div className="brand-eyebrow mb-5">
+        <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+        {eyebrow}
+      </div>
+      <h2 className="font-serif text-4xl font-normal leading-[1.04] text-white md:text-5xl" style={{ textWrap: 'balance' }}>
+        {title}
+      </h2>
+      <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-[#aab3c2]">{children}</p>
+    </div>
+  )
+}
+
+function SystemDiagram({ stats }: { stats: Stats }) {
+  const sources = formatCount(stats.papers, '2.4M')
+  const records = formatCount(stats.total, '8.9M')
+  const products = formatCount(stats.products, '94K')
+
+  return (
+    <div className="system-diagram relative mx-auto w-full max-w-[620px]">
+      <div className="pointer-events-none absolute -inset-8 bg-[#f15a2b]/10 blur-[80px]" />
+      <div className="relative overflow-hidden border border-[#272b34] bg-[#0c0f14] shadow-[0_36px_110px_rgba(0,0,0,0.48)]">
+        <div className="border-b border-[#202530] px-5 py-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#d89a80]">Commerce Graph</div>
+              <div className="mt-1 text-sm text-[#8993a3]">Live infrastructure view</div>
+            </div>
+            <div className="inline-flex items-center gap-2 border border-[#243226] bg-[#101812] px-2.5 py-1 text-[11px] font-medium text-[#8ed29f]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#8ed29f]" />
+              Online
+            </div>
+          </div>
+        </div>
+
+        <div className="relative p-5">
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.022)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.022)_1px,transparent_1px)] bg-[size:32px_32px]" />
+
+          <div className="relative grid gap-4 md:grid-cols-[0.84fr_1.16fr]">
+            <div className="space-y-3">
+              {[
+                ['AI Answers', sources],
+                ['Citation Runs', formatCount(stats.community_posts, '18K')],
+                ['Product Facts', products],
+              ].map(([label, value]) => (
+                <div key={label} className="border border-[#222832] bg-[#10141b] p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[12px] text-[#ccd4df]">{label}</span>
+                    <span className="font-mono text-[12px] tabular-nums text-[#d89a80]">{value}</span>
+                  </div>
+                  <div className="mt-2 h-1 bg-[#1c222c]">
+                    <div className="system-bar h-full bg-[linear-gradient(90deg,#7d5243,#f0d8ca)]" />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="relative min-h-[270px] border border-[#222832] bg-[#0f1319] p-4">
+              <svg className="absolute inset-0 h-full w-full" viewBox="0 0 360 270" aria-hidden="true">
+                <defs>
+                  <linearGradient id="systemPath" x1="0" x2="1" y1="0" y2="0">
+                    <stop offset="0%" stopColor="#f15a2b" stopOpacity="0.12" />
+                    <stop offset="48%" stopColor="#f0d8ca" stopOpacity="0.72" />
+                    <stop offset="100%" stopColor="#f15a2b" stopOpacity="0.12" />
+                  </linearGradient>
+                </defs>
+                <path className="system-flow" d="M38 70 C112 38 148 132 214 92 S304 72 326 132" fill="none" stroke="url(#systemPath)" strokeWidth="2" />
+                <path className="system-flow system-flow-delay" d="M38 194 C118 216 156 142 222 172 S296 206 326 138" fill="none" stroke="url(#systemPath)" strokeWidth="2" />
+              </svg>
+
+              <div className="relative grid h-full grid-cols-3 items-center gap-3">
+                {[
+                  ['Input', FileSearch],
+                  ['Graph', Database],
+                  ['Delivery', RadioTower],
+                ].map(([label, Icon]) => {
+                  const DisplayIcon = Icon as typeof FileSearch
+                  return (
+                    <div key={label as string} className="relative z-10 border border-[#2b313d] bg-[#11161f] p-3 text-center">
+                      <DisplayIcon className="mx-auto h-5 w-5 text-[#d89a80]" aria-hidden="true" />
+                      <div className="mt-3 text-[11px] font-medium uppercase tracking-[0.16em] text-[#d7dee9]">{label as string}</div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div className="absolute bottom-4 left-4 right-4 border border-[#2b313d] bg-[rgba(11,14,20,0.86)] px-3 py-2 backdrop-blur">
+                <div className="flex items-center justify-between gap-3 text-[12px]">
+                  <span className="text-[#9da6b5]">Normalized graph records</span>
+                  <span className="font-mono tabular-nums text-white">{records}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="relative mt-4 grid grid-cols-3 gap-px overflow-hidden border border-[#202530] bg-[#202530]">
+            {[
+              ['50ms', 'Query Latency'],
+              ['44+', 'Signal Sources'],
+              ['24/7', 'Monitoring'],
+            ].map(([value, label]) => (
+              <div key={label} className="bg-[#10141b] px-4 py-3 text-center">
+                <div className="font-mono text-lg font-semibold tabular-nums text-white">{value}</div>
+                <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-[#7d8797]">{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function SystemPage() {
-  const { t } = useLanguage()
   const [mounted, setMounted] = useState(false)
   const [stats, setStats] = useState<Stats>({})
 
   useEffect(() => {
     setMounted(true)
+
+    let cancelled = false
     fetch(`${API_BASE}/public/stats`)
-      .then(res => res.json())
-      .then(data => setStats(data))
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled) setStats(data)
+      })
       .catch(() => {})
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
-  const metricCards = [
-    {
-      label: 'AI Sources',
-      value: stats.papers ?? 0,
-      icon: (
-        <svg className="w-8 h-8 text-ink-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Citations',
-      value: stats.community_posts ?? 0,
-      icon: (
-        <svg className="w-8 h-8 text-caution" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Products',
-      value: stats.products ?? 0,
-      icon: (
-        <svg className="w-8 h-8 text-ink-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Answer Records',
-      value: stats.youtube_videos ?? 0,
-      icon: (
-        <svg className="w-8 h-8 text-red-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Catalog Files',
-      value: stats.drive_files ?? 0,
-      icon: (
-        <svg className="w-8 h-8 text-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Graph Records',
-      value: stats.total ?? 0,
-      icon: (
-        <svg className="w-8 h-8 text-ink-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
-        </svg>
-      ),
-    },
-  ]
+  const metricTiles = useMemo(
+    () => [
+      {
+        label: 'AI Sources',
+        value: formatCount(stats.papers, '2.4M'),
+        detail: 'Answer surfaces, research sources, model outputs, and external evidence monitored across markets.',
+      },
+      {
+        label: 'Citation Records',
+        value: formatCount(stats.community_posts, '18K'),
+        detail: 'Source mentions and evidence trails connected back to prompts, categories, and competitors.',
+      },
+      {
+        label: 'Product Signals',
+        value: formatCount(stats.products, '94K'),
+        detail: 'Catalog, offer, retailer, and product facts normalized for commerce-aware AI visibility.',
+      },
+    ],
+    [stats]
+  )
 
-  const groupedSources = {
-    1: (stats.data_sources ?? []).filter(s => s.tier === 1),
-    2: (stats.data_sources ?? []).filter(s => s.tier === 2),
-    3: (stats.data_sources ?? []).filter(s => s.tier === 3),
-  }
+  const sources = (stats.data_sources && stats.data_sources.length > 0 ? stats.data_sources : fallbackSources).slice(0, 8)
 
   return (
-    <div className="min-h-screen bg-canvas">
-      {/* Navigation */}
+    <div className="min-h-screen overflow-x-hidden bg-canvas text-ink">
       <PublicNavbar activeHref="/system/" />
 
-      {/* Hero */}
-      <section className="relative pt-32 pb-20 overflow-hidden">
-        <div className="absolute inset-0 bg-stripe-gradient" />
-        <div className="absolute inset-0 bg-grid opacity-50" />
-        <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-red-soft-bg0/10 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-surface-warm0/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
+      <main id="main-content">
+        <section className="relative border-b border-[#1f232c] px-5 pb-16 pt-28 md:px-8 md:pb-24 md:pt-36 lg:px-12">
+          <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_75%_28%,rgba(241,90,43,0.12),transparent_24%),radial-gradient(circle_at_20%_18%,rgba(255,255,255,0.055),transparent_20%),linear-gradient(180deg,#090909_0%,#0b0e13_100%)]" />
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(255,255,255,0.024)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.024)_1px,transparent_1px)] bg-[length:48px_48px]" />
 
-        <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
-          <div
-            className={`inline-flex items-center gap-2 px-4 py-2 bg-surface/80 backdrop-blur border border-divider-light/50 rounded-full shadow-soft mb-8 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-          >
-            <svg className="w-4 h-4 text-red-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
-            </svg>
-            <span className="text-sm text-ink-2 font-medium">AI Commerce Graph</span>
-          </div>
+          <div className="mx-auto grid max-w-marketing gap-14 lg:grid-cols-[0.86fr_1.14fr] lg:items-center">
+            <div className={`transition-[opacity,transform] duration-500 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'}`}>
+              <div className="brand-eyebrow mb-6">
+                <Server className="h-4 w-4" aria-hidden="true" />
+                Visibility Infrastructure
+              </div>
 
-          <h1
-            className={`text-5xl md:text-6xl lg:text-7xl font-bold text-ink leading-[1.1] mb-6 transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-          >
-            System
-            <br />
-            <span className="gradient-text">for AI Commerce</span>
-          </h1>
+              <h1 className="max-w-[740px] font-serif text-[44px] font-normal leading-[1.02] text-white md:text-[70px]" style={{ textWrap: 'balance' }}>
+                The operating system for answer-engine visibility.
+              </h1>
 
-          <p
-            className={`text-lg md:text-xl text-ink-2 mb-10 max-w-2xl mx-auto leading-relaxed transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-          >
-            The data system behind Alignment: collect AI answer, source, shopping, product, and broker signals; clean them into a commerce graph; deliver them to dashboards, proxies, APIs, and agents.
-          </p>
-        </div>
-      </section>
+              <p className="mt-6 max-w-[620px] text-[16px] leading-8 text-[#aab3c2] md:text-[18px]">
+                Alignment collects messy AI answers, sources, shopping signals, and product facts, then turns them into a normalized commerce graph your teams can inspect, query, and activate.
+              </p>
 
-      {/* Data Pipeline Architecture */}
-      <section className="py-24 bg-canvas">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-soft-bg border border-divider rounded-full text-red-soft text-sm font-medium mb-6">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              How It Works
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-ink mb-4">
-              AI Commerce Graph <span className="gradient-text">Architecture</span>
-            </h2>
-            <p className="text-lg text-ink-2 max-w-2xl mx-auto">
-              From messy AI outputs to normalized market intelligence and machine-callable commerce infrastructure.
-            </p>
-          </div>
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                <Link
+                  href="/contact/"
+                  className="inline-flex min-h-[50px] items-center justify-center gap-2 border border-[#3a251d] bg-[#13100f] px-7 text-sm font-medium uppercase tracking-[0.14em] text-[#f0d8ca] transition-colors hover:border-[#f15a2b]/50 hover:bg-[#18110e]"
+                >
+                  Book Demo <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+                <a
+                  href="#architecture"
+                  className="inline-flex min-h-[50px] items-center justify-center gap-2 border border-[#2a3140] bg-transparent px-7 text-sm font-medium uppercase tracking-[0.14em] text-[#c7cfdb] transition-colors hover:border-[#3a4658] hover:text-white"
+                >
+                  See The Flow <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </a>
+              </div>
 
-          {/* Pipeline Flow */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 items-stretch">
-            {pipelineStages.map((stage, i) => (
-              <div key={stage.key} className="relative flex flex-col items-center">
-                <div className="w-full bg-surface rounded-2xl border border-divider-light p-6 shadow-soft text-center hover:shadow-medium transition-shadow duration-300">
-                  <div className="w-14 h-14 mx-auto mb-4 bg-surface-warm rounded-2xl flex items-center justify-center text-ink-2">
-                    {stage.icon}
+              <div className="mt-10 grid max-w-[620px] grid-cols-3 gap-px border border-[#202530] bg-[#202530]">
+                {metricTiles.map((metric) => (
+                  <div key={metric.label} className="bg-[#10141b] p-4">
+                    <div className="font-mono text-xl font-semibold tabular-nums text-white">{metric.value}</div>
+                    <div className="mt-2 text-[10px] uppercase tracking-[0.14em] text-[#7d8797]">{metric.label}</div>
                   </div>
-                  <span className="inline-block px-3 py-1 bg-surface-muted rounded-full text-xs font-bold text-ink-2 tracking-wider mb-3">
-                    {stage.label}
-                  </span>
-                  <p className="text-sm text-ink-3 leading-relaxed">{stage.description}</p>
-                </div>
-
-                {/* Arrow connector (hidden on last item) */}
-                {i < pipelineStages.length - 1 && (
-                  <>
-                    {/* Desktop arrow */}
-                    <div className="hidden lg:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-8 h-8 bg-surface border border-divider-light rounded-full shadow-sm">
-                      <svg className="w-4 h-4 text-ink-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                    {/* Mobile arrow */}
-                    <div className="flex lg:hidden items-center justify-center w-8 h-8 my-2">
-                      <svg className="w-4 h-4 text-ink-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                      </svg>
-                    </div>
-                  </>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Live Data Metrics */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-stripe-gradient" />
-        <div className="absolute inset-0 bg-grid opacity-30" />
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-red-soft-bg0/[0.07] rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-soft-bg border border-divider rounded-full text-red-soft text-sm font-medium mb-6">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              Real-Time Stats
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-ink mb-4">
-              Commerce Graph <span className="gradient-text">Metrics</span>
-            </h2>
-            <p className="text-lg text-ink-2 max-w-2xl mx-auto">
-              Our pipeline continuously ingests data — here are the latest numbers, updated in real time.
-            </p>
-          </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
-            {metricCards.map((card, i) => (
-              <div
-                key={i}
-                className="bg-surface/70 backdrop-blur-sm border border-divider-light/60 rounded-2xl p-6 lg:p-8 shadow-soft text-center opacity-0 animate-fade-in-up"
-                style={{ animationDelay: `${i * 100}ms`, animationFillMode: 'forwards' }}
-              >
-                <div className="flex justify-center mb-4">{card.icon}</div>
-                <div className="text-4xl md:text-5xl font-bold font-mono text-ink mb-2">
-                  {card.value > 0 ? <AnimatedCounter target={card.value} /> : '—'}
-                </div>
-                <div className="text-sm text-ink-3 font-medium">{card.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Data Sources */}
-      <section className="py-24 bg-canvas">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-soft-bg border border-divider rounded-full text-red-soft text-sm font-medium mb-6">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-              Intelligence Network
+            <div className={`transition-[opacity,transform] delay-150 duration-500 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+              <SystemDiagram stats={stats} />
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-ink mb-4">
-              Signal <span className="gradient-text">Sources</span>
-            </h2>
-            <p className="text-lg text-ink-2 max-w-2xl mx-auto">
-              We monitor and ingest from authoritative sources across the AI ecosystem, organized by reliability tier.
-            </p>
           </div>
+        </section>
 
-          {stats.data_sources && stats.data_sources.length > 0 ? (
-            <div className="space-y-10">
-              {([1, 2, 3] as const).map(tier => {
-                const sources = groupedSources[tier]
-                if (sources.length === 0) return null
-                const badge = tierBadge(tier)
+        <section id="architecture" className="scroll-mt-24 px-5 py-16 md:px-8 md:py-24 lg:px-12">
+          <div className="mx-auto max-w-marketing">
+            <SectionIntro eyebrow="Architecture" title="A four-layer pipeline built for repeatable evidence.">
+              Each layer does one job clearly: collect the raw signal, normalize it, model the relationships, and activate the output where teams already work.
+            </SectionIntro>
+
+            <div className="grid gap-px overflow-hidden border border-[#222832] bg-[#222832] lg:grid-cols-4">
+              {pipelineStages.map((stage, index) => {
+                const Icon = stage.icon
                 return (
-                  <div key={tier}>
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 ${badge.bg} ${badge.text} border ${badge.border} rounded-full text-xs font-bold tracking-wider`}>
-                        {tier === 1 && (
-                          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
-                        )}
-                        {badge.label}
-                      </span>
-                      <div className="flex-1 h-px bg-surface-muted" />
+                  <article key={stage.label} className="group relative bg-[#0d1016] p-6">
+                    <div className="flex items-center justify-between gap-4">
+                      <Icon className="h-6 w-6 text-[#d89a80]" aria-hidden="true" />
+                      <span className="font-mono text-[11px] tabular-nums text-[#687386]">0{index + 1}</span>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                      {sources.map((source, j) => (
-                        <div
-                          key={j}
-                          className="bg-surface rounded-xl border border-divider-light p-4 shadow-soft hover:shadow-medium hover:border-divider transition-all duration-200 flex items-center gap-2.5"
-                        >
-                          <SourceIcon name={source.name} />
-                          <span className="text-sm font-medium text-ink flex-1 min-w-0 truncate">{source.name}</span>
-                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full flex-shrink-0 ${typeTag(source.type)}`}>
-                            {source.type}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                    <div className="mt-8 text-[11px] font-medium uppercase tracking-[0.16em] text-[#7d8797]">{stage.meta}</div>
+                    <h3 className="mt-3 text-2xl font-medium text-white">{stage.label}</h3>
+                    <p className="mt-4 text-sm leading-7 text-[#9da6b5]">{stage.detail}</p>
+                    {index < pipelineStages.length - 1 && (
+                      <ArrowRight className="absolute right-5 top-6 hidden h-4 w-4 text-[#4a5362] lg:block" aria-hidden="true" />
+                    )}
+                  </article>
                 )
               })}
             </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-              {Array.from({ length: 10 }).map((_, i) => (
-                <div key={i} className="bg-surface rounded-xl border border-divider-light p-4 animate-pulse">
-                  <div className="h-4 bg-surface-muted rounded w-3/4 mb-2" />
-                  <div className="h-3 bg-surface-warm rounded w-1/3" />
-                </div>
+          </div>
+        </section>
+
+        <section className="border-y border-[#1f232c] bg-[#0b0e14] px-5 py-16 md:px-8 md:py-24 lg:px-12">
+          <div className="mx-auto grid max-w-marketing gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+            <div>
+              <div className="brand-eyebrow mb-5">
+                <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                Data Trust
+              </div>
+              <h2 className="font-serif text-4xl font-normal leading-[1.04] text-white md:text-5xl" style={{ textWrap: 'balance' }}>
+                Visibility data only matters when teams can trust the path behind it.
+              </h2>
+              <p className="mt-5 text-base leading-7 text-[#aab3c2]">
+                The system is designed around stable records, source tiers, and traceable evidence rather than screenshots or one-off prompt runs.
+              </p>
+            </div>
+
+            <div className="grid gap-px overflow-hidden border border-[#222832] bg-[#222832] md:grid-cols-2">
+              {reliabilityControls.map(([title, desc]) => (
+                <article key={title} className="bg-[#0d1016] p-5">
+                  <CheckCircle2 className="h-5 w-5 text-[#d89a80]" aria-hidden="true" />
+                  <h3 className="mt-5 text-lg font-medium text-white">{title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-[#9da6b5]">{desc}</p>
+                </article>
               ))}
             </div>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
 
-      {/* Technical Stack */}
-      <section className="py-24 relative">
-        <div className="absolute inset-0 bg-dots opacity-30" />
-        <div className="relative max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-soft-bg border border-divider rounded-full text-red-soft text-sm font-medium mb-6">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-              </svg>
-              Built With
+        <section className="px-5 py-16 md:px-8 md:py-24 lg:px-12">
+          <div className="mx-auto max-w-marketing">
+            <SectionIntro eyebrow="Live Graph" title="Metrics that explain the system, not just the scale.">
+              The public stats are treated as supporting proof points. The main story is the shape of the pipeline and how every signal becomes usable.
+            </SectionIntro>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              {metricTiles.map((metric) => (
+                <MetricTile key={metric.label} label={metric.label} value={metric.value} detail={metric.detail} />
+              ))}
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-ink mb-4">
-              Technical <span className="gradient-text">Stack</span>
-            </h2>
-            <p className="text-lg text-ink-2 max-w-2xl mx-auto">
-              Modern, battle-tested technologies powering every layer of the pipeline.
-            </p>
           </div>
+        </section>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-            {techStack.map((tech, i) => (
-              <div
-                key={i}
-                className="group bg-surface rounded-2xl border border-divider-light p-6 shadow-soft hover:shadow-medium transition-all duration-300 text-center opacity-0 animate-fade-in-up"
-                style={{ animationDelay: `${i * 80}ms`, animationFillMode: 'forwards' }}
-              >
-                <TechLogo name={tech.name} logo={tech.logo} />
-                <span className="text-sm font-semibold text-ink">{tech.name}</span>
+        <section className="border-y border-[#1f232c] bg-[#0a0d12] px-5 py-16 md:px-8 md:py-24 lg:px-12">
+          <div className="mx-auto max-w-marketing">
+            <SectionIntro eyebrow="Activation" title="The graph becomes useful through the channels teams already need.">
+              Dashboards are only one surface. Alignment is structured so visibility intelligence can reach pages, APIs, agents, analytics, and operations.
+            </SectionIntro>
+
+            <div className="grid gap-px overflow-hidden border border-[#222832] bg-[#222832] md:grid-cols-2 lg:grid-cols-4">
+              {outputChannels.map((channel) => {
+                const Icon = channel.icon
+                return (
+                  <article key={channel.label} className="bg-[#0d1016] p-5">
+                    <Icon className="h-6 w-6 text-[#d89a80]" aria-hidden="true" />
+                    <h3 className="mt-6 text-lg font-medium text-white">{channel.label}</h3>
+                    <p className="mt-3 text-sm leading-6 text-[#9da6b5]">{channel.desc}</p>
+                  </article>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section className="px-5 py-16 md:px-8 md:py-24 lg:px-12">
+          <div className="mx-auto max-w-marketing">
+            <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div>
+                <div className="brand-eyebrow mb-5">
+                  <Gauge className="h-4 w-4" aria-hidden="true" />
+                  Signal Network
+                </div>
+                <h2 className="max-w-2xl font-serif text-4xl font-normal leading-[1.04] text-white md:text-5xl" style={{ textWrap: 'balance' }}>
+                  Sources are organized by reliability before they influence decisions.
+                </h2>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+              <p className="max-w-md text-sm leading-6 text-[#9da6b5]">
+                Live deployments can use custom source policies by market, product line, region, and answer surface.
+              </p>
+            </div>
 
-      {/* CTA */}
-      <section className="py-24 bg-surface-warm relative">
-        <div className="absolute inset-0 bg-dots opacity-30" />
-        <div className="relative max-w-4xl mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-surface border border-divider-light rounded-full text-ink-2 text-sm font-medium mb-6 shadow-soft">
-            <svg className="w-4 h-4 text-red-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-            Start Exploring
+            <div className="grid gap-px overflow-hidden border border-[#222832] bg-[#222832] sm:grid-cols-2 lg:grid-cols-4">
+              {sources.map((source) => (
+                <article key={`${source.name}-${source.tier}-${source.type}`} className="flex min-w-0 items-center gap-3 bg-[#0d1016] p-4">
+                  <SourceLogo source={source} />
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-sm font-medium text-white">{source.name}</h3>
+                    <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-[#7d8797]">
+                      Tier {source.tier} / {source.type}
+                    </p>
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-ink mb-6">
-            Explore the <span className="gradient-text">AI Commerce Graph</span>
+        </section>
+
+        <section className="mx-auto max-w-cta px-5 pb-20 text-center md:px-12 md:pb-28">
+          <div className="brand-eyebrow mx-auto mb-6">
+            <Network className="h-4 w-4" aria-hidden="true" />
+            Operate The Graph
+          </div>
+          <h2 className="font-serif text-[34px] font-normal leading-tight text-white md:text-[46px]" style={{ textWrap: 'balance' }}>
+            Turn fragmented AI visibility into infrastructure your teams can run.
           </h2>
-          <p className="text-lg text-ink-2 mb-10 max-w-2xl mx-auto">
-            Dive into the latest GEO research, AI news, and intelligence curated by our pipeline — updated daily.
+          <p className="mx-auto mt-4 max-w-[680px] text-[15px] leading-7 text-[#9fa8b8]">
+            Start with the system view, then connect the graph to dashboards, optimized pages, APIs, and agent-facing commerce workflows.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
-              href="/insights/"
-              className="group inline-flex items-center justify-center gap-2 bg-ink hover:bg-[#2d2d2c] text-ink-inv font-semibold px-8 py-4 rounded-xl transition-all shadow-large hover:shadow-glow btn-shine"
+              href="/contact/"
+              className="inline-flex min-h-[50px] w-full items-center justify-center gap-2 border border-[#3a251d] bg-[#13100f] px-7 text-sm font-medium uppercase tracking-[0.14em] text-[#f0d8ca] transition-colors hover:border-[#f15a2b]/50 hover:bg-[#18110e] sm:w-auto"
             >
-              Explore Insights
-              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
+              Book Demo <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
             <Link
               href="/technology/"
-              className="inline-flex items-center justify-center gap-2 bg-surface border border-divider-light hover:border-divider text-ink-2 font-semibold px-8 py-4 rounded-xl transition-all shadow-soft hover:shadow-medium"
+              className="inline-flex min-h-[50px] w-full items-center justify-center gap-2 border border-[#2a3140] bg-transparent px-7 text-sm font-medium uppercase tracking-[0.14em] text-[#c7cfdb] transition-colors hover:border-[#3a4658] hover:text-white sm:w-auto"
             >
-              Learn the Science
+              View Technology
             </Link>
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
 
-      {/* Footer */}
       <Footer />
+
+      <style jsx>{`
+        .system-flow {
+          stroke-dasharray: 10 12;
+          animation: system-flow 7s linear infinite;
+        }
+        .system-flow-delay {
+          animation-delay: 1.4s;
+        }
+        .system-bar {
+          animation: system-bar 4.5s ease-in-out infinite;
+          transform-origin: left;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .system-flow,
+          .system-bar {
+            animation: none;
+          }
+        }
+        @keyframes system-flow {
+          from {
+            stroke-dashoffset: 0;
+          }
+          to {
+            stroke-dashoffset: -88;
+          }
+        }
+        @keyframes system-bar {
+          0%,
+          100% {
+            transform: scaleX(0.62);
+            opacity: 0.72;
+          }
+          50% {
+            transform: scaleX(0.92);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </div>
   )
 }

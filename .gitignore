@@ -8,6 +8,8 @@ out/
 # Production build
 build/
 dist/
+output/
+tmp/
 
 # System files
 .DS_Store

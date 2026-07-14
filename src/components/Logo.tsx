@@ -1,7 +1,6 @@
 'use client'
 
 import Image from 'next/image'
-import { useLanguage } from '@/lib/LanguageContext'
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl'
@@ -9,13 +8,10 @@ interface LogoProps {
   className?: string
 }
 
-export default function Logo({ 
-  size = 'md', 
-  showText = false,
-  className = '' 
+export default function Logo({
+  size = 'md',
+  className = '',
 }: LogoProps) {
-  const { lang } = useLanguage()
-  
   const sizeMap = {
     sm: { width: 120, height: 40 },
     md: { width: 160, height: 53 },
@@ -27,9 +23,9 @@ export default function Logo({
 
   return (
     <div className={`flex items-center ${className}`}>
-      <Image 
-        src="/logo.png"
-        alt="Alignment AI - 合璧智能"
+      <Image
+        src="/logo-white.svg"
+        alt="Alignment AI"
         width={width}
         height={height}
         className="object-contain"
@@ -39,7 +35,6 @@ export default function Logo({
   )
 }
 
-// Icon-only version (just the symbol without text)
 interface LogoIconProps {
   size?: number
   className?: string
@@ -47,7 +42,7 @@ interface LogoIconProps {
 
 export function LogoIcon({ size = 40, className = '' }: LogoIconProps) {
   return (
-    <Image 
+    <Image
       src="/logo-icon.png"
       alt="Alignment AI"
       width={size}
@@ -58,7 +53,6 @@ export function LogoIcon({ size = 40, className = '' }: LogoIconProps) {
   )
 }
 
-// Full logo with text (the complete logo image)
 interface LogoFullProps {
   width?: number
   height?: number
@@ -67,9 +61,9 @@ interface LogoFullProps {
 
 export function LogoFull({ width = 180, height = 120, className = '' }: LogoFullProps) {
   return (
-    <Image 
-      src="/logo.svg"
-      alt="Alignment AI - 合璧智能"
+    <Image
+      src="/logo-white.svg"
+      alt="Alignment AI"
       width={width}
       height={height}
       className={`object-contain ${className}`}

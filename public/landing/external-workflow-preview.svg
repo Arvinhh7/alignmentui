@@ -1,0 +1,157 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Alignment AI External Workflow</title>
+  <desc id="desc">A polished web workflow asset with fixed spacing, showing the external GEO process from brand input to dashboard insights.</desc>
+  <defs>
+    <pattern id="grid" width="56" height="56" patternUnits="userSpaceOnUse">
+      <path d="M56 0H0V56" stroke="#FFFFFF" stroke-opacity="0.04" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(880 430) rotate(125) scale(760 360)">
+      <stop stop-color="#F15A2B" stop-opacity="0.20"/>
+      <stop offset="0.58" stop-color="#F15A2B" stop-opacity="0.045"/>
+      <stop offset="1" stop-color="#F15A2B" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="panel" x1="96" y1="270" x2="1504" y2="790" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#121414"/>
+      <stop offset="0.55" stop-color="#0B0B0B"/>
+      <stop offset="1" stop-color="#15100E"/>
+    </linearGradient>
+    <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#FF8A3D"/>
+      <stop offset="1" stop-color="#F15A2B"/>
+    </linearGradient>
+    <filter id="shadow" x="-18%" y="-25%" width="136%" height="150%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 12 12" refX="10.4" refY="6" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M1.4 1.5L10.6 6L1.4 10.5V1.5Z" fill="#F15A2B"/>
+    </marker>
+    <style>
+      .eyebrow { font: 700 13px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: .14em; fill: #F15A2B; }
+      .headline { font: 680 44px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: 0; fill: #F7F7F4; }
+      .subhead { font: 500 18px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: 0; fill: #A5ABB2; }
+      .stage { font: 700 11px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: .11em; fill: #F15A2B; }
+      .title { font: 680 17px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: 0; fill: #F7F7F4; }
+      .copy { font: 500 12.5px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: 0; fill: #8F949C; }
+      .output-title { font: 650 14px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: 0; fill: #DDE0E3; }
+      .footer { font: 500 15px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: 0; fill: #969BA2; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#090909"/>
+  <rect width="1600" height="900" fill="url(#grid)"/>
+  <rect width="1600" height="900" fill="url(#glow)"/>
+  <path d="M0 244.5H1600" stroke="#FFFFFF" stroke-opacity="0.08"/>
+
+  <text x="128" y="116" class="eyebrow">EXTERNAL WORKFLOW</text>
+  <text x="128" y="168" class="headline">From brand input to visible AI outcomes</text>
+  <text x="128" y="212" class="subhead">A partner-facing view of the GEO workflow, simplified around product value and measurable progress.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="96" y="284" width="1408" height="500" rx="34" fill="#0B0B0B" stroke="#252525" stroke-width="1.2"/>
+    <rect x="97" y="285" width="1406" height="498" rx="33" fill="url(#panel)" opacity="0.72"/>
+  </g>
+
+  <path d="M280 442H340" stroke="#F15A2B" stroke-width="2.2" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M500 442H560" stroke="#F15A2B" stroke-width="2.2" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M720 442H780" stroke="#F15A2B" stroke-width="2.2" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M940 442H1000" stroke="#F15A2B" stroke-width="2.2" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M1160 442H1220" stroke="#F15A2B" stroke-width="2.2" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M1360 442H1380" stroke="#F15A2B" stroke-width="2.2" stroke-linecap="round" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="120" y="348" width="160" height="188" rx="22" fill="#0F1111" stroke="#6A3324" stroke-width="1.35"/>
+    <text x="148" y="382" class="stage">INPUT</text>
+    <text x="148" y="430" class="title">Brand</text>
+    <text x="148" y="455" class="title">Input</text>
+    <text x="148" y="496" class="copy">Products</text>
+    <text x="148" y="516" class="copy">Pages</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="340" y="348" width="160" height="188" rx="22" fill="#15100E" stroke="#6A3324" stroke-width="1.35"/>
+    <text x="368" y="382" class="stage">AUDIT</text>
+    <text x="368" y="430" class="title">GEO</text>
+    <text x="368" y="455" class="title">Audit</text>
+    <text x="368" y="496" class="copy">Baseline</text>
+    <text x="368" y="516" class="copy">scan</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="560" y="348" width="160" height="188" rx="22" fill="#0F1111" stroke="#6A3324" stroke-width="1.35"/>
+    <text x="588" y="382" class="stage">MONITOR</text>
+    <text x="588" y="430" class="title">AI Visibility</text>
+    <text x="588" y="455" class="title">Monitoring</text>
+    <text x="588" y="496" class="copy">Mentions</text>
+    <text x="588" y="516" class="copy">Citations</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="780" y="348" width="160" height="188" rx="22" fill="#15100E" stroke="#6A3324" stroke-width="1.35"/>
+    <text x="808" y="382" class="stage">SCORE</text>
+    <text x="808" y="430" class="title">Scoring &amp;</text>
+    <text x="808" y="455" class="title">Benchmarking</text>
+    <text x="808" y="496" class="copy">Competitor</text>
+    <text x="808" y="516" class="copy">comparison</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1000" y="348" width="160" height="188" rx="22" fill="#15100E" stroke="#6A3324" stroke-width="1.35"/>
+    <text x="1028" y="382" class="stage">ACTION</text>
+    <text x="1028" y="430" class="title">Recommen-</text>
+    <text x="1028" y="455" class="title">dations</text>
+    <text x="1028" y="496" class="copy">Prioritized</text>
+    <text x="1028" y="516" class="copy">next steps</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1220" y="348" width="140" height="188" rx="22" fill="#0F1111" stroke="#6A3324" stroke-width="1.35"/>
+    <text x="1248" y="382" class="stage">TRACK</text>
+    <text x="1248" y="430" class="title">Continuous</text>
+    <text x="1248" y="455" class="title">Tracking</text>
+    <text x="1248" y="496" class="copy">Progress</text>
+    <text x="1248" y="516" class="copy">monitoring</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1380" y="348" width="100" height="188" rx="22" fill="#15100E" stroke="#6A3324" stroke-width="1.35"/>
+    <text x="1404" y="382" class="stage">VIEW</text>
+    <text x="1404" y="430" class="title">Dash-</text>
+    <text x="1404" y="455" class="title">board</text>
+    <text x="1404" y="496" class="copy">Insights</text>
+  </g>
+
+  <path d="M420 536V584" stroke="#FFFFFF" stroke-opacity="0.28" stroke-width="1.2"/>
+  <path d="M640 536V584" stroke="#FFFFFF" stroke-opacity="0.28" stroke-width="1.2"/>
+  <path d="M860 536V584" stroke="#FFFFFF" stroke-opacity="0.28" stroke-width="1.2"/>
+  <path d="M1080 536V584" stroke="#FFFFFF" stroke-opacity="0.28" stroke-width="1.2"/>
+
+  <g filter="url(#shadow)">
+    <rect x="331" y="584" width="178" height="86" rx="18" fill="#0E1010" stroke="#6A3324" stroke-width="1.25"/>
+    <text x="357" y="622" class="output-title">Website Readiness</text>
+    <text x="357" y="645" class="output-title">Score</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="551" y="584" width="178" height="86" rx="18" fill="#0E1010" stroke="#6A3324" stroke-width="1.25"/>
+    <text x="577" y="622" class="output-title">Prompt-level AI</text>
+    <text x="577" y="645" class="output-title">Results</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="771" y="584" width="178" height="86" rx="18" fill="#0E1010" stroke="#6A3324" stroke-width="1.25"/>
+    <text x="797" y="617" class="output-title">Visibility / Citation</text>
+    <text x="797" y="640" class="output-title">Competitor Metrics</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="991" y="584" width="178" height="86" rx="18" fill="#0E1010" stroke="#6A3324" stroke-width="1.25"/>
+    <text x="1017" y="617" class="output-title">Content / Technical</text>
+    <text x="1017" y="640" class="output-title">Distribution Actions</text>
+  </g>
+
+  <g opacity="0.9">
+    <rect x="128" y="820" width="16" height="16" rx="4" fill="url(#orange)"/>
+    <text x="154" y="834" class="footer">Fixed grid: equal card spacing, stable text padding, aligned supporting outputs</text>
+    <text x="1180" y="834" class="footer">Alignment AI &#183; external workflow asset</text>
+  </g>
+</svg>

@@ -9,15 +9,15 @@ import { ShieldCheck, Zap, PenTool, Share2, BarChart3, LineChart, LayoutDashboar
 
 // Map route → icon + DESIGN.md token colors
 const routeIconMap: Record<string, { icon: LucideIcon; bg: string; color: string }> = {
-  '/dashboard/overview':          { icon: LayoutDashboard, bg: 'bg-surface-warm',  color: 'text-ink-2' },
-  '/dashboard/agents':            { icon: Bot,             bg: 'bg-surface-warm',  color: 'text-ink-2' },
+  '/dashboard/overview':          { icon: LayoutDashboard, bg: 'bg-sage-bg',       color: 'text-sage' },
+  '/dashboard/agents':            { icon: Bot,             bg: 'bg-sage-bg',       color: 'text-sage' },
   '/dashboard/geo-audit':         { icon: ShieldCheck,     bg: 'bg-red-soft-bg',   color: 'text-red-soft' },
   '/dashboard/geo-optimization':  { icon: Zap,             bg: 'bg-caution-bg',    color: 'text-caution' },
-  '/dashboard/geo-content':       { icon: PenTool,         bg: 'bg-surface-warm',  color: 'text-ink-2' },
-  '/dashboard/geo-distribution':  { icon: Share2,          bg: 'bg-surface-warm',  color: 'text-ink-2' },
+  '/dashboard/geo-content':       { icon: PenTool,         bg: 'bg-sage-bg',       color: 'text-sage' },
+  '/dashboard/geo-distribution':  { icon: Share2,          bg: 'bg-sage-bg',       color: 'text-sage' },
   '/dashboard/geo-monitor':       { icon: TrendingUp,      bg: 'bg-sage-bg',       color: 'text-sage' },
-  '/dashboard/ga4-attribution':   { icon: LineChart,       bg: 'bg-surface-warm',  color: 'text-ink-2' },
-  '/dashboard/prompts':           { icon: MessageSquare,   bg: 'bg-surface-warm',  color: 'text-ink-2' },
+  '/dashboard/ga4-attribution':   { icon: LineChart,       bg: 'bg-sage-bg',       color: 'text-sage' },
+  '/dashboard/prompts':           { icon: MessageSquare,   bg: 'bg-sage-bg',       color: 'text-sage' },
   '/dashboard/brand-hub':         { icon: Database,        bg: 'bg-caution-bg',    color: 'text-caution' },
 }
 
@@ -44,14 +44,14 @@ export default function Header({ title, subtitle }: HeaderProps) {
   const ModuleIcon = routeInfo?.icon
 
   return (
-    <header className="h-16 bg-surface border-b border-divider-light flex items-center justify-between px-6">
+    <header className="h-16 bg-[#080A0E]/92 border-b border-divider-light flex items-center justify-between px-6 backdrop-blur">
       {/* Left — Title */}
       <div className="flex items-center gap-3">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${routeInfo ? routeInfo.bg : 'bg-surface-warm'}`}>
+        <div className={`w-10 h-10 rounded-xl border border-[rgba(243,107,43,0.18)] flex items-center justify-center ${routeInfo ? routeInfo.bg : 'bg-sage-bg'}`}>
           {ModuleIcon ? (
             <ModuleIcon className={`w-5 h-5 ${routeInfo!.color}`} strokeWidth={2} />
           ) : (
-            <span className="text-xl font-semibold text-ink-2">W</span>
+            <span className="text-xl font-semibold text-sage">W</span>
           )}
         </div>
         <div>
@@ -66,12 +66,12 @@ export default function Header({ title, subtitle }: HeaderProps) {
 
         {/* Live indicator */}
         <div className="flex items-center gap-2 text-[13px] text-ink-3">
-          <span className="w-1.5 h-1.5 bg-sage rounded-full animate-pulse" />
+          <span className="w-1.5 h-1.5 bg-sage rounded-full shadow-[0_0_14px_rgba(243,107,43,0.55)] animate-pulse" />
           Updated {lastUpdate}
         </div>
 
         {/* Signal Engine Status */}
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-warm rounded-lg border border-divider-light">
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-surface/80 rounded-lg border border-divider-light">
           <span className="text-[13px] font-medium text-ink-2">{t.dashboard.signalStatus}:</span>
           <span className={`text-[13px] font-semibold ${isActive ? 'text-sage' : 'text-red-soft'}`}>
             {isActive ? t.dashboard.active : 'Inactive'}
@@ -82,7 +82,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
         </div>
 
         {/* Last Update */}
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-warm rounded-lg border border-divider-light">
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-surface/80 rounded-lg border border-divider-light">
           <span className="text-[13px] text-ink-3">{t.dashboard.lastUpdate}:</span>
           <span className="text-[13px] font-medium text-ink">{lastUpdate}</span>
           <svg className="w-3.5 h-3.5 text-ink-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
